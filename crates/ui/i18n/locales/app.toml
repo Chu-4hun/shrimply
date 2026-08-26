@@ -6,6 +6,9 @@ es = "Un editor de vídeo sencillo"
 fr = "Un éditeur vidéo simple"
 de = "Ein einfacher Videoeditor"
 ja = "シンプルな動画エディター"
+"zh-CN" = "一个简单的视频编辑器"
+"zh-TW" = "一個簡單的影片編輯器"
+"ko" = "간단한 비디오 편집기"
 
 ["About Shrimply"]
 en = "About Shrimply"
@@ -13,6 +16,9 @@ es = "Acerca de Shrimply"
 fr = "À propos de Shrimply"
 de = "Über Shrimply"
 ja = "Shrimply について"
+"zh-CN" = "关于 Shrimply"
+"zh-TW" = "關於 Shrimply"
+"ko" = "Shrimply 정보"
 
 ["Add Server"]
 en = "Add Server"
@@ -20,6 +26,9 @@ es = "Añadir servidor"
 fr = "Ajouter un serveur"
 de = "Server hinzufügen"
 ja = "サーバーを追加"
+"zh-CN" = "添加服务器"
+"zh-TW" = "新增伺服器"
+"ko" = "서버 추가"
 
 ["Available"]
 en = "Available"
@@ -27,6 +36,9 @@ es = "Disponible"
 fr = "Disponible"
 de = "Verfügbar"
 ja = "利用可能"
+"zh-CN" = "可用"
+"zh-TW" = "可用"
+"ko" = "사용 가능"
 
 ["Background Color"]
 en = "Background Color"
@@ -34,6 +46,9 @@ es = "Color de fondo"
 fr = "Couleur d’arrière-plan"
 de = "Hintergrundfarbe"
 ja = "背景色"
+"zh-CN" = "背景颜色"
+"zh-TW" = "背景顏色"
+"ko" = "배경색"
 
 ["Black"]
 en = "Black"
@@ -41,6 +56,9 @@ es = "Negro"
 fr = "Noir"
 de = "Schwarz"
 ja = "黒"
+"zh-CN" = "黑色"
+"zh-TW" = "黑色"
+"ko" = "검정"
 
 ["Blender Binary"]
 en = "Blender Binary"
@@ -48,6 +66,9 @@ es = "Ejecutable de Blender"
 fr = "Exécutable Blender"
 de = "Blender-Programmdatei"
 ja = "Blender 実行ファイル"
+"zh-CN" = "Blender 可执行文件"
+"zh-TW" = "Blender 執行檔"
+"ko" = "Blender 실행 파일"
 
 ["Blender"]
 en = "Blender"
@@ -55,6 +76,9 @@ es = "Blender"
 fr = "Blender"
 de = "Blender"
 ja = "Blender"
+"zh-CN" = "Blender"
+"zh-TW" = "Blender"
+"ko" = "Blender"
 
 ["Blue"]
 en = "Blue"
@@ -62,6 +86,9 @@ es = "Azul"
 fr = "Bleu"
 de = "Blau"
 ja = "青"
+"zh-CN" = "蓝色"
+"zh-TW" = "藍色"
+"ko" = "파랑"
 
 ["Brown"]
 en = "Brown"
@@ -69,6 +96,9 @@ es = "Marrón"
 fr = "Marron"
 de = "Braun"
 ja = "茶"
+"zh-CN" = "棕色"
+"zh-TW" = "棕色"
+"ko" = "갈색"
 
 ["Built with help from"]
 en = "Built with help from"
@@ -76,6 +106,9 @@ es = "Creado con la ayuda de"
 fr = "Créé avec l’aide de"
 de = "Erstellt mit Hilfe von"
 ja = "協力"
+"zh-CN" = "由以下人士协助开发"
+"zh-TW" = "感謝以下人士協助開發"
+"ko" = "다음 분들의 도움으로 제작"
 
 ["Caption background color"]
 en = "Caption background color"
@@ -83,6 +116,9 @@ es = "Color de fondo de los subtítulos"
 fr = "Couleur d’arrière-plan des sous-titres"
 de = "Hintergrundfarbe der Untertitel"
 ja = "字幕の背景色"
+"zh-CN" = "字幕背景颜色"
+"zh-TW" = "字幕背景顏色"
+"ko" = "자막 배경색"
 
 ["Captions"]
 en = "Captions"
@@ -90,6 +126,9 @@ es = "Subtítulos"
 fr = "Sous-titres"
 de = "Untertitel"
 ja = "字幕"
+"zh-CN" = "字幕"
+"zh-TW" = "字幕"
+"ko" = "자막"
 
 ["CUDA"]
 en = "CUDA"
@@ -97,6 +136,9 @@ es = "CUDA"
 fr = "CUDA"
 de = "CUDA"
 ja = "CUDA"
+"zh-CN" = "CUDA"
+"zh-TW" = "CUDA"
+"ko" = "CUDA"
 
 ["Checking server URL"]
 en = "Checking server URL"
@@ -104,6 +146,9 @@ es = "Comprobando la URL del servidor"
 fr = "Vérification de l’URL du serveur"
 de = "Server-URL wird geprüft"
 ja = "サーバー URL を確認中"
+"zh-CN" = "检查服务器 URL"
+"zh-TW" = "檢查伺服器 URL"
+"ko" = "서버 URL 확인 중"
 
 ["Checking…"]
 en = "Checking…"
@@ -111,6 +156,9 @@ es = "Comprobando…"
 fr = "Vérification…"
 de = "Wird geprüft…"
 ja = "確認中…"
+"zh-CN" = "检查…"
+"zh-TW" = "檢查…"
+"ko" = "확인 중…"
 
 ["Choose Blender Binary"]
 en = "Choose Blender Binary"
@@ -118,6 +166,9 @@ es = "Elegir el ejecutable de Blender"
 fr = "Choisir l’exécutable Blender"
 de = "Blender-Programmdatei auswählen"
 ja = "Blender 実行ファイルを選択"
+"zh-CN" = "选择 Blender 可执行文件"
+"zh-TW" = "選擇 Blender 執行檔"
+"ko" = "Blender 실행 파일 선택"
 
 ["Clear Blender binary"]
 en = "Clear Blender binary"
@@ -125,6 +176,9 @@ es = "Borrar el ejecutable de Blender"
 fr = "Effacer l’exécutable Blender"
 de = "Blender-Programmdatei entfernen"
 ja = "Blender 実行ファイルの設定を消去"
+"zh-CN" = "清除 Blender 可执行文件"
+"zh-TW" = "清除 Blender 執行檔"
+"ko" = "Blender 실행 파일 지우기"
 
 ["Clear History"]
 en = "Clear History"
@@ -132,6 +186,9 @@ es = "Borrar historial"
 fr = "Effacer l’historique"
 de = "Verlauf löschen"
 ja = "履歴を消去"
+"zh-CN" = "清除历史记录"
+"zh-TW" = "清除紀錄"
+"ko" = "기록 지우기"
 
 ["Click to type, drag horizontally to adjust"]
 en = "Click to type, drag horizontally to adjust"
@@ -139,6 +196,9 @@ es = "Haz clic para escribir o arrastra horizontalmente para ajustar"
 fr = "Cliquez pour saisir ou faites glisser horizontalement pour ajuster"
 de = "Zum Eingeben klicken oder zum Anpassen horizontal ziehen"
 ja = "クリックして入力、または横にドラッグして調整"
+"zh-CN" = "单击输入，水平拖动调整"
+"zh-TW" = "按一下以輸入，水平拖曳以調整"
+"ko" = "클릭하여 입력하고 가로로 드래그하여 조정"
 
 ["Compute"]
 en = "Compute"
@@ -146,6 +206,9 @@ es = "Cómputo"
 fr = "Calcul"
 de = "Rechenleistung"
 ja = "コンピュート"
+"zh-CN" = "计算"
+"zh-TW" = "計算"
+"ko" = "연산"
 
 ["Confirm color"]
 en = "Confirm color"
@@ -153,6 +216,9 @@ es = "Confirmar color"
 fr = "Confirmer la couleur"
 de = "Farbe bestätigen"
 ja = "色を確定"
+"zh-CN" = "确认颜色"
+"zh-TW" = "確認顏色"
+"ko" = "색상 확인"
 
 ["Create Project"]
 en = "Create Project"
@@ -160,6 +226,9 @@ es = "Crear proyecto"
 fr = "Créer un projet"
 de = "Projekt erstellen"
 ja = "プロジェクトを作成"
+"zh-CN" = "创建项目"
+"zh-TW" = "建立專案"
+"ko" = "프로젝트 만들기"
 
 ["Cut selection"]
 en = "Cut selection"
@@ -167,6 +236,9 @@ es = "Cortar selección"
 fr = "Couper la sélection"
 de = "Auswahl ausschneiden"
 ja = "選択範囲を切り取り"
+"zh-CN" = "剪切所选内容"
+"zh-TW" = "剪下所選內容"
+"ko" = "선택 영역 잘라내기"
 
 ["Dark Blue"]
 en = "Dark Blue"
@@ -174,6 +246,9 @@ es = "Azul oscuro"
 fr = "Bleu foncé"
 de = "Dunkelblau"
 ja = "濃い青"
+"zh-CN" = "深蓝色"
+"zh-TW" = "深藍色"
+"ko" = "진한 파란색"
 
 ["Dark Brown"]
 en = "Dark Brown"
@@ -181,6 +256,9 @@ es = "Marrón oscuro"
 fr = "Marron foncé"
 de = "Dunkelbraun"
 ja = "濃い茶"
+"zh-CN" = "深棕色"
+"zh-TW" = "深棕色"
+"ko" = "진한 갈색"
 
 ["Dark Gray 1"]
 en = "Dark Gray 1"
@@ -188,6 +266,9 @@ es = "Gris oscuro 1"
 fr = "Gris foncé 1"
 de = "Dunkelgrau 1"
 ja = "濃いグレー 1"
+"zh-CN" = "深灰色1"
+"zh-TW" = "深灰色1"
+"ko" = "진한 회색 1"
 
 ["Dark Gray 2"]
 en = "Dark Gray 2"
@@ -195,6 +276,9 @@ es = "Gris oscuro 2"
 fr = "Gris foncé 2"
 de = "Dunkelgrau 2"
 ja = "濃いグレー 2"
+"zh-CN" = "深灰色2"
+"zh-TW" = "深灰色2"
+"ko" = "진한 회색 2"
 
 ["Dark Gray 3"]
 en = "Dark Gray 3"
@@ -202,6 +286,9 @@ es = "Gris oscuro 3"
 fr = "Gris foncé 3"
 de = "Dunkelgrau 3"
 ja = "濃いグレー 3"
+"zh-CN" = "深灰色3"
+"zh-TW" = "深灰色3"
+"ko" = "진한 회색 3"
 
 ["Dark Gray 4"]
 en = "Dark Gray 4"
@@ -209,6 +296,9 @@ es = "Gris oscuro 4"
 fr = "Gris foncé 4"
 de = "Dunkelgrau 4"
 ja = "濃いグレー 4"
+"zh-CN" = "深灰色4"
+"zh-TW" = "深灰色4"
+"ko" = "진한 회색 4"
 
 ["Dark Green"]
 en = "Dark Green"
@@ -216,6 +306,9 @@ es = "Verde oscuro"
 fr = "Vert foncé"
 de = "Dunkelgrün"
 ja = "濃い緑"
+"zh-CN" = "深绿色"
+"zh-TW" = "深綠色"
+"ko" = "진한 초록"
 
 ["Dark Orange"]
 en = "Dark Orange"
@@ -223,6 +316,9 @@ es = "Naranja oscuro"
 fr = "Orange foncé"
 de = "Dunkelorange"
 ja = "濃いオレンジ"
+"zh-CN" = "深橙色"
+"zh-TW" = "深橘色"
+"ko" = "진한 주황"
 
 ["Dark Purple"]
 en = "Dark Purple"
@@ -230,6 +326,9 @@ es = "Morado oscuro"
 fr = "Violet foncé"
 de = "Dunkelviolett"
 ja = "濃い紫"
+"zh-CN" = "深紫色"
+"zh-TW" = "深紫色"
+"ko" = "진한 보라"
 
 ["Dark Red"]
 en = "Dark Red"
@@ -237,6 +336,9 @@ es = "Rojo oscuro"
 fr = "Rouge foncé"
 de = "Dunkelrot"
 ja = "濃い赤"
+"zh-CN" = "深红色"
+"zh-TW" = "深紅色"
+"ko" = "진한 빨간색"
 
 ["Dark Yellow"]
 en = "Dark Yellow"
@@ -244,6 +346,9 @@ es = "Amarillo oscuro"
 fr = "Jaune foncé"
 de = "Dunkelgelb"
 ja = "濃い黄"
+"zh-CN" = "深黄色"
+"zh-TW" = "深黃色"
+"ko" = "진한 노란색"
 
 ["Default Text Font"]
 en = "Default Text Font"
@@ -251,6 +356,9 @@ es = "Fuente de texto predeterminada"
 fr = "Police de texte par défaut"
 de = "Standard-Textschrift"
 ja = "既定のテキストフォント"
+"zh-CN" = "默认文本字体"
+"zh-TW" = "預設文字字型"
+"ko" = "기본 텍스트 글꼴"
 
 ["Default Visual Duration"]
 en = "Default Visual Duration"
@@ -258,6 +366,9 @@ es = "Duración visual predeterminada"
 fr = "Durée visuelle par défaut"
 de = "Standarddauer visueller Elemente"
 ja = "ビジュアルの既定の長さ"
+"zh-CN" = "默认视觉素材时长"
+"zh-TW" = "預設視覺素材長度"
+"ko" = "기본 비주얼 클립 길이"
 
 ["Delete Server"]
 en = "Delete Server"
@@ -265,6 +376,9 @@ es = "Eliminar servidor"
 fr = "Supprimer le serveur"
 de = "Server löschen"
 ja = "サーバーを削除"
+"zh-CN" = "删除服务器"
+"zh-TW" = "刪除伺服器"
+"ko" = "서버 삭제"
 
 ["Delete selection"]
 en = "Delete selection"
@@ -272,6 +386,9 @@ es = "Eliminar selección"
 fr = "Supprimer la sélection"
 de = "Auswahl löschen"
 ja = "選択範囲を削除"
+"zh-CN" = "删除所选内容"
+"zh-TW" = "刪除所選內容"
+"ko" = "선택 영역 삭제"
 
 ["Device"]
 en = "Device"
@@ -279,6 +396,9 @@ es = "Dispositivo"
 fr = "Périphérique"
 de = "Gerät"
 ja = "デバイス"
+"zh-CN" = "设备"
+"zh-TW" = "裝置"
+"ko" = "장치"
 
 ["Distance in pixels for timeline, beat, and preview snapping"]
 en = "Distance in pixels for timeline, beat, and preview snapping"
@@ -286,6 +406,9 @@ es = "Distancia en píxeles para el ajuste a la línea de tiempo, ritmos y vista
 fr = "Distance en pixels pour l’alignement sur la timeline, les temps et l’aperçu"
 de = "Abstand in Pixeln zum Einrasten an Zeitleiste, Takten und Vorschau"
 ja = "タイムライン、ビート、プレビューのスナップ距離（ピクセル）"
+"zh-CN" = "时间线、节拍和预览的吸附距离（像素）"
+"zh-TW" = "時間軸、節拍與預覽的吸附距離（像素）"
+"ko" = "타임라인, 비트 및 미리보기 스냅 거리(픽셀)"
 
 ["Drop shadow extent around the video frame in pixels"]
 en = "Drop shadow extent around the video frame in pixels"
@@ -293,6 +416,9 @@ es = "Extensión en píxeles de la sombra alrededor del fotograma"
 fr = "Étendue en pixels de l’ombre autour de l’image vidéo"
 de = "Ausdehnung des Schattens um das Videobild in Pixeln"
 ja = "動画フレーム周囲のドロップシャドウの大きさ（ピクセル）"
+"zh-CN" = "视频帧周围的阴影范围（像素）"
+"zh-TW" = "影片畫面周圍的陰影範圍（像素）"
+"ko" = "비디오 프레임 주변 그림자 범위(픽셀)"
 
 ["Edit Server"]
 en = "Edit Server"
@@ -300,6 +426,9 @@ es = "Editar servidor"
 fr = "Modifier le serveur"
 de = "Server bearbeiten"
 ja = "サーバーを編集"
+"zh-CN" = "编辑服务器"
+"zh-TW" = "編輯伺服器"
+"ko" = "서버 편집"
 
 ["External"]
 en = "External"
@@ -307,6 +436,9 @@ es = "Externo"
 fr = "Externe"
 de = "Extern"
 ja = "外部"
+"zh-CN" = "外部"
+"zh-TW" = "外部"
+"ko" = "외부"
 
 ["Features"]
 en = "Features"
@@ -314,6 +446,9 @@ es = "Funciones"
 fr = "Fonctionnalités"
 de = "Funktionen"
 ja = "機能"
+"zh-CN" = "功能"
+"zh-TW" = "功能"
+"ko" = "기능"
 
 ["Fix typo: %{correction}"]
 en = "Fix typo: %{correction}"
@@ -321,6 +456,9 @@ es = "Corregir error: %{correction}"
 fr = "Corriger la faute : %{correction}"
 de = "Tippfehler korrigieren: %{correction}"
 ja = "入力ミスを修正: %{correction}"
+"zh-CN" = "修正拼写错误：%{correction}"
+"zh-TW" = "修正拼字錯誤：%{correction}"
+"ko" = "오타 수정: %{correction}"
 
 ["Font Size"]
 en = "Font Size"
@@ -328,6 +466,9 @@ es = "Tamaño de fuente"
 fr = "Taille de police"
 de = "Schriftgröße"
 ja = "フォントサイズ"
+"zh-CN" = "字体大小"
+"zh-TW" = "字型大小"
+"ko" = "글꼴 크기"
 
 ["General"]
 en = "General"
@@ -335,6 +476,9 @@ es = "General"
 fr = "Général"
 de = "Allgemein"
 ja = "一般"
+"zh-CN" = "常规"
+"zh-TW" = "一般"
+"ko" = "일반"
 
 ["Green"]
 en = "Green"
@@ -342,6 +486,9 @@ es = "Verde"
 fr = "Vert"
 de = "Grün"
 ja = "緑"
+"zh-CN" = "绿色"
+"zh-TW" = "綠色"
+"ko" = "초록"
 
 ["Height"]
 en = "Height"
@@ -349,6 +496,9 @@ es = "Altura"
 fr = "Hauteur"
 de = "Höhe"
 ja = "高さ"
+"zh-CN" = "高度"
+"zh-TW" = "高度"
+"ko" = "높이"
 
 ["Hexadecimal color"]
 en = "Hexadecimal color"
@@ -356,6 +506,9 @@ es = "Color hexadecimal"
 fr = "Couleur hexadécimale"
 de = "Hexadezimale Farbe"
 ja = "16 進数カラー"
+"zh-CN" = "十六进制颜色"
+"zh-TW" = "十六進位顏色"
+"ko" = "16진수 색상"
 
 ["History"]
 en = "History"
@@ -363,6 +516,9 @@ es = "Historial"
 fr = "Historique"
 de = "Verlauf"
 ja = "履歴"
+"zh-CN" = "历史记录"
+"zh-TW" = "紀錄"
+"ko" = "기록"
 
 ["Image Pool CPU Budget"]
 en = "Image Pool CPU Budget"
@@ -370,6 +526,9 @@ es = "Presupuesto de CPU para el grupo de imágenes"
 fr = "Budget CPU du cache d’images"
 de = "CPU-Budget des Bildpools"
 ja = "画像プールの CPU 予算"
+"zh-CN" = "图像池 CPU 预算"
+"zh-TW" = "影像池 CPU 預算"
+"ko" = "이미지 풀 CPU 예산"
 
 ["Import Kdenlive as Shrimply Project"]
 en = "Import Kdenlive as Shrimply Project"
@@ -377,6 +536,9 @@ es = "Importar Kdenlive como proyecto de Shrimply"
 fr = "Importer Kdenlive comme projet Shrimply"
 de = "Kdenlive als Shrimply-Projekt importieren"
 ja = "Kdenlive を Shrimply プロジェクトとして読み込む"
+"zh-CN" = "将 Kdenlive 导入为 Shrimply 项目"
+"zh-TW" = "將 Kdenlive 匯入為 Shrimply 專案"
+"ko" = "Kdenlive를 Shrimply 프로젝트로 가져오기"
 
 ["Import OTIO as Shrimply Project"]
 en = "Import OTIO as Shrimply Project"
@@ -384,6 +546,9 @@ es = "Importar OTIO como proyecto de Shrimply"
 fr = "Importer OTIO comme projet Shrimply"
 de = "OTIO als Shrimply-Projekt importieren"
 ja = "OTIO を Shrimply プロジェクトとして読み込む"
+"zh-CN" = "将 OTIO 导入为 Shrimply 项目"
+"zh-TW" = "將 OTIO 匯入為 Shrimply 專案"
+"ko" = "OTIO를 Shrimply 프로젝트로 가져오기"
 
 ["Import"]
 en = "Import"
@@ -391,6 +556,9 @@ es = "Importar"
 fr = "Importer"
 de = "Importieren"
 ja = "読み込む"
+"zh-CN" = "导入"
+"zh-TW" = "匯入"
+"ko" = "가져오기"
 
 ["Inference Servers"]
 en = "Inference Servers"
@@ -398,6 +566,9 @@ es = "Servidores de inferencia"
 fr = "Serveurs d’inférence"
 de = "Inferenzserver"
 ja = "推論サーバー"
+"zh-CN" = "推理服务器"
+"zh-TW" = "推理伺服器"
+"ko" = "추론 서버"
 
 ["Jobs"]
 en = "Jobs"
@@ -405,6 +576,9 @@ es = "Tareas"
 fr = "Tâches"
 de = "Aufträge"
 ja = "ジョブ"
+"zh-CN" = "任务"
+"zh-TW" = "工作"
+"ko" = "작업"
 
 ["Kdenlive project imported with limitations"]
 en = "Kdenlive project imported with limitations"
@@ -412,6 +586,9 @@ es = "Proyecto de Kdenlive importado con limitaciones"
 fr = "Projet Kdenlive importé avec des limitations"
 de = "Kdenlive-Projekt mit Einschränkungen importiert"
 ja = "Kdenlive プロジェクトは一部制限付きで読み込まれました"
+"zh-CN" = "Kdenlive 项目已导入，但存在限制"
+"zh-TW" = "Kdenlive 專案已匯入，但有部分限制"
+"ko" = "Kdenlive 프로젝트를 일부 제한과 함께 가져왔습니다"
 
 ["Keyboard Shortcuts"]
 en = "Keyboard Shortcuts"
@@ -419,6 +596,9 @@ es = "Atajos de teclado"
 fr = "Raccourcis clavier"
 de = "Tastenkürzel"
 ja = "キーボードショートカット"
+"zh-CN" = "键盘快捷键"
+"zh-TW" = "鍵盤快速鍵"
+"ko" = "키보드 단축키"
 
 ["Last edited %{date}"]
 en = "Last edited %{date}"
@@ -426,6 +606,9 @@ es = "Última edición: %{date}"
 fr = "Dernière modification : %{date}"
 de = "Zuletzt bearbeitet: %{date}"
 ja = "最終編集: %{date}"
+"zh-CN" = "上次编辑时间：%{date}"
+"zh-TW" = "上次編輯時間：%{date}"
+"ko" = "마지막 편집: %{date}"
 
 ["Last edited time unavailable"]
 en = "Last edited time unavailable"
@@ -433,6 +616,9 @@ es = "Hora de la última edición no disponible"
 fr = "Heure de dernière modification indisponible"
 de = "Zeit der letzten Bearbeitung nicht verfügbar"
 ja = "最終編集日時を取得できません"
+"zh-CN" = "最后编辑时间不可用"
+"zh-TW" = "最後編輯時間不可用"
+"ko" = "마지막으로 수정한 시간을 확인할 수 없습니다."
 
 ["Light Blue"]
 en = "Light Blue"
@@ -440,6 +626,9 @@ es = "Azul claro"
 fr = "Bleu clair"
 de = "Hellblau"
 ja = "明るい青"
+"zh-CN" = "浅蓝色"
+"zh-TW" = "淺藍色"
+"ko" = "연한 파랑"
 
 ["Light Brown"]
 en = "Light Brown"
@@ -447,6 +636,9 @@ es = "Marrón claro"
 fr = "Marron clair"
 de = "Hellbraun"
 ja = "明るい茶"
+"zh-CN" = "浅棕色"
+"zh-TW" = "淺棕色"
+"ko" = "연한 갈색"
 
 ["Light Gray 1"]
 en = "Light Gray 1"
@@ -454,6 +646,9 @@ es = "Gris claro 1"
 fr = "Gris clair 1"
 de = "Hellgrau 1"
 ja = "明るいグレー 1"
+"zh-CN" = "浅灰色1"
+"zh-TW" = "淺灰色1"
+"ko" = "밝은 회색 1"
 
 ["Light Gray 2"]
 en = "Light Gray 2"
@@ -461,6 +656,9 @@ es = "Gris claro 2"
 fr = "Gris clair 2"
 de = "Hellgrau 2"
 ja = "明るいグレー 2"
+"zh-CN" = "浅灰色2"
+"zh-TW" = "淺灰色2"
+"ko" = "밝은 회색 2"
 
 ["Light Gray 3"]
 en = "Light Gray 3"
@@ -468,6 +666,9 @@ es = "Gris claro 3"
 fr = "Gris clair 3"
 de = "Hellgrau 3"
 ja = "明るいグレー 3"
+"zh-CN" = "浅灰色3"
+"zh-TW" = "淺灰色3"
+"ko" = "밝은 회색 3"
 
 ["Light Gray 4"]
 en = "Light Gray 4"
@@ -475,6 +676,9 @@ es = "Gris claro 4"
 fr = "Gris clair 4"
 de = "Hellgrau 4"
 ja = "明るいグレー 4"
+"zh-CN" = "浅灰色4"
+"zh-TW" = "淺灰色4"
+"ko" = "밝은 회색 4"
 
 ["Light Green"]
 en = "Light Green"
@@ -482,6 +686,9 @@ es = "Verde claro"
 fr = "Vert clair"
 de = "Hellgrün"
 ja = "明るい緑"
+"zh-CN" = "浅绿色"
+"zh-TW" = "淺綠色"
+"ko" = "연한 초록"
 
 ["Light Orange"]
 en = "Light Orange"
@@ -489,6 +696,9 @@ es = "Naranja claro"
 fr = "Orange clair"
 de = "Hellorange"
 ja = "明るいオレンジ"
+"zh-CN" = "浅橙色"
+"zh-TW" = "淺橘色"
+"ko" = "연한 주황"
 
 ["Light Purple"]
 en = "Light Purple"
@@ -496,6 +706,9 @@ es = "Morado claro"
 fr = "Violet clair"
 de = "Hellviolett"
 ja = "明るい紫"
+"zh-CN" = "浅紫色"
+"zh-TW" = "淺紫色"
+"ko" = "연한 보라"
 
 ["Light Red"]
 en = "Light Red"
@@ -503,6 +716,9 @@ es = "Rojo claro"
 fr = "Rouge clair"
 de = "Hellrot"
 ja = "明るい赤"
+"zh-CN" = "浅红色"
+"zh-TW" = "淺紅色"
+"ko" = "연한 빨강"
 
 ["Light Yellow"]
 en = "Light Yellow"
@@ -510,6 +726,9 @@ es = "Amarillo claro"
 fr = "Jaune clair"
 de = "Hellgelb"
 ja = "明るい黄"
+"zh-CN" = "浅黄色"
+"zh-TW" = "淺黃色"
+"ko" = "연한 노랑"
 
 ["Loading project…"]
 en = "Loading project…"
@@ -517,6 +736,9 @@ es = "Cargando proyecto…"
 fr = "Chargement du projet…"
 de = "Projekt wird geladen…"
 ja = "プロジェクトを読み込み中…"
+"zh-CN" = "正在加载项目…"
+"zh-TW" = "正在載入專案…"
+"ko" = "프로젝트 로드 중…"
 
 ["Lock ratio"]
 en = "Lock ratio"
@@ -524,6 +746,9 @@ es = "Bloquear proporción"
 fr = "Verrouiller les proportions"
 de = "Seitenverhältnis sperren"
 ja = "縦横比を固定"
+"zh-CN" = "锁定宽高比"
+"zh-TW" = "鎖定長寬比"
+"ko" = "가로세로 비율 고정"
 
 ["Maximum number of active video decoder sessions"]
 en = "Maximum number of active video decoder sessions"
@@ -531,6 +756,9 @@ es = "Número máximo de sesiones activas del decodificador de vídeo"
 fr = "Nombre maximal de sessions actives de décodage vidéo"
 de = "Maximale Anzahl aktiver Videodecoder-Sitzungen"
 ja = "有効な動画デコーダーセッションの最大数"
+"zh-CN" = "活动视频解码器会话的最大数量"
+"zh-TW" = "活動影片解碼器會話的最大數量"
+"ko" = "최대 활성 비디오 디코더 세션 수"
 
 ["New Project"]
 en = "New Project"
@@ -538,6 +766,9 @@ es = "Nuevo proyecto"
 fr = "Nouveau projet"
 de = "Neues Projekt"
 ja = "新規プロジェクト"
+"zh-CN" = "新项目"
+"zh-TW" = "新專案"
+"ko" = "새 프로젝트"
 
 ["No Matching Projects"]
 en = "No Matching Projects"
@@ -545,6 +776,9 @@ es = "No hay proyectos coincidentes"
 fr = "Aucun projet correspondant"
 de = "Keine passenden Projekte"
 ja = "一致するプロジェクトはありません"
+"zh-CN" = "没有匹配的项目"
+"zh-TW" = "沒有匹配的專案"
+"ko" = "일치하는 프로젝트가 없습니다."
 
 ["No Recent Projects"]
 en = "No Recent Projects"
@@ -552,6 +786,9 @@ es = "No hay proyectos recientes"
 fr = "Aucun projet récent"
 de = "Keine kürzlich verwendeten Projekte"
 ja = "最近使ったプロジェクトはありません"
+"zh-CN" = "没有最近使用的项目"
+"zh-TW" = "沒有最近使用的專案"
+"ko" = "최근 프로젝트가 없습니다"
 
 ["Not configured"]
 en = "Not configured"
@@ -559,6 +796,9 @@ es = "Sin configurar"
 fr = "Non configuré"
 de = "Nicht konfiguriert"
 ja = "未設定"
+"zh-CN" = "未配置"
+"zh-TW" = "尚未設定"
+"ko" = "구성되지 않음"
 
 ["OTIO Project Settings"]
 en = "OTIO Project Settings"
@@ -566,6 +806,9 @@ es = "Ajustes del proyecto OTIO"
 fr = "Paramètres du projet OTIO"
 de = "OTIO-Projekteinstellungen"
 ja = "OTIO プロジェクト設定"
+"zh-CN" = "OTIO 项目设置"
+"zh-TW" = "OTIO 專案設定"
+"ko" = "OTIO 프로젝트 설정"
 
 ["OTIO does not include the Kdenlive project profile."]
 en = "OTIO does not include the Kdenlive project profile."
@@ -573,6 +816,9 @@ es = "OTIO no incluye el perfil del proyecto de Kdenlive."
 fr = "OTIO n’inclut pas le profil du projet Kdenlive."
 de = "OTIO enthält das Kdenlive-Projektprofil nicht."
 ja = "OTIO には Kdenlive のプロジェクトプロファイルが含まれていません。"
+"zh-CN" = "OTIO 不包括 Kdenlive 项目配置文件。"
+"zh-TW" = "OTIO 不包括 Kdenlive 專案設定檔。"
+"ko" = "OTIO에는 Kdenlive 프로젝트 프로필이 포함되어 있지 않습니다."
 
 ["OTIO imported with limitations"]
 en = "OTIO imported with limitations"
@@ -580,6 +826,9 @@ es = "OTIO importado con limitaciones"
 fr = "OTIO importé avec des limitations"
 de = "OTIO mit Einschränkungen importiert"
 ja = "OTIO は一部制限付きで読み込まれました"
+"zh-CN" = "OTIO 已导入，但存在限制"
+"zh-TW" = "OTIO 已匯入，但有部分限制"
+"ko" = "OTIO를 일부 제한과 함께 가져왔습니다"
 
 ["Open Project"]
 en = "Open Project"
@@ -587,6 +836,9 @@ es = "Abrir proyecto"
 fr = "Ouvrir un projet"
 de = "Projekt öffnen"
 ja = "プロジェクトを開く"
+"zh-CN" = "打开项目"
+"zh-TW" = "開啟專案"
+"ko" = "프로젝트 열기"
 
 ["Open Project…"]
 en = "Open Project…"
@@ -594,6 +846,9 @@ es = "Abrir proyecto…"
 fr = "Ouvrir un projet…"
 de = "Projekt öffnen…"
 ja = "プロジェクトを開く…"
+"zh-CN" = "打开项目…"
+"zh-TW" = "開啟專案…"
+"ko" = "프로젝트 열기…"
 
 ["Open the GTK color picker"]
 en = "Open the GTK color picker"
@@ -601,6 +856,9 @@ es = "Abrir el selector de color de GTK"
 fr = "Ouvrir le sélecteur de couleur GTK"
 de = "GTK-Farbauswahl öffnen"
 ja = "GTK カラーピッカーを開く"
+"zh-CN" = "打开 GTK 颜色选择器"
+"zh-TW" = "開啟 GTK 顏色選擇器"
+"ko" = "GTK 색상 선택기 열기"
 
 ["Orange"]
 en = "Orange"
@@ -608,6 +866,9 @@ es = "Naranja"
 fr = "Orange"
 de = "Orange"
 ja = "オレンジ"
+"zh-CN" = "橙色"
+"zh-TW" = "橘色"
+"ko" = "주황"
 
 ["Pick a color from the screen"]
 en = "Pick a color from the screen"
@@ -615,6 +876,9 @@ es = "Elegir un color de la pantalla"
 fr = "Choisir une couleur à l’écran"
 de = "Farbe vom Bildschirm auswählen"
 ja = "画面から色を選択"
+"zh-CN" = "从屏幕上拾取颜色"
+"zh-TW" = "從螢幕擷取顏色"
+"ko" = "화면에서 색상 선택"
 
 ["Play / Pause"]
 en = "Play / Pause"
@@ -622,6 +886,9 @@ es = "Reproducir / Pausar"
 fr = "Lecture / Pause"
 de = "Wiedergabe / Pause"
 ja = "再生 / 一時停止"
+"zh-CN" = "播放/暂停"
+"zh-TW" = "播放/暫停"
+"ko" = "재생/일시 정지"
 
 ["Preferences"]
 en = "Preferences"
@@ -629,6 +896,9 @@ es = "Preferencias"
 fr = "Préférences"
 de = "Einstellungen"
 ja = "設定"
+"zh-CN" = "偏好设置"
+"zh-TW" = "偏好設定"
+"ko" = "환경설정"
 
 ["Preview"]
 en = "Preview"
@@ -636,6 +906,9 @@ es = "Vista previa"
 fr = "Aperçu"
 de = "Vorschau"
 ja = "プレビュー"
+"zh-CN" = "预览"
+"zh-TW" = "預覽"
+"ko" = "미리보기"
 
 ["Project Name"]
 en = "Project Name"
@@ -643,6 +916,9 @@ es = "Nombre del proyecto"
 fr = "Nom du projet"
 de = "Projektname"
 ja = "プロジェクト名"
+"zh-CN" = "项目名称"
+"zh-TW" = "專案名稱"
+"ko" = "프로젝트 이름"
 
 ["Project Settings"]
 en = "Project Settings"
@@ -650,6 +926,9 @@ es = "Ajustes del proyecto"
 fr = "Paramètres du projet"
 de = "Projekteinstellungen"
 ja = "プロジェクト設定"
+"zh-CN" = "项目设置"
+"zh-TW" = "專案設定"
+"ko" = "프로젝트 설정"
 
 ["Project options"]
 en = "Project options"
@@ -657,6 +936,9 @@ es = "Opciones del proyecto"
 fr = "Options du projet"
 de = "Projektoptionen"
 ja = "プロジェクトオプション"
+"zh-CN" = "项目选项"
+"zh-TW" = "專案選項"
+"ko" = "프로젝트 옵션"
 
 ["Project saved to the new location"]
 en = "Project saved to the new location"
@@ -664,6 +946,9 @@ es = "Proyecto guardado en la nueva ubicación"
 fr = "Projet enregistré au nouvel emplacement"
 de = "Projekt am neuen Speicherort gespeichert"
 ja = "プロジェクトを新しい場所に保存しました"
+"zh-CN" = "项目已保存到新位置"
+"zh-TW" = "專案已儲存至新位置"
+"ko" = "새 위치에 프로젝트가 저장되었습니다."
 
 ["Protocol"]
 en = "Protocol"
@@ -671,6 +956,9 @@ es = "Protocolo"
 fr = "Protocole"
 de = "Protokoll"
 ja = "プロトコル"
+"zh-CN" = "协议"
+"zh-TW" = "通訊協定"
+"ko" = "프로토콜"
 
 ["Purple"]
 en = "Purple"
@@ -678,6 +966,9 @@ es = "Morado"
 fr = "Violet"
 de = "Violett"
 ja = "紫"
+"zh-CN" = "紫色"
+"zh-TW" = "紫色"
+"ko" = "보라"
 
 ["Reading and converting Kdenlive timeline…"]
 en = "Reading and converting Kdenlive timeline…"
@@ -685,6 +976,9 @@ es = "Leyendo y convirtiendo la línea de tiempo de Kdenlive…"
 fr = "Lecture et conversion de la timeline Kdenlive…"
 de = "Kdenlive-Zeitleiste wird gelesen und konvertiert…"
 ja = "Kdenlive タイムラインを読み込んで変換中…"
+"zh-CN" = "阅读并转换 Kdenlive 时间线…"
+"zh-TW" = "閱讀並轉換 Kdenlive 時間線…"
+"ko" = "Kdenlive 타임라인을 읽고 변환하는 중…"
 
 ["Recent"]
 en = "Recent"
@@ -692,6 +986,9 @@ es = "Recientes"
 fr = "Récentes"
 de = "Zuletzt verwendet"
 ja = "最近使った色"
+"zh-CN" = "最近使用"
+"zh-TW" = "最近使用"
+"ko" = "최근 항목"
 
 ["Red"]
 en = "Red"
@@ -699,6 +996,9 @@ es = "Rojo"
 fr = "Rouge"
 de = "Rot"
 ja = "赤"
+"zh-CN" = "红色"
+"zh-TW" = "紅色"
+"ko" = "빨강"
 
 ["Redo"]
 en = "Redo"
@@ -706,6 +1006,9 @@ es = "Rehacer"
 fr = "Rétablir"
 de = "Wiederholen"
 ja = "やり直す"
+"zh-CN" = "重做"
+"zh-TW" = "重做"
+"ko" = "다시 실행"
 
 ["Replace selected item properties"]
 en = "Replace selected item properties"
@@ -713,6 +1016,9 @@ es = "Reemplazar las propiedades del elemento seleccionado"
 fr = "Remplacer les propriétés de l’élément sélectionné"
 de = "Eigenschaften des ausgewählten Elements ersetzen"
 ja = "選択項目のプロパティを置き換え"
+"zh-CN" = "替换所选项目属性"
+"zh-TW" = "替換所選項目屬性"
+"ko" = "선택한 항목 속성 바꾸기"
 
 ["Reserved memory"]
 en = "Reserved memory"
@@ -720,6 +1026,9 @@ es = "Memoria reservada"
 fr = "Mémoire réservée"
 de = "Reservierter Speicher"
 ja = "予約済みメモリ"
+"zh-CN" = "预留内存"
+"zh-TW" = "預留記憶體"
+"ko" = "예약된 메모리"
 
 ["Retry"]
 en = "Retry"
@@ -727,6 +1036,9 @@ es = "Reintentar"
 fr = "Réessayer"
 de = "Erneut versuchen"
 ja = "再試行"
+"zh-CN" = "重试"
+"zh-TW" = "重試"
+"ko" = "다시 시도"
 
 ["Ripple cut"]
 en = "Ripple cut"
@@ -734,6 +1046,9 @@ es = "Corte con desplazamiento"
 fr = "Coupe avec raccord"
 de = "Ripple-Schnitt"
 ja = "リップルカット"
+"zh-CN" = "波纹剪切"
+"zh-TW" = "波紋剪下"
+"ko" = "리플 잘라내기"
 
 ["Ripple trim selected clip to playhead"]
 en = "Ripple trim selected clip to playhead"
@@ -741,6 +1056,9 @@ es = "Recortar con desplazamiento el clip seleccionado hasta el cabezal"
 fr = "Rogner avec raccord le clip sélectionné jusqu’à la tête de lecture"
 de = "Ausgewählten Clip per Ripple-Trim bis zum Abspielkopf kürzen"
 ja = "選択したクリップを再生ヘッドまでリップルトリム"
+"zh-CN" = "将所选剪辑波纹修剪到播放头"
+"zh-TW" = "將所選剪輯波紋修剪至播放磁頭"
+"ko" = "선택한 클립을 재생 헤드까지 리플 트림"
 
 ["Saturation and value"]
 en = "Saturation and value"
@@ -748,6 +1066,9 @@ es = "Saturación y valor"
 fr = "Saturation et valeur"
 de = "Sättigung und Helligkeit"
 ja = "彩度と明度"
+"zh-CN" = "饱和度和明度"
+"zh-TW" = "飽和度和明度"
+"ko" = "채도 및 명도"
 
 ["Save As"]
 en = "Save As"
@@ -755,6 +1076,9 @@ es = "Guardar como"
 fr = "Enregistrer sous"
 de = "Speichern unter"
 ja = "名前を付けて保存"
+"zh-CN" = "另存为"
+"zh-TW" = "另存為"
+"ko" = "다른 이름으로 저장"
 
 ["Save As…"]
 en = "Save As…"
@@ -762,6 +1086,9 @@ es = "Guardar como…"
 fr = "Enregistrer sous…"
 de = "Speichern unter…"
 ja = "名前を付けて保存…"
+"zh-CN" = "另存为…"
+"zh-TW" = "另存為…"
+"ko" = "다른 이름으로 저장…"
 
 ["Save Project As"]
 en = "Save Project As"
@@ -769,6 +1096,9 @@ es = "Guardar proyecto como"
 fr = "Enregistrer le projet sous"
 de = "Projekt speichern unter"
 ja = "プロジェクトに名前を付けて保存"
+"zh-CN" = "将项目另存为"
+"zh-TW" = "將專案另存為"
+"ko" = "다른 이름으로 프로젝트 저장"
 
 ["Save"]
 en = "Save"
@@ -776,6 +1106,9 @@ es = "Guardar"
 fr = "Enregistrer"
 de = "Speichern"
 ja = "保存"
+"zh-CN" = "保存"
+"zh-TW" = "儲存"
+"ko" = "저장"
 
 ["Search history"]
 en = "Search history"
@@ -783,6 +1116,9 @@ es = "Buscar en el historial"
 fr = "Rechercher dans l’historique"
 de = "Verlauf durchsuchen"
 ja = "履歴を検索"
+"zh-CN" = "搜索历史"
+"zh-TW" = "搜尋紀錄"
+"ko" = "검색 기록"
 
 ["Select color"]
 en = "Select color"
@@ -790,6 +1126,9 @@ es = "Seleccionar color"
 fr = "Sélectionner une couleur"
 de = "Farbe auswählen"
 ja = "色を選択"
+"zh-CN" = "选择颜色"
+"zh-TW" = "選擇顏色"
+"ko" = "색상 선택"
 
 ["Selected Server"]
 en = "Selected Server"
@@ -797,6 +1136,9 @@ es = "Servidor seleccionado"
 fr = "Serveur sélectionné"
 de = "Ausgewählter Server"
 ja = "選択中のサーバー"
+"zh-CN" = "所选服务器"
+"zh-TW" = "所選伺服器"
+"ko" = "선택한 서버"
 
 ["Server URL"]
 en = "Server URL"
@@ -804,6 +1146,9 @@ es = "URL del servidor"
 fr = "URL du serveur"
 de = "Server-URL"
 ja = "サーバー URL"
+"zh-CN" = "服务器地址"
+"zh-TW" = "伺服器位址"
+"ko" = "서버 URL"
 
 ["Server does not support device selection"]
 en = "Server does not support device selection"
@@ -811,6 +1156,9 @@ es = "El servidor no admite la selección de dispositivo"
 fr = "Le serveur ne permet pas de sélectionner le périphérique"
 de = "Der Server unterstützt keine Geräteauswahl"
 ja = "このサーバーはデバイス選択に対応していません"
+"zh-CN" = "服务器不支持设备选择"
+"zh-TW" = "伺服器不支援裝置選擇"
+"ko" = "서버가 장치 선택을 지원하지 않습니다"
 
 ["Server menu"]
 en = "Server menu"
@@ -818,6 +1166,9 @@ es = "Menú del servidor"
 fr = "Menu du serveur"
 de = "Servermenü"
 ja = "サーバーメニュー"
+"zh-CN" = "服务器菜单"
+"zh-TW" = "伺服器選單"
+"ko" = "서버 메뉴"
 
 ["Shadow Size"]
 en = "Shadow Size"
@@ -825,6 +1176,9 @@ es = "Tamaño de la sombra"
 fr = "Taille de l’ombre"
 de = "Schattengröße"
 ja = "影のサイズ"
+"zh-CN" = "阴影大小"
+"zh-TW" = "陰影大小"
+"ko" = "그림자 크기"
 
 ["Show Keyboard Shortcuts"]
 en = "Show Keyboard Shortcuts"
@@ -832,6 +1186,9 @@ es = "Mostrar atajos de teclado"
 fr = "Afficher les raccourcis clavier"
 de = "Tastenkürzel anzeigen"
 ja = "キーボードショートカットを表示"
+"zh-CN" = "显示键盘快捷键"
+"zh-TW" = "顯示鍵盤快速鍵"
+"ko" = "키보드 단축키 표시"
 
 ["Show in Files"]
 en = "Show in Files"
@@ -839,6 +1196,9 @@ es = "Mostrar en Archivos"
 fr = "Afficher dans Fichiers"
 de = "In Dateien anzeigen"
 ja = "ファイルで表示"
+"zh-CN" = "在文件管理器中显示"
+"zh-TW" = "在檔案管理員中顯示"
+"ko" = "파일 관리자에서 보기"
 
 ["Shrimply projects"]
 en = "Shrimply projects"
@@ -846,6 +1206,9 @@ es = "Proyectos de Shrimply"
 fr = "Projets Shrimply"
 de = "Shrimply-Projekte"
 ja = "Shrimply プロジェクト"
+"zh-CN" = "Shrimply 项目"
+"zh-TW" = "Shrimply 專案"
+"ko" = "Shrimply 프로젝트"
 
 ["Snap Attraction Radius"]
 en = "Snap Attraction Radius"
@@ -853,6 +1216,9 @@ es = "Radio de atracción del ajuste"
 fr = "Rayon d’attraction de l’alignement"
 de = "Einrastradius"
 ja = "スナップ吸着範囲"
+"zh-CN" = "吸附半径"
+"zh-TW" = "吸附半徑"
+"ko" = "스냅 반경"
 
 ["Space around the video frame in pixels"]
 en = "Space around the video frame in pixels"
@@ -860,6 +1226,9 @@ es = "Espacio en píxeles alrededor del fotograma"
 fr = "Espace en pixels autour de l’image vidéo"
 de = "Abstand um das Videobild in Pixeln"
 ja = "動画フレーム周囲の余白（ピクセル）"
+"zh-CN" = "视频帧周围的空间（像素）"
+"zh-TW" = "影片畫面周圍的空間（像素）"
+"ko" = "비디오 프레임 주변 여백(픽셀)"
 
 ["Split all clips and select left"]
 en = "Split all clips and select left"
@@ -867,6 +1236,9 @@ es = "Dividir todos los clips y seleccionar la parte izquierda"
 fr = "Scinder tous les clips et sélectionner la partie gauche"
 de = "Alle Clips teilen und die linke Seite auswählen"
 ja = "すべてのクリップを分割して左側を選択"
+"zh-CN" = "分割所有剪辑并选择左侧片段"
+"zh-TW" = "分割所有剪輯並選取左側片段"
+"ko" = "모든 클립을 분할하고 왼쪽 부분 선택"
 
 ["Split all clips at playhead"]
 en = "Split all clips at playhead"
@@ -874,6 +1246,9 @@ es = "Dividir todos los clips en el cabezal"
 fr = "Scinder tous les clips à la tête de lecture"
 de = "Alle Clips am Abspielkopf teilen"
 ja = "再生ヘッド位置ですべてのクリップを分割"
+"zh-CN" = "在播放头处分割所有剪辑"
+"zh-TW" = "在播放磁頭處分割所有剪輯"
+"ko" = "재생헤드에서 모든 클립 분할"
 
 ["Static image cache in system RAM (GiB)"]
 en = "Static image cache in system RAM (GiB)"
@@ -881,6 +1256,9 @@ es = "Caché de imágenes estáticas en la RAM del sistema (GiB)"
 fr = "Cache d’images statiques dans la RAM système (GiB)"
 de = "Cache für statische Bilder im System-RAM (GiB)"
 ja = "システム RAM 内の静止画キャッシュ（GiB）"
+"zh-CN" = "系统 RAM 中的静态图像缓存 (GiB)"
+"zh-TW" = "系統 RAM 中的靜態影像快取 (GiB)"
+"ko" = "시스템 RAM(GiB)의 정적 이미지 캐시"
 
 ["Step playback"]
 en = "Step playback"
@@ -888,6 +1266,9 @@ es = "Avanzar la reproducción"
 fr = "Avancer la lecture"
 de = "Wiedergabe schrittweise vorspulen"
 ja = "再生を一段階進める"
+"zh-CN" = "逐帧播放"
+"zh-TW" = "逐格播放"
+"ko" = "프레임 단위 재생"
 
 ["Stop Other Editor"]
 en = "Stop Other Editor"
@@ -895,6 +1276,9 @@ es = "Detener el otro editor"
 fr = "Arrêter l’autre éditeur"
 de = "Anderen Editor beenden"
 ja = "別のエディターを停止"
+"zh-CN" = "停止其他编辑器"
+"zh-TW" = "停止其他編輯器"
+"ko" = "다른 편집기 중지"
 
 ["Temporal Decoder Pool Size"]
 en = "Temporal Decoder Pool Size"
@@ -902,6 +1286,9 @@ es = "Tamaño del grupo de decodificadores temporales"
 fr = "Taille du groupe de décodeurs temporels"
 de = "Größe des temporalen Decoder-Pools"
 ja = "時間デコーダープールのサイズ"
+"zh-CN" = "视频解码器池大小"
+"zh-TW" = "影片解碼器集區大小"
+"ko" = "비디오 디코더 풀 크기"
 
 ["Timeline"]
 en = "Timeline"
@@ -909,6 +1296,9 @@ es = "Línea de tiempo"
 fr = "Timeline"
 de = "Zeitleiste"
 ja = "タイムライン"
+"zh-CN" = "时间轴"
+"zh-TW" = "時間軸"
+"ko" = "타임라인"
 
 ["Toggle Inspector"]
 en = "Toggle Inspector"
@@ -916,6 +1306,9 @@ es = "Mostrar u ocultar el inspector"
 fr = "Afficher ou masquer l’inspecteur"
 de = "Inspektor ein-/ausblenden"
 ja = "インスペクターの表示を切り替え"
+"zh-CN" = "切换检查器"
+"zh-TW" = "切換檢查器"
+"ko" = "인스펙터 전환"
 
 ["Toggle Timeline"]
 en = "Toggle Timeline"
@@ -923,6 +1316,9 @@ es = "Mostrar u ocultar la línea de tiempo"
 fr = "Afficher ou masquer la timeline"
 de = "Zeitleiste ein-/ausblenden"
 ja = "タイムラインの表示を切り替え"
+"zh-CN" = "切换时间线"
+"zh-TW" = "切換時間軸"
+"ko" = "타임라인 전환"
 
 ["Toggle timeline zoom"]
 en = "Toggle timeline zoom"
@@ -930,6 +1326,9 @@ es = "Alternar el zoom de la línea de tiempo"
 fr = "Basculer le zoom de la timeline"
 de = "Zeitleistenzoom umschalten"
 ja = "タイムラインのズームを切り替え"
+"zh-CN" = "切换时间轴缩放"
+"zh-TW" = "切換時間軸縮放"
+"ko" = "타임라인 확대/축소 전환"
 
 ["Torch"]
 en = "Torch"
@@ -937,6 +1336,9 @@ es = "Torch"
 fr = "Torch"
 de = "Torch"
 ja = "Torch"
+"zh-CN" = "Torch"
+"zh-TW" = "Torch"
+"ko" = "Torch"
 
 ["Unavailable"]
 en = "Unavailable"
@@ -944,6 +1346,9 @@ es = "No disponible"
 fr = "Indisponible"
 de = "Nicht verfügbar"
 ja = "利用不可"
+"zh-CN" = "不可用"
+"zh-TW" = "無法使用"
+"ko" = "사용할 수 없음"
 
 ["Undo"]
 en = "Undo"
@@ -951,6 +1356,9 @@ es = "Deshacer"
 fr = "Annuler"
 de = "Rückgängig"
 ja = "元に戻す"
+"zh-CN" = "撤销"
+"zh-TW" = "復原"
+"ko" = "실행 취소"
 
 ["Untitled Project"]
 en = "Untitled Project"
@@ -958,6 +1366,9 @@ es = "Proyecto sin título"
 fr = "Projet sans titre"
 de = "Unbenanntes Projekt"
 ja = "名称未設定のプロジェクト"
+"zh-CN" = "无标题项目"
+"zh-TW" = "無標題專案"
+"ko" = "제목 없는 프로젝트"
 
 ["Use this server"]
 en = "Use this server"
@@ -965,6 +1376,9 @@ es = "Usar este servidor"
 fr = "Utiliser ce serveur"
 de = "Diesen Server verwenden"
 ja = "このサーバーを使用"
+"zh-CN" = "使用此服务器"
+"zh-TW" = "使用此伺服器"
+"ko" = "이 서버 사용"
 
 ["Validating imported project…"]
 en = "Validating imported project…"
@@ -972,6 +1386,9 @@ es = "Validando el proyecto importado…"
 fr = "Validation du projet importé…"
 de = "Importiertes Projekt wird geprüft…"
 ja = "読み込んだプロジェクトを検証中…"
+"zh-CN" = "正在验证导入的项目…"
+"zh-TW" = "正在驗證匯入的專案…"
+"ko" = "가져온 프로젝트 검증 중…"
 
 ["Version %{version}"]
 en = "Version %{version}"
@@ -979,6 +1396,9 @@ es = "Versión %{version}"
 fr = "Version %{version}"
 de = "Version %{version}"
 ja = "バージョン %{version}"
+"zh-CN" = "版本 %{version}"
+"zh-TW" = "版本 %{version}"
+"ko" = "버전 %{version}"
 
 ["Very Dark Blue"]
 en = "Very Dark Blue"
@@ -986,6 +1406,9 @@ es = "Azul muy oscuro"
 fr = "Bleu très foncé"
 de = "Sehr dunkles Blau"
 ja = "ごく濃い青"
+"zh-CN" = "非常深蓝色"
+"zh-TW" = "非常深藍色"
+"ko" = "매우 진한 파란색"
 
 ["Very Dark Brown"]
 en = "Very Dark Brown"
@@ -993,6 +1416,9 @@ es = "Marrón muy oscuro"
 fr = "Marron très foncé"
 de = "Sehr dunkles Braun"
 ja = "ごく濃い茶"
+"zh-CN" = "非常深棕色"
+"zh-TW" = "非常深棕色"
+"ko" = "아주 어두운 갈색"
 
 ["Very Dark Green"]
 en = "Very Dark Green"
@@ -1000,6 +1426,9 @@ es = "Verde muy oscuro"
 fr = "Vert très foncé"
 de = "Sehr dunkles Grün"
 ja = "ごく濃い緑"
+"zh-CN" = "非常深绿色"
+"zh-TW" = "非常深綠色"
+"ko" = "매우 진한 녹색"
 
 ["Very Dark Orange"]
 en = "Very Dark Orange"
@@ -1007,6 +1436,9 @@ es = "Naranja muy oscuro"
 fr = "Orange très foncé"
 de = "Sehr dunkles Orange"
 ja = "ごく濃いオレンジ"
+"zh-CN" = "非常深橙色"
+"zh-TW" = "非常深橘色"
+"ko" = "매우 진한 오렌지색"
 
 ["Very Dark Purple"]
 en = "Very Dark Purple"
@@ -1014,6 +1446,9 @@ es = "Morado muy oscuro"
 fr = "Violet très foncé"
 de = "Sehr dunkles Violett"
 ja = "ごく濃い紫"
+"zh-CN" = "极深紫色"
+"zh-TW" = "極深紫色"
+"ko" = "매우 진한 보라색"
 
 ["Very Dark Red"]
 en = "Very Dark Red"
@@ -1021,6 +1456,9 @@ es = "Rojo muy oscuro"
 fr = "Rouge très foncé"
 de = "Sehr dunkles Rot"
 ja = "ごく濃い赤"
+"zh-CN" = "非常深红色"
+"zh-TW" = "非常深紅色"
+"ko" = "매우 진한 빨간색"
 
 ["Very Dark Yellow"]
 en = "Very Dark Yellow"
@@ -1028,6 +1466,9 @@ es = "Amarillo muy oscuro"
 fr = "Jaune très foncé"
 de = "Sehr dunkles Gelb"
 ja = "ごく濃い黄"
+"zh-CN" = "极深黄色"
+"zh-TW" = "極深黃色"
+"ko" = "매우 진한 노란색"
 
 ["Very Light Blue"]
 en = "Very Light Blue"
@@ -1035,6 +1476,9 @@ es = "Azul muy claro"
 fr = "Bleu très clair"
 de = "Sehr helles Blau"
 ja = "ごく明るい青"
+"zh-CN" = "极浅蓝色"
+"zh-TW" = "極淺藍色"
+"ko" = "매우 연한 파랑"
 
 ["Very Light Brown"]
 en = "Very Light Brown"
@@ -1042,6 +1486,9 @@ es = "Marrón muy claro"
 fr = "Marron très clair"
 de = "Sehr helles Braun"
 ja = "ごく明るい茶"
+"zh-CN" = "极浅棕色"
+"zh-TW" = "極淺棕色"
+"ko" = "아주 연한 갈색"
 
 ["Very Light Green"]
 en = "Very Light Green"
@@ -1049,6 +1496,9 @@ es = "Verde muy claro"
 fr = "Vert très clair"
 de = "Sehr helles Grün"
 ja = "ごく明るい緑"
+"zh-CN" = "极浅绿色"
+"zh-TW" = "極淺綠色"
+"ko" = "매우 연한 녹색"
 
 ["Very Light Orange"]
 en = "Very Light Orange"
@@ -1056,6 +1506,9 @@ es = "Naranja muy claro"
 fr = "Orange très clair"
 de = "Sehr helles Orange"
 ja = "ごく明るいオレンジ"
+"zh-CN" = "极浅橙色"
+"zh-TW" = "極淺橘色"
+"ko" = "매우 밝은 오렌지색"
 
 ["Very Light Purple"]
 en = "Very Light Purple"
@@ -1063,6 +1516,9 @@ es = "Morado muy claro"
 fr = "Violet très clair"
 de = "Sehr helles Violett"
 ja = "ごく明るい紫"
+"zh-CN" = "极浅紫色"
+"zh-TW" = "極淺紫色"
+"ko" = "매우 연한 보라색"
 
 ["Very Light Red"]
 en = "Very Light Red"
@@ -1070,6 +1526,9 @@ es = "Rojo muy claro"
 fr = "Rouge très clair"
 de = "Sehr helles Rot"
 ja = "ごく明るい赤"
+"zh-CN" = "极浅红色"
+"zh-TW" = "極淺紅色"
+"ko" = "매우 연한 빨간색"
 
 ["Very Light Yellow"]
 en = "Very Light Yellow"
@@ -1077,6 +1536,9 @@ es = "Amarillo muy claro"
 fr = "Jaune très clair"
 de = "Sehr helles Gelb"
 ja = "ごく明るい黄"
+"zh-CN" = "极浅黄色"
+"zh-TW" = "極淺黃色"
+"ko" = "매우 연한 노란색"
 
 ["White"]
 en = "White"
@@ -1084,6 +1546,9 @@ es = "Blanco"
 fr = "Blanc"
 de = "Weiß"
 ja = "白"
+"zh-CN" = "白色"
+"zh-TW" = "白色"
+"ko" = "흰색"
 
 ["Workers"]
 en = "Workers"
@@ -1091,6 +1556,9 @@ es = "Procesos de trabajo"
 fr = "Processus de travail"
 de = "Worker"
 ja = "ワーカー"
+"zh-CN" = "工作线程"
+"zh-TW" = "工作執行緒"
+"ko" = "작업 스레드"
 
 ["Writing Shrimply project…"]
 en = "Writing Shrimply project…"
@@ -1098,6 +1566,9 @@ es = "Escribiendo el proyecto de Shrimply…"
 fr = "Écriture du projet Shrimply…"
 de = "Shrimply-Projekt wird geschrieben…"
 ja = "Shrimply プロジェクトを書き込み中…"
+"zh-CN" = "正在写入 Shrimply 项目…"
+"zh-TW" = "正在寫入 Shrimply 專案…"
+"ko" = "Shrimply 프로젝트 작성 중…"
 
 ["Yellow"]
 en = "Yellow"
@@ -1105,6 +1576,9 @@ es = "Amarillo"
 fr = "Jaune"
 de = "Gelb"
 ja = "黄"
+"zh-CN" = "黄色"
+"zh-TW" = "黃色"
+"ko" = "노랑"
 
 ["%{project} — %{action}"]
 en = "%{project} — %{action}"
@@ -1112,6 +1586,9 @@ es = "%{project} — %{action}"
 fr = "%{project} — %{action}"
 de = "%{project} — %{action}"
 ja = "%{project} — %{action}"
+"zh-CN" = "%{project} — %{action}"
+"zh-TW" = "%{project} — %{action}"
+"ko" = "%{project} — %{action}"
 
 ["%{project} — Saving"]
 en = "%{project} — Saving"
@@ -1119,6 +1596,9 @@ es = "%{project} — Guardando"
 fr = "%{project} — Enregistrement"
 de = "%{project} — Wird gespeichert"
 ja = "%{project} — 保存中"
+"zh-CN" = "%{project} — 正在保存"
+"zh-TW" = "%{project} — 正在儲存"
+"ko" = "%{project} — 저장 중"
 
 ["%{project} — Unsaved"]
 en = "%{project} — Unsaved"
@@ -1126,6 +1606,9 @@ es = "%{project} — Sin guardar"
 fr = "%{project} — Non enregistré"
 de = "%{project} — Ungespeichert"
 ja = "%{project} — 未保存"
+"zh-CN" = "%{project} — 未保存"
+"zh-TW" = "%{project} — 未儲存"
+"ko" = "%{project} — 저장되지 않음"
 
 ["%{project} — Unsaved — Save failed"]
 en = "%{project} — Unsaved — Save failed"
@@ -1133,6 +1616,9 @@ es = "%{project} — Sin guardar — Error al guardar"
 fr = "%{project} — Non enregistré — Échec de l’enregistrement"
 de = "%{project} — Ungespeichert — Speichern fehlgeschlagen"
 ja = "%{project} — 未保存 — 保存に失敗"
+"zh-CN" = "%{project} — 未保存 — 保存失败"
+"zh-TW" = "%{project} — 未儲存 — 儲存失敗"
+"ko" = "%{project} — 저장되지 않음 — 저장 실패"
 
 ["%{runtime} · Available"]
 en = "%{runtime} · Available"
@@ -1140,6 +1626,9 @@ es = "%{runtime} · Disponible"
 fr = "%{runtime} · Disponible"
 de = "%{runtime} · Verfügbar"
 ja = "%{runtime} · 利用可能"
+"zh-CN" = "%{runtime} · 可用"
+"zh-TW" = "%{runtime} · 可用"
+"ko" = "%{runtime} · 사용 가능"
 
 ["%{queued} queued · %{active} active"]
 en = "%{queued} queued · %{active} active"
@@ -1147,6 +1636,9 @@ es = "%{queued} en cola · %{active} activas"
 fr = "%{queued} en attente · %{active} actives"
 de = "%{queued} in Warteschlange · %{active} aktiv"
 ja = "待機中 %{queued} · 実行中 %{active}"
+"zh-CN" = "%{queued} 个排队中 · %{active} 个运行中"
+"zh-TW" = "%{queued} 個排隊中 · %{active} 個執行中"
+"ko" = "대기 %{queued}개 · 실행 중 %{active}개"
 
 ["Project is in use"]
 en = "Project is in use"
@@ -1154,6 +1646,9 @@ es = "El proyecto está en uso"
 fr = "Le projet est en cours d’utilisation"
 de = "Das Projekt wird verwendet"
 ja = "プロジェクトは使用中です"
+"zh-CN" = "项目正在使用中"
+"zh-TW" = "專案正在使用中"
+"ko" = "프로젝트가 사용 중입니다."
 
 ["Shrimply"]
 en = "Shrimply"
@@ -1161,6 +1656,9 @@ es = "Shrimply"
 fr = "Shrimply"
 de = "Shrimply"
 ja = "Shrimply"
+"zh-CN" = "Shrimply"
+"zh-TW" = "Shrimply"
+"ko" = "Shrimply"
 
 ["—"]
 en = "—"
@@ -1168,3 +1666,6 @@ es = "—"
 fr = "—"
 de = "—"
 ja = "—"
+"zh-CN" = "—"
+"zh-TW" = "—"
+"ko" = "—"

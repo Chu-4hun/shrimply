@@ -6,6 +6,9 @@ es = "Absorción"
 fr = "Absorption"
 de = "Absorption"
 ja = "吸音"
+"zh-CN" = "吸收"
+"zh-TW" = "吸收"
+"ko" = "흡수"
 
 ["Accurate Render Method"]
 en = "Accurate Render Method"
@@ -13,6 +16,9 @@ es = "Método de renderizado preciso"
 fr = "Méthode de rendu précise"
 de = "Präzise Rendermethode"
 ja = "高精度レンダリング方式"
+"zh-CN" = "精确渲染方法"
+"zh-TW" = "精確算繪方式"
+"ko" = "정확한 렌더링 방법"
 
 ["Actions"]
 en = "Actions"
@@ -20,6 +26,9 @@ es = "Acciones"
 fr = "Actions"
 de = "Aktionen"
 ja = "操作"
+"zh-CN" = "操作"
+"zh-TW" = "操作"
+"ko" = "작업"
 
 ["Adaptive weights"]
 en = "Adaptive weights"
@@ -27,6 +36,9 @@ es = "Pesos adaptativos"
 fr = "Poids adaptatifs"
 de = "Adaptive Gewichtung"
 ja = "適応ウェイト"
+"zh-CN" = "自适应权重"
+"zh-TW" = "自適應權重"
+"ko" = "적응형 가중치"
 
 ["Add"]
 en = "Add"
@@ -34,6 +46,9 @@ es = "Añadir"
 fr = "Ajouter"
 de = "Hinzufügen"
 ja = "追加"
+"zh-CN" = "添加"
+"zh-TW" = "新增"
+"ko" = "추가"
 
 ["Add color"]
 en = "Add color"
@@ -41,6 +56,9 @@ es = "Añadir color"
 fr = "Ajouter une couleur"
 de = "Farbe hinzufügen"
 ja = "色を追加"
+"zh-CN" = "添加颜色"
+"zh-TW" = "新增顏色"
+"ko" = "색상 추가"
 
 ["Add font"]
 en = "Add font"
@@ -48,6 +66,9 @@ es = "Añadir fuente"
 fr = "Ajouter une police"
 de = "Schrift hinzufügen"
 ja = "フォントを追加"
+"zh-CN" = "添加字体"
+"zh-TW" = "新增字型"
+"ko" = "글꼴 추가"
 
 ["Add keyframe at playhead"]
 en = "Add keyframe at playhead"
@@ -55,6 +76,9 @@ es = "Añadir fotograma clave en el cabezal"
 fr = "Ajouter une image clé à la tête de lecture"
 de = "Keyframe am Abspielkopf hinzufügen"
 ja = "再生位置にキーフレームを追加"
+"zh-CN" = "在播放头位置添加关键帧"
+"zh-TW" = "在播放磁頭位置新增關鍵影格"
+"ko" = "재생 헤드 위치에 키프레임 추가"
 
 ["Add modifier"]
 en = "Add modifier"
@@ -62,6 +86,9 @@ es = "Añadir modificador"
 fr = "Ajouter un modificateur"
 de = "Modifikator hinzufügen"
 ja = "モディファイアを追加"
+"zh-CN" = "添加修改器"
+"zh-TW" = "新增修改器"
+"ko" = "수정자 추가"
 
 ["Addressing"]
 en = "Addressing"
@@ -69,6 +96,9 @@ es = "Direccionamiento"
 fr = "Adressage"
 de = "Adressierung"
 ja = "アドレッシング"
+"zh-CN" = "寻址"
+"zh-TW" = "尋址"
+"ko" = "어드레싱"
 
 ["Aggressiveness"]
 en = "Aggressiveness"
@@ -76,6 +106,9 @@ es = "Intensidad"
 fr = "Agressivité"
 de = "Aggressivität"
 ja = "強度"
+"zh-CN" = "强度"
+"zh-TW" = "強度"
+"ko" = "강도"
 
 ["Align"]
 en = "Align"
@@ -83,6 +116,9 @@ es = "Alinear"
 fr = "Aligner"
 de = "Ausrichten"
 ja = "整列"
+"zh-CN" = "对齐"
+"zh-TW" = "對齊"
+"ko" = "정렬"
 
 ["Alpha Mask Stream"]
 en = "Alpha Mask Stream"
@@ -90,6 +126,9 @@ es = "Flujo de máscara alfa"
 fr = "Flux de masque alpha"
 de = "Alphamasken-Stream"
 ja = "アルファマスクストリーム"
+"zh-CN" = "Alpha 掩模流"
+"zh-TW" = "Alpha 遮罩串流"
+"ko" = "알파 마스크 스트림"
 
 ["Amount"]
 en = "Amount"
@@ -97,6 +136,9 @@ es = "Cantidad"
 fr = "Quantité"
 de = "Stärke"
 ja = "量"
+"zh-CN" = "数量"
+"zh-TW" = "數量"
+"ko" = "양"
 
 ["Amplitude"]
 en = "Amplitude"
@@ -104,6 +146,9 @@ es = "Amplitud"
 fr = "Amplitude"
 de = "Amplitude"
 ja = "振幅"
+"zh-CN" = "振幅"
+"zh-TW" = "振幅"
+"ko" = "진폭"
 
 ["Analysis FPS"]
 en = "Analysis FPS"
@@ -111,6 +156,9 @@ es = "FPS de análisis"
 fr = "IPS d’analyse"
 de = "Analyse-FPS"
 ja = "解析FPS"
+"zh-CN" = "分析 FPS"
+"zh-TW" = "分析 FPS"
+"ko" = "분석 FPS"
 
 ["Analysis status"]
 en = "Analysis status"
@@ -118,6 +166,9 @@ es = "Estado del análisis"
 fr = "État de l’analyse"
 de = "Analysestatus"
 ja = "解析状態"
+"zh-CN" = "分析状态"
+"zh-TW" = "分析狀態"
+"ko" = "분석 상태"
 
 ["Analyze"]
 en = "Analyze"
@@ -125,6 +176,9 @@ es = "Analizar"
 fr = "Analyser"
 de = "Analysieren"
 ja = "解析"
+"zh-CN" = "分析"
+"zh-TW" = "分析"
+"ko" = "분석"
 
 ["Analyze Again"]
 en = "Analyze Again"
@@ -132,6 +186,9 @@ es = "Analizar de nuevo"
 fr = "Analyser à nouveau"
 de = "Erneut analysieren"
 ja = "再解析"
+"zh-CN" = "再次分析"
+"zh-TW" = "再次分析"
+"ko" = "다시 분석"
 
 ["Analyze this clip for beat-grid snapping"]
 en = "Analyze this clip for beat-grid snapping"
@@ -139,6 +196,9 @@ es = "Analizar este clip para ajustar a la cuadrícula de pulsos"
 fr = "Analyser ce clip pour l’alignement sur la grille rythmique"
 de = "Clip für das Einrasten am Taktraster analysieren"
 ja = "ビートグリッドへのスナップ用にクリップを解析"
+"zh-CN" = "分析此剪辑以启用节拍网格吸附"
+"zh-TW" = "分析此剪輯以啟用節拍格線吸附"
+"ko" = "비트 그리드 스냅을 사용하도록 이 클립 분석"
 
 ["Analyzing source motion…"]
 en = "Analyzing source motion…"
@@ -146,6 +206,9 @@ es = "Analizando el movimiento de origen…"
 fr = "Analyse du mouvement source…"
 de = "Quellbewegung wird analysiert…"
 ja = "ソースの動きを解析中…"
+"zh-CN" = "分析源运动…"
+"zh-TW" = "分析源運動…"
+"ko" = "소스 모션 분석 중…"
 
 ["Analyzing…"]
 en = "Analyzing…"
@@ -153,6 +216,9 @@ es = "Analizando…"
 fr = "Analyse…"
 de = "Analyse läuft…"
 ja = "解析中…"
+"zh-CN" = "正在分析…"
+"zh-TW" = "正在分析…"
+"ko" = "분석 중…"
 
 ["Anchor"]
 en = "Anchor"
@@ -160,6 +226,9 @@ es = "Ancla"
 fr = "Ancrage"
 de = "Anker"
 ja = "アンカー"
+"zh-CN" = "锚点"
+"zh-TW" = "錨點"
+"ko" = "기준점"
 
 ["Angle"]
 en = "Angle"
@@ -167,6 +236,9 @@ es = "Ángulo"
 fr = "Angle"
 de = "Winkel"
 ja = "角度"
+"zh-CN" = "角度"
+"zh-TW" = "角度"
+"ko" = "각도"
 
 ["Angular radius"]
 en = "Angular radius"
@@ -174,6 +246,9 @@ es = "Radio angular"
 fr = "Rayon angulaire"
 de = "Winkelradius"
 ja = "角半径"
+"zh-CN" = "角半径"
+"zh-TW" = "角半徑"
+"ko" = "각도 반경"
 
 ["Angular randomness"]
 en = "Angular randomness"
@@ -181,6 +256,9 @@ es = "Aleatoriedad angular"
 fr = "Variation angulaire"
 de = "Winkelzufälligkeit"
 ja = "角度のランダム性"
+"zh-CN" = "角度随机性"
+"zh-TW" = "角度隨機性"
+"ko" = "각도 무작위성"
 
 ["Animated"]
 en = "Animated"
@@ -188,6 +266,9 @@ es = "Animado"
 fr = "Animé"
 de = "Animiert"
 ja = "アニメーション"
+"zh-CN" = "动画"
+"zh-TW" = "動畫"
+"ko" = "애니메이션"
 
 ["Anti-aliasing"]
 en = "Anti-aliasing"
@@ -195,6 +276,9 @@ es = "Suavizado"
 fr = "Anticrénelage"
 de = "Kantenglättung"
 ja = "アンチエイリアス"
+"zh-CN" = "抗锯齿"
+"zh-TW" = "抗鋸齒"
+"ko" = "앤티앨리어싱"
 
 ["Aperture"]
 en = "Aperture"
@@ -202,6 +286,9 @@ es = "Apertura"
 fr = "Ouverture"
 de = "Blende"
 ja = "絞り"
+"zh-CN" = "光圈"
+"zh-TW" = "光圈"
+"ko" = "조리개"
 
 ["Arm thickness"]
 en = "Arm thickness"
@@ -209,6 +296,9 @@ es = "Grosor del brazo"
 fr = "Épaisseur des branches"
 de = "Armstärke"
 ja = "アームの太さ"
+"zh-CN" = "臂厚度"
+"zh-TW" = "臂部厚度"
+"ko" = "팔 두께"
 
 ["Attack"]
 en = "Attack"
@@ -216,6 +306,9 @@ es = "Ataque"
 fr = "Attaque"
 de = "Attack"
 ja = "アタック"
+"zh-CN" = "起音"
+"zh-TW" = "起音"
+"ko" = "어택"
 
 ["Audio Stream"]
 en = "Audio Stream"
@@ -223,6 +316,9 @@ es = "Flujo de audio"
 fr = "Flux audio"
 de = "Audiostream"
 ja = "オーディオストリーム"
+"zh-CN" = "音频流"
+"zh-TW" = "音訊串流"
+"ko" = "오디오 스트림"
 
 ["Audio stream %{number}"]
 en = "Audio stream %{number}"
@@ -230,6 +326,9 @@ es = "Flujo de audio %{number}"
 fr = "Flux audio %{number}"
 de = "Audiostream %{number}"
 ja = "オーディオストリーム %{number}"
+"zh-CN" = "音频流 %{number}"
+"zh-TW" = "音訊串流 %{number}"
+"ko" = "오디오 스트림 %{number}"
 
 ["Auto level"]
 en = "Auto level"
@@ -237,6 +336,9 @@ es = "Nivel automático"
 fr = "Niveau automatique"
 de = "Automatischer Pegel"
 ja = "自動レベル"
+"zh-CN" = "自动电平"
+"zh-TW" = "自動位準"
+"ko" = "자동 레벨"
 
 ["B&W threshold"]
 en = "B&W threshold"
@@ -244,6 +346,9 @@ es = "Umbral B/N"
 fr = "Seuil N&B"
 de = "S/W-Schwelle"
 ja = "白黒しきい値"
+"zh-CN" = "黑白阈值"
+"zh-TW" = "黑白閾值"
+"ko" = "흑백 임계값"
 
 ["Background color"]
 en = "Background color"
@@ -251,6 +356,9 @@ es = "Color de fondo"
 fr = "Couleur d’arrière-plan"
 de = "Hintergrundfarbe"
 ja = "背景色"
+"zh-CN" = "背景颜色"
+"zh-TW" = "背景顏色"
+"ko" = "배경색"
 
 ["Background distance"]
 en = "Background distance"
@@ -258,6 +366,9 @@ es = "Distancia del fondo"
 fr = "Distance de l’arrière-plan"
 de = "Hintergrundabstand"
 ja = "背景の距離"
+"zh-CN" = "背景距离"
+"zh-TW" = "背景距離"
+"ko" = "배경 거리"
 
 ["Background fill"]
 en = "Background fill"
@@ -265,6 +376,9 @@ es = "Relleno de fondo"
 fr = "Remplissage d’arrière-plan"
 de = "Hintergrundfüllung"
 ja = "背景の塗り"
+"zh-CN" = "背景填充"
+"zh-TW" = "背景填充"
+"ko" = "배경 채우기"
 
 ["Background intensity"]
 en = "Background intensity"
@@ -272,6 +386,9 @@ es = "Intensidad del fondo"
 fr = "Intensité de l’arrière-plan"
 de = "Hintergrundintensität"
 ja = "背景の強度"
+"zh-CN" = "背景强度"
+"zh-TW" = "背景強度"
+"ko" = "배경 강도"
 
 ["Background padding"]
 en = "Background padding"
@@ -279,6 +396,9 @@ es = "Margen del fondo"
 fr = "Marge de l’arrière-plan"
 de = "Hintergrundabstand"
 ja = "背景の余白"
+"zh-CN" = "背景内边距"
+"zh-TW" = "背景內距"
+"ko" = "배경 안쪽 여백"
 
 ["Background plane"]
 en = "Background plane"
@@ -286,6 +406,9 @@ es = "Plano de fondo"
 fr = "Plan d’arrière-plan"
 de = "Hintergrundebene"
 ja = "背景平面"
+"zh-CN" = "背景平面"
+"zh-TW" = "背景平面"
+"ko" = "배경 평면"
 
 ["Background roundness"]
 en = "Background roundness"
@@ -293,6 +416,9 @@ es = "Redondez del fondo"
 fr = "Arrondi de l’arrière-plan"
 de = "Hintergrundrundung"
 ja = "背景の丸み"
+"zh-CN" = "背景圆角程度"
+"zh-TW" = "背景圓角程度"
+"ko" = "배경 모서리 둥글기"
 
 ["Background tiling"]
 en = "Background tiling"
@@ -300,6 +426,9 @@ es = "Mosaico de fondo"
 fr = "Répétition de l’arrière-plan"
 de = "Hintergrundkachelung"
 ja = "背景のタイリング"
+"zh-CN" = "背景平铺"
+"zh-TW" = "背景平鋪"
+"ko" = "배경 타일링"
 
 ["Bake"]
 en = "Bake"
@@ -307,6 +436,9 @@ es = "Precalcular"
 fr = "Précalculer"
 de = "Backen"
 ja = "ベイク"
+"zh-CN" = "烘焙"
+"zh-TW" = "烘焙"
+"ko" = "베이크"
 
 ["Baking…"]
 en = "Baking…"
@@ -314,6 +446,9 @@ es = "Precalculando…"
 fr = "Précalcul…"
 de = "Wird gebacken…"
 ja = "ベイク中…"
+"zh-CN" = "正在烘焙…"
+"zh-TW" = "正在烘焙…"
+"ko" = "베이크 중…"
 
 ["Balanced"]
 en = "Balanced"
@@ -321,6 +456,9 @@ es = "Equilibrado"
 fr = "Équilibré"
 de = "Ausgewogen"
 ja = "バランス"
+"zh-CN" = "均衡"
+"zh-TW" = "均衡"
+"ko" = "균형 잡힌"
 
 ["Band count"]
 en = "Band count"
@@ -328,6 +466,9 @@ es = "Número de bandas"
 fr = "Nombre de bandes"
 de = "Bandanzahl"
 ja = "バンド数"
+"zh-CN" = "频带数"
+"zh-TW" = "頻帶數"
+"ko" = "밴드 수"
 
 ["Band width"]
 en = "Band width"
@@ -335,6 +476,9 @@ es = "Ancho de banda"
 fr = "Largeur de bande"
 de = "Bandbreite"
 ja = "バンド幅"
+"zh-CN" = "带宽"
+"zh-TW" = "頻寬"
+"ko" = "대역폭"
 
 ["Bands"]
 en = "Bands"
@@ -342,6 +486,9 @@ es = "Bandas"
 fr = "Bandes"
 de = "Bänder"
 ja = "バンド"
+"zh-CN" = "频带"
+"zh-TW" = "頻帶"
+"ko" = "밴드"
 
 ["Base angle"]
 en = "Base angle"
@@ -349,6 +496,9 @@ es = "Ángulo base"
 fr = "Angle de base"
 de = "Basiswinkel"
 ja = "基準角度"
+"zh-CN" = "基础角度"
+"zh-TW" = "基礎角度"
+"ko" = "기본 각도"
 
 ["Base color"]
 en = "Base color"
@@ -356,6 +506,9 @@ es = "Color base"
 fr = "Couleur de base"
 de = "Grundfarbe"
 ja = "ベースカラー"
+"zh-CN" = "基色"
+"zh-TW" = "基色"
+"ko" = "베이스 컬러"
 
 ["Beat Detection"]
 en = "Beat Detection"
@@ -363,6 +516,9 @@ es = "Detección de pulsos"
 fr = "Détection du rythme"
 de = "Beat-Erkennung"
 ja = "ビート検出"
+"zh-CN" = "节拍检测"
+"zh-TW" = "節拍檢測"
+"ko" = "비트 감지"
 
 ["Bevel"]
 en = "Bevel"
@@ -370,6 +526,9 @@ es = "Bisel"
 fr = "Biseau"
 de = "Abschrägung"
 ja = "ベベル"
+"zh-CN" = "倒角"
+"zh-TW" = "倒角"
+"ko" = "베벨"
 
 ["Blend curve"]
 en = "Blend curve"
@@ -377,6 +536,9 @@ es = "Curva de mezcla"
 fr = "Courbe de mélange"
 de = "Mischkurve"
 ja = "ブレンド曲線"
+"zh-CN" = "混合曲线"
+"zh-TW" = "混合曲線"
+"ko" = "블렌드 커브"
 
 ["Blend mode"]
 en = "Blend mode"
@@ -384,6 +546,9 @@ es = "Modo de fusión"
 fr = "Mode de fusion"
 de = "Mischmodus"
 ja = "ブレンドモード"
+"zh-CN" = "混合模式"
+"zh-TW" = "混合模式"
+"ko" = "블렌드 모드"
 
 ["Block height"]
 en = "Block height"
@@ -391,6 +556,9 @@ es = "Alto del bloque"
 fr = "Hauteur du bloc"
 de = "Blockhöhe"
 ja = "ブロックの高さ"
+"zh-CN" = "块高度"
+"zh-TW" = "塊高度"
+"ko" = "블록 높이"
 
 ["Block width"]
 en = "Block width"
@@ -398,6 +566,9 @@ es = "Ancho del bloque"
 fr = "Largeur du bloc"
 de = "Blockbreite"
 ja = "ブロックの幅"
+"zh-CN" = "块宽度"
+"zh-TW" = "區塊寬度"
+"ko" = "블록 폭"
 
 ["Blur"]
 en = "Blur"
@@ -405,6 +576,9 @@ es = "Desenfoque"
 fr = "Flou"
 de = "Unschärfe"
 ja = "ぼかし"
+"zh-CN" = "模糊"
+"zh-TW" = "模糊"
+"ko" = "흐림"
 
 ["Bottom"]
 en = "Bottom"
@@ -412,6 +586,9 @@ es = "Abajo"
 fr = "Bas"
 de = "Unten"
 ja = "下"
+"zh-CN" = "底部"
+"zh-TW" = "底部"
+"ko" = "맨 아래"
 
 ["Bottom left"]
 en = "Bottom left"
@@ -419,6 +596,9 @@ es = "Abajo a la izquierda"
 fr = "En bas à gauche"
 de = "Unten links"
 ja = "左下"
+"zh-CN" = "左下角"
+"zh-TW" = "左下角"
+"ko" = "왼쪽 하단"
 
 ["Bottom right"]
 en = "Bottom right"
@@ -426,6 +606,9 @@ es = "Abajo a la derecha"
 fr = "En bas à droite"
 de = "Unten rechts"
 ja = "右下"
+"zh-CN" = "右下角"
+"zh-TW" = "右下角"
+"ko" = "오른쪽 하단"
 
 ["Box"]
 en = "Box"
@@ -433,6 +616,9 @@ es = "Cuadro"
 fr = "Boîte"
 de = "Rechteck"
 ja = "ボックス"
+"zh-CN" = "方框"
+"zh-TW" = "方框"
+"ko" = "상자"
 
 ["Brightness"]
 en = "Brightness"
@@ -440,6 +626,9 @@ es = "Brillo"
 fr = "Luminosité"
 de = "Helligkeit"
 ja = "明るさ"
+"zh-CN" = "亮度"
+"zh-TW" = "亮度"
+"ko" = "밝기"
 
 ["Camera"]
 en = "Camera"
@@ -447,6 +636,9 @@ es = "Cámara"
 fr = "Caméra"
 de = "Kamera"
 ja = "カメラ"
+"zh-CN" = "相机"
+"zh-TW" = "相機"
+"ko" = "카메라"
 
 ["Camera model"]
 en = "Camera model"
@@ -454,6 +646,9 @@ es = "Modelo de cámara"
 fr = "Modèle de caméra"
 de = "Kameramodell"
 ja = "カメラモデル"
+"zh-CN" = "相机模型"
+"zh-TW" = "相機模型"
+"ko" = "카메라 모델"
 
 ["Camera source"]
 en = "Camera source"
@@ -461,6 +656,9 @@ es = "Fuente de cámara"
 fr = "Source de caméra"
 de = "Kameraquelle"
 ja = "カメラソース"
+"zh-CN" = "相机来源"
+"zh-TW" = "相機來源"
+"ko" = "카메라 소스"
 
 ["Cancelling"]
 en = "Cancelling"
@@ -468,6 +666,9 @@ es = "Cancelando"
 fr = "Annulation"
 de = "Wird abgebrochen"
 ja = "キャンセル中"
+"zh-CN" = "正在取消"
+"zh-TW" = "正在取消"
+"ko" = "취소 중"
 
 ["Caption text color"]
 en = "Caption text color"
@@ -475,6 +676,9 @@ es = "Color del texto del subtítulo"
 fr = "Couleur du texte du sous-titre"
 de = "Untertiteltextfarbe"
 ja = "字幕テキストの色"
+"zh-CN" = "字幕文字颜色"
+"zh-TW" = "字幕文字顏色"
+"ko" = "자막 텍스트 색상"
 
 ["Ceiling"]
 en = "Ceiling"
@@ -482,6 +686,9 @@ es = "Techo"
 fr = "Plafond"
 de = "Obergrenze"
 ja = "上限"
+"zh-CN" = "上限"
+"zh-TW" = "上限"
+"ko" = "상한"
 
 ["Cell size"]
 en = "Cell size"
@@ -489,6 +696,9 @@ es = "Tamaño de celda"
 fr = "Taille de cellule"
 de = "Zellengröße"
 ja = "セルサイズ"
+"zh-CN" = "单元格大小"
+"zh-TW" = "儲存格大小"
+"ko" = "셀 크기"
 
 ["Center"]
 en = "Center"
@@ -496,6 +706,9 @@ es = "Centro"
 fr = "Centre"
 de = "Mitte"
 ja = "中央"
+"zh-CN" = "中心"
+"zh-TW" = "中心"
+"ko" = "센터"
 
 ["Center X"]
 en = "Center X"
@@ -503,6 +716,9 @@ es = "Centro X"
 fr = "Centre X"
 de = "Mitte X"
 ja = "中心 X"
+"zh-CN" = "中心 X"
+"zh-TW" = "中心 X"
+"ko" = "센터 X"
 
 ["Center Y"]
 en = "Center Y"
@@ -510,6 +726,9 @@ es = "Centro Y"
 fr = "Centre Y"
 de = "Mitte Y"
 ja = "中心 Y"
+"zh-CN" = "中心 Y"
+"zh-TW" = "中心 Y"
+"ko" = "센터 Y"
 
 ["Chamfer"]
 en = "Chamfer"
@@ -517,6 +736,9 @@ es = "Chaflán"
 fr = "Chanfrein"
 de = "Fase"
 ja = "面取り"
+"zh-CN" = "倒角"
+"zh-TW" = "倒角"
+"ko" = "모따기"
 
 ["Change all at once"]
 en = "Change all at once"
@@ -524,6 +746,9 @@ es = "Cambiar todo a la vez"
 fr = "Tout changer à la fois"
 de = "Alles gleichzeitig ändern"
 ja = "一度にすべて変更"
+"zh-CN" = "一次更改全部"
+"zh-TW" = "一次變更全部"
+"ko" = "모두 한 번에 변경"
 
 ["Channel angle offset"]
 en = "Channel angle offset"
@@ -531,6 +756,9 @@ es = "Desfase angular de canales"
 fr = "Décalage angulaire des canaux"
 de = "Kanalwinkelversatz"
 ja = "チャンネル角度オフセット"
+"zh-CN" = "通道角度偏移"
+"zh-TW" = "通道角度偏移"
+"ko" = "채널 각도 오프셋"
 
 ["Channel offset"]
 en = "Channel offset"
@@ -538,6 +766,9 @@ es = "Desfase de canales"
 fr = "Décalage des canaux"
 de = "Kanalversatz"
 ja = "チャンネルオフセット"
+"zh-CN" = "通道偏移"
+"zh-TW" = "通道偏移"
+"ko" = "채널 오프셋"
 
 ["Choose font"]
 en = "Choose font"
@@ -545,6 +776,9 @@ es = "Elegir fuente"
 fr = "Choisir une police"
 de = "Schrift auswählen"
 ja = "フォントを選択"
+"zh-CN" = "选择字体"
+"zh-TW" = "選擇字型"
+"ko" = "글꼴 선택"
 
 ["Choose item…"]
 en = "Choose item…"
@@ -552,6 +786,9 @@ es = "Elegir elemento…"
 fr = "Choisir un élément…"
 de = "Element auswählen…"
 ja = "項目を選択…"
+"zh-CN" = "选择项目…"
+"zh-TW" = "選擇項目…"
+"ko" = "항목 선택…"
 
 ["Circular"]
 en = "Circular"
@@ -559,6 +796,9 @@ es = "Circular"
 fr = "Circulaire"
 de = "Kreisförmig"
 ja = "円形"
+"zh-CN" = "圆形"
+"zh-TW" = "圓形"
+"ko" = "원형"
 
 ["Classic"]
 en = "Classic"
@@ -566,6 +806,9 @@ es = "Clásico"
 fr = "Classique"
 de = "Klassisch"
 ja = "クラシック"
+"zh-CN" = "经典"
+"zh-TW" = "經典"
+"ko" = "클래식"
 
 ["Clear and rewrite the whole text"]
 en = "Clear and rewrite the whole text"
@@ -573,6 +816,9 @@ es = "Borrar y reescribir todo el texto"
 fr = "Effacer et réécrire tout le texte"
 de = "Gesamten Text löschen und neu schreiben"
 ja = "テキスト全体を消去して書き直す"
+"zh-CN" = "清除并重写整个文本"
+"zh-TW" = "清除並重寫整個文字"
+"ko" = "전체 텍스트를 지우고 다시 작성"
 
 ["Clear image"]
 en = "Clear image"
@@ -580,6 +826,9 @@ es = "Quitar imagen"
 fr = "Effacer l’image"
 de = "Bild entfernen"
 ja = "画像をクリア"
+"zh-CN" = "清除图像"
+"zh-TW" = "清除影像"
+"ko" = "이미지 지우기"
 
 ["Clear mask source"]
 en = "Clear mask source"
@@ -587,6 +836,9 @@ es = "Quitar fuente de máscara"
 fr = "Effacer la source du masque"
 de = "Maskenquelle entfernen"
 ja = "マスクソースをクリア"
+"zh-CN" = "清除掩模源"
+"zh-TW" = "清除掩模來源"
+"ko" = "마스크 소스 지우기"
 
 ["Clear model"]
 en = "Clear model"
@@ -594,6 +846,9 @@ es = "Quitar modelo"
 fr = "Effacer le modèle"
 de = "Modell entfernen"
 ja = "モデルをクリア"
+"zh-CN" = "清除模型"
+"zh-TW" = "清除模型"
+"ko" = "모델 지우기"
 
 ["Clear texture"]
 en = "Clear texture"
@@ -601,6 +856,9 @@ es = "Quitar textura"
 fr = "Effacer la texture"
 de = "Textur entfernen"
 ja = "テクスチャをクリア"
+"zh-CN" = "清除纹理"
+"zh-TW" = "清除紋理"
+"ko" = "텍스처 지우기"
 
 ["Clearcoat"]
 en = "Clearcoat"
@@ -608,6 +866,9 @@ es = "Capa transparente"
 fr = "Vernis"
 de = "Klarlack"
 ja = "クリアコート"
+"zh-CN" = "清漆"
+"zh-TW" = "清漆"
+"ko" = "클리어코트"
 
 ["Clockwise"]
 en = "Clockwise"
@@ -615,6 +876,9 @@ es = "Horario"
 fr = "Horaire"
 de = "Im Uhrzeigersinn"
 ja = "時計回り"
+"zh-CN" = "顺时针"
+"zh-TW" = "順時針"
+"ko" = "시계방향"
 
 ["Coalesce"]
 en = "Coalesce"
@@ -622,6 +886,9 @@ es = "Unir"
 fr = "Fusionner"
 de = "Zusammenführen"
 ja = "結合"
+"zh-CN" = "合并"
+"zh-TW" = "合併"
+"ko" = "병합"
 
 ["Collapse"]
 en = "Collapse"
@@ -629,6 +896,9 @@ es = "Contraer"
 fr = "Réduire"
 de = "Einklappen"
 ja = "折りたたむ"
+"zh-CN" = "折叠"
+"zh-TW" = "收合"
+"ko" = "접기"
 
 ["Color"]
 en = "Color"
@@ -636,6 +906,9 @@ es = "Color"
 fr = "Couleur"
 de = "Farbe"
 ja = "色"
+"zh-CN" = "颜色"
+"zh-TW" = "顏色"
+"ko" = "색상"
 
 ["Color A"]
 en = "Color A"
@@ -643,6 +916,9 @@ es = "Color A"
 fr = "Couleur A"
 de = "Farbe A"
 ja = "色 A"
+"zh-CN" = "颜色A"
+"zh-TW" = "顏色A"
+"ko" = "색상 A"
 
 ["Color B"]
 en = "Color B"
@@ -650,6 +926,9 @@ es = "Color B"
 fr = "Couleur B"
 de = "Farbe B"
 ja = "色 B"
+"zh-CN" = "颜色B"
+"zh-TW" = "顏色B"
+"ko" = "색상 B"
 
 ["Color mode"]
 en = "Color mode"
@@ -657,6 +936,9 @@ es = "Modo de color"
 fr = "Mode de couleur"
 de = "Farbmodus"
 ja = "カラーモード"
+"zh-CN" = "色彩模式"
+"zh-TW" = "色彩模式"
+"ko" = "컬러 모드"
 
 ["Color position"]
 en = "Color position"
@@ -664,6 +946,9 @@ es = "Posición del color"
 fr = "Position de la couleur"
 de = "Farbposition"
 ja = "色の位置"
+"zh-CN" = "颜色位置"
+"zh-TW" = "顏色位置"
+"ko" = "색상 위치"
 
 ["Color precision"]
 en = "Color precision"
@@ -671,6 +956,9 @@ es = "Precisión del color"
 fr = "Précision des couleurs"
 de = "Farbpräzision"
 ja = "色精度"
+"zh-CN" = "色彩精度"
+"zh-TW" = "色彩精準度"
+"ko" = "색상 정밀도"
 
 ["Color %{number}"]
 en = "Color %{number}"
@@ -678,6 +966,9 @@ es = "Color %{number}"
 fr = "Couleur %{number}"
 de = "Farbe %{number}"
 ja = "色 %{number}"
+"zh-CN" = "颜色 %{number}"
+"zh-TW" = "顏色 %{number}"
+"ko" = "색상 %{number}"
 
 ["Coloring"]
 en = "Coloring"
@@ -685,6 +976,9 @@ es = "Coloración"
 fr = "Coloration"
 de = "Färbung"
 ja = "カラーリング"
+"zh-CN" = "着色"
+"zh-TW" = "著色"
+"ko" = "색상 지정"
 
 ["Completion"]
 en = "Completion"
@@ -692,6 +986,9 @@ es = "Progreso"
 fr = "Progression"
 de = "Fortschritt"
 ja = "進行度"
+"zh-CN" = "完成度"
+"zh-TW" = "完成度"
+"ko" = "완료도"
 
 ["Complexity"]
 en = "Complexity"
@@ -699,6 +996,9 @@ es = "Complejidad"
 fr = "Complexité"
 de = "Komplexität"
 ja = "複雑さ"
+"zh-CN" = "复杂"
+"zh-TW" = "複雜"
+"ko" = "복잡성"
 
 ["Composite"]
 en = "Composite"
@@ -706,6 +1006,9 @@ es = "Composición"
 fr = "Composition"
 de = "Komposition"
 ja = "合成"
+"zh-CN" = "合成"
+"zh-TW" = "合成"
+"ko" = "합성"
 
 ["Composite background"]
 en = "Composite background"
@@ -713,6 +1016,9 @@ es = "Componer fondo"
 fr = "Composer l’arrière-plan"
 de = "Hintergrund zusammensetzen"
 ja = "背景を合成"
+"zh-CN" = "合成背景"
+"zh-TW" = "合成背景"
+"ko" = "합성 배경"
 
 ["Compositing"]
 en = "Compositing"
@@ -720,6 +1026,9 @@ es = "Composición"
 fr = "Composition"
 de = "Compositing"
 ja = "コンポジット"
+"zh-CN" = "合成"
+"zh-TW" = "合成"
+"ko" = "합성"
 
 ["Constant high"]
 en = "Constant high"
@@ -727,6 +1036,9 @@ es = "Constante alto"
 fr = "Constant élevé"
 de = "Konstant hoch"
 ja = "常に高"
+"zh-CN" = "恒定高值"
+"zh-TW" = "恆定高值"
+"ko" = "고정 높음"
 
 ["Constant low"]
 en = "Constant low"
@@ -734,6 +1046,9 @@ es = "Constante bajo"
 fr = "Constant faible"
 de = "Konstant niedrig"
 ja = "常に低"
+"zh-CN" = "恒定低值"
+"zh-TW" = "恆定低值"
+"ko" = "고정 낮음"
 
 ["Constant-acceleration weight"]
 en = "Constant-acceleration weight"
@@ -741,6 +1056,9 @@ es = "Peso de aceleración constante"
 fr = "Poids d’accélération constante"
 de = "Gewichtung konstanter Beschleunigung"
 ja = "等加速度ウェイト"
+"zh-CN" = "恒定加速度权重"
+"zh-TW" = "恆定加速度權重"
+"ko" = "등가속도 가중치"
 
 ["Constant-motion weight"]
 en = "Constant-motion weight"
@@ -748,6 +1066,9 @@ es = "Peso de movimiento constante"
 fr = "Poids de mouvement constant"
 de = "Gewichtung konstanter Bewegung"
 ja = "等速運動ウェイト"
+"zh-CN" = "恒定运动权重"
+"zh-TW" = "恆定運動權重"
+"ko" = "등속 운동 가중치"
 
 ["Continuous"]
 en = "Continuous"
@@ -755,6 +1076,9 @@ es = "Continuo"
 fr = "Continu"
 de = "Kontinuierlich"
 ja = "連続"
+"zh-CN" = "连续"
+"zh-TW" = "連續"
+"ko" = "연속"
 
 ["Contrast"]
 en = "Contrast"
@@ -762,6 +1086,9 @@ es = "Contraste"
 fr = "Contraste"
 de = "Kontrast"
 ja = "コントラスト"
+"zh-CN" = "对比度"
+"zh-TW" = "對比度"
+"ko" = "대비"
 
 ["Copies X"]
 en = "Copies X"
@@ -769,6 +1096,9 @@ es = "Copias X"
 fr = "Copies X"
 de = "Kopien X"
 ja = "コピー数 X"
+"zh-CN" = "副本 X"
+"zh-TW" = "副本 X"
+"ko" = "사본 X"
 
 ["Copies Y"]
 en = "Copies Y"
@@ -776,6 +1106,9 @@ es = "Copias Y"
 fr = "Copies Y"
 de = "Kopien Y"
 ja = "コピー数 Y"
+"zh-CN" = "副本 Y"
+"zh-TW" = "副本 Y"
+"ko" = "사본 Y"
 
 ["Copy JSON"]
 en = "Copy JSON"
@@ -783,6 +1116,9 @@ es = "Copiar JSON"
 fr = "Copier le JSON"
 de = "JSON kopieren"
 ja = "JSONをコピー"
+"zh-CN" = "复制 JSON"
+"zh-TW" = "複製 JSON"
+"ko" = "JSON 복사"
 
 ["Corner radius"]
 en = "Corner radius"
@@ -790,6 +1126,9 @@ es = "Radio de esquina"
 fr = "Rayon des angles"
 de = "Eckenradius"
 ja = "角の半径"
+"zh-CN" = "圆角半径"
+"zh-TW" = "圓角半徑"
+"ko" = "코너 반경"
 
 ["Corner rounding"]
 en = "Corner rounding"
@@ -797,6 +1136,9 @@ es = "Redondeo de esquinas"
 fr = "Arrondi des angles"
 de = "Eckenrundung"
 ja = "角の丸み"
+"zh-CN" = "圆角"
+"zh-TW" = "圓角"
+"ko" = "코너 라운딩"
 
 ["Corner threshold"]
 en = "Corner threshold"
@@ -804,6 +1146,9 @@ es = "Umbral de esquina"
 fr = "Seuil des angles"
 de = "Eckenschwelle"
 ja = "コーナーしきい値"
+"zh-CN" = "拐角阈值"
+"zh-TW" = "轉角閾值"
+"ko" = "모서리 임계값"
 
 ["Counterclockwise"]
 en = "Counterclockwise"
@@ -811,6 +1156,9 @@ es = "Antihorario"
 fr = "Antihoraire"
 de = "Gegen den Uhrzeigersinn"
 ja = "反時計回り"
+"zh-CN" = "逆时针"
+"zh-TW" = "逆時針"
+"ko" = "시계 반대방향"
 
 ["Create"]
 en = "Create"
@@ -818,6 +1166,9 @@ es = "Crear"
 fr = "Créer"
 de = "Erstellen"
 ja = "作成"
+"zh-CN" = "创建"
+"zh-TW" = "建立"
+"ko" = "만들기"
 
 ["Crop ratio"]
 en = "Crop ratio"
@@ -825,6 +1176,9 @@ es = "Proporción de recorte"
 fr = "Rapport de recadrage"
 de = "Zuschnittverhältnis"
 ja = "クロップ率"
+"zh-CN" = "裁剪比例"
+"zh-TW" = "裁切比例"
+"ko" = "자르기 비율"
 
 ["Cross"]
 en = "Cross"
@@ -832,6 +1186,9 @@ es = "Cruz"
 fr = "Croix"
 de = "Kreuz"
 ja = "十字"
+"zh-CN" = "十字形"
+"zh-TW" = "十字形"
+"ko" = "십자형"
 
 ["Crosshatch"]
 en = "Crosshatch"
@@ -839,6 +1196,9 @@ es = "Tramado cruzado"
 fr = "Hachures croisées"
 de = "Kreuzschraffur"
 ja = "クロスハッチ"
+"zh-CN" = "交叉排线"
+"zh-TW" = "交叉排線"
+"ko" = "크로스해칭"
 
 ["Curvature"]
 en = "Curvature"
@@ -846,6 +1206,9 @@ es = "Curvatura"
 fr = "Courbure"
 de = "Krümmung"
 ja = "曲率"
+"zh-CN" = "曲率"
+"zh-TW" = "曲率"
+"ko" = "곡률"
 
 ["Curve"]
 en = "Curve"
@@ -853,6 +1216,9 @@ es = "Curva"
 fr = "Courbe"
 de = "Kurve"
 ja = "カーブ"
+"zh-CN" = "曲线"
+"zh-TW" = "曲線"
+"ko" = "곡선"
 
 ["Cutoff"]
 en = "Cutoff"
@@ -860,6 +1226,9 @@ es = "Corte"
 fr = "Coupure"
 de = "Grenzfrequenz"
 ja = "カットオフ"
+"zh-CN" = "截止值"
+"zh-TW" = "截止值"
+"ko" = "컷오프"
 
 ["Damping"]
 en = "Damping"
@@ -867,6 +1236,9 @@ es = "Amortiguación"
 fr = "Amortissement"
 de = "Dämpfung"
 ja = "ダンピング"
+"zh-CN" = "阻尼"
+"zh-TW" = "阻尼"
+"ko" = "감쇠"
 
 ["Darkest tone"]
 en = "Darkest tone"
@@ -874,6 +1246,9 @@ es = "Tono más oscuro"
 fr = "Ton le plus sombre"
 de = "Dunkelster Ton"
 ja = "最暗部"
+"zh-CN" = "最深的色调"
+"zh-TW" = "最深的色調"
+"ko" = "가장 어두운 톤"
 
 ["Dash gap"]
 en = "Dash gap"
@@ -881,6 +1256,9 @@ es = "Espacio de guiones"
 fr = "Espacement des tirets"
 de = "Strichabstand"
 ja = "破線の間隔"
+"zh-CN" = "短划线间隙"
+"zh-TW" = "短劃線間隙"
+"ko" = "대시 갭"
 
 ["Dash length"]
 en = "Dash length"
@@ -888,6 +1266,9 @@ es = "Longitud de guión"
 fr = "Longueur des tirets"
 de = "Strichlänge"
 ja = "破線の長さ"
+"zh-CN" = "划线长度"
+"zh-TW" = "劃線長度"
+"ko" = "대시 길이"
 
 ["Dash position"]
 en = "Dash position"
@@ -895,6 +1276,9 @@ es = "Posición de guiones"
 fr = "Position des tirets"
 de = "Strichposition"
 ja = "破線の位置"
+"zh-CN" = "虚线位置"
+"zh-TW" = "虛線位置"
+"ko" = "대시 위치"
 
 ["Decay"]
 en = "Decay"
@@ -902,6 +1286,9 @@ es = "Decaimiento"
 fr = "Décroissance"
 de = "Abklingen"
 ja = "減衰"
+"zh-CN" = "衰减"
+"zh-TW" = "衰減"
+"ko" = "감쇠"
 
 ["Default outline color"]
 en = "Default outline color"
@@ -909,6 +1296,9 @@ es = "Color de contorno predeterminado"
 fr = "Couleur de contour par défaut"
 de = "Standard-Umrissfarbe"
 ja = "既定のアウトライン色"
+"zh-CN" = "默认轮廓颜色"
+"zh-TW" = "預設輪廓顏色"
+"ko" = "기본 윤곽선 색상"
 
 ["Delay"]
 en = "Delay"
@@ -916,6 +1306,9 @@ es = "Retardo"
 fr = "Délai"
 de = "Verzögerung"
 ja = "ディレイ"
+"zh-CN" = "延迟"
+"zh-TW" = "延遲"
+"ko" = "지연"
 
 ["Delete selected keyframe"]
 en = "Delete selected keyframe"
@@ -923,6 +1316,9 @@ es = "Eliminar fotograma clave seleccionado"
 fr = "Supprimer l’image clé sélectionnée"
 de = "Ausgewählten Keyframe löschen"
 ja = "選択したキーフレームを削除"
+"zh-CN" = "删除选定的关键帧"
+"zh-TW" = "刪除選定的關鍵影格"
+"ko" = "선택한 키프레임 삭제"
 
 ["Depth"]
 en = "Depth"
@@ -930,6 +1326,9 @@ es = "Profundidad"
 fr = "Profondeur"
 de = "Tiefe"
 ja = "深度"
+"zh-CN" = "深度"
+"zh-TW" = "深度"
+"ko" = "깊이"
 
 ["Depth edge roundness"]
 en = "Depth edge roundness"
@@ -937,6 +1336,9 @@ es = "Redondez del borde de profundidad"
 fr = "Arrondi des bords de profondeur"
 de = "Rundung der Tiefenkante"
 ja = "深度エッジの丸み"
+"zh-CN" = "深度边缘圆角程度"
+"zh-TW" = "深度邊緣圓角程度"
+"ko" = "깊이 가장자리 둥글기"
 
 ["Depth threshold"]
 en = "Depth threshold"
@@ -944,6 +1346,9 @@ es = "Umbral de profundidad"
 fr = "Seuil de profondeur"
 de = "Tiefenschwelle"
 ja = "深度しきい値"
+"zh-CN" = "深度阈值"
+"zh-TW" = "深度閾值"
+"ko" = "깊이 임계값"
 
 ["Detail"]
 en = "Detail"
@@ -951,6 +1356,9 @@ es = "Detalle"
 fr = "Détail"
 de = "Detail"
 ja = "ディテール"
+"zh-CN" = "细节"
+"zh-TW" = "細節"
+"ko" = "세부 사항"
 
 ["Diamond"]
 en = "Diamond"
@@ -958,6 +1366,9 @@ es = "Rombo"
 fr = "Losange"
 de = "Raute"
 ja = "ひし形"
+"zh-CN" = "菱形"
+"zh-TW" = "菱形"
+"ko" = "마름모"
 
 ["Diffusion"]
 en = "Diffusion"
@@ -965,6 +1376,9 @@ es = "Difusión"
 fr = "Diffusion"
 de = "Diffusion"
 ja = "拡散"
+"zh-CN" = "扩散"
+"zh-TW" = "擴散"
+"ko" = "확산"
 
 ["Dimensions"]
 en = "Dimensions"
@@ -972,6 +1386,9 @@ es = "Dimensiones"
 fr = "Dimensions"
 de = "Abmessungen"
 ja = "寸法"
+"zh-CN" = "尺寸"
+"zh-TW" = "尺寸"
+"ko" = "치수"
 
 ["Direction"]
 en = "Direction"
@@ -979,6 +1396,9 @@ es = "Dirección"
 fr = "Direction"
 de = "Richtung"
 ja = "方向"
+"zh-CN" = "方向"
+"zh-TW" = "方向"
+"ko" = "방향"
 
 ["Disable modifier"]
 en = "Disable modifier"
@@ -986,6 +1406,9 @@ es = "Desactivar modificador"
 fr = "Désactiver le modificateur"
 de = "Modifikator deaktivieren"
 ja = "モディファイアを無効化"
+"zh-CN" = "禁用修改器"
+"zh-TW" = "停用修改器"
+"ko" = "수정자 비활성화"
 
 ["Discard and reanalyze the current source-time chunk"]
 en = "Discard and reanalyze the current source-time chunk"
@@ -993,6 +1416,9 @@ es = "Descartar y volver a analizar el tramo temporal actual"
 fr = "Ignorer et réanalyser le segment temporel source actuel"
 de = "Aktuellen Quellzeitabschnitt verwerfen und neu analysieren"
 ja = "現在のソース時間チャンクを破棄して再解析"
+"zh-CN" = "丢弃并重新分析当前源时间片段"
+"zh-TW" = "捨棄並重新分析目前的來源時間區段"
+"ko" = "현재 소스 시간 구간을 버리고 다시 분석합니다."
 
 ["Distance"]
 en = "Distance"
@@ -1000,6 +1426,9 @@ es = "Distancia"
 fr = "Distance"
 de = "Abstand"
 ja = "距離"
+"zh-CN" = "距离"
+"zh-TW" = "距離"
+"ko" = "거리"
 
 ["Distortion"]
 en = "Distortion"
@@ -1007,6 +1436,9 @@ es = "Distorsión"
 fr = "Distorsion"
 de = "Verzerrung"
 ja = "歪み"
+"zh-CN" = "失真"
+"zh-TW" = "失真"
+"ko" = "왜곡"
 
 ["Distribution"]
 en = "Distribution"
@@ -1014,6 +1446,9 @@ es = "Distribución"
 fr = "Distribution"
 de = "Verteilung"
 ja = "分布"
+"zh-CN" = "分布"
+"zh-TW" = "分佈"
+"ko" = "분포"
 
 ["Distribution randomness"]
 en = "Distribution randomness"
@@ -1021,6 +1456,9 @@ es = "Aleatoriedad de distribución"
 fr = "Variation de distribution"
 de = "Verteilungszufälligkeit"
 ja = "分布のランダム性"
+"zh-CN" = "分布随机性"
+"zh-TW" = "分佈隨機性"
+"ko" = "분포 무작위성"
 
 ["Dot density"]
 en = "Dot density"
@@ -1028,6 +1466,9 @@ es = "Densidad de puntos"
 fr = "Densité des points"
 de = "Punktdichte"
 ja = "ドット密度"
+"zh-CN" = "网点密度"
+"zh-TW" = "網點密度"
+"ko" = "도트 밀도"
 
 ["Dot size"]
 en = "Dot size"
@@ -1035,6 +1476,9 @@ es = "Tamaño de punto"
 fr = "Taille des points"
 de = "Punktgröße"
 ja = "ドットサイズ"
+"zh-CN" = "网点尺寸"
+"zh-TW" = "網點尺寸"
+"ko" = "도트 크기"
 
 ["Dots"]
 en = "Dots"
@@ -1042,6 +1486,9 @@ es = "Puntos"
 fr = "Points"
 de = "Punkte"
 ja = "ドット"
+"zh-CN" = "点"
+"zh-TW" = "點"
+"ko" = "도트"
 
 ["Downloading font family…"]
 en = "Downloading font family…"
@@ -1049,6 +1496,9 @@ es = "Descargando familia tipográfica…"
 fr = "Téléchargement de la famille de polices…"
 de = "Schriftfamilie wird heruntergeladen…"
 ja = "フォントファミリーをダウンロード中…"
+"zh-CN" = "正在下载字体系列…"
+"zh-TW" = "正在下載字型系列…"
+"ko" = "글꼴 모음 다운로드 중…"
 
 ["Drag onto a visual clip in the timeline"]
 en = "Drag onto a visual clip in the timeline"
@@ -1056,6 +1506,9 @@ es = "Arrastra sobre un clip visual en la línea de tiempo"
 fr = "Faites glisser sur un clip visuel dans la timeline"
 de = "Auf einen visuellen Clip in der Zeitleiste ziehen"
 ja = "タイムライン上のビジュアルクリップにドラッグ"
+"zh-CN" = "拖到时间线中的视觉片段上"
+"zh-TW" = "拖曳至時間軸中的視覺片段"
+"ko" = "타임라인의 비주얼 클립으로 드래그"
 
 ["Drag onto a visual clip…"]
 en = "Drag onto a visual clip…"
@@ -1063,6 +1516,9 @@ es = "Arrastra sobre un clip visual…"
 fr = "Faites glisser sur un clip visuel…"
 de = "Auf einen visuellen Clip ziehen…"
 ja = "ビジュアルクリップにドラッグ…"
+"zh-CN" = "拖到视觉片段上…"
+"zh-TW" = "拖曳至視覺片段…"
+"ko" = "비주얼 클립으로 드래그…"
 
 ["Drawing"]
 en = "Drawing"
@@ -1070,6 +1526,9 @@ es = "Dibujo"
 fr = "Dessin"
 de = "Zeichnung"
 ja = "描画"
+"zh-CN" = "绘图"
+"zh-TW" = "繪圖"
+"ko" = "드로잉"
 
 ["Drive"]
 en = "Drive"
@@ -1077,6 +1536,9 @@ es = "Ganancia"
 fr = "Gain"
 de = "Drive"
 ja = "ドライブ"
+"zh-CN" = "驱动"
+"zh-TW" = "驅動"
+"ko" = "드라이브"
 
 ["Duration"]
 en = "Duration"
@@ -1084,6 +1546,9 @@ es = "Duración"
 fr = "Durée"
 de = "Dauer"
 ja = "長さ"
+"zh-CN" = "持续时间"
+"zh-TW" = "持續時間"
+"ko" = "지속 시간"
 
 ["Edge"]
 en = "Edge"
@@ -1091,6 +1556,9 @@ es = "Borde"
 fr = "Bord"
 de = "Kante"
 ja = "エッジ"
+"zh-CN" = "边缘"
+"zh-TW" = "邊緣"
+"ko" = "가장자리"
 
 ["Edge color"]
 en = "Edge color"
@@ -1098,6 +1566,9 @@ es = "Color de borde"
 fr = "Couleur du bord"
 de = "Kantenfarbe"
 ja = "エッジ色"
+"zh-CN" = "边缘颜色"
+"zh-TW" = "邊緣顏色"
+"ko" = "가장자리 색상"
 
 ["Edge softness"]
 en = "Edge softness"
@@ -1105,6 +1576,9 @@ es = "Suavidad del borde"
 fr = "Douceur du bord"
 de = "Kantenweichheit"
 ja = "エッジの柔らかさ"
+"zh-CN" = "边缘柔软度"
+"zh-TW" = "邊緣柔軟度"
+"ko" = "가장자리 부드러움"
 
 ["Edge width"]
 en = "Edge width"
@@ -1112,6 +1586,9 @@ es = "Ancho de borde"
 fr = "Largeur du bord"
 de = "Kantenbreite"
 ja = "エッジ幅"
+"zh-CN" = "边缘宽度"
+"zh-TW" = "邊緣寬度"
+"ko" = "가장자리 너비"
 
 ["Edit after the shared beginning"]
 en = "Edit after the shared beginning"
@@ -1119,6 +1596,9 @@ es = "Editar tras el inicio compartido"
 fr = "Modifier après le début commun"
 de = "Nach dem gemeinsamen Anfang bearbeiten"
 ja = "共通の冒頭以降を編集"
+"zh-CN" = "在共享开头后进行编辑"
+"zh-TW" = "在共享開頭後進行編輯"
+"ko" = "공유 시작 후 편집"
 
 ["Edit between the shared ends"]
 en = "Edit between the shared ends"
@@ -1126,6 +1606,9 @@ es = "Editar entre los extremos compartidos"
 fr = "Modifier entre les extrémités communes"
 de = "Zwischen den gemeinsamen Enden bearbeiten"
 ja = "共通部分の間を編集"
+"zh-CN" = "在共享端之间编辑"
+"zh-TW" = "在共享端之間編輯"
+"ko" = "공유 끝 사이에서 편집"
 
 ["Edit only the changed characters"]
 en = "Edit only the changed characters"
@@ -1133,6 +1616,9 @@ es = "Editar solo los caracteres modificados"
 fr = "Modifier uniquement les caractères changés"
 de = "Nur geänderte Zeichen bearbeiten"
 ja = "変更された文字だけを編集"
+"zh-CN" = "仅编辑已更改的字符"
+"zh-TW" = "僅編輯已變更的字元"
+"ko" = "변경된 문자만 편집"
 
 ["Effect strength"]
 en = "Effect strength"
@@ -1140,6 +1626,9 @@ es = "Intensidad del efecto"
 fr = "Intensité de l’effet"
 de = "Effektstärke"
 ja = "エフェクト強度"
+"zh-CN" = "效果强度"
+"zh-TW" = "效果強度"
+"ko" = "효과 강도"
 
 ["Ellipse"]
 en = "Ellipse"
@@ -1147,6 +1636,9 @@ es = "Elipse"
 fr = "Ellipse"
 de = "Ellipse"
 ja = "楕円"
+"zh-CN" = "椭圆"
+"zh-TW" = "橢圓"
+"ko" = "타원"
 
 ["Enable layout"]
 en = "Enable layout"
@@ -1154,6 +1646,9 @@ es = "Activar disposición"
 fr = "Activer la mise en page"
 de = "Layout aktivieren"
 ja = "レイアウトを有効化"
+"zh-CN" = "启用布局"
+"zh-TW" = "啟用版面配置"
+"ko" = "레이아웃 활성화"
 
 ["Enable modifier"]
 en = "Enable modifier"
@@ -1161,6 +1656,9 @@ es = "Activar modificador"
 fr = "Activer le modificateur"
 de = "Modifikator aktivieren"
 ja = "モディファイアを有効化"
+"zh-CN" = "启用修改器"
+"zh-TW" = "啟用修改器"
+"ko" = "수정자 활성화"
 
 ["Enable styling"]
 en = "Enable styling"
@@ -1168,6 +1666,9 @@ es = "Activar estilo"
 fr = "Activer le style"
 de = "Stil aktivieren"
 ja = "スタイルを有効化"
+"zh-CN" = "启用样式设置"
+"zh-TW" = "啟用樣式設定"
+"ko" = "스타일링 활성화"
 
 ["Enabled"]
 en = "Enabled"
@@ -1175,6 +1676,9 @@ es = "Activado"
 fr = "Activé"
 de = "Aktiviert"
 ja = "有効"
+"zh-CN" = "启用"
+"zh-TW" = "啟用"
+"ko" = "활성화됨"
 
 ["End cap"]
 en = "End cap"
@@ -1182,6 +1686,9 @@ es = "Extremo final"
 fr = "Extrémité de fin"
 de = "Endkappe"
 ja = "終端キャップ"
+"zh-CN" = "端盖"
+"zh-TW" = "端蓋"
+"ko" = "엔드캡"
 
 ["End taper"]
 en = "End taper"
@@ -1189,6 +1696,9 @@ es = "Estrechamiento final"
 fr = "Effilement final"
 de = "Endverjüngung"
 ja = "終端テーパー"
+"zh-CN" = "端部锥度"
+"zh-TW" = "端部錐度"
+"ko" = "엔드 테이퍼"
 
 ["End taper distance"]
 en = "End taper distance"
@@ -1196,6 +1706,9 @@ es = "Distancia del estrechamiento final"
 fr = "Distance d’effilement final"
 de = "Endverjüngungsabstand"
 ja = "終端テーパー距離"
+"zh-CN" = "端锥距"
+"zh-TW" = "端錐距"
+"ko" = "끝 테이퍼 거리"
 
 ["Engine"]
 en = "Engine"
@@ -1203,6 +1716,9 @@ es = "Motor"
 fr = "Moteur"
 de = "Engine"
 ja = "エンジン"
+"zh-CN" = "引擎"
+"zh-TW" = "引擎"
+"ko" = "엔진"
 
 ["Enter a Google font family name"]
 en = "Enter a Google font family name"
@@ -1210,6 +1726,9 @@ es = "Introduce una familia de Google Fonts"
 fr = "Saisissez une famille Google Fonts"
 de = "Namen einer Google-Schriftfamilie eingeben"
 ja = "Google Fontsのファミリー名を入力"
+"zh-CN" = "输入 Google 字体系列名称"
+"zh-TW" = "輸入 Google 字型系列名稱"
+"ko" = "Google 글꼴 모음 이름을 입력하세요."
 
 ["Environment"]
 en = "Environment"
@@ -1217,6 +1736,9 @@ es = "Entorno"
 fr = "Environnement"
 de = "Umgebung"
 ja = "環境"
+"zh-CN" = "环境"
+"zh-TW" = "環境"
+"ko" = "환경"
 
 ["Environment images"]
 en = "Environment images"
@@ -1224,6 +1746,9 @@ es = "Imágenes de entorno"
 fr = "Images d’environnement"
 de = "Umgebungsbilder"
 ja = "環境画像"
+"zh-CN" = "环境图像"
+"zh-TW" = "環境影像"
+"ko" = "환경 이미지"
 
 ["Evolution"]
 en = "Evolution"
@@ -1231,6 +1756,9 @@ es = "Evolución"
 fr = "Évolution"
 de = "Entwicklung"
 ja = "変化"
+"zh-CN" = "演化"
+"zh-TW" = "演化"
+"ko" = "진화"
 
 ["Evolve seed"]
 en = "Evolve seed"
@@ -1238,6 +1766,9 @@ es = "Evolucionar semilla"
 fr = "Faire évoluer la graine"
 de = "Seed entwickeln"
 ja = "シードを変化"
+"zh-CN" = "演化种子"
+"zh-TW" = "演化種子"
+"ko" = "시드 변경"
 
 ["Expand"]
 en = "Expand"
@@ -1245,6 +1776,9 @@ es = "Expandir"
 fr = "Développer"
 de = "Ausklappen"
 ja = "展開"
+"zh-CN" = "展开"
+"zh-TW" = "展開"
+"ko" = "펼치기"
 
 ["Exposure"]
 en = "Exposure"
@@ -1252,6 +1786,9 @@ es = "Exposición"
 fr = "Exposition"
 de = "Belichtung"
 ja = "露出"
+"zh-CN" = "曝光"
+"zh-TW" = "曝光"
+"ko" = "노출"
 
 ["Expression"]
 en = "Expression"
@@ -1259,6 +1796,9 @@ es = "Expresión"
 fr = "Expression"
 de = "Ausdruck"
 ja = "式"
+"zh-CN" = "表达式"
+"zh-TW" = "運算式"
+"ko" = "표현식"
 
 ["Extend edge"]
 en = "Extend edge"
@@ -1266,6 +1806,9 @@ es = "Extender borde"
 fr = "Étendre le bord"
 de = "Kante erweitern"
 ja = "エッジを拡張"
+"zh-CN" = "延伸边缘"
+"zh-TW" = "延伸邊緣"
+"ko" = "가장자리 확장"
 
 ["FOV"]
 en = "FOV"
@@ -1273,6 +1816,9 @@ es = "Campo de visión"
 fr = "Champ de vision"
 de = "Sichtfeld"
 ja = "視野角"
+"zh-CN" = "视场角 (FOV)"
+"zh-TW" = "視野 (FOV)"
+"ko" = "시야각 (FOV)"
 
 ["FPS"]
 en = "FPS"
@@ -1280,6 +1826,9 @@ es = "FPS"
 fr = "IPS"
 de = "FPS"
 ja = "FPS"
+"zh-CN" = "FPS"
+"zh-TW" = "FPS"
+"ko" = "FPS"
 
 ["Fade"]
 en = "Fade"
@@ -1287,6 +1836,9 @@ es = "Fundido"
 fr = "Fondu"
 de = "Überblendung"
 ja = "フェード"
+"zh-CN" = "淡入淡出"
+"zh-TW" = "淡入淡出"
+"ko" = "페이드"
 
 ["Fade length"]
 en = "Fade length"
@@ -1294,6 +1846,9 @@ es = "Duración del fundido"
 fr = "Longueur du fondu"
 de = "Überblendlänge"
 ja = "フェード長"
+"zh-CN" = "淡入淡出长度"
+"zh-TW" = "淡入淡出長度"
+"ko" = "페이드 길이"
 
 ["Fade one by one"]
 en = "Fade one by one"
@@ -1301,6 +1856,9 @@ es = "Fundir uno a uno"
 fr = "Fondre un par un"
 de = "Nacheinander überblenden"
 ja = "1つずつフェード"
+"zh-CN" = "逐个淡入淡出"
+"zh-TW" = "逐個淡入淡出"
+"ko" = "하나씩 페이드"
 
 ["Fade opacity"]
 en = "Fade opacity"
@@ -1308,6 +1866,9 @@ es = "Opacidad del fundido"
 fr = "Opacité du fondu"
 de = "Überblenddeckkraft"
 ja = "フェード不透明度"
+"zh-CN" = "淡入淡出不透明度"
+"zh-TW" = "淡入淡出不透明度"
+"ko" = "페이드 불투명도"
 
 ["Fade together"]
 en = "Fade together"
@@ -1315,6 +1876,9 @@ es = "Fundir juntos"
 fr = "Fondre ensemble"
 de = "Gemeinsam überblenden"
 ja = "まとめてフェード"
+"zh-CN" = "同时淡入淡出"
+"zh-TW" = "同時淡入淡出"
+"ko" = "함께 페이드"
 
 ["Fade-through color"]
 en = "Fade-through color"
@@ -1322,6 +1886,9 @@ es = "Color de fundido intermedio"
 fr = "Couleur du fondu intermédiaire"
 de = "Zwischenblendfarbe"
 ja = "中間フェード色"
+"zh-CN" = "过渡颜色"
+"zh-TW" = "過渡色彩"
+"ko" = "페이드 스루 색상"
 
 ["Feather"]
 en = "Feather"
@@ -1329,6 +1896,9 @@ es = "Suavizado"
 fr = "Contour progressif"
 de = "Weiche Kante"
 ja = "フェザー"
+"zh-CN" = "羽化"
+"zh-TW" = "羽化"
+"ko" = "페더"
 
 ["Feedback"]
 en = "Feedback"
@@ -1336,6 +1906,9 @@ es = "Realimentación"
 fr = "Rétroaction"
 de = "Feedback"
 ja = "フィードバック"
+"zh-CN" = "反馈"
+"zh-TW" = "回饋"
+"ko" = "피드백"
 
 ["File Location"]
 en = "File Location"
@@ -1343,6 +1916,9 @@ es = "Ubicación del archivo"
 fr = "Emplacement du fichier"
 de = "Dateispeicherort"
 ja = "ファイルの場所"
+"zh-CN" = "文件位置"
+"zh-TW" = "檔案位置"
+"ko" = "파일 위치"
 
 ["Fill"]
 en = "Fill"
@@ -1350,6 +1926,9 @@ es = "Relleno"
 fr = "Remplissage"
 de = "Füllung"
 ja = "塗り"
+"zh-CN" = "填充"
+"zh-TW" = "填滿"
+"ko" = "채우기"
 
 ["Fill color %{number}"]
 en = "Fill color %{number}"
@@ -1357,6 +1936,9 @@ es = "Color de relleno %{number}"
 fr = "Couleur de remplissage %{number}"
 de = "Füllfarbe %{number}"
 ja = "塗りの色 %{number}"
+"zh-CN" = "填充颜色%{number}"
+"zh-TW" = "填滿顏色%{number}"
+"ko" = "채우기 색상 %{number}"
 
 ["Flipped"]
 en = "Flipped"
@@ -1364,6 +1946,9 @@ es = "Invertido"
 fr = "Inversé"
 de = "Umgekehrt"
 ja = "反転"
+"zh-CN" = "翻转"
+"zh-TW" = "翻轉"
+"ko" = "뒤집힌"
 
 ["Focal length"]
 en = "Focal length"
@@ -1371,6 +1956,9 @@ es = "Distancia focal"
 fr = "Distance focale"
 de = "Brennweite"
 ja = "焦点距離"
+"zh-CN" = "焦距"
+"zh-TW" = "焦距"
+"ko" = "초점 거리"
 
 ["Focus distance (0 = off)"]
 en = "Focus distance (0 = off)"
@@ -1378,6 +1966,9 @@ es = "Distancia de enfoque (0 = desactivado)"
 fr = "Distance de mise au point (0 = désactivé)"
 de = "Fokusabstand (0 = aus)"
 ja = "焦点距離（0 = オフ）"
+"zh-CN" = "对焦距离（0 = 关闭）"
+"zh-TW" = "對焦距離（0 = 關閉）"
+"ko" = "초점 거리(0 = 꺼짐)"
 
 ["Fold depth"]
 en = "Fold depth"
@@ -1385,6 +1976,9 @@ es = "Profundidad de pliegue"
 fr = "Profondeur du pli"
 de = "Falttiefe"
 ja = "折り深さ"
+"zh-CN" = "折叠深度"
+"zh-TW" = "折疊深度"
+"ko" = "접기 깊이"
 
 ["Fold size"]
 en = "Fold size"
@@ -1392,6 +1986,9 @@ es = "Tamaño de pliegue"
 fr = "Taille du pli"
 de = "Faltgröße"
 ja = "折りサイズ"
+"zh-CN" = "折叠大小"
+"zh-TW" = "折疊大小"
+"ko" = "접기 크기"
 
 ["Folded Sequence"]
 en = "Folded Sequence"
@@ -1399,6 +1996,9 @@ es = "Secuencia plegada"
 fr = "Séquence pliée"
 de = "Eingeklappte Sequenz"
 ja = "折りたたみシーケンス"
+"zh-CN" = "已折叠序列"
+"zh-TW" = "已收合序列"
+"ko" = "접힌 시퀀스"
 
 ["Font"]
 en = "Font"
@@ -1406,6 +2006,9 @@ es = "Fuente"
 fr = "Police"
 de = "Schrift"
 ja = "フォント"
+"zh-CN" = "字体"
+"zh-TW" = "字型"
+"ko" = "글꼴"
 
 ["Font size"]
 en = "Font size"
@@ -1413,6 +2016,9 @@ es = "Tamaño de fuente"
 fr = "Taille de police"
 de = "Schriftgröße"
 ja = "フォントサイズ"
+"zh-CN" = "字体大小"
+"zh-TW" = "字型大小"
+"ko" = "글꼴 크기"
 
 ["Font weight"]
 en = "Font weight"
@@ -1420,6 +2026,9 @@ es = "Grosor de fuente"
 fr = "Graisse de police"
 de = "Schriftstärke"
 ja = "フォントウェイト"
+"zh-CN" = "字体粗细"
+"zh-TW" = "字型粗細"
+"ko" = "글꼴 두께"
 
 ["Fonts"]
 en = "Fonts"
@@ -1427,6 +2036,9 @@ es = "Fuentes"
 fr = "Polices"
 de = "Schriften"
 ja = "フォント"
+"zh-CN" = "字体"
+"zh-TW" = "字型"
+"ko" = "글꼴"
 
 ["Formant shift"]
 en = "Formant shift"
@@ -1434,6 +2046,9 @@ es = "Desplazamiento de formantes"
 fr = "Décalage des formants"
 de = "Formantverschiebung"
 ja = "フォルマントシフト"
+"zh-CN" = "共振峰位移"
+"zh-TW" = "共振峰位移"
+"ko" = "포먼트 시프트"
 
 ["Frequency"]
 en = "Frequency"
@@ -1441,6 +2056,9 @@ es = "Frecuencia"
 fr = "Fréquence"
 de = "Frequenz"
 ja = "周波数"
+"zh-CN" = "频率"
+"zh-TW" = "頻率"
+"ko" = "주파수"
 
 ["Fresnel contour"]
 en = "Fresnel contour"
@@ -1448,6 +2066,9 @@ es = "Contorno Fresnel"
 fr = "Contour de Fresnel"
 de = "Fresnel-Kontur"
 ja = "フレネル輪郭"
+"zh-CN" = "菲涅耳轮廓"
+"zh-TW" = "菲涅耳輪廓"
+"ko" = "프레넬 윤곽"
 
 ["From inside"]
 en = "From inside"
@@ -1455,6 +2076,9 @@ es = "Desde dentro"
 fr = "Depuis l’intérieur"
 de = "Von innen"
 ja = "内側から"
+"zh-CN" = "从里面"
+"zh-TW" = "從裡面"
+"ko" = "내부에서"
 
 ["From outside"]
 en = "From outside"
@@ -1462,6 +2086,9 @@ es = "Desde fuera"
 fr = "Depuis l’extérieur"
 de = "Von außen"
 ja = "外側から"
+"zh-CN" = "从外面"
+"zh-TW" = "從外面"
+"ko" = "외부에서"
 
 ["Gamma"]
 en = "Gamma"
@@ -1469,6 +2096,9 @@ es = "Gamma"
 fr = "Gamma"
 de = "Gamma"
 ja = "ガンマ"
+"zh-CN" = "伽玛"
+"zh-TW" = "伽瑪"
+"ko" = "감마"
 
 ["Generator"]
 en = "Generator"
@@ -1476,6 +2106,9 @@ es = "Generador"
 fr = "Générateur"
 de = "Generator"
 ja = "ジェネレーター"
+"zh-CN" = "生成器"
+"zh-TW" = "生成器"
+"ko" = "생성기"
 
 ["Glow / outline"]
 en = "Glow / outline"
@@ -1483,6 +2116,9 @@ es = "Resplandor / contorno"
 fr = "Lueur / contour"
 de = "Leuchten / Umriss"
 ja = "グロー / アウトライン"
+"zh-CN" = "发光/轮廓"
+"zh-TW" = "發光/輪廓"
+"ko" = "글로우/윤곽"
 
 ["Gradient step"]
 en = "Gradient step"
@@ -1490,6 +2126,9 @@ es = "Paso de gradiente"
 fr = "Pas du dégradé"
 de = "Verlaufsstufe"
 ja = "グラデーション段階"
+"zh-CN" = "梯度步长"
+"zh-TW" = "梯度步長"
+"ko" = "그라데이션 단계"
 
 ["Grain size"]
 en = "Grain size"
@@ -1497,6 +2136,9 @@ es = "Tamaño de grano"
 fr = "Taille du grain"
 de = "Körnung"
 ja = "粒子サイズ"
+"zh-CN" = "粒度"
+"zh-TW" = "粒徑"
+"ko" = "입자 크기"
 
 ["Ground intensity"]
 en = "Ground intensity"
@@ -1504,6 +2146,9 @@ es = "Intensidad del suelo"
 fr = "Intensité du sol"
 de = "Bodenintensität"
 ja = "地面の強度"
+"zh-CN" = "地面强度"
+"zh-TW" = "地面強度"
+"ko" = "지면 강도"
 
 ["H align"]
 en = "H align"
@@ -1511,6 +2156,9 @@ es = "Alineación H"
 fr = "Alignement H"
 de = "Horizontale Ausrichtung"
 ja = "水平揃え"
+"zh-CN" = "水平对齐"
+"zh-TW" = "水平對齊"
+"ko" = "가로 정렬"
 
 ["Hard shadow"]
 en = "Hard shadow"
@@ -1518,6 +2166,9 @@ es = "Sombra dura"
 fr = "Ombre dure"
 de = "Harter Schatten"
 ja = "ハードシャドウ"
+"zh-CN" = "硬阴影"
+"zh-TW" = "硬陰影"
+"ko" = "하드 섀도"
 
 ["Head length"]
 en = "Head length"
@@ -1525,6 +2176,9 @@ es = "Longitud de punta"
 fr = "Longueur de la tête"
 de = "Kopflänge"
 ja = "先端の長さ"
+"zh-CN" = "箭头长度"
+"zh-TW" = "箭頭長度"
+"ko" = "화살촉 길이"
 
 ["Heart"]
 en = "Heart"
@@ -1532,6 +2186,9 @@ es = "Corazón"
 fr = "Cœur"
 de = "Herz"
 ja = "ハート"
+"zh-CN" = "心形"
+"zh-TW" = "心形"
+"ko" = "하트"
 
 ["Hexagon"]
 en = "Hexagon"
@@ -1539,6 +2196,9 @@ es = "Hexágono"
 fr = "Hexagone"
 de = "Sechseck"
 ja = "六角形"
+"zh-CN" = "六边形"
+"zh-TW" = "六邊形"
+"ko" = "육각형"
 
 ["Hierarchy"]
 en = "Hierarchy"
@@ -1546,6 +2206,9 @@ es = "Jerarquía"
 fr = "Hiérarchie"
 de = "Hierarchie"
 ja = "階層"
+"zh-CN" = "层级"
+"zh-TW" = "階層"
+"ko" = "계층"
 
 ["High"]
 en = "High"
@@ -1553,6 +2216,9 @@ es = "Alto"
 fr = "Élevé"
 de = "Hoch"
 ja = "高"
+"zh-CN" = "高"
+"zh-TW" = "高"
+"ko" = "높음"
 
 ["High color"]
 en = "High color"
@@ -1560,6 +2226,9 @@ es = "Color alto"
 fr = "Couleur haute"
 de = "Obere Farbe"
 ja = "高域色"
+"zh-CN" = "高值颜色"
+"zh-TW" = "高值顏色"
+"ko" = "높은 값 색상"
 
 ["High-pass"]
 en = "High-pass"
@@ -1567,6 +2236,9 @@ es = "Paso alto"
 fr = "Passe-haut"
 de = "Hochpass"
 ja = "ハイパス"
+"zh-CN" = "高通"
+"zh-TW" = "高通"
+"ko" = "하이패스"
 
 ["Highlight color"]
 en = "Highlight color"
@@ -1574,6 +2246,9 @@ es = "Color de resaltado"
 fr = "Couleur des hautes lumières"
 de = "Glanzlichtfarbe"
 ja = "ハイライト色"
+"zh-CN" = "亮部颜色"
+"zh-TW" = "亮部顏色"
+"ko" = "하이라이트 색상"
 
 ["Horizontal"]
 en = "Horizontal"
@@ -1581,6 +2256,9 @@ es = "Horizontal"
 fr = "Horizontal"
 de = "Horizontal"
 ja = "水平"
+"zh-CN" = "水平"
+"zh-TW" = "水平"
+"ko" = "수평"
 
 ["Horizontal alignment"]
 en = "Horizontal alignment"
@@ -1588,6 +2266,9 @@ es = "Alineación horizontal"
 fr = "Alignement horizontal"
 de = "Horizontale Ausrichtung"
 ja = "水平揃え"
+"zh-CN" = "水平对齐"
+"zh-TW" = "水平對齊"
+"ko" = "수평 정렬"
 
 ["Hue position"]
 en = "Hue position"
@@ -1595,6 +2276,9 @@ es = "Posición del tono"
 fr = "Position de la teinte"
 de = "Farbtonposition"
 ja = "色相位置"
+"zh-CN" = "色相位置"
+"zh-TW" = "色相位置"
+"ko" = "색조 위치"
 
 ["Image"]
 en = "Image"
@@ -1602,6 +2286,9 @@ es = "Imagen"
 fr = "Image"
 de = "Bild"
 ja = "画像"
+"zh-CN" = "图像"
+"zh-TW" = "影像"
+"ko" = "이미지"
 
 ["Images"]
 en = "Images"
@@ -1609,6 +2296,9 @@ es = "Imágenes"
 fr = "Images"
 de = "Bilder"
 ja = "画像"
+"zh-CN" = "图像"
+"zh-TW" = "影像"
+"ko" = "이미지"
 
 ["Immediate"]
 en = "Immediate"
@@ -1616,6 +2306,9 @@ es = "Inmediato"
 fr = "Immédiat"
 de = "Sofort"
 ja = "即時"
+"zh-CN" = "立即"
+"zh-TW" = "立即"
+"ko" = "즉시"
 
 ["Include this track in playback and export"]
 en = "Include this track in playback and export"
@@ -1623,6 +2316,9 @@ es = "Incluir esta pista en la reproducción y exportación"
 fr = "Inclure cette piste dans la lecture et l’exportation"
 de = "Diese Spur bei Wiedergabe und Export einbeziehen"
 ja = "再生と書き出しにこのトラックを含める"
+"zh-CN" = "在播放和导出中包含该轨道"
+"zh-TW" = "在播放和匯出中包含該軌道"
+"ko" = "재생 및 내보내기에 이 트랙을 포함합니다."
 
 ["Index of refraction"]
 en = "Index of refraction"
@@ -1630,6 +2326,9 @@ es = "Índice de refracción"
 fr = "Indice de réfraction"
 de = "Brechungsindex"
 ja = "屈折率"
+"zh-CN" = "折射率"
+"zh-TW" = "折射率"
+"ko" = "굴절률"
 
 ["Infinite"]
 en = "Infinite"
@@ -1637,6 +2336,9 @@ es = "Infinito"
 fr = "Infini"
 de = "Unendlich"
 ja = "無限"
+"zh-CN" = "无限"
+"zh-TW" = "無限"
+"ko" = "무한"
 
 ["Inner radius"]
 en = "Inner radius"
@@ -1644,6 +2346,9 @@ es = "Radio interior"
 fr = "Rayon intérieur"
 de = "Innenradius"
 ja = "内半径"
+"zh-CN" = "内半径"
+"zh-TW" = "內半徑"
+"ko" = "내부 반경"
 
 ["Intensity"]
 en = "Intensity"
@@ -1651,6 +2356,9 @@ es = "Intensidad"
 fr = "Intensité"
 de = "Intensität"
 ja = "強度"
+"zh-CN" = "强度"
+"zh-TW" = "強度"
+"ko" = "강도"
 
 ["Intro"]
 en = "Intro"
@@ -1658,6 +2366,9 @@ es = "Entrada"
 fr = "Introduction"
 de = "Intro"
 ja = "イントロ"
+"zh-CN" = "开场"
+"zh-TW" = "開場"
+"ko" = "인트로"
 
 ["Invert"]
 en = "Invert"
@@ -1665,6 +2376,9 @@ es = "Invertir"
 fr = "Inverser"
 de = "Invertieren"
 ja = "反転"
+"zh-CN" = "反转"
+"zh-TW" = "反轉"
+"ko" = "반전"
 
 ["Iris"]
 en = "Iris"
@@ -1672,6 +2386,9 @@ es = "Iris"
 fr = "Iris"
 de = "Iris"
 ja = "アイリス"
+"zh-CN" = "光圈"
+"zh-TW" = "光圈"
+"ko" = "조리개"
 
 ["Italic"]
 en = "Italic"
@@ -1679,6 +2396,9 @@ es = "Cursiva"
 fr = "Italique"
 de = "Kursiv"
 ja = "斜体"
+"zh-CN" = "斜体"
+"zh-TW" = "斜體"
+"ko" = "이탤릭체"
 
 ["Items"]
 en = "Items"
@@ -1686,6 +2406,9 @@ es = "Elementos"
 fr = "Éléments"
 de = "Elemente"
 ja = "項目"
+"zh-CN" = "项目"
+"zh-TW" = "項目"
+"ko" = "항목"
 
 ["Jitter"]
 en = "Jitter"
@@ -1693,6 +2416,9 @@ es = "Variación"
 fr = "Tremblement"
 de = "Jitter"
 ja = "ジッター"
+"zh-CN" = "抖动"
+"zh-TW" = "抖動"
+"ko" = "지터"
 
 ["Key color"]
 en = "Key color"
@@ -1700,6 +2426,9 @@ es = "Color clave"
 fr = "Couleur clé"
 de = "Schlüsselfarbe"
 ja = "キーカラー"
+"zh-CN" = "抠像颜色"
+"zh-TW" = "去背色彩"
+"ko" = "키 색상"
 
 ["Keyframes"]
 en = "Keyframes"
@@ -1707,6 +2436,9 @@ es = "Fotogramas clave"
 fr = "Images clés"
 de = "Keyframes"
 ja = "キーフレーム"
+"zh-CN" = "关键帧"
+"zh-TW" = "關鍵影格"
+"ko" = "키프레임"
 
 ["Kind"]
 en = "Kind"
@@ -1714,6 +2446,9 @@ es = "Tipo"
 fr = "Type"
 de = "Art"
 ja = "種類"
+"zh-CN" = "类型"
+"zh-TW" = "種類"
+"ko" = "종류"
 
 ["Kuwahara radius"]
 en = "Kuwahara radius"
@@ -1721,6 +2456,9 @@ es = "Radio Kuwahara"
 fr = "Rayon Kuwahara"
 de = "Kuwahara-Radius"
 ja = "Kuwahara半径"
+"zh-CN" = "Kuwahara 半径"
+"zh-TW" = "Kuwahara 半徑"
+"ko" = "Kuwahara 반경"
 
 ["Kuwahara strength"]
 en = "Kuwahara strength"
@@ -1728,6 +2466,9 @@ es = "Intensidad Kuwahara"
 fr = "Intensité Kuwahara"
 de = "Kuwahara-Stärke"
 ja = "Kuwahara強度"
+"zh-CN" = "Kuwahara 强度"
+"zh-TW" = "Kuwahara 強度"
+"ko" = "Kuwahara 강도"
 
 ["Lacunarity"]
 en = "Lacunarity"
@@ -1735,6 +2476,9 @@ es = "Lacunaridad"
 fr = "Lacunarité"
 de = "Lacunarität"
 ja = "ラキュナリティ"
+"zh-CN" = "间隙度"
+"zh-TW" = "空隙度"
+"ko" = "라쿠나리티"
 
 ["Layered Image"]
 en = "Layered Image"
@@ -1742,6 +2486,9 @@ es = "Imagen por capas"
 fr = "Image multicouche"
 de = "Ebenenbild"
 ja = "レイヤー画像"
+"zh-CN" = "分层图像"
+"zh-TW" = "分層影像"
+"ko" = "계층화된 이미지"
 
 ["Layers"]
 en = "Layers"
@@ -1749,6 +2496,9 @@ es = "Capas"
 fr = "Calques"
 de = "Ebenen"
 ja = "レイヤー"
+"zh-CN" = "图层"
+"zh-TW" = "圖層"
+"ko" = "레이어"
 
 ["Layout"]
 en = "Layout"
@@ -1756,6 +2506,9 @@ es = "Disposición"
 fr = "Mise en page"
 de = "Layout"
 ja = "レイアウト"
+"zh-CN" = "布局"
+"zh-TW" = "版面配置"
+"ko" = "레이아웃"
 
 ["Left"]
 en = "Left"
@@ -1763,6 +2516,9 @@ es = "Izquierda"
 fr = "Gauche"
 de = "Links"
 ja = "左"
+"zh-CN" = "左边"
+"zh-TW" = "左邊"
+"ko" = "왼쪽"
 
 ["Length randomness"]
 en = "Length randomness"
@@ -1770,6 +2526,9 @@ es = "Aleatoriedad de longitud"
 fr = "Variation de longueur"
 de = "Längenzufälligkeit"
 ja = "長さのランダム性"
+"zh-CN" = "长度随机性"
+"zh-TW" = "長度隨機性"
+"ko" = "길이 무작위성"
 
 ["Length timing"]
 en = "Length timing"
@@ -1777,6 +2536,9 @@ es = "Temporización de longitud"
 fr = "Rythme de longueur"
 de = "Längen-Timing"
 ja = "長さのタイミング"
+"zh-CN" = "长度计时"
+"zh-TW" = "長度計時"
+"ko" = "길이 타이밍"
 
 ["Letter"]
 en = "Letter"
@@ -1784,6 +2546,9 @@ es = "Letra"
 fr = "Lettre"
 de = "Buchstabe"
 ja = "文字"
+"zh-CN" = "字母"
+"zh-TW" = "字母"
+"ko" = "문자"
 
 ["Level"]
 en = "Level"
@@ -1791,6 +2556,9 @@ es = "Nivel"
 fr = "Niveau"
 de = "Pegel"
 ja = "レベル"
+"zh-CN" = "等级"
+"zh-TW" = "等級"
+"ko" = "수준"
 
 ["Levels"]
 en = "Levels"
@@ -1798,6 +2566,9 @@ es = "Niveles"
 fr = "Niveaux"
 de = "Stufen"
 ja = "レベル"
+"zh-CN" = "级别"
+"zh-TW" = "等級"
+"ko" = "레벨"
 
 ["Light bands"]
 en = "Light bands"
@@ -1805,6 +2576,9 @@ es = "Bandas claras"
 fr = "Bandes claires"
 de = "Helle Bänder"
 ja = "明部バンド"
+"zh-CN" = "光带"
+"zh-TW" = "光帶"
+"ko" = "라이트 밴드"
 
 ["Line count"]
 en = "Line count"
@@ -1812,6 +2586,9 @@ es = "Número de líneas"
 fr = "Nombre de lignes"
 de = "Linienanzahl"
 ja = "ライン数"
+"zh-CN" = "线条数"
+"zh-TW" = "線條數"
+"ko" = "선 수"
 
 ["Line density"]
 en = "Line density"
@@ -1819,6 +2596,9 @@ es = "Densidad de líneas"
 fr = "Densité des lignes"
 de = "Liniendichte"
 ja = "ライン密度"
+"zh-CN" = "线密度"
+"zh-TW" = "線密度"
+"ko" = "선밀도"
 
 ["Line direction"]
 en = "Line direction"
@@ -1826,6 +2606,9 @@ es = "Dirección de línea"
 fr = "Direction des lignes"
 de = "Linienrichtung"
 ja = "ライン方向"
+"zh-CN" = "线条方向"
+"zh-TW" = "線條方向"
+"ko" = "선 방향"
 
 ["Line height"]
 en = "Line height"
@@ -1833,6 +2616,9 @@ es = "Altura de línea"
 fr = "Hauteur de ligne"
 de = "Zeilenhöhe"
 ja = "行の高さ"
+"zh-CN" = "行高"
+"zh-TW" = "行高"
+"ko" = "줄 높이"
 
 ["Line length"]
 en = "Line length"
@@ -1840,6 +2626,9 @@ es = "Longitud de línea"
 fr = "Longueur des lignes"
 de = "Linienlänge"
 ja = "ライン長"
+"zh-CN" = "线长"
+"zh-TW" = "線長"
+"ko" = "줄 길이"
 
 ["Line offset"]
 en = "Line offset"
@@ -1847,6 +2636,9 @@ es = "Desfase de línea"
 fr = "Décalage des lignes"
 de = "Linienversatz"
 ja = "ラインオフセット"
+"zh-CN" = "线偏移"
+"zh-TW" = "線偏移"
+"ko" = "라인 오프셋"
 
 ["Line style"]
 en = "Line style"
@@ -1854,6 +2646,9 @@ es = "Estilo de línea"
 fr = "Style de ligne"
 de = "Linienstil"
 ja = "ラインスタイル"
+"zh-CN" = "线条样式"
+"zh-TW" = "線條樣式"
+"ko" = "선 스타일"
 
 ["Line width"]
 en = "Line width"
@@ -1861,6 +2656,9 @@ es = "Ancho de línea"
 fr = "Largeur de ligne"
 de = "Linienbreite"
 ja = "線幅"
+"zh-CN" = "线宽"
+"zh-TW" = "線寬"
+"ko" = "선 너비"
 
 ["Linear"]
 en = "Linear"
@@ -1868,6 +2666,9 @@ es = "Lineal"
 fr = "Linéaire"
 de = "Linear"
 ja = "線形"
+"zh-CN" = "线性"
+"zh-TW" = "線性"
+"ko" = "선형"
 
 ["Lines"]
 en = "Lines"
@@ -1875,6 +2676,9 @@ es = "Líneas"
 fr = "Lignes"
 de = "Linien"
 ja = "ライン"
+"zh-CN" = "线条"
+"zh-TW" = "線條"
+"ko" = "선"
 
 ["Link stereo channels"]
 en = "Link stereo channels"
@@ -1882,6 +2686,9 @@ es = "Vincular canales estéreo"
 fr = "Lier les canaux stéréo"
 de = "Stereokanäle koppeln"
 ja = "ステレオチャンネルをリンク"
+"zh-CN" = "链接立体声通道"
+"zh-TW" = "連結立體聲聲道"
+"ko" = "스테레오 채널 연결"
 
 ["Loading cached font…"]
 en = "Loading cached font…"
@@ -1889,6 +2696,9 @@ es = "Cargando fuente en caché…"
 fr = "Chargement de la police en cache…"
 de = "Zwischengespeicherte Schrift wird geladen…"
 ja = "キャッシュ済みフォントを読み込み中…"
+"zh-CN" = "正在加载缓存字体…"
+"zh-TW" = "正在載入快取字型…"
+"ko" = "캐시된 글꼴 로드 중…"
 
 ["Loading cameras…"]
 en = "Loading cameras…"
@@ -1896,6 +2706,9 @@ es = "Cargando cámaras…"
 fr = "Chargement des caméras…"
 de = "Kameras werden geladen…"
 ja = "カメラを読み込み中…"
+"zh-CN" = "正在加载相机…"
+"zh-TW" = "正在載入相機…"
+"ko" = "카메라 로드 중…"
 
 ["Loading installed fonts…"]
 en = "Loading installed fonts…"
@@ -1903,6 +2716,9 @@ es = "Cargando fuentes instaladas…"
 fr = "Chargement des polices installées…"
 de = "Installierte Schriften werden geladen…"
 ja = "インストール済みフォントを読み込み中…"
+"zh-CN" = "正在加载已安装的字体…"
+"zh-TW" = "正在載入已安裝的字型…"
+"ko" = "설치된 글꼴 로드 중…"
 
 ["Loading scenes..."]
 en = "Loading scenes..."
@@ -1910,6 +2726,9 @@ es = "Cargando escenas..."
 fr = "Chargement des scènes…"
 de = "Szenen werden geladen..."
 ja = "シーンを読み込み中..."
+"zh-CN" = "正在加载场景…"
+"zh-TW" = "正在載入場景…"
+"ko" = "장면 로드 중…"
 
 ["Loading scenes…"]
 en = "Loading scenes…"
@@ -1917,6 +2736,9 @@ es = "Cargando escenas…"
 fr = "Chargement des scènes…"
 de = "Szenen werden geladen…"
 ja = "シーンを読み込み中…"
+"zh-CN" = "加载场景…"
+"zh-TW" = "載入場景…"
+"ko" = "장면 로드 중…"
 
 ["Loading tracking model"]
 en = "Loading tracking model"
@@ -1924,6 +2746,9 @@ es = "Cargando modelo de seguimiento"
 fr = "Chargement du modèle de suivi"
 de = "Tracking-Modell wird geladen"
 ja = "トラッキングモデルを読み込み中"
+"zh-CN" = "加载跟踪模型"
+"zh-TW" = "載入追蹤模型"
+"ko" = "추적 모델 로드 중"
 
 ["Loading view layers…"]
 en = "Loading view layers…"
@@ -1931,6 +2756,9 @@ es = "Cargando capas de vista…"
 fr = "Chargement des calques de vue…"
 de = "Ansichtsebenen werden geladen…"
 ja = "ビューレイヤーを読み込み中…"
+"zh-CN" = "正在加载视图图层…"
+"zh-TW" = "正在載入視圖圖層…"
+"ko" = "뷰 레이어 로드 중…"
 
 ["Low"]
 en = "Low"
@@ -1938,6 +2766,9 @@ es = "Bajo"
 fr = "Faible"
 de = "Niedrig"
 ja = "低"
+"zh-CN" = "低"
+"zh-TW" = "低"
+"ko" = "낮음"
 
 ["Low color"]
 en = "Low color"
@@ -1945,6 +2776,9 @@ es = "Color bajo"
 fr = "Couleur basse"
 de = "Untere Farbe"
 ja = "低域色"
+"zh-CN" = "低值颜色"
+"zh-TW" = "低值顏色"
+"ko" = "낮은 값 색상"
 
 ["Low latency"]
 en = "Low latency"
@@ -1952,6 +2786,9 @@ es = "Baja latencia"
 fr = "Faible latence"
 de = "Niedrige Latenz"
 ja = "低レイテンシ"
+"zh-CN" = "低延迟"
+"zh-TW" = "低延遲"
+"ko" = "낮은 대기 시간"
 
 ["Low-pass"]
 en = "Low-pass"
@@ -1959,6 +2796,9 @@ es = "Paso bajo"
 fr = "Passe-bas"
 de = "Tiefpass"
 ja = "ローパス"
+"zh-CN" = "低通"
+"zh-TW" = "低通"
+"ko" = "로우패스"
 
 ["Maintain pitch while changing speed"]
 en = "Maintain pitch while changing speed"
@@ -1966,6 +2806,9 @@ es = "Mantener tono al cambiar la velocidad"
 fr = "Conserver la hauteur en changeant la vitesse"
 de = "Tonhöhe bei Tempoänderung beibehalten"
 ja = "速度変更時にピッチを維持"
+"zh-CN" = "改变速度时保持音高"
+"zh-TW" = "變更速度時保持音高"
+"ko" = "속도 변경 시 피치 유지"
 
 ["Makeup"]
 en = "Makeup"
@@ -1973,6 +2816,9 @@ es = "Compensación"
 fr = "Compensation"
 de = "Make-up"
 ja = "メイクアップ"
+"zh-CN" = "补偿增益"
+"zh-TW" = "補償增益"
+"ko" = "메이크업 게인"
 
 ["Mask"]
 en = "Mask"
@@ -1980,6 +2826,9 @@ es = "Máscara"
 fr = "Masque"
 de = "Maske"
 ja = "マスク"
+"zh-CN" = "蒙版"
+"zh-TW" = "遮罩"
+"ko" = "마스크"
 
 ["Mask strength"]
 en = "Mask strength"
@@ -1987,6 +2836,9 @@ es = "Intensidad de máscara"
 fr = "Intensité du masque"
 de = "Maskenstärke"
 ja = "マスク強度"
+"zh-CN" = "蒙版强度"
+"zh-TW" = "遮罩強度"
+"ko" = "마스크 강도"
 
 ["Material Preview"]
 en = "Material Preview"
@@ -1994,6 +2846,9 @@ es = "Vista previa de material"
 fr = "Aperçu du matériau"
 de = "Materialvorschau"
 ja = "マテリアルプレビュー"
+"zh-CN" = "材质预览"
+"zh-TW" = "材質預覽"
+"ko" = "재료 미리보기"
 
 ["Max iterations"]
 en = "Max iterations"
@@ -2001,6 +2856,9 @@ es = "Iteraciones máximas"
 fr = "Itérations maximales"
 de = "Maximale Iterationen"
 ja = "最大反復回数"
+"zh-CN" = "最大迭代次数"
+"zh-TW" = "最大迭代次數"
+"ko" = "최대 반복"
 
 ["Maximum block size"]
 en = "Maximum block size"
@@ -2008,6 +2866,9 @@ es = "Tamaño máximo de bloque"
 fr = "Taille maximale du bloc"
 de = "Maximale Blockgröße"
 ja = "最大ブロックサイズ"
+"zh-CN" = "最大块大小"
+"zh-TW" = "最大塊大小"
+"ko" = "최대 블록 크기"
 
 ["Maximum directions"]
 en = "Maximum directions"
@@ -2015,6 +2876,9 @@ es = "Direcciones máximas"
 fr = "Directions maximales"
 de = "Maximale Richtungen"
 ja = "最大方向数"
+"zh-CN" = "最大方向"
+"zh-TW" = "最大方向"
+"ko" = "최대 방향"
 
 ["Maximum gap"]
 en = "Maximum gap"
@@ -2022,6 +2886,9 @@ es = "Espacio máximo"
 fr = "Écart maximal"
 de = "Maximaler Abstand"
 ja = "最大間隔"
+"zh-CN" = "最大间隙"
+"zh-TW" = "最大間隙"
+"ko" = "최대 간격"
 
 ["Maximum radius"]
 en = "Maximum radius"
@@ -2029,6 +2896,9 @@ es = "Radio máximo"
 fr = "Rayon maximal"
 de = "Maximaler Radius"
 ja = "最大半径"
+"zh-CN" = "最大半径"
+"zh-TW" = "最大半徑"
+"ko" = "최대 반경"
 
 ["Mesh columns"]
 en = "Mesh columns"
@@ -2036,6 +2906,9 @@ es = "Columnas de malla"
 fr = "Colonnes du maillage"
 de = "Netzspalten"
 ja = "メッシュ列"
+"zh-CN" = "网格列"
+"zh-TW" = "網格欄"
+"ko" = "메시 열"
 
 ["Mesh rows"]
 en = "Mesh rows"
@@ -2043,6 +2916,9 @@ es = "Filas de malla"
 fr = "Lignes du maillage"
 de = "Netzzeilen"
 ja = "メッシュ行"
+"zh-CN" = "网格行"
+"zh-TW" = "網格列"
+"ko" = "메시 행"
 
 ["Metallic"]
 en = "Metallic"
@@ -2050,6 +2926,9 @@ es = "Metálico"
 fr = "Métallique"
 de = "Metallisch"
 ja = "メタリック"
+"zh-CN" = "金属度"
+"zh-TW" = "金屬度"
+"ko" = "메탈릭"
 
 ["Method"]
 en = "Method"
@@ -2057,6 +2936,9 @@ es = "Método"
 fr = "Méthode"
 de = "Methode"
 ja = "方式"
+"zh-CN" = "方法"
+"zh-TW" = "方法"
+"ko" = "방법"
 
 ["Metric"]
 en = "Metric"
@@ -2064,6 +2946,9 @@ es = "Métrica"
 fr = "Métrique"
 de = "Metrik"
 ja = "メトリック"
+"zh-CN" = "度量标准"
+"zh-TW" = "度量標準"
+"ko" = "측정 기준"
 
 ["Mid"]
 en = "Mid"
@@ -2071,6 +2956,9 @@ es = "Medios"
 fr = "Médiums"
 de = "Mitten"
 ja = "中域"
+"zh-CN" = "中"
+"zh-TW" = "中"
+"ko" = "중간"
 
 ["Middle"]
 en = "Middle"
@@ -2078,6 +2966,9 @@ es = "Centro"
 fr = "Milieu"
 de = "Mitte"
 ja = "中央"
+"zh-CN" = "中间"
+"zh-TW" = "中間"
+"ko" = "가운데"
 
 ["Middle padding"]
 en = "Middle padding"
@@ -2085,6 +2976,9 @@ es = "Margen central"
 fr = "Marge centrale"
 de = "Mittlerer Abstand"
 ja = "中央余白"
+"zh-CN" = "中间填充"
+"zh-TW" = "中間填充"
+"ko" = "중간 패딩"
 
 ["Midpoint"]
 en = "Midpoint"
@@ -2092,6 +2986,9 @@ es = "Punto medio"
 fr = "Point médian"
 de = "Mittelpunkt"
 ja = "中間点"
+"zh-CN" = "中点"
+"zh-TW" = "中點"
+"ko" = "중간점"
 
 ["Mirror"]
 en = "Mirror"
@@ -2099,6 +2996,9 @@ es = "Espejo"
 fr = "Miroir"
 de = "Spiegeln"
 ja = "ミラー"
+"zh-CN" = "镜像"
+"zh-TW" = "鏡像"
+"ko" = "미러"
 
 ["Mix"]
 en = "Mix"
@@ -2106,6 +3006,9 @@ es = "Mezcla"
 fr = "Mélange"
 de = "Mischung"
 ja = "ミックス"
+"zh-CN" = "混合"
+"zh-TW" = "混合"
+"ko" = "혼합"
 
 ["Mode"]
 en = "Mode"
@@ -2113,6 +3016,9 @@ es = "Modo"
 fr = "Mode"
 de = "Modus"
 ja = "モード"
+"zh-CN" = "模式"
+"zh-TW" = "模式"
+"ko" = "모드"
 
 ["Morph"]
 en = "Morph"
@@ -2120,6 +3026,9 @@ es = "Transformación"
 fr = "Morphing"
 de = "Morphing"
 ja = "モーフ"
+"zh-CN" = "变形"
+"zh-TW" = "變形"
+"ko" = "모프"
 
 ["Morph by"]
 en = "Morph by"
@@ -2127,6 +3036,9 @@ es = "Transformar por"
 fr = "Morphing par"
 de = "Morphen nach"
 ja = "モーフ単位"
+"zh-CN" = "变形为"
+"zh-TW" = "變形為"
+"ko" = "모핑 기준"
 
 ["Motion amount"]
 en = "Motion amount"
@@ -2134,6 +3046,9 @@ es = "Cantidad de movimiento"
 fr = "Amplitude du mouvement"
 de = "Bewegungsstärke"
 ja = "モーション量"
+"zh-CN" = "运动量"
+"zh-TW" = "運動量"
+"ko" = "모션 양"
 
 ["Motion blur"]
 en = "Motion blur"
@@ -2141,6 +3056,9 @@ es = "Desenfoque de movimiento"
 fr = "Flou de mouvement"
 de = "Bewegungsunschärfe"
 ja = "モーションブラー"
+"zh-CN" = "运动模糊"
+"zh-TW" = "運動模糊"
+"ko" = "모션 블러"
 
 ["Motion position"]
 en = "Motion position"
@@ -2148,6 +3066,9 @@ es = "Posición del movimiento"
 fr = "Position du mouvement"
 de = "Bewegungsposition"
 ja = "モーション位置"
+"zh-CN" = "运动位置"
+"zh-TW" = "運動位置"
+"ko" = "모션 위치"
 
 ["Motion-dependent temporal smoothing model"]
 en = "Motion-dependent temporal smoothing model"
@@ -2155,6 +3076,9 @@ es = "Modelo de suavizado temporal dependiente del movimiento"
 fr = "Modèle de lissage temporel dépendant du mouvement"
 de = "Bewegungsabhängiges zeitliches Glättungsmodell"
 ja = "動きに応じた時間平滑化モデル"
+"zh-CN" = "运动相关时间平滑模型"
+"zh-TW" = "運動相關時間平滑模型"
+"ko" = "모션 의존형 시간 평활화 모델"
 
 ["Move down"]
 en = "Move down"
@@ -2162,6 +3086,9 @@ es = "Bajar"
 fr = "Descendre"
 de = "Nach unten"
 ja = "下へ移動"
+"zh-CN" = "下移"
+"zh-TW" = "下移"
+"ko" = "아래로 이동"
 
 ["Move up"]
 en = "Move up"
@@ -2169,6 +3096,9 @@ es = "Subir"
 fr = "Monter"
 de = "Nach oben"
 ja = "上へ移動"
+"zh-CN" = "向上移动"
+"zh-TW" = "向上移動"
+"ko" = "위로 이동"
 
 ["Name"]
 en = "Name"
@@ -2176,6 +3106,9 @@ es = "Nombre"
 fr = "Nom"
 de = "Name"
 ja = "名前"
+"zh-CN" = "名称"
+"zh-TW" = "名稱"
+"ko" = "이름"
 
 ["Natural Duration"]
 en = "Natural Duration"
@@ -2183,6 +3116,9 @@ es = "Duración natural"
 fr = "Durée naturelle"
 de = "Natürliche Dauer"
 ja = "元の長さ"
+"zh-CN" = "原始时长"
+"zh-TW" = "原始長度"
+"ko" = "원본 길이"
 
 ["Neighboring frames considered on each side"]
 en = "Neighboring frames considered on each side"
@@ -2190,6 +3126,9 @@ es = "Fotogramas vecinos considerados a cada lado"
 fr = "Images voisines prises en compte de chaque côté"
 de = "Berücksichtigte Nachbarbilder auf jeder Seite"
 ja = "両側で考慮する隣接フレーム"
+"zh-CN" = "每侧均考虑相邻帧"
+"zh-TW" = "每側均考慮相鄰影格"
+"ko" = "각 측면에서 고려되는 인접 프레임"
 
 ["Next keyframe"]
 en = "Next keyframe"
@@ -2197,6 +3136,9 @@ es = "Siguiente fotograma clave"
 fr = "Image clé suivante"
 de = "Nächster Keyframe"
 ja = "次のキーフレーム"
+"zh-CN" = "下一个关键帧"
+"zh-TW" = "下一個關鍵影格"
+"ko" = "다음 키프레임"
 
 ["Noise evolution"]
 en = "Noise evolution"
@@ -2204,6 +3146,9 @@ es = "Evolución del ruido"
 fr = "Évolution du bruit"
 de = "Rauschentwicklung"
 ja = "ノイズ変化"
+"zh-CN" = "噪声演化"
+"zh-TW" = "雜訊演化"
+"ko" = "노이즈 변화"
 
 ["Noise seed"]
 en = "Noise seed"
@@ -2211,6 +3156,9 @@ es = "Semilla de ruido"
 fr = "Graine du bruit"
 de = "Rausch-Seed"
 ja = "ノイズシード"
+"zh-CN" = "噪声种子"
+"zh-TW" = "雜訊種子"
+"ko" = "노이즈 시드"
 
 ["Normal"]
 en = "Normal"
@@ -2218,6 +3166,9 @@ es = "Normal"
 fr = "Normal"
 de = "Normal"
 ja = "標準"
+"zh-CN" = "正常"
+"zh-TW" = "正常"
+"ko" = "일반"
 
 ["Normal angle"]
 en = "Normal angle"
@@ -2225,6 +3176,9 @@ es = "Ángulo de normal"
 fr = "Angle des normales"
 de = "Normalenwinkel"
 ja = "法線角度"
+"zh-CN" = "法线角度"
+"zh-TW" = "法線角度"
+"ko" = "법선 각도"
 
 ["Normals"]
 en = "Normals"
@@ -2232,6 +3186,9 @@ es = "Normales"
 fr = "Normales"
 de = "Normalen"
 ja = "法線"
+"zh-CN" = "法线"
+"zh-TW" = "法線"
+"ko" = "법선"
 
 ["Not analyzed"]
 en = "Not analyzed"
@@ -2239,6 +3196,9 @@ es = "Sin analizar"
 fr = "Non analysé"
 de = "Nicht analysiert"
 ja = "未解析"
+"zh-CN" = "未分析"
+"zh-TW" = "未分析"
+"ko" = "분석되지 않음"
 
 ["Number of independently moving cell columns"]
 en = "Number of independently moving cell columns"
@@ -2246,6 +3206,9 @@ es = "Número de columnas de celdas con movimiento independiente"
 fr = "Nombre de colonnes de cellules à mouvement indépendant"
 de = "Anzahl unabhängig bewegter Zellspalten"
 ja = "独立して動くセル列の数"
+"zh-CN" = "独立移动的网格单元列数"
+"zh-TW" = "獨立移動的儲存格欄數"
+"ko" = "독립적으로 움직이는 셀 열 수"
 
 ["Number of independently moving cell rows"]
 en = "Number of independently moving cell rows"
@@ -2253,6 +3216,9 @@ es = "Número de filas de celdas con movimiento independiente"
 fr = "Nombre de lignes de cellules à mouvement indépendant"
 de = "Anzahl unabhängig bewegter Zellzeilen"
 ja = "独立して動くセル行の数"
+"zh-CN" = "独立移动的网格单元行数"
+"zh-TW" = "獨立移動的儲存格列數"
+"ko" = "독립적으로 움직이는 셀 행 수"
 
 ["Octagon"]
 en = "Octagon"
@@ -2260,6 +3226,9 @@ es = "Octágono"
 fr = "Octogone"
 de = "Achteck"
 ja = "八角形"
+"zh-CN" = "八边形"
+"zh-TW" = "八邊形"
+"ko" = "팔각형"
 
 ["Octaves"]
 en = "Octaves"
@@ -2267,6 +3236,9 @@ es = "Octavas"
 fr = "Octaves"
 de = "Oktaven"
 ja = "オクターブ"
+"zh-CN" = "八度"
+"zh-TW" = "八度"
+"ko" = "옥타브"
 
 ["Off"]
 en = "Off"
@@ -2274,6 +3246,9 @@ es = "Desactivado"
 fr = "Désactivé"
 de = "Aus"
 ja = "オフ"
+"zh-CN" = "关"
+"zh-TW" = "關"
+"ko" = "꺼짐"
 
 ["Offset"]
 en = "Offset"
@@ -2281,6 +3256,9 @@ es = "Desfase"
 fr = "Décalage"
 de = "Versatz"
 ja = "オフセット"
+"zh-CN" = "偏移"
+"zh-TW" = "偏移"
+"ko" = "오프셋"
 
 ["Offset axis"]
 en = "Offset axis"
@@ -2288,6 +3266,9 @@ es = "Eje de desfase"
 fr = "Axe de décalage"
 de = "Versatzachse"
 ja = "オフセット軸"
+"zh-CN" = "偏移轴"
+"zh-TW" = "偏移軸"
+"ko" = "오프셋 축"
 
 ["Offset frequency"]
 en = "Offset frequency"
@@ -2295,6 +3276,9 @@ es = "Frecuencia de desfase"
 fr = "Fréquence du décalage"
 de = "Versatzfrequenz"
 ja = "オフセット周波数"
+"zh-CN" = "偏移频率"
+"zh-TW" = "偏移頻率"
+"ko" = "오프셋 주파수"
 
 ["Offset randomness"]
 en = "Offset randomness"
@@ -2302,6 +3286,9 @@ es = "Aleatoriedad de desfase"
 fr = "Variation du décalage"
 de = "Versatzzufälligkeit"
 ja = "オフセットのランダム性"
+"zh-CN" = "偏移随机性"
+"zh-TW" = "偏移隨機性"
+"ko" = "오프셋 무작위성"
 
 ["Offset variation"]
 en = "Offset variation"
@@ -2309,6 +3296,9 @@ es = "Variación de desfase"
 fr = "Variation du décalage"
 de = "Versatzvariation"
 ja = "オフセット変化"
+"zh-CN" = "偏移变化"
+"zh-TW" = "偏移變化"
+"ko" = "오프셋 변형"
 
 ["On"]
 en = "On"
@@ -2316,6 +3306,9 @@ es = "Activado"
 fr = "Activé"
 de = "Ein"
 ja = "オン"
+"zh-CN" = "开"
+"zh-TW" = "開"
+"ko" = "켜짐"
 
 ["Opacity"]
 en = "Opacity"
@@ -2323,6 +3316,9 @@ es = "Opacidad"
 fr = "Opacité"
 de = "Deckkraft"
 ja = "不透明度"
+"zh-CN" = "不透明度"
+"zh-TW" = "不透明度"
+"ko" = "불투명도"
 
 ["Open larger editor"]
 en = "Open larger editor"
@@ -2330,6 +3326,9 @@ es = "Abrir editor ampliado"
 fr = "Ouvrir l’éditeur agrandi"
 de = "Größeren Editor öffnen"
 ja = "大きなエディターを開く"
+"zh-CN" = "打开更大的编辑器"
+"zh-TW" = "打開更大的編輯器"
+"ko" = "더 큰 편집기 열기"
 
 ["Operation"]
 en = "Operation"
@@ -2337,6 +3336,9 @@ es = "Operación"
 fr = "Opération"
 de = "Operation"
 ja = "処理"
+"zh-CN" = "操作"
+"zh-TW" = "操作"
+"ko" = "작업"
 
 ["Optimization iterations"]
 en = "Optimization iterations"
@@ -2344,6 +3346,9 @@ es = "Iteraciones de optimización"
 fr = "Itérations d’optimisation"
 de = "Optimierungsiterationen"
 ja = "最適化の反復回数"
+"zh-CN" = "优化迭代"
+"zh-TW" = "最佳化迭代"
+"ko" = "최적화 반복"
 
 ["Ordering"]
 en = "Ordering"
@@ -2351,6 +3356,9 @@ es = "Orden"
 fr = "Ordre"
 de = "Reihenfolge"
 ja = "順序"
+"zh-CN" = "顺序"
+"zh-TW" = "順序"
+"ko" = "순서"
 
 ["Original"]
 en = "Original"
@@ -2358,6 +3366,9 @@ es = "Original"
 fr = "Original"
 de = "Original"
 ja = "オリジナル"
+"zh-CN" = "原始"
+"zh-TW" = "原始"
+"ko" = "원본"
 
 ["Orthographic height"]
 en = "Orthographic height"
@@ -2365,6 +3376,9 @@ es = "Altura ortográfica"
 fr = "Hauteur orthographique"
 de = "Orthografische Höhe"
 ja = "平行投影の高さ"
+"zh-CN" = "正交高度"
+"zh-TW" = "正交高度"
+"ko" = "직교 높이"
 
 ["Out of date"]
 en = "Out of date"
@@ -2372,6 +3386,9 @@ es = "Desactualizado"
 fr = "Obsolète"
 de = "Veraltet"
 ja = "期限切れ"
+"zh-CN" = "已过时"
+"zh-TW" = "已過時"
+"ko" = "업데이트 필요"
 
 ["Outline"]
 en = "Outline"
@@ -2379,6 +3396,9 @@ es = "Contorno"
 fr = "Contour"
 de = "Umriss"
 ja = "アウトライン"
+"zh-CN" = "轮廓"
+"zh-TW" = "輪廓"
+"ko" = "윤곽선"
 
 ["Outline method"]
 en = "Outline method"
@@ -2386,6 +3406,9 @@ es = "Método de contorno"
 fr = "Méthode de contour"
 de = "Umrissmethode"
 ja = "アウトライン方式"
+"zh-CN" = "轮廓方法"
+"zh-TW" = "輪廓方法"
+"ko" = "윤곽선 방식"
 
 ["Outline opacity"]
 en = "Outline opacity"
@@ -2393,6 +3416,9 @@ es = "Opacidad del contorno"
 fr = "Opacité du contour"
 de = "Umrissdeckkraft"
 ja = "アウトライン不透明度"
+"zh-CN" = "轮廓不透明度"
+"zh-TW" = "輪廓不透明度"
+"ko" = "윤곽선 불투명도"
 
 ["Outline quality"]
 en = "Outline quality"
@@ -2400,6 +3426,9 @@ es = "Calidad del contorno"
 fr = "Qualité du contour"
 de = "Umrissqualität"
 ja = "アウトライン品質"
+"zh-CN" = "轮廓质量"
+"zh-TW" = "輪廓品質"
+"ko" = "윤곽선 품질"
 
 ["Outline width"]
 en = "Outline width"
@@ -2407,6 +3436,9 @@ es = "Ancho del contorno"
 fr = "Largeur du contour"
 de = "Umrissbreite"
 ja = "アウトライン幅"
+"zh-CN" = "轮廓宽度"
+"zh-TW" = "輪廓寬度"
+"ko" = "외곽선 너비"
 
 ["Outro"]
 en = "Outro"
@@ -2414,6 +3446,9 @@ es = "Salida"
 fr = "Conclusion"
 de = "Outro"
 ja = "アウトロ"
+"zh-CN" = "结尾"
+"zh-TW" = "結尾"
+"ko" = "아웃트로"
 
 ["Padding randomness"]
 en = "Padding randomness"
@@ -2421,6 +3456,9 @@ es = "Aleatoriedad del margen"
 fr = "Variation de la marge"
 de = "Abstandszufälligkeit"
 ja = "余白のランダム性"
+"zh-CN" = "内边距随机性"
+"zh-TW" = "內距隨機性"
+"ko" = "안쪽 여백 무작위성"
 
 ["Page"]
 en = "Page"
@@ -2428,6 +3466,9 @@ es = "Página"
 fr = "Page"
 de = "Seite"
 ja = "ページ"
+"zh-CN" = "页"
+"zh-TW" = "頁"
+"ko" = "페이지"
 
 ["Palette levels"]
 en = "Palette levels"
@@ -2435,6 +3476,9 @@ es = "Niveles de paleta"
 fr = "Niveaux de palette"
 de = "Palettenstufen"
 ja = "パレットレベル"
+"zh-CN" = "调色板级别"
+"zh-TW" = "調色板級別"
+"ko" = "팔레트 레벨"
 
 ["Parameters"]
 en = "Parameters"
@@ -2442,6 +3486,9 @@ es = "Parámetros"
 fr = "Paramètres"
 de = "Parameter"
 ja = "パラメーター"
+"zh-CN" = "参数"
+"zh-TW" = "參數"
+"ko" = "매개변수"
 
 ["Partial mode"]
 en = "Partial mode"
@@ -2449,6 +3496,9 @@ es = "Modo parcial"
 fr = "Mode partiel"
 de = "Teilmodus"
 ja = "部分モード"
+"zh-CN" = "部分模式"
+"zh-TW" = "部分模式"
+"ko" = "부분 모드"
 
 ["Paste Modifier"]
 en = "Paste Modifier"
@@ -2456,6 +3506,9 @@ es = "Pegar modificador"
 fr = "Coller le modificateur"
 de = "Modifikator einfügen"
 ja = "モディファイアを貼り付け"
+"zh-CN" = "粘贴修改器"
+"zh-TW" = "貼上修改器"
+"ko" = "수정자 붙여넣기"
 
 ["Path mode"]
 en = "Path mode"
@@ -2463,6 +3516,9 @@ es = "Modo de trazado"
 fr = "Mode de tracé"
 de = "Pfadmodus"
 ja = "パスモード"
+"zh-CN" = "路径模式"
+"zh-TW" = "路徑模式"
+"ko" = "경로 모드"
 
 ["Path precision"]
 en = "Path precision"
@@ -2470,6 +3526,9 @@ es = "Precisión del trazado"
 fr = "Précision du tracé"
 de = "Pfadpräzision"
 ja = "パス精度"
+"zh-CN" = "路径精度"
+"zh-TW" = "路徑精度"
+"ko" = "경로 정밀도"
 
 ["Pattern"]
 en = "Pattern"
@@ -2477,6 +3536,9 @@ es = "Patrón"
 fr = "Motif"
 de = "Muster"
 ja = "パターン"
+"zh-CN" = "图案"
+"zh-TW" = "圖樣"
+"ko" = "패턴"
 
 ["Pattern softness"]
 en = "Pattern softness"
@@ -2484,6 +3546,9 @@ es = "Suavidad del patrón"
 fr = "Douceur du motif"
 de = "Musterweichheit"
 ja = "パターンの柔らかさ"
+"zh-CN" = "图案柔和度"
+"zh-TW" = "圖樣柔和度"
+"ko" = "패턴 부드러움"
 
 ["Pentagon"]
 en = "Pentagon"
@@ -2491,6 +3556,9 @@ es = "Pentágono"
 fr = "Pentagone"
 de = "Fünfeck"
 ja = "五角形"
+"zh-CN" = "五边形"
+"zh-TW" = "五邊形"
+"ko" = "오각형"
 
 ["Percentage"]
 en = "Percentage"
@@ -2498,6 +3566,9 @@ es = "Porcentaje"
 fr = "Pourcentage"
 de = "Prozentsatz"
 ja = "割合"
+"zh-CN" = "百分比"
+"zh-TW" = "百分比"
+"ko" = "백분율"
 
 ["Persistence"]
 en = "Persistence"
@@ -2505,6 +3576,9 @@ es = "Persistencia"
 fr = "Persistance"
 de = "Persistenz"
 ja = "持続性"
+"zh-CN" = "持久性"
+"zh-TW" = "持久性"
+"ko" = "지속성"
 
 ["Perspective"]
 en = "Perspective"
@@ -2512,6 +3586,9 @@ es = "Perspectiva"
 fr = "Perspective"
 de = "Perspektive"
 ja = "透視投影"
+"zh-CN" = "透视"
+"zh-TW" = "透視"
+"ko" = "원근"
 
 ["Phase"]
 en = "Phase"
@@ -2519,6 +3596,9 @@ es = "Fase"
 fr = "Phase"
 de = "Phase"
 ja = "位相"
+"zh-CN" = "相位"
+"zh-TW" = "相位"
+"ko" = "위상"
 
 ["Picture"]
 en = "Picture"
@@ -2526,6 +3606,9 @@ es = "Imagen"
 fr = "Image"
 de = "Bild"
 ja = "ピクチャー"
+"zh-CN" = "图片"
+"zh-TW" = "圖片"
+"ko" = "그림"
 
 ["Ping-pong"]
 en = "Ping-pong"
@@ -2533,6 +3616,9 @@ es = "Ping-pong"
 fr = "Ping-pong"
 de = "Pingpong"
 ja = "ピンポン"
+"zh-CN" = "往返"
+"zh-TW" = "往返"
+"ko" = "핑퐁"
 
 ["Pitch"]
 en = "Pitch"
@@ -2540,6 +3626,9 @@ es = "Tono"
 fr = "Hauteur"
 de = "Tonhöhe"
 ja = "ピッチ"
+"zh-CN" = "音高"
+"zh-TW" = "音高"
+"ko" = "피치"
 
 ["Pitch offset"]
 en = "Pitch offset"
@@ -2547,6 +3636,9 @@ es = "Desfase de tono"
 fr = "Décalage de hauteur"
 de = "Tonhöhenversatz"
 ja = "ピッチオフセット"
+"zh-CN" = "音高偏移"
+"zh-TW" = "音高偏移"
+"ko" = "피치 오프셋"
 
 ["Pixel size"]
 en = "Pixel size"
@@ -2554,6 +3646,9 @@ es = "Tamaño de píxel"
 fr = "Taille des pixels"
 de = "Pixelgröße"
 ja = "ピクセルサイズ"
+"zh-CN" = "像素大小"
+"zh-TW" = "像素大小"
+"ko" = "픽셀 크기"
 
 ["Pixelate"]
 en = "Pixelate"
@@ -2561,6 +3656,9 @@ es = "Pixelar"
 fr = "Pixelliser"
 de = "Verpixeln"
 ja = "ピクセル化"
+"zh-CN" = "像素化"
+"zh-TW" = "像素化"
+"ko" = "픽셀화"
 
 ["Pixels"]
 en = "Pixels"
@@ -2568,6 +3666,9 @@ es = "Píxeles"
 fr = "Pixels"
 de = "Pixel"
 ja = "ピクセル"
+"zh-CN" = "像素"
+"zh-TW" = "像素"
+"ko" = "픽셀"
 
 ["Playback"]
 en = "Playback"
@@ -2575,6 +3676,9 @@ es = "Reproducción"
 fr = "Lecture"
 de = "Wiedergabe"
 ja = "再生"
+"zh-CN" = "播放"
+"zh-TW" = "播放"
+"ko" = "재생"
 
 ["Point type"]
 en = "Point type"
@@ -2582,6 +3686,9 @@ es = "Tipo de punto"
 fr = "Type de point"
 de = "Punkttyp"
 ja = "ポイント種別"
+"zh-CN" = "点类型"
+"zh-TW" = "點類型"
+"ko" = "포인트 유형"
 
 ["Point %{number}"]
 en = "Point %{number}"
@@ -2589,6 +3696,9 @@ es = "Punto %{number}"
 fr = "Point %{number}"
 de = "Punkt %{number}"
 ja = "ポイント %{number}"
+"zh-CN" = "点 %{number}"
+"zh-TW" = "點 %{number}"
+"ko" = "포인트 %{number}"
 
 ["Points"]
 en = "Points"
@@ -2596,6 +3706,9 @@ es = "Puntos"
 fr = "Points"
 de = "Punkte"
 ja = "ポイント"
+"zh-CN" = "点"
+"zh-TW" = "點"
+"ko" = "포인트"
 
 ["Polygon"]
 en = "Polygon"
@@ -2603,6 +3716,9 @@ es = "Polígono"
 fr = "Polygone"
 de = "Polygon"
 ja = "多角形"
+"zh-CN" = "多边形"
+"zh-TW" = "多邊形"
+"ko" = "다각형"
 
 ["Position"]
 en = "Position"
@@ -2610,6 +3726,9 @@ es = "Posición"
 fr = "Position"
 de = "Position"
 ja = "位置"
+"zh-CN" = "位置"
+"zh-TW" = "位置"
+"ko" = "위치"
 
 ["Position X"]
 en = "Position X"
@@ -2617,6 +3736,9 @@ es = "Posición X"
 fr = "Position X"
 de = "Position X"
 ja = "位置 X"
+"zh-CN" = "位置 X"
+"zh-TW" = "位置 X"
+"ko" = "위치 X"
 
 ["Position Y"]
 en = "Position Y"
@@ -2624,6 +3746,9 @@ es = "Posición Y"
 fr = "Position Y"
 de = "Position Y"
 ja = "位置 Y"
+"zh-CN" = "位置 Y"
+"zh-TW" = "位置 Y"
+"ko" = "위치 Y"
 
 ["Pre-delay"]
 en = "Pre-delay"
@@ -2631,6 +3756,9 @@ es = "Pre-retardo"
 fr = "Pré-délai"
 de = "Vorverzögerung"
 ja = "プリディレイ"
+"zh-CN" = "预延迟"
+"zh-TW" = "預延遲"
+"ko" = "사전 지연"
 
 ["Precompute compact CPU mask frames so normal playback does not run SAM2"]
 en = "Precompute compact CPU mask frames so normal playback does not run SAM2"
@@ -2638,6 +3766,9 @@ es = "Precalcular máscaras compactas en CPU para no ejecutar SAM2 durante la re
 fr = "Précalculer des masques CPU compacts pour éviter SAM2 pendant la lecture"
 de = "Kompakte CPU-Masken vorab berechnen, damit SAM2 nicht bei der Wiedergabe läuft"
 ja = "通常再生でSAM2を実行しないようCPUマスクを事前計算"
+"zh-CN" = "预先计算紧凑的 CPU 掩码帧，使正常播放无需运行 SAM2"
+"zh-TW" = "預先計算精簡的 CPU 遮罩影格，讓一般播放無需執行 SAM2"
+"ko" = "일반 재생 중 SAM2를 실행하지 않도록 간결한 CPU 마스크 프레임을 미리 계산"
 
 ["Precompute exact one-bit transparency masks for every frame"]
 en = "Precompute exact one-bit transparency masks for every frame"
@@ -2645,6 +3776,9 @@ es = "Precalcular máscaras de transparencia exactas de un bit para cada fotogra
 fr = "Précalculer des masques de transparence exacts à un bit pour chaque image"
 de = "Exakte 1-Bit-Transparenzmasken für jedes Bild vorab berechnen"
 ja = "全フレームの正確な1ビット透明マスクを事前計算"
+"zh-CN" = "为每一帧预先计算精确的一位透明度蒙版"
+"zh-TW" = "為每個影格預先計算精確的一位元透明遮罩"
+"ko" = "모든 프레임에 대해 정확한 1비트 투명도 마스크를 미리 계산합니다."
 
 ["Preference for a steady camera velocity"]
 en = "Preference for a steady camera velocity"
@@ -2652,6 +3786,9 @@ es = "Preferencia por una velocidad de cámara estable"
 fr = "Préférence pour une vitesse de caméra stable"
 de = "Bevorzugung einer gleichmäßigen Kamerageschwindigkeit"
 ja = "一定のカメラ速度を優先"
+"zh-CN" = "偏好稳定的相机速度"
+"zh-TW" = "偏好穩定的相機速度"
+"ko" = "일정한 카메라 속도 선호"
 
 ["Preference for frames with no camera motion"]
 en = "Preference for frames with no camera motion"
@@ -2659,6 +3796,9 @@ es = "Preferencia por fotogramas sin movimiento de cámara"
 fr = "Préférence pour les images sans mouvement de caméra"
 de = "Bevorzugung von Bildern ohne Kamerabewegung"
 ja = "カメラが動かないフレームを優先"
+"zh-CN" = "偏好相机静止的帧"
+"zh-TW" = "偏好相機靜止的影格"
+"ko" = "카메라 움직임이 없는 프레임 선호"
 
 ["Preference for smoothly changing camera motion"]
 en = "Preference for smoothly changing camera motion"
@@ -2666,6 +3806,9 @@ es = "Preferencia por cambios suaves del movimiento de cámara"
 fr = "Préférence pour un mouvement de caméra variant en douceur"
 de = "Bevorzugung gleichmäßig veränderter Kamerabewegung"
 ja = "滑らかに変化するカメラ動作を優先"
+"zh-CN" = "偏好平滑变化的相机运动"
+"zh-TW" = "偏好平順變化的相機運動"
+"ko" = "부드럽게 변하는 카메라 움직임 선호"
 
 ["Preserve formants"]
 en = "Preserve formants"
@@ -2673,6 +3816,9 @@ es = "Conservar formantes"
 fr = "Conserver les formants"
 de = "Formanten beibehalten"
 ja = "フォルマントを維持"
+"zh-CN" = "保留共振峰"
+"zh-TW" = "保留共振峰"
+"ko" = "포먼트 보존"
 
 ["Preserve pitch"]
 en = "Preserve pitch"
@@ -2680,6 +3826,9 @@ es = "Conservar tono"
 fr = "Conserver la hauteur"
 de = "Tonhöhe beibehalten"
 ja = "ピッチを維持"
+"zh-CN" = "保持音高"
+"zh-TW" = "保持音高"
+"ko" = "피치 유지"
 
 ["Preview Downsampling"]
 en = "Preview Downsampling"
@@ -2687,6 +3836,9 @@ es = "Reducción de vista previa"
 fr = "Sous-échantillonnage de l’aperçu"
 de = "Vorschau-Herunterskalierung"
 ja = "プレビューのダウンサンプリング"
+"zh-CN" = "预览降采样"
+"zh-TW" = "預覽降取樣"
+"ko" = "미리보기 다운샘플링"
 
 ["Preview Render Method"]
 en = "Preview Render Method"
@@ -2694,6 +3846,9 @@ es = "Método de renderizado de vista previa"
 fr = "Méthode de rendu de l’aperçu"
 de = "Vorschau-Rendermethode"
 ja = "プレビューのレンダリング方式"
+"zh-CN" = "预览渲染方法"
+"zh-TW" = "預覽算繪方式"
+"ko" = "미리보기 렌더링 방법"
 
 ["Previous keyframe"]
 en = "Previous keyframe"
@@ -2701,6 +3856,9 @@ es = "Fotograma clave anterior"
 fr = "Image clé précédente"
 de = "Vorheriger Keyframe"
 ja = "前のキーフレーム"
+"zh-CN" = "上一个关键帧"
+"zh-TW" = "上一個關鍵影格"
+"ko" = "이전 키프레임"
 
 ["Project"]
 en = "Project"
@@ -2708,6 +3866,9 @@ es = "Proyecto"
 fr = "Projet"
 de = "Projekt"
 ja = "プロジェクト"
+"zh-CN" = "项目"
+"zh-TW" = "專案"
+"ko" = "프로젝트"
 
 ["Project File"]
 en = "Project File"
@@ -2715,6 +3876,9 @@ es = "Archivo del proyecto"
 fr = "Fichier du projet"
 de = "Projektdatei"
 ja = "プロジェクトファイル"
+"zh-CN" = "项目文件"
+"zh-TW" = "專案檔案"
+"ko" = "프로젝트 파일"
 
 ["Projection"]
 en = "Projection"
@@ -2722,6 +3886,9 @@ es = "Proyección"
 fr = "Projection"
 de = "Projektion"
 ja = "投影"
+"zh-CN" = "投影"
+"zh-TW" = "投影"
+"ko" = "투영"
 
 ["Pulse width"]
 en = "Pulse width"
@@ -2729,6 +3896,9 @@ es = "Ancho de pulso"
 fr = "Largeur d’impulsion"
 de = "Pulsbreite"
 ja = "パルス幅"
+"zh-CN" = "脉冲宽度"
+"zh-TW" = "脈衝寬度"
+"ko" = "펄스 폭"
 
 ["Quality"]
 en = "Quality"
@@ -2736,6 +3906,9 @@ es = "Calidad"
 fr = "Qualité"
 de = "Qualität"
 ja = "品質"
+"zh-CN" = "质量"
+"zh-TW" = "品質"
+"ko" = "품질"
 
 ["Queued"]
 en = "Queued"
@@ -2743,6 +3916,9 @@ es = "En cola"
 fr = "En attente"
 de = "In Warteschlange"
 ja = "待機中"
+"zh-CN" = "已排队"
+"zh-TW" = "已排隊"
+"ko" = "대기 중"
 
 ["Radius"]
 en = "Radius"
@@ -2750,6 +3926,9 @@ es = "Radio"
 fr = "Rayon"
 de = "Radius"
 ja = "半径"
+"zh-CN" = "半径"
+"zh-TW" = "半徑"
+"ko" = "반지름"
 
 ["Range"]
 en = "Range"
@@ -2757,6 +3936,9 @@ es = "Rango"
 fr = "Plage"
 de = "Bereich"
 ja = "範囲"
+"zh-CN" = "范围"
+"zh-TW" = "範圍"
+"ko" = "범위"
 
 ["Rate"]
 en = "Rate"
@@ -2764,6 +3946,9 @@ es = "Tasa"
 fr = "Fréquence"
 de = "Rate"
 ja = "レート"
+"zh-CN" = "速率"
+"zh-TW" = "速率"
+"ko" = "속도"
 
 ["Ratio"]
 en = "Ratio"
@@ -2771,6 +3956,9 @@ es = "Relación"
 fr = "Rapport"
 de = "Verhältnis"
 ja = "比率"
+"zh-CN" = "比率"
+"zh-TW" = "比率"
+"ko" = "비율"
 
 ["Ready (%{sample_count} samples)"]
 en = "Ready (%{sample_count} samples)"
@@ -2778,6 +3966,9 @@ es = "Listo (%{sample_count} muestras)"
 fr = "Prêt (%{sample_count} échantillons)"
 de = "Bereit (%{sample_count} Samples)"
 ja = "準備完了（%{sample_count}サンプル）"
+"zh-CN" = "就绪（%{sample_count} 个样本）"
+"zh-TW" = "就緒（%{sample_count} 個樣本）"
+"ko" = "준비됨(%{sample_count}개 샘플)"
 
 ["Reanalyze"]
 en = "Reanalyze"
@@ -2785,6 +3976,9 @@ es = "Volver a analizar"
 fr = "Réanalyser"
 de = "Neu analysieren"
 ja = "再解析"
+"zh-CN" = "重新分析"
+"zh-TW" = "重新分析"
+"ko" = "재분석"
 
 ["Rebake"]
 en = "Rebake"
@@ -2792,6 +3986,9 @@ es = "Recalcular"
 fr = "Recalculer"
 de = "Neu backen"
 ja = "再ベイク"
+"zh-CN" = "重新烘烤"
+"zh-TW" = "重新烘烤"
+"ko" = "리베이크"
 
 ["Rebuild"]
 en = "Rebuild"
@@ -2799,6 +3996,9 @@ es = "Reconstruir"
 fr = "Reconstruire"
 de = "Neu erstellen"
 ja = "再構築"
+"zh-CN" = "重建"
+"zh-TW" = "重建"
+"ko" = "재구축"
 
 ["Rectangle"]
 en = "Rectangle"
@@ -2806,6 +4006,9 @@ es = "Rectángulo"
 fr = "Rectangle"
 de = "Rechteck"
 ja = "長方形"
+"zh-CN" = "矩形"
+"zh-TW" = "矩形"
+"ko" = "직사각형"
 
 ["Reduction"]
 en = "Reduction"
@@ -2813,6 +4016,9 @@ es = "Reducción"
 fr = "Réduction"
 de = "Reduktion"
 ja = "低減"
+"zh-CN" = "缩减"
+"zh-TW" = "縮減"
+"ko" = "감소"
 
 ["Reflection opacity"]
 en = "Reflection opacity"
@@ -2820,6 +4026,9 @@ es = "Opacidad del reflejo"
 fr = "Opacité du reflet"
 de = "Reflexionsdeckkraft"
 ja = "反射の不透明度"
+"zh-CN" = "反射不透明度"
+"zh-TW" = "反射不透明度"
+"ko" = "반사 불투명도"
 
 ["Refresh interval"]
 en = "Refresh interval"
@@ -2827,6 +4036,9 @@ es = "Intervalo de actualización"
 fr = "Intervalle d’actualisation"
 de = "Aktualisierungsintervall"
 ja = "更新間隔"
+"zh-CN" = "刷新间隔"
+"zh-TW" = "重新整理間隔"
+"ko" = "새로 고침 간격"
 
 ["Release"]
 en = "Release"
@@ -2834,6 +4046,9 @@ es = "Liberación"
 fr = "Relâchement"
 de = "Release"
 ja = "リリース"
+"zh-CN" = "释放"
+"zh-TW" = "釋放"
+"ko" = "릴리스"
 
 ["Reload Blender file and scene metadata"]
 en = "Reload Blender file and scene metadata"
@@ -2841,6 +4056,9 @@ es = "Recargar el archivo de Blender y los metadatos de escena"
 fr = "Recharger le fichier Blender et les métadonnées de scène"
 de = "Blender-Datei und Szenenmetadaten neu laden"
 ja = "Blenderファイルとシーンメタデータを再読み込み"
+"zh-CN" = "重新加载 Blender 文件和场景元数据"
+"zh-TW" = "重新載入 Blender 檔案和場景中繼資料"
+"ko" = "Blender 파일 및 장면 메타데이터 다시 로드"
 
 ["Reload Python source and rebuild Manim scene states"]
 en = "Reload Python source and rebuild Manim scene states"
@@ -2848,6 +4066,9 @@ es = "Recargar el código Python y reconstruir los estados de escena de Manim"
 fr = "Recharger le code Python et reconstruire les états de scène Manim"
 de = "Python-Quelle neu laden und Manim-Szenenzustände neu erstellen"
 ja = "Pythonソースを再読み込みしてManimシーン状態を再構築"
+"zh-CN" = "重新加载 Python 源并重建 Manim 场景状态"
+"zh-TW" = "重新載入 Python 來源並重建 Manim 場景狀態"
+"ko" = "Python 소스를 다시 로드하고 Manim 장면 상태를 다시 빌드합니다."
 
 ["Remove"]
 en = "Remove"
@@ -2855,6 +4076,9 @@ es = "Eliminar"
 fr = "Supprimer"
 de = "Entfernen"
 ja = "削除"
+"zh-CN" = "移除"
+"zh-TW" = "移除"
+"ko" = "제거"
 
 ["Remove box"]
 en = "Remove box"
@@ -2862,6 +4086,9 @@ es = "Eliminar cuadro"
 fr = "Supprimer la boîte"
 de = "Rechteck entfernen"
 ja = "ボックスを削除"
+"zh-CN" = "移除方框"
+"zh-TW" = "移除方框"
+"ko" = "상자 제거"
 
 ["Remove color"]
 en = "Remove color"
@@ -2869,6 +4096,9 @@ es = "Eliminar color"
 fr = "Supprimer la couleur"
 de = "Farbe entfernen"
 ja = "色を削除"
+"zh-CN" = "删除颜色"
+"zh-TW" = "移除顏色"
+"ko" = "색상 제거"
 
 ["Remove point"]
 en = "Remove point"
@@ -2876,6 +4106,9 @@ es = "Eliminar punto"
 fr = "Supprimer le point"
 de = "Punkt entfernen"
 ja = "ポイントを削除"
+"zh-CN" = "删除点"
+"zh-TW" = "刪除點"
+"ko" = "포인트 삭제"
 
 ["Replace"]
 en = "Replace"
@@ -2883,6 +4116,9 @@ es = "Reemplazar"
 fr = "Remplacer"
 de = "Ersetzen"
 ja = "置換"
+"zh-CN" = "替换"
+"zh-TW" = "取代"
+"ko" = "바꾸기"
 
 ["Replace image"]
 en = "Replace image"
@@ -2890,6 +4126,9 @@ es = "Reemplazar imagen"
 fr = "Remplacer l’image"
 de = "Bild ersetzen"
 ja = "画像を置換"
+"zh-CN" = "替换图像"
+"zh-TW" = "取代影像"
+"ko" = "이미지 교체"
 
 ["Replace model"]
 en = "Replace model"
@@ -2897,6 +4136,9 @@ es = "Reemplazar modelo"
 fr = "Remplacer le modèle"
 de = "Modell ersetzen"
 ja = "モデルを置換"
+"zh-CN" = "替换模型"
+"zh-TW" = "取代模型"
+"ko" = "모델 교체"
 
 ["Reset"]
 en = "Reset"
@@ -2904,6 +4146,9 @@ es = "Restablecer"
 fr = "Réinitialiser"
 de = "Zurücksetzen"
 ja = "リセット"
+"zh-CN" = "重置"
+"zh-TW" = "重設"
+"ko" = "초기화"
 
 ["Resolution"]
 en = "Resolution"
@@ -2911,6 +4156,9 @@ es = "Resolución"
 fr = "Résolution"
 de = "Auflösung"
 ja = "解像度"
+"zh-CN" = "分辨率"
+"zh-TW" = "解析度"
+"ko" = "해상도"
 
 ["Resonance"]
 en = "Resonance"
@@ -2918,6 +4166,9 @@ es = "Resonancia"
 fr = "Résonance"
 de = "Resonanz"
 ja = "レゾナンス"
+"zh-CN" = "谐振"
+"zh-TW" = "諧振"
+"ko" = "공명"
 
 ["Right"]
 en = "Right"
@@ -2925,6 +4176,9 @@ es = "Derecha"
 fr = "Droite"
 de = "Rechts"
 ja = "右"
+"zh-CN" = "右侧"
+"zh-TW" = "右側"
+"ko" = "오른쪽"
 
 ["Rim power"]
 en = "Rim power"
@@ -2932,6 +4186,9 @@ es = "Potencia de borde"
 fr = "Puissance du contour"
 de = "Randstärke"
 ja = "リムパワー"
+"zh-CN" = "轮廓光指数"
+"zh-TW" = "邊緣光指數"
+"ko" = "림 파워"
 
 ["Rim strength"]
 en = "Rim strength"
@@ -2939,6 +4196,9 @@ es = "Intensidad de borde"
 fr = "Intensité du contour"
 de = "Randintensität"
 ja = "リム強度"
+"zh-CN" = "轮廓光强度"
+"zh-TW" = "邊緣光強度"
+"ko" = "림 강도"
 
 ["Rim tint"]
 en = "Rim tint"
@@ -2946,6 +4206,9 @@ es = "Tinte de borde"
 fr = "Teinte du contour"
 de = "Randfärbung"
 ja = "リム色"
+"zh-CN" = "轮廓光色调"
+"zh-TW" = "邊緣光色調"
+"ko" = "림 틴트"
 
 ["Room capture"]
 en = "Room capture"
@@ -2953,6 +4216,9 @@ es = "Captura de sala"
 fr = "Capture de pièce"
 de = "Raumaufnahme"
 ja = "ルームキャプチャー"
+"zh-CN" = "房间捕获"
+"zh-TW" = "空間擷取"
+"ko" = "룸 캡처"
 
 ["Room scale"]
 en = "Room scale"
@@ -2960,6 +4226,9 @@ es = "Escala de sala"
 fr = "Échelle de la pièce"
 de = "Raumgröße"
 ja = "部屋の規模"
+"zh-CN" = "房间缩放"
+"zh-TW" = "空間縮放"
+"ko" = "공간 배율"
 
 ["Rotation"]
 en = "Rotation"
@@ -2967,6 +4236,9 @@ es = "Rotación"
 fr = "Rotation"
 de = "Drehung"
 ja = "回転"
+"zh-CN" = "旋转"
+"zh-TW" = "旋轉"
+"ko" = "회전"
 
 ["Rotation order"]
 en = "Rotation order"
@@ -2974,6 +4246,9 @@ es = "Orden de rotación"
 fr = "Ordre de rotation"
 de = "Rotationsreihenfolge"
 ja = "回転順序"
+"zh-CN" = "旋转顺序"
+"zh-TW" = "旋轉順序"
+"ko" = "회전 순서"
 
 ["Roughness"]
 en = "Roughness"
@@ -2981,6 +4256,9 @@ es = "Rugosidad"
 fr = "Rugosité"
 de = "Rauheit"
 ja = "粗さ"
+"zh-CN" = "粗糙度"
+"zh-TW" = "粗糙度"
+"ko" = "거칠기"
 
 ["Rounded"]
 en = "Rounded"
@@ -2988,6 +4266,9 @@ es = "Redondeado"
 fr = "Arrondi"
 de = "Abgerundet"
 ja = "角丸"
+"zh-CN" = "圆角"
+"zh-TW" = "圓角"
+"ko" = "둥근 모서리"
 
 ["Rounding"]
 en = "Rounding"
@@ -2995,6 +4276,9 @@ es = "Redondeo"
 fr = "Arrondi"
 de = "Rundung"
 ja = "丸み"
+"zh-CN" = "圆角"
+"zh-TW" = "圓角"
+"ko" = "둥글기"
 
 ["Roundness"]
 en = "Roundness"
@@ -3002,6 +4286,9 @@ es = "Redondez"
 fr = "Arrondi"
 de = "Rundung"
 ja = "丸み"
+"zh-CN" = "圆角程度"
+"zh-TW" = "圓角程度"
+"ko" = "둥글기"
 
 ["Row offset"]
 en = "Row offset"
@@ -3009,6 +4296,9 @@ es = "Desfase de fila"
 fr = "Décalage des lignes"
 de = "Zeilenversatz"
 ja = "行オフセット"
+"zh-CN" = "行偏移"
+"zh-TW" = "行偏移"
+"ko" = "행 오프셋"
 
 ["Sample Rate"]
 en = "Sample Rate"
@@ -3016,6 +4306,9 @@ es = "Frecuencia de muestreo"
 fr = "Fréquence d’échantillonnage"
 de = "Abtastrate"
 ja = "サンプルレート"
+"zh-CN" = "采样率"
+"zh-TW" = "取樣率"
+"ko" = "샘플링 속도"
 
 ["Sample rate"]
 en = "Sample rate"
@@ -3023,6 +4316,9 @@ es = "Frecuencia de muestreo"
 fr = "Fréquence d’échantillonnage"
 de = "Abtastrate"
 ja = "サンプルレート"
+"zh-CN" = "采样率"
+"zh-TW" = "取樣率"
+"ko" = "샘플링 속도"
 
 ["Samples"]
 en = "Samples"
@@ -3030,6 +4326,9 @@ es = "Muestras"
 fr = "Échantillons"
 de = "Samples"
 ja = "サンプル"
+"zh-CN" = "样本"
+"zh-TW" = "樣本"
+"ko" = "샘플"
 
 ["Saturation"]
 en = "Saturation"
@@ -3037,6 +4336,9 @@ es = "Saturación"
 fr = "Saturation"
 de = "Sättigung"
 ja = "彩度"
+"zh-CN" = "饱和度"
+"zh-TW" = "飽和度"
+"ko" = "채도"
 
 ["Scale"]
 en = "Scale"
@@ -3044,6 +4346,9 @@ es = "Escala"
 fr = "Échelle"
 de = "Skalierung"
 ja = "スケール"
+"zh-CN" = "缩放"
+"zh-TW" = "縮放"
+"ko" = "배율"
 
 ["Scene"]
 en = "Scene"
@@ -3051,6 +4356,9 @@ es = "Escena"
 fr = "Scène"
 de = "Szene"
 ja = "シーン"
+"zh-CN" = "场景"
+"zh-TW" = "場景"
+"ko" = "장면"
 
 ["Scene Renderer"]
 en = "Scene Renderer"
@@ -3058,6 +4366,9 @@ es = "Renderizador de escenas"
 fr = "Moteur de rendu de scène"
 de = "Szenenrenderer"
 ja = "シーンレンダラー"
+"zh-CN" = "场景渲染器"
+"zh-TW" = "場景算繪器"
+"ko" = "장면 렌더러"
 
 ["Scramble, resize, then reveal the new text"]
 en = "Scramble, resize, then reveal the new text"
@@ -3065,6 +4376,9 @@ es = "Mezclar, redimensionar y revelar el texto nuevo"
 fr = "Mélanger, redimensionner puis révéler le nouveau texte"
 de = "Mischen, skalieren und dann den neuen Text zeigen"
 ja = "並べ替えとサイズ変更後に新しいテキストを表示"
+"zh-CN" = "打乱、调整大小，然后显示新文本"
+"zh-TW" = "打亂、調整大小，然後顯示新文字"
+"ko" = "스크램블하고 크기를 조정한 다음 새 텍스트를 표시합니다."
 
 ["Search fonts or paste a Google Fonts specimen URL"]
 en = "Search fonts or paste a Google Fonts specimen URL"
@@ -3072,6 +4386,9 @@ es = "Buscar fuentes o pegar una URL de Google Fonts"
 fr = "Rechercher des polices ou coller une URL Google Fonts"
 de = "Schriften suchen oder eine Google-Fonts-URL einfügen"
 ja = "フォントを検索、またはGoogle FontsのURLを貼り付け"
+"zh-CN" = "搜索字体或粘贴 Google Fonts 样本 URL"
+"zh-TW" = "搜尋字型或貼上 Google Fonts 樣本 URL"
+"ko" = "글꼴을 검색하거나 Google Fonts 견본 URL을 붙여넣으세요."
 
 ["Search interpolations"]
 en = "Search interpolations"
@@ -3079,6 +4396,9 @@ es = "Buscar interpolaciones"
 fr = "Rechercher des interpolations"
 de = "Interpolationen suchen"
 ja = "補間を検索"
+"zh-CN" = "搜索插值"
+"zh-TW" = "搜尋插值"
+"ko" = "보간 검색"
 
 ["Search modifiers"]
 en = "Search modifiers"
@@ -3086,6 +4406,9 @@ es = "Buscar modificadores"
 fr = "Rechercher des modificateurs"
 de = "Modifikatoren suchen"
 ja = "モディファイアを検索"
+"zh-CN" = "搜索修改器"
+"zh-TW" = "搜尋修改器"
+"ko" = "수정자 검색"
 
 ["Searching Google Fonts…"]
 en = "Searching Google Fonts…"
@@ -3093,6 +4416,9 @@ es = "Buscando en Google Fonts…"
 fr = "Recherche dans Google Fonts…"
 de = "Google Fonts werden durchsucht…"
 ja = "Google Fontsを検索中…"
+"zh-CN" = "正在搜索 Google Fonts…"
+"zh-TW" = "正在搜尋 Google Fonts…"
+"ko" = "Google Fonts 검색 중…"
 
 ["Seed"]
 en = "Seed"
@@ -3100,6 +4426,9 @@ es = "Semilla"
 fr = "Graine"
 de = "Seed"
 ja = "シード"
+"zh-CN" = "种子"
+"zh-TW" = "種子"
+"ko" = "씨앗"
 
 ["Seed frequency"]
 en = "Seed frequency"
@@ -3107,6 +4436,9 @@ es = "Frecuencia de semilla"
 fr = "Fréquence de la graine"
 de = "Seed-Frequenz"
 ja = "シード周波数"
+"zh-CN" = "种子频率"
+"zh-TW" = "種子頻率"
+"ko" = "시드 빈도"
 
 ["Segment length"]
 en = "Segment length"
@@ -3114,6 +4446,9 @@ es = "Longitud de segmento"
 fr = "Longueur des segments"
 de = "Segmentlänge"
 ja = "セグメント長"
+"zh-CN" = "线段长度"
+"zh-TW" = "線段長度"
+"ko" = "세그먼트 길이"
 
 ["Segments"]
 en = "Segments"
@@ -3121,6 +4456,9 @@ es = "Segmentos"
 fr = "Segments"
 de = "Segmente"
 ja = "セグメント"
+"zh-CN" = "段"
+"zh-TW" = "段"
+"ko" = "세그먼트"
 
 ["Select"]
 en = "Select"
@@ -3128,6 +4466,9 @@ es = "Seleccionar"
 fr = "Sélectionner"
 de = "Auswählen"
 ja = "選択"
+"zh-CN" = "选择"
+"zh-TW" = "選取"
+"ko" = "선택"
 
 ["Select 3D model"]
 en = "Select 3D model"
@@ -3135,6 +4476,9 @@ es = "Seleccionar modelo 3D"
 fr = "Sélectionner un modèle 3D"
 de = "3D-Modell auswählen"
 ja = "3Dモデルを選択"
+"zh-CN" = "选择 3D 模型"
+"zh-TW" = "選擇 3D 模型"
+"ko" = "3D 모델 선택"
 
 ["Select environment image"]
 en = "Select environment image"
@@ -3142,6 +4486,9 @@ es = "Seleccionar imagen de entorno"
 fr = "Sélectionner une image d’environnement"
 de = "Umgebungsbild auswählen"
 ja = "環境画像を選択"
+"zh-CN" = "选择环境图像"
+"zh-TW" = "選擇環境影像"
+"ko" = "환경 이미지 선택"
 
 ["Select image"]
 en = "Select image"
@@ -3149,6 +4496,9 @@ es = "Seleccionar imagen"
 fr = "Sélectionner une image"
 de = "Bild auswählen"
 ja = "画像を選択"
+"zh-CN" = "选择图片"
+"zh-TW" = "選擇圖片"
+"ko" = "이미지 선택"
 
 ["Select model"]
 en = "Select model"
@@ -3156,6 +4506,9 @@ es = "Seleccionar modelo"
 fr = "Sélectionner un modèle"
 de = "Modell auswählen"
 ja = "モデルを選択"
+"zh-CN" = "选择模型"
+"zh-TW" = "選擇模型"
+"ko" = "모델 선택"
 
 ["Select paint texture"]
 en = "Select paint texture"
@@ -3163,6 +4516,9 @@ es = "Seleccionar textura de pintura"
 fr = "Sélectionner une texture de peinture"
 de = "Maltextur auswählen"
 ja = "ペイントテクスチャを選択"
+"zh-CN" = "选择绘制纹理"
+"zh-TW" = "選擇繪製紋理"
+"ko" = "페인트 텍스처 선택"
 
 ["Semitones"]
 en = "Semitones"
@@ -3170,6 +4526,9 @@ es = "Semitonos"
 fr = "Demi-tons"
 de = "Halbtöne"
 ja = "半音"
+"zh-CN" = "半音"
+"zh-TW" = "半音"
+"ko" = "반음"
 
 ["Sensitivity"]
 en = "Sensitivity"
@@ -3177,6 +4536,9 @@ es = "Sensibilidad"
 fr = "Sensibilité"
 de = "Empfindlichkeit"
 ja = "感度"
+"zh-CN" = "灵敏度"
+"zh-TW" = "靈敏度"
+"ko" = "감도"
 
 ["Sequential"]
 en = "Sequential"
@@ -3184,6 +4546,9 @@ es = "Secuencial"
 fr = "Séquentiel"
 de = "Nacheinander"
 ja = "順次"
+"zh-CN" = "顺序"
+"zh-TW" = "循序"
+"ko" = "순차"
 
 ["Shader"]
 en = "Shader"
@@ -3191,6 +4556,9 @@ es = "Sombreador"
 fr = "Shader"
 de = "Shader"
 ja = "シェーダー"
+"zh-CN" = "着色器"
+"zh-TW" = "著色器"
+"ko" = "셰이더"
 
 ["Shadow blur"]
 en = "Shadow blur"
@@ -3198,6 +4566,9 @@ es = "Desenfoque de sombra"
 fr = "Flou de l’ombre"
 de = "Schattenunschärfe"
 ja = "影のぼかし"
+"zh-CN" = "阴影模糊"
+"zh-TW" = "陰影模糊"
+"ko" = "그림자 흐림"
 
 ["Shadow color"]
 en = "Shadow color"
@@ -3205,6 +4576,9 @@ es = "Color de sombra"
 fr = "Couleur de l’ombre"
 de = "Schattenfarbe"
 ja = "影の色"
+"zh-CN" = "阴影颜色"
+"zh-TW" = "陰影顏色"
+"ko" = "그림자 색상"
 
 ["Shadow direction"]
 en = "Shadow direction"
@@ -3212,6 +4586,9 @@ es = "Dirección de sombra"
 fr = "Direction de l’ombre"
 de = "Schattenrichtung"
 ja = "影の方向"
+"zh-CN" = "阴影方向"
+"zh-TW" = "陰影方向"
+"ko" = "그림자 방향"
 
 ["Shadow distance"]
 en = "Shadow distance"
@@ -3219,6 +4596,9 @@ es = "Distancia de sombra"
 fr = "Distance de l’ombre"
 de = "Schattenabstand"
 ja = "影の距離"
+"zh-CN" = "阴影距离"
+"zh-TW" = "陰影距離"
+"ko" = "그림자 거리"
 
 ["Shadow kind"]
 en = "Shadow kind"
@@ -3226,6 +4606,9 @@ es = "Tipo de sombra"
 fr = "Type d’ombre"
 de = "Schattenart"
 ja = "影の種類"
+"zh-CN" = "阴影类型"
+"zh-TW" = "陰影類型"
+"ko" = "그림자 종류"
 
 ["Shadow quality"]
 en = "Shadow quality"
@@ -3233,6 +4616,9 @@ es = "Calidad de sombra"
 fr = "Qualité de l’ombre"
 de = "Schattenqualität"
 ja = "影の品質"
+"zh-CN" = "阴影质量"
+"zh-TW" = "陰影品質"
+"ko" = "그림자 품질"
 
 ["Shadow strength"]
 en = "Shadow strength"
@@ -3240,6 +4626,9 @@ es = "Intensidad de sombra"
 fr = "Intensité de l’ombre"
 de = "Schattenstärke"
 ja = "影の強度"
+"zh-CN" = "暗影强度"
+"zh-TW" = "暗影強度"
+"ko" = "그림자 강도"
 
 ["Shadow width"]
 en = "Shadow width"
@@ -3247,6 +4636,9 @@ es = "Ancho de sombra"
 fr = "Largeur de l’ombre"
 de = "Schattenbreite"
 ja = "影の幅"
+"zh-CN" = "阴影宽度"
+"zh-TW" = "陰影寬度"
+"ko" = "그림자 폭"
 
 ["Shaft width"]
 en = "Shaft width"
@@ -3254,6 +4646,9 @@ es = "Ancho del cuerpo"
 fr = "Largeur de la tige"
 de = "Schaftbreite"
 ja = "軸の幅"
+"zh-CN" = "箭杆宽度"
+"zh-TW" = "箭桿寬度"
+"ko" = "화살대 너비"
 
 ["Sharpness"]
 en = "Sharpness"
@@ -3261,6 +4656,9 @@ es = "Nitidez"
 fr = "Netteté"
 de = "Schärfe"
 ja = "シャープネス"
+"zh-CN" = "锐度"
+"zh-TW" = "銳利度"
+"ko" = "선명도"
 
 ["Shear"]
 en = "Shear"
@@ -3268,6 +4666,9 @@ es = "Inclinación"
 fr = "Cisaillement"
 de = "Scherung"
 ja = "シアー"
+"zh-CN" = "斜切"
+"zh-TW" = "斜切"
+"ko" = "전단"
 
 ["Sheen"]
 en = "Sheen"
@@ -3275,6 +4676,9 @@ es = "Brillo"
 fr = "Lustre"
 de = "Glanz"
 ja = "光沢"
+"zh-CN" = "光泽"
+"zh-TW" = "光澤"
+"ko" = "광택"
 
 ["Show in folder"]
 en = "Show in folder"
@@ -3282,6 +4686,9 @@ es = "Mostrar en la carpeta"
 fr = "Afficher dans le dossier"
 de = "Im Ordner anzeigen"
 ja = "フォルダーに表示"
+"zh-CN" = "在文件夹中显示"
+"zh-TW" = "在資料夾中顯示"
+"ko" = "폴더에서 보기"
 
 ["Show project file in folder"]
 en = "Show project file in folder"
@@ -3289,6 +4696,9 @@ es = "Mostrar archivo del proyecto en la carpeta"
 fr = "Afficher le fichier du projet dans le dossier"
 de = "Projektdatei im Ordner anzeigen"
 ja = "プロジェクトファイルをフォルダーに表示"
+"zh-CN" = "在文件夹中显示项目文件"
+"zh-TW" = "在資料夾中顯示專案檔案"
+"ko" = "폴더에서 프로젝트 파일 보기"
 
 ["Sigma"]
 en = "Sigma"
@@ -3296,6 +4706,9 @@ es = "Sigma"
 fr = "Sigma"
 de = "Sigma"
 ja = "シグマ"
+"zh-CN" = "西格玛"
+"zh-TW" = "西格瑪"
+"ko" = "시그마"
 
 ["Sigma ratio"]
 en = "Sigma ratio"
@@ -3303,6 +4716,9 @@ es = "Relación sigma"
 fr = "Rapport sigma"
 de = "Sigma-Verhältnis"
 ja = "シグマ比"
+"zh-CN" = "西格玛比率"
+"zh-TW" = "西格瑪比率"
+"ko" = "시그마 비율"
 
 ["Similarity"]
 en = "Similarity"
@@ -3310,6 +4726,9 @@ es = "Similitud"
 fr = "Similarité"
 de = "Ähnlichkeit"
 ja = "類似度"
+"zh-CN" = "相似度"
+"zh-TW" = "相似度"
+"ko" = "유사도"
 
 ["Simplify tolerance"]
 en = "Simplify tolerance"
@@ -3317,6 +4736,9 @@ es = "Tolerancia de simplificación"
 fr = "Tolérance de simplification"
 de = "Vereinfachungstoleranz"
 ja = "簡略化許容値"
+"zh-CN" = "简化容差"
+"zh-TW" = "簡化容差"
+"ko" = "단순화 허용 오차"
 
 ["Simultaneous"]
 en = "Simultaneous"
@@ -3324,6 +4746,9 @@ es = "Simultáneo"
 fr = "Simultané"
 de = "Gleichzeitig"
 ja = "同時"
+"zh-CN" = "同时"
+"zh-TW" = "同時"
+"ko" = "동시"
 
 ["Size"]
 en = "Size"
@@ -3331,6 +4756,9 @@ es = "Tamaño"
 fr = "Taille"
 de = "Größe"
 ja = "サイズ"
+"zh-CN" = "尺寸"
+"zh-TW" = "尺寸"
+"ko" = "크기"
 
 ["Size randomness"]
 en = "Size randomness"
@@ -3338,6 +4766,9 @@ es = "Aleatoriedad de tamaño"
 fr = "Variation de taille"
 de = "Größenzufälligkeit"
 ja = "サイズのランダム性"
+"zh-CN" = "尺寸随机性"
+"zh-TW" = "尺寸隨機性"
+"ko" = "크기 무작위성"
 
 ["Skia drawing"]
 en = "Skia drawing"
@@ -3345,6 +4776,9 @@ es = "Dibujo Skia"
 fr = "Dessin Skia"
 de = "Skia-Zeichnung"
 ja = "Skia描画"
+"zh-CN" = "Skia 绘图"
+"zh-TW" = "Skia 繪圖"
+"ko" = "Skia 드로잉"
 
 ["Smoothing"]
 en = "Smoothing"
@@ -3352,6 +4786,9 @@ es = "Suavizado"
 fr = "Lissage"
 de = "Glättung"
 ja = "スムージング"
+"zh-CN" = "平滑"
+"zh-TW" = "平滑"
+"ko" = "스무딩"
 
 ["Smoothing radius"]
 en = "Smoothing radius"
@@ -3359,6 +4796,9 @@ es = "Radio de suavizado"
 fr = "Rayon de lissage"
 de = "Glättungsradius"
 ja = "平滑化半径"
+"zh-CN" = "平滑半径"
+"zh-TW" = "平滑半徑"
+"ko" = "스무딩 반경"
 
 ["Smoothness"]
 en = "Smoothness"
@@ -3366,6 +4806,9 @@ es = "Suavidad"
 fr = "Douceur"
 de = "Glätte"
 ja = "滑らかさ"
+"zh-CN" = "光滑度"
+"zh-TW" = "光滑度"
+"ko" = "부드러움"
 
 ["Soft shadow"]
 en = "Soft shadow"
@@ -3373,6 +4816,9 @@ es = "Sombra suave"
 fr = "Ombre douce"
 de = "Weicher Schatten"
 ja = "ソフトシャドウ"
+"zh-CN" = "软阴影"
+"zh-TW" = "軟陰影"
+"ko" = "부드러운 그림자"
 
 ["Softness"]
 en = "Softness"
@@ -3380,6 +4826,9 @@ es = "Suavidad"
 fr = "Douceur"
 de = "Weichheit"
 ja = "柔らかさ"
+"zh-CN" = "柔和度"
+"zh-TW" = "柔和度"
+"ko" = "부드러움"
 
 ["Solid"]
 en = "Solid"
@@ -3387,6 +4836,9 @@ es = "Sólido"
 fr = "Uni"
 de = "Einfarbig"
 ja = "ソリッド"
+"zh-CN" = "实体"
+"zh-TW" = "實體"
+"ko" = "솔리드"
 
 ["Solid color"]
 en = "Solid color"
@@ -3394,6 +4846,9 @@ es = "Color sólido"
 fr = "Couleur unie"
 de = "Volltonfarbe"
 ja = "単色"
+"zh-CN" = "纯色"
+"zh-TW" = "純色"
+"ko" = "단색"
 
 ["Source"]
 en = "Source"
@@ -3401,6 +4856,9 @@ es = "Fuente"
 fr = "Source"
 de = "Quelle"
 ja = "ソース"
+"zh-CN" = "源"
+"zh-TW" = "來源"
+"ko" = "소스"
 
 ["Spacing"]
 en = "Spacing"
@@ -3408,6 +4866,9 @@ es = "Espaciado"
 fr = "Espacement"
 de = "Abstand"
 ja = "間隔"
+"zh-CN" = "间距"
+"zh-TW" = "間距"
+"ko" = "간격"
 
 ["Speckle size"]
 en = "Speckle size"
@@ -3415,6 +4876,9 @@ es = "Tamaño de mota"
 fr = "Taille des taches"
 de = "Sprenkelgröße"
 ja = "斑点サイズ"
+"zh-CN" = "散斑尺寸"
+"zh-TW" = "散斑尺寸"
+"ko" = "얼룩 크기"
 
 ["Specular size"]
 en = "Specular size"
@@ -3422,6 +4886,9 @@ es = "Tamaño especular"
 fr = "Taille spéculaire"
 de = "Glanzlichtgröße"
 ja = "スペキュラーサイズ"
+"zh-CN" = "高光大小"
+"zh-TW" = "鏡面反射大小"
+"ko" = "반사광 크기"
 
 ["Specular strength"]
 en = "Specular strength"
@@ -3429,6 +4896,9 @@ es = "Intensidad especular"
 fr = "Intensité spéculaire"
 de = "Glanzlichtstärke"
 ja = "スペキュラー強度"
+"zh-CN" = "高光强度"
+"zh-TW" = "鏡面反射強度"
+"ko" = "반사광 강도"
 
 ["Speed method"]
 en = "Speed method"
@@ -3436,6 +4906,9 @@ es = "Método de velocidad"
 fr = "Méthode de vitesse"
 de = "Geschwindigkeitsmethode"
 ja = "速度方式"
+"zh-CN" = "速度方法"
+"zh-TW" = "速度方法"
+"ko" = "속도 방식"
 
 ["Spill"]
 en = "Spill"
@@ -3443,6 +4916,9 @@ es = "Contaminación"
 fr = "Débordement"
 de = "Farbstreuung"
 ja = "スピル"
+"zh-CN" = "溢色"
+"zh-TW" = "溢色"
+"ko" = "스필"
 
 ["Spin"]
 en = "Spin"
@@ -3450,6 +4926,9 @@ es = "Giro"
 fr = "Rotation"
 de = "Drehung"
 ja = "スピン"
+"zh-CN" = "旋转"
+"zh-TW" = "旋轉"
+"ko" = "회전"
 
 ["Splice threshold"]
 en = "Splice threshold"
@@ -3457,6 +4936,9 @@ es = "Umbral de empalme"
 fr = "Seuil de raccord"
 de = "Verbindungsschwelle"
 ja = "スプライスしきい値"
+"zh-CN" = "拼接阈值"
+"zh-TW" = "拼接閾值"
+"ko" = "접합 임계값"
 
 ["Square"]
 en = "Square"
@@ -3464,6 +4946,9 @@ es = "Cuadrado"
 fr = "Carré"
 de = "Quadrat"
 ja = "正方形"
+"zh-CN" = "正方形"
+"zh-TW" = "方塊"
+"ko" = "정사각형"
 
 ["Stabilization"]
 en = "Stabilization"
@@ -3471,6 +4956,9 @@ es = "Estabilización"
 fr = "Stabilisation"
 de = "Stabilisierung"
 ja = "手ぶれ補正"
+"zh-CN" = "稳定化"
+"zh-TW" = "穩定化"
+"ko" = "안정화"
 
 ["Stabilization cache"]
 en = "Stabilization cache"
@@ -3478,6 +4966,9 @@ es = "Caché de estabilización"
 fr = "Cache de stabilisation"
 de = "Stabilisierungs-Cache"
 ja = "手ぶれ補正キャッシュ"
+"zh-CN" = "稳定缓存"
+"zh-TW" = "穩定快取"
+"ko" = "안정화 캐시"
 
 ["Start cap"]
 en = "Start cap"
@@ -3485,6 +4976,9 @@ es = "Extremo inicial"
 fr = "Extrémité de début"
 de = "Startkappe"
 ja = "始端キャップ"
+"zh-CN" = "起始端帽"
+"zh-TW" = "起始端點樣式"
+"ko" = "시작 캡"
 
 ["Start taper"]
 en = "Start taper"
@@ -3492,6 +4986,9 @@ es = "Estrechamiento inicial"
 fr = "Effilement initial"
 de = "Startverjüngung"
 ja = "始端テーパー"
+"zh-CN" = "开始锥度"
+"zh-TW" = "開始錐度"
+"ko" = "테이퍼 시작"
 
 ["Start taper distance"]
 en = "Start taper distance"
@@ -3499,6 +4996,9 @@ es = "Distancia del estrechamiento inicial"
 fr = "Distance d’effilement initial"
 de = "Startverjüngungsabstand"
 ja = "始端テーパー距離"
+"zh-CN" = "起始锥度距离"
+"zh-TW" = "起始錐度距離"
+"ko" = "시작 테이퍼 거리"
 
 ["Starting angle"]
 en = "Starting angle"
@@ -3506,6 +5006,9 @@ es = "Ángulo inicial"
 fr = "Angle initial"
 de = "Startwinkel"
 ja = "開始角度"
+"zh-CN" = "起始角度"
+"zh-TW" = "起始角度"
+"ko" = "시작 각도"
 
 ["Starting scale"]
 en = "Starting scale"
@@ -3513,6 +5016,9 @@ es = "Escala inicial"
 fr = "Échelle initiale"
 de = "Startskalierung"
 ja = "開始スケール"
+"zh-CN" = "起始缩放"
+"zh-TW" = "起始縮放"
+"ko" = "시작 배율"
 
 ["Static-camera weight"]
 en = "Static-camera weight"
@@ -3520,6 +5026,9 @@ es = "Peso de cámara estática"
 fr = "Poids de caméra statique"
 de = "Gewichtung statischer Kamera"
 ja = "固定カメラウェイト"
+"zh-CN" = "静态相机权重"
+"zh-TW" = "靜態相機權重"
+"ko" = "고정 카메라 가중치"
 
 ["Step"]
 en = "Step"
@@ -3527,6 +5036,9 @@ es = "Paso"
 fr = "Étape"
 de = "Schritt"
 ja = "ステップ"
+"zh-CN" = "步进"
+"zh-TW" = "步進"
+"ko" = "단계"
 
 ["Step size"]
 en = "Step size"
@@ -3534,6 +5046,9 @@ es = "Tamaño de paso"
 fr = "Taille du pas"
 de = "Schrittweite"
 ja = "ステップサイズ"
+"zh-CN" = "步长"
+"zh-TW" = "步長"
+"ko" = "단계 크기"
 
 ["Strategy"]
 en = "Strategy"
@@ -3541,6 +5056,9 @@ es = "Estrategia"
 fr = "Stratégie"
 de = "Strategie"
 ja = "方式"
+"zh-CN" = "策略"
+"zh-TW" = "策略"
+"ko" = "전략"
 
 ["Strength"]
 en = "Strength"
@@ -3548,6 +5066,9 @@ es = "Intensidad"
 fr = "Intensité"
 de = "Stärke"
 ja = "強度"
+"zh-CN" = "强度"
+"zh-TW" = "強度"
+"ko" = "강도"
 
 ["Stroke color %{number}"]
 en = "Stroke color %{number}"
@@ -3555,6 +5076,9 @@ es = "Color de trazo %{number}"
 fr = "Couleur de trait %{number}"
 de = "Konturfarbe %{number}"
 ja = "線の色 %{number}"
+"zh-CN" = "描边颜色 %{number}"
+"zh-TW" = "筆畫顏色 %{number}"
+"ko" = "스트로크 색상 %{number}"
 
 ["Stroke overlap"]
 en = "Stroke overlap"
@@ -3562,6 +5086,9 @@ es = "Solapamiento de trazos"
 fr = "Chevauchement des traits"
 de = "Strichüberlappung"
 ja = "ストロークの重なり"
+"zh-CN" = "笔划重叠"
+"zh-TW" = "筆畫重疊"
+"ko" = "스트로크 오버랩"
 
 ["Strokes"]
 en = "Strokes"
@@ -3569,6 +5096,9 @@ es = "Trazos"
 fr = "Traits"
 de = "Striche"
 ja = "ストローク"
+"zh-CN" = "笔画"
+"zh-TW" = "筆畫"
+"ko" = "스트로크"
 
 ["Style"]
 en = "Style"
@@ -3576,6 +5106,9 @@ es = "Estilo"
 fr = "Style"
 de = "Stil"
 ja = "スタイル"
+"zh-CN" = "风格"
+"zh-TW" = "風格"
+"ko" = "스타일"
 
 ["Subdivision spacing"]
 en = "Subdivision spacing"
@@ -3583,6 +5116,9 @@ es = "Espaciado de subdivisión"
 fr = "Espacement de subdivision"
 de = "Unterteilungsabstand"
 ja = "細分化間隔"
+"zh-CN" = "细分间距"
+"zh-TW" = "細分間距"
+"ko" = "세분화 간격"
 
 ["Subsurface"]
 en = "Subsurface"
@@ -3590,6 +5126,9 @@ es = "Subsuperficie"
 fr = "Sous-surface"
 de = "Unterfläche"
 ja = "サブサーフェス"
+"zh-CN" = "次表面"
+"zh-TW" = "次表面"
+"ko" = "서브서피스"
 
 ["Temperature"]
 en = "Temperature"
@@ -3597,6 +5136,9 @@ es = "Temperatura"
 fr = "Température"
 de = "Temperatur"
 ja = "色温度"
+"zh-CN" = "温度"
+"zh-TW" = "溫度"
+"ko" = "온도"
 
 ["Text color"]
 en = "Text color"
@@ -3604,6 +5146,9 @@ es = "Color del texto"
 fr = "Couleur du texte"
 de = "Textfarbe"
 ja = "テキスト色"
+"zh-CN" = "文字颜色"
+"zh-TW" = "文字顏色"
+"ko" = "텍스트 색상"
 
 ["Texture"]
 en = "Texture"
@@ -3611,6 +5156,9 @@ es = "Textura"
 fr = "Texture"
 de = "Textur"
 ja = "テクスチャ"
+"zh-CN" = "纹理"
+"zh-TW" = "紋理"
+"ko" = "텍스처"
 
 ["Texture filter"]
 en = "Texture filter"
@@ -3618,6 +5166,9 @@ es = "Filtro de textura"
 fr = "Filtre de texture"
 de = "Texturfilter"
 ja = "テクスチャフィルター"
+"zh-CN" = "纹理过滤器"
+"zh-TW" = "紋理過濾器"
+"ko" = "텍스처 필터"
 
 ["Texture rotation"]
 en = "Texture rotation"
@@ -3625,6 +5176,9 @@ es = "Rotación de textura"
 fr = "Rotation de la texture"
 de = "Texturdrehung"
 ja = "テクスチャ回転"
+"zh-CN" = "纹理旋转"
+"zh-TW" = "紋理旋轉"
+"ko" = "텍스처 회전"
 
 ["Texture scale"]
 en = "Texture scale"
@@ -3632,6 +5186,9 @@ es = "Escala de textura"
 fr = "Échelle de la texture"
 de = "Texturskalierung"
 ja = "テクスチャスケール"
+"zh-CN" = "纹理缩放"
+"zh-TW" = "紋理縮放"
+"ko" = "텍스처 배율"
 
 ["Textures"]
 en = "Textures"
@@ -3639,6 +5196,9 @@ es = "Texturas"
 fr = "Textures"
 de = "Texturen"
 ja = "テクスチャ"
+"zh-CN" = "纹理"
+"zh-TW" = "紋理"
+"ko" = "텍스처"
 
 ["Threshold"]
 en = "Threshold"
@@ -3646,6 +5206,9 @@ es = "Umbral"
 fr = "Seuil"
 de = "Schwelle"
 ja = "しきい値"
+"zh-CN" = "阈值"
+"zh-TW" = "閾值"
+"ko" = "임계값"
 
 ["Timeline Duration"]
 en = "Timeline Duration"
@@ -3653,6 +5216,9 @@ es = "Duración en la línea de tiempo"
 fr = "Durée dans la timeline"
 de = "Zeitleistendauer"
 ja = "タイムライン上の長さ"
+"zh-CN" = "时间线时长"
+"zh-TW" = "時間軸長度"
+"ko" = "타임라인 길이"
 
 ["Tint"]
 en = "Tint"
@@ -3660,6 +5226,9 @@ es = "Tinte"
 fr = "Teinte"
 de = "Färbung"
 ja = "色合い"
+"zh-CN" = "色调"
+"zh-TW" = "色調"
+"ko" = "틴트"
 
 ["Tolerance"]
 en = "Tolerance"
@@ -3667,6 +5236,9 @@ es = "Tolerancia"
 fr = "Tolérance"
 de = "Toleranz"
 ja = "許容値"
+"zh-CN" = "容差"
+"zh-TW" = "容差"
+"ko" = "허용 오차"
 
 ["Tone"]
 en = "Tone"
@@ -3674,6 +5246,9 @@ es = "Tono"
 fr = "Tonalité"
 de = "Klangfarbe"
 ja = "トーン"
+"zh-CN" = "色调"
+"zh-TW" = "色調"
+"ko" = "톤"
 
 ["Top"]
 en = "Top"
@@ -3681,6 +5256,9 @@ es = "Arriba"
 fr = "Haut"
 de = "Oben"
 ja = "上"
+"zh-CN" = "顶部"
+"zh-TW" = "頂部"
+"ko" = "맨 위"
 
 ["Top left"]
 en = "Top left"
@@ -3688,6 +5266,9 @@ es = "Arriba a la izquierda"
 fr = "En haut à gauche"
 de = "Oben links"
 ja = "左上"
+"zh-CN" = "左上"
+"zh-TW" = "左上"
+"ko" = "왼쪽 위"
 
 ["Top right"]
 en = "Top right"
@@ -3695,6 +5276,9 @@ es = "Arriba a la derecha"
 fr = "En haut à droite"
 de = "Oben rechts"
 ja = "右上"
+"zh-CN" = "右上"
+"zh-TW" = "右上"
+"ko" = "오른쪽 상단"
 
 ["Track"]
 en = "Track"
@@ -3702,6 +5286,9 @@ es = "Pista"
 fr = "Piste"
 de = "Spur"
 ja = "トラック"
+"zh-CN" = "轨道"
+"zh-TW" = "軌道"
+"ko" = "트랙"
 
 ["Tracking"]
 en = "Tracking"
@@ -3709,6 +5296,9 @@ es = "Seguimiento"
 fr = "Suivi"
 de = "Tracking"
 ja = "トラッキング"
+"zh-CN" = "追踪"
+"zh-TW" = "追蹤"
+"ko" = "추적"
 
 ["Tracking method"]
 en = "Tracking method"
@@ -3716,6 +5306,9 @@ es = "Método de seguimiento"
 fr = "Méthode de suivi"
 de = "Tracking-Methode"
 ja = "トラッキング方式"
+"zh-CN" = "追踪方式"
+"zh-TW" = "追蹤方式"
+"ko" = "추적 방법"
 
 ["Tracks"]
 en = "Tracks"
@@ -3723,6 +5316,9 @@ es = "Pistas"
 fr = "Pistes"
 de = "Spuren"
 ja = "トラック"
+"zh-CN" = "轨道"
+"zh-TW" = "軌道"
+"ko" = "트랙"
 
 ["Trail length"]
 en = "Trail length"
@@ -3730,6 +5326,9 @@ es = "Longitud de estela"
 fr = "Longueur de traînée"
 de = "Spurlänge"
 ja = "軌跡の長さ"
+"zh-CN" = "轨迹长度"
+"zh-TW" = "軌跡長度"
+"ko" = "트레일 길이"
 
 ["Transform"]
 en = "Transform"
@@ -3737,6 +5336,9 @@ es = "Transformación"
 fr = "Transformation"
 de = "Transformieren"
 ja = "変形"
+"zh-CN" = "变换"
+"zh-TW" = "變形"
+"ko" = "변환"
 
 ["Transition"]
 en = "Transition"
@@ -3744,6 +5346,9 @@ es = "Transición"
 fr = "Transition"
 de = "Übergang"
 ja = "トランジション"
+"zh-CN" = "转场"
+"zh-TW" = "轉場"
+"ko" = "전환"
 
 ["Transmission"]
 en = "Transmission"
@@ -3751,6 +5356,9 @@ es = "Transmisión"
 fr = "Transmission"
 de = "Transmission"
 ja = "透過"
+"zh-CN" = "透射"
+"zh-TW" = "透射"
+"ko" = "투과"
 
 ["Triangle"]
 en = "Triangle"
@@ -3758,6 +5366,9 @@ es = "Triángulo"
 fr = "Triangle"
 de = "Dreieck"
 ja = "三角形"
+"zh-CN" = "三角形"
+"zh-TW" = "三角形"
+"ko" = "삼각형"
 
 ["Type"]
 en = "Type"
@@ -3765,6 +5376,9 @@ es = "Tipo"
 fr = "Type"
 de = "Typ"
 ja = "種類"
+"zh-CN" = "类型"
+"zh-TW" = "類型"
+"ko" = "유형"
 
 ["Unavailable (%{id})"]
 en = "Unavailable (%{id})"
@@ -3772,6 +5386,9 @@ es = "No disponible (%{id})"
 fr = "Indisponible (%{id})"
 de = "Nicht verfügbar (%{id})"
 ja = "利用不可（%{id}）"
+"zh-CN" = "不可用 (%{id})"
+"zh-TW" = "不可用 (%{id})"
+"ko" = "사용할 수 없음(%{id})"
 
 ["Unavailable while an alpha-mask stream is selected"]
 en = "Unavailable while an alpha-mask stream is selected"
@@ -3779,6 +5396,9 @@ es = "No disponible mientras haya un flujo de máscara alfa seleccionado"
 fr = "Indisponible lorsqu’un flux de masque alpha est sélectionné"
 de = "Nicht verfügbar, solange ein Alphamasken-Stream ausgewählt ist"
 ja = "アルファマスクストリーム選択中は利用不可"
+"zh-CN" = "选择 Alpha 掩码流时不可用"
+"zh-TW" = "選取 Alpha 遮罩串流時無法使用"
+"ko" = "알파 마스크 스트림 선택 중에는 사용할 수 없음"
 
 ["Upsampling"]
 en = "Upsampling"
@@ -3786,6 +5406,9 @@ es = "Sobremuestreo"
 fr = "Suréchantillonnage"
 de = "Hochskalierung"
 ja = "アップサンプリング"
+"zh-CN" = "上采样"
+"zh-TW" = "上取樣"
+"ko" = "업샘플링"
 
 ["Using the reusable chunked analysis cache"]
 en = "Using the reusable chunked analysis cache"
@@ -3793,6 +5416,9 @@ es = "Usando la caché reutilizable de análisis por tramos"
 fr = "Utilisation du cache réutilisable d’analyse par segments"
 de = "Wiederverwendbarer abschnittsweiser Analyse-Cache wird verwendet"
 ja = "再利用可能なチャンク解析キャッシュを使用中"
+"zh-CN" = "使用可复用的分段分析缓存"
+"zh-TW" = "使用可重複使用的分段分析快取"
+"ko" = "재사용 가능한 구간별 분석 캐시 사용"
 
 ["V align"]
 en = "V align"
@@ -3800,6 +5426,9 @@ es = "Alineación V"
 fr = "Alignement V"
 de = "Vertikale Ausrichtung"
 ja = "垂直揃え"
+"zh-CN" = "垂直对齐"
+"zh-TW" = "垂直對齊"
+"ko" = "세로 정렬"
 
 ["Value"]
 en = "Value"
@@ -3807,6 +5436,9 @@ es = "Valor"
 fr = "Valeur"
 de = "Wert"
 ja = "値"
+"zh-CN" = "值"
+"zh-TW" = "值"
+"ko" = "값"
 
 ["Variation"]
 en = "Variation"
@@ -3814,6 +5446,9 @@ es = "Variación"
 fr = "Variation"
 de = "Variation"
 ja = "変化"
+"zh-CN" = "变化"
+"zh-TW" = "變化"
+"ko" = "변화"
 
 ["Vertical"]
 en = "Vertical"
@@ -3821,6 +5456,9 @@ es = "Vertical"
 fr = "Vertical"
 de = "Vertikal"
 ja = "垂直"
+"zh-CN" = "垂直"
+"zh-TW" = "垂直"
+"ko" = "수직"
 
 ["Vertical FOV"]
 en = "Vertical FOV"
@@ -3828,6 +5466,9 @@ es = "Campo de visión vertical"
 fr = "Champ de vision vertical"
 de = "Vertikales Sichtfeld"
 ja = "垂直視野角"
+"zh-CN" = "垂直视场角 (FOV)"
+"zh-TW" = "垂直視野 (FOV)"
+"ko" = "수직 시야각 (FOV)"
 
 ["Vertical alignment"]
 en = "Vertical alignment"
@@ -3835,6 +5476,9 @@ es = "Alineación vertical"
 fr = "Alignement vertical"
 de = "Vertikale Ausrichtung"
 ja = "垂直揃え"
+"zh-CN" = "垂直对齐"
+"zh-TW" = "垂直對齊"
+"ko" = "수직 정렬"
 
 ["Video Stream"]
 en = "Video Stream"
@@ -3842,6 +5486,9 @@ es = "Flujo de vídeo"
 fr = "Flux vidéo"
 de = "Videostream"
 ja = "ビデオストリーム"
+"zh-CN" = "视频流"
+"zh-TW" = "影片串流"
+"ko" = "비디오 스트림"
 
 ["Video stream %{number}"]
 en = "Video stream %{number}"
@@ -3849,6 +5496,9 @@ es = "Flujo de vídeo %{number}"
 fr = "Flux vidéo %{number}"
 de = "Videostream %{number}"
 ja = "ビデオストリーム %{number}"
+"zh-CN" = "视频流 %{number}"
+"zh-TW" = "影片串流 %{number}"
+"ko" = "비디오 스트림 %{number}"
 
 ["View Layer"]
 en = "View Layer"
@@ -3856,6 +5506,9 @@ es = "Capa de vista"
 fr = "Calque de vue"
 de = "Ansichtsebene"
 ja = "ビューレイヤー"
+"zh-CN" = "视图层"
+"zh-TW" = "檢視圖層"
+"ko" = "뷰 레이어"
 
 ["Visible"]
 en = "Visible"
@@ -3863,6 +5516,9 @@ es = "Visible"
 fr = "Visible"
 de = "Sichtbar"
 ja = "表示"
+"zh-CN" = "可见"
+"zh-TW" = "可見"
+"ko" = "표시됨"
 
 ["Visible source area after stabilization"]
 en = "Visible source area after stabilization"
@@ -3870,6 +5526,9 @@ es = "Área visible del origen tras la estabilización"
 fr = "Zone source visible après stabilisation"
 de = "Sichtbarer Quellbereich nach der Stabilisierung"
 ja = "手ぶれ補正後に表示されるソース領域"
+"zh-CN" = "稳定后可见的源区域"
+"zh-TW" = "穩定化後可見的來源區域"
+"ko" = "안정화 후 표시되는 소스 영역"
 
 ["Visual"]
 en = "Visual"
@@ -3877,6 +5536,9 @@ es = "Visual"
 fr = "Visuel"
 de = "Visuell"
 ja = "ビジュアル"
+"zh-CN" = "视觉"
+"zh-TW" = "視覺"
+"ko" = "비주얼"
 
 ["Visual track %{index}"]
 en = "Visual track %{index}"
@@ -3884,6 +5546,9 @@ es = "Pista visual %{index}"
 fr = "Piste visuelle %{index}"
 de = "Visuelle Spur %{index}"
 ja = "ビジュアルトラック %{index}"
+"zh-CN" = "视觉轨道 %{index}"
+"zh-TW" = "視覺軌道 %{index}"
+"ko" = "비주얼 트랙 %{index}"
 
 ["Warp amount"]
 en = "Warp amount"
@@ -3891,6 +5556,9 @@ es = "Cantidad de deformación"
 fr = "Amplitude de déformation"
 de = "Verformungsstärke"
 ja = "ワープ量"
+"zh-CN" = "翘曲量"
+"zh-TW" = "翹曲量"
+"ko" = "워프량"
 
 ["Warp scale"]
 en = "Warp scale"
@@ -3898,6 +5566,9 @@ es = "Escala de deformación"
 fr = "Échelle de déformation"
 de = "Verformungsskalierung"
 ja = "ワープスケール"
+"zh-CN" = "扭曲比例"
+"zh-TW" = "扭曲比例"
+"ko" = "워프 스케일"
 
 ["Waveform"]
 en = "Waveform"
@@ -3905,6 +5576,9 @@ es = "Forma de onda"
 fr = "Forme d’onde"
 de = "Wellenform"
 ja = "波形"
+"zh-CN" = "波形"
+"zh-TW" = "波形"
+"ko" = "파형"
 
 ["Wavelength"]
 en = "Wavelength"
@@ -3912,6 +5586,9 @@ es = "Longitud de onda"
 fr = "Longueur d’onde"
 de = "Wellenlänge"
 ja = "波長"
+"zh-CN" = "波长"
+"zh-TW" = "波長"
+"ko" = "파장"
 
 ["Width frequency"]
 en = "Width frequency"
@@ -3919,6 +5596,9 @@ es = "Frecuencia de ancho"
 fr = "Fréquence de largeur"
 de = "Breitenfrequenz"
 ja = "幅の周波数"
+"zh-CN" = "宽度频率"
+"zh-TW" = "寬度頻率"
+"ko" = "폭 주파수"
 
 ["Width randomness"]
 en = "Width randomness"
@@ -3926,6 +5606,9 @@ es = "Aleatoriedad de ancho"
 fr = "Variation de largeur"
 de = "Breitenzufälligkeit"
 ja = "幅のランダム性"
+"zh-CN" = "宽度随机性"
+"zh-TW" = "寬度隨機性"
+"ko" = "폭 무작위성"
 
 ["Width variation"]
 en = "Width variation"
@@ -3933,6 +5616,9 @@ es = "Variación de ancho"
 fr = "Variation de largeur"
 de = "Breitenvariation"
 ja = "幅の変化"
+"zh-CN" = "宽度变化"
+"zh-TW" = "寬度變化"
+"ko" = "폭 변화"
 
 ["Wipe"]
 en = "Wipe"
@@ -3940,6 +5626,9 @@ es = "Barrido"
 fr = "Balayage"
 de = "Wischen"
 ja = "ワイプ"
+"zh-CN" = "擦除"
+"zh-TW" = "擦除"
+"ko" = "와이프"
 
 ["Wobble"]
 en = "Wobble"
@@ -3947,6 +5636,9 @@ es = "Oscilación"
 fr = "Oscillation"
 de = "Wackeln"
 ja = "揺れ"
+"zh-CN" = "摆动"
+"zh-TW" = "擺動"
+"ko" = "워블"
 
 ["Wobble position"]
 en = "Wobble position"
@@ -3954,6 +5646,9 @@ es = "Posición de oscilación"
 fr = "Position de l’oscillation"
 de = "Wackelposition"
 ja = "揺れ位置"
+"zh-CN" = "摆动位置"
+"zh-TW" = "擺動位置"
+"ko" = "워블 위치"
 
 ["Wobble scale"]
 en = "Wobble scale"
@@ -3961,6 +5656,9 @@ es = "Escala de oscilación"
 fr = "Échelle de l’oscillation"
 de = "Wackelskalierung"
 ja = "揺れスケール"
+"zh-CN" = "摆动缩放"
+"zh-TW" = "擺動縮放"
+"ko" = "워블 배율"
 
 ["Word"]
 en = "Word"
@@ -3968,6 +5666,9 @@ es = "Palabra"
 fr = "Mot"
 de = "Wort"
 ja = "単語"
+"zh-CN" = "单词"
+"zh-TW" = "單字"
+"ko" = "단어"
 
 ["Zoom"]
 en = "Zoom"
@@ -3975,6 +5676,9 @@ es = "Zoom"
 fr = "Zoom"
 de = "Zoom"
 ja = "ズーム"
+"zh-CN" = "缩放"
+"zh-TW" = "縮放"
+"ko" = "줌"
 
 ["Arrow"]
 en = "Arrow"
@@ -3982,6 +5686,9 @@ es = "Flecha"
 fr = "Flèche"
 de = "Pfeil"
 ja = "矢印"
+"zh-CN" = "箭头"
+"zh-TW" = "箭頭"
+"ko" = "화살표"
 
 ["Blue X"]
 en = "Blue X"
@@ -3989,6 +5696,9 @@ es = "Azul X"
 fr = "Bleu X"
 de = "Blau X"
 ja = "青 X"
+"zh-CN" = "蓝色 X"
+"zh-TW" = "藍色 X"
+"ko" = "파란색 X"
 
 ["Blue Y"]
 en = "Blue Y"
@@ -3996,6 +5706,9 @@ es = "Azul Y"
 fr = "Bleu Y"
 de = "Blau Y"
 ja = "青 Y"
+"zh-CN" = "蓝色 Y"
+"zh-TW" = "藍色 Y"
+"ko" = "파란색 Y"
 
 ["Blue ← blue"]
 en = "Blue ← blue"
@@ -4003,6 +5716,9 @@ es = "Azul ← azul"
 fr = "Bleu ← bleu"
 de = "Blau ← Blau"
 ja = "青 ← 青"
+"zh-CN" = "蓝色←蓝色"
+"zh-TW" = "藍色←藍色"
+"ko" = "파란색 ← 파란색"
 
 ["Blue ← green"]
 en = "Blue ← green"
@@ -4010,6 +5726,9 @@ es = "Azul ← verde"
 fr = "Bleu ← vert"
 de = "Blau ← Grün"
 ja = "青 ← 緑"
+"zh-CN" = "蓝色←绿色"
+"zh-TW" = "藍色←綠色"
+"ko" = "파란색 ← 녹색"
 
 ["Blue ← red"]
 en = "Blue ← red"
@@ -4017,6 +5736,9 @@ es = "Azul ← rojo"
 fr = "Bleu ← rouge"
 de = "Blau ← Rot"
 ja = "青 ← 赤"
+"zh-CN" = "蓝色←红色"
+"zh-TW" = "藍色←紅色"
+"ko" = "파란색 ← 빨간색"
 
 ["Capsule"]
 en = "Capsule"
@@ -4024,6 +5746,9 @@ es = "Cápsula"
 fr = "Capsule"
 de = "Kapsel"
 ja = "カプセル"
+"zh-CN" = "胶囊"
+"zh-TW" = "膠囊"
+"ko" = "캡슐"
 
 ["Casual"]
 en = "Casual"
@@ -4031,6 +5756,9 @@ es = "Informal"
 fr = "Décontracté"
 de = "Locker"
 ja = "カジュアル"
+"zh-CN" = "休闲"
+"zh-TW" = "休閒"
+"ko" = "캐주얼"
 
 ["Clock Wipe"]
 en = "Clock Wipe"
@@ -4038,6 +5766,9 @@ es = "Barrido de reloj"
 fr = "Balayage horloge"
 de = "Uhr-Wischen"
 ja = "クロックワイプ"
+"zh-CN" = "时钟擦除"
+"zh-TW" = "時鐘擦除"
+"ko" = "시계 와이프"
 
 ["Cone"]
 en = "Cone"
@@ -4045,6 +5776,9 @@ es = "Cono"
 fr = "Cône"
 de = "Kegel"
 ja = "円錐"
+"zh-CN" = "锥体"
+"zh-TW" = "錐體"
+"ko" = "원뿔"
 
 ["Contour Current"]
 en = "Contour Current"
@@ -4052,6 +5786,9 @@ es = "Corriente de contorno"
 fr = "Courant de contour"
 de = "Konturstrom"
 ja = "輪郭電流"
+"zh-CN" = "轮廓电流"
+"zh-TW" = "輪廓電流"
+"ko" = "윤곽 전류"
 
 ["Cross Fade"]
 en = "Cross Fade"
@@ -4059,6 +5796,9 @@ es = "Fundido cruzado"
 fr = "Fondu enchaîné"
 de = "Kreuzblende"
 ja = "クロスフェード"
+"zh-CN" = "交叉淡入淡出"
+"zh-TW" = "交叉淡入淡出"
+"ko" = "크로스 페이드"
 
 ["Cursive"]
 en = "Cursive"
@@ -4066,6 +5806,9 @@ es = "Cursiva"
 fr = "Cursive"
 de = "Schreibschrift"
 ja = "筆記体"
+"zh-CN" = "手写体"
+"zh-TW" = "手寫體"
+"ko" = "필기체"
 
 ["Direct"]
 en = "Direct"
@@ -4073,6 +5816,9 @@ es = "Directo"
 fr = "Direct"
 de = "Direkt"
 ja = "直接"
+"zh-CN" = "直接"
+"zh-TW" = "直接"
+"ko" = "직접"
 
 ["Disk / cylinder"]
 en = "Disk / cylinder"
@@ -4080,6 +5826,9 @@ es = "Disco / cilindro"
 fr = "Disque / cylindre"
 de = "Scheibe / Zylinder"
 ja = "円盤 / 円柱"
+"zh-CN" = "圆盘 / 圆柱体"
+"zh-TW" = "圓盤／圓柱體"
+"ko" = "디스크/실린더"
 
 ["Dissolve"]
 en = "Dissolve"
@@ -4087,6 +5836,9 @@ es = "Disolución"
 fr = "Dissolution"
 de = "Auflösen"
 ja = "ディゾルブ"
+"zh-CN" = "溶解"
+"zh-TW" = "溶解"
+"ko" = "디졸브"
 
 ["Equal Power"]
 en = "Equal Power"
@@ -4094,6 +5846,9 @@ es = "Potencia uniforme"
 fr = "Puissance égale"
 de = "Gleiche Leistung"
 ja = "等パワー"
+"zh-CN" = "等功率"
+"zh-TW" = "等功率"
+"ko" = "동일 전력"
 
 ["F0 method"]
 en = "F0 method"
@@ -4101,6 +5856,9 @@ es = "Método F0"
 fr = "Méthode F0"
 de = "F0-Methode"
 ja = "F0方式"
+"zh-CN" = "F0法"
+"zh-TW" = "F0法"
+"ko" = "F0 방법"
 
 ["Facet Assembly"]
 en = "Facet Assembly"
@@ -4108,6 +5866,9 @@ es = "Ensamblaje de facetas"
 fr = "Assemblage de facettes"
 de = "Facettenaufbau"
 ja = "ファセット構成"
+"zh-CN" = "刻面组装"
+"zh-TW" = "刻面組裝"
+"ko" = "패싯 어셈블리"
 
 ["Fade Through Color"]
 en = "Fade Through Color"
@@ -4115,6 +5876,9 @@ es = "Fundido por color"
 fr = "Fondu par couleur"
 de = "Über Farbe blenden"
 ja = "カラーフェード"
+"zh-CN" = "淡入淡出颜色"
+"zh-TW" = "淡入淡出色"
+"ko" = "페이드 스루 색상"
 
 ["Feature contours · multipass"]
 en = "Feature contours · multipass"
@@ -4122,6 +5886,9 @@ es = "Contornos de rasgos · multipaso"
 fr = "Contours caractéristiques · multipasse"
 de = "Merkmalskonturen · Mehrfachdurchlauf"
 ja = "特徴輪郭 · マルチパス"
+"zh-CN" = "特征轮廓·多通道"
+"zh-TW" = "特徵輪廓·多通道"
+"ko" = "특징 윤곽 · 멀티패스"
 
 ["Google"]
 en = "Google"
@@ -4129,6 +5896,9 @@ es = "Google"
 fr = "Google"
 de = "Google"
 ja = "Google"
+"zh-CN" = "Google"
+"zh-TW" = "Google"
+"ko" = "Google"
 
 ["Green ← blue"]
 en = "Green ← blue"
@@ -4136,6 +5906,9 @@ es = "Verde ← azul"
 fr = "Vert ← bleu"
 de = "Grün ← Blau"
 ja = "緑 ← 青"
+"zh-CN" = "绿色←蓝色"
+"zh-TW" = "綠色←藍色"
+"ko" = "녹색 ← 파란색"
 
 ["Green ← green"]
 en = "Green ← green"
@@ -4143,6 +5916,9 @@ es = "Verde ← verde"
 fr = "Vert ← vert"
 de = "Grün ← Grün"
 ja = "緑 ← 緑"
+"zh-CN" = "绿色←绿色"
+"zh-TW" = "綠色←綠色"
+"ko" = "녹색 ← 녹색"
 
 ["Green ← red"]
 en = "Green ← red"
@@ -4150,6 +5926,9 @@ es = "Verde ← rojo"
 fr = "Vert ← rouge"
 de = "Grün ← Rot"
 ja = "緑 ← 赤"
+"zh-CN" = "绿色←红色"
+"zh-TW" = "綠色←紅色"
+"ko" = "녹색←빨간색"
 
 ["High · 24 samples"]
 en = "High · 24 samples"
@@ -4157,6 +5936,9 @@ es = "Alta · 24 muestras"
 fr = "Élevée · 24 échantillons"
 de = "Hoch · 24 Samples"
 ja = "高 · 24サンプル"
+"zh-CN" = "高·24个样本"
+"zh-TW" = "高·24個樣本"
+"ko" = "높음 · 24개 샘플"
 
 ["High · 8 probes"]
 en = "High · 8 probes"
@@ -4164,6 +5946,9 @@ es = "Alta · 8 sondas"
 fr = "Élevée · 8 sondes"
 de = "Hoch · 8 Probes"
 ja = "高 · 8プローブ"
+"zh-CN" = "高 · 8 个探针"
+"zh-TW" = "高 · 8 個探針"
+"ko" = "높음 · 8개 프로브"
 
 ["Kuwahara · painterly"]
 en = "Kuwahara · painterly"
@@ -4171,6 +5956,9 @@ es = "Kuwahara · pictórico"
 fr = "Kuwahara · pictural"
 de = "Kuwahara · malerisch"
 ja = "Kuwahara · 絵画調"
+"zh-CN" = "Kuwahara · 绘画风格"
+"zh-TW" = "Kuwahara · 繪畫風格"
+"ko" = "Kuwahara · 회화풍"
 
 ["Live Performance"]
 en = "Live Performance"
@@ -4178,6 +5966,9 @@ es = "Rendimiento en directo"
 fr = "Performance en direct"
 de = "Live-Leistung"
 ja = "ライブパフォーマンス"
+"zh-CN" = "实时性能"
+"zh-TW" = "即時效能"
+"ko" = "실시간 성능"
 
 ["Last %{last} · Avg %{average} · Min %{minimum} · Max %{maximum} · %{samples} samples%{percentage}"]
 en = "Last %{last} · Avg %{average} · Min %{minimum} · Max %{maximum} · %{samples} samples%{percentage}"
@@ -4185,6 +5976,9 @@ es = "Último %{last} · Prom. %{average} · Mín. %{minimum} · Máx. %{maximum
 fr = "Dernier %{last} · Moy. %{average} · Min. %{minimum} · Max. %{maximum} · %{samples} échantillons%{percentage}"
 de = "Letzter %{last} · Ø %{average} · Min. %{minimum} · Max. %{maximum} · %{samples} Messungen%{percentage}"
 ja = "直近 %{last} · 平均 %{average} · 最小 %{minimum} · 最大 %{maximum} · %{samples}サンプル%{percentage}"
+"zh-CN" = "最新值 %{last} · 平均值 %{average} · 最小值 %{minimum} · 最大值 %{maximum} · %{samples} 个样本%{percentage}"
+"zh-TW" = "最新值 %{last} · 平均值 %{average} · 最小值 %{minimum} · 最大值 %{maximum} · %{samples} 個樣本%{percentage}"
+"ko" = "최근값 %{last} · 평균 %{average} · 최소 %{minimum} · 최대 %{maximum} · %{samples}개 샘플%{percentage}"
 
 ["Living Fill"]
 en = "Living Fill"
@@ -4192,6 +5986,9 @@ es = "Relleno vivo"
 fr = "Remplissage vivant"
 de = "Lebendige Füllung"
 ja = "リビングフィル"
+"zh-CN" = "动态填充"
+"zh-TW" = "動態填滿"
+"ko" = "리빙 필"
 
 ["Markdown: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]"]
 en = "Markdown: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]"
@@ -4199,6 +5996,9 @@ es = "Markdown: **negrita**, *cursiva*, __subrayado__, {milisegundos} karaoke, [
 fr = "Markdown : **gras**, *italique*, __souligné__, {millisecondes} karaoké, [base/ruby]"
 de = "Markdown: **fett**, *kursiv*, __unterstrichen__, {Millisekunden} Karaoke, [Basis/Ruby]"
 ja = "Markdown: **太字**、*斜体*、__下線__、{ミリ秒} カラオケ、[親文字/ルビ]"
+"zh-CN" = "Markdown：**粗体**、*斜体*、__下划线__、{milliseconds} 卡拉 OK、[base/ruby]"
+"zh-TW" = "Markdown：**粗體**、*斜體*、__底線__、{milliseconds} 卡拉 OK、[base/ruby]"
+"ko" = "Markdown: **굵게**, *기울임꼴*, __밑줄__, {milliseconds} 노래방, [base/ruby]"
 
 ["Missing item"]
 en = "Missing item"
@@ -4206,6 +6006,9 @@ es = "Elemento ausente"
 fr = "Élément manquant"
 de = "Fehlendes Element"
 ja = "項目がありません"
+"zh-CN" = "缺少项目"
+"zh-TW" = "缺少項目"
+"ko" = "누락된 항목"
 
 ["Morphological Resolve"]
 en = "Morphological Resolve"
@@ -4213,6 +6016,9 @@ es = "Resolución morfológica"
 fr = "Résolution morphologique"
 de = "Morphologische Auflösung"
 ja = "形態学的解決"
+"zh-CN" = "形态学解析"
+"zh-TW" = "形態學解析"
+"ko" = "형태학적 처리"
 
 ["Naive"]
 en = "Naive"
@@ -4220,6 +6026,9 @@ es = "Simple"
 fr = "Naïf"
 de = "Naiv"
 ja = "単純"
+"zh-CN" = "朴素"
+"zh-TW" = "樸素"
+"ko" = "나이브"
 
 ["Native"]
 en = "Native"
@@ -4227,6 +6036,9 @@ es = "Nativo"
 fr = "Natif"
 de = "Nativ"
 ja = "ネイティブ"
+"zh-CN" = "原生"
+"zh-TW" = "原生"
+"ko" = "네이티브"
 
 ["Oblique"]
 en = "Oblique"
@@ -4234,6 +6046,9 @@ es = "Oblicua"
 fr = "Oblique"
 de = "Schräg"
 ja = "斜体"
+"zh-CN" = "斜"
+"zh-TW" = "斜"
+"ko" = "비스듬한"
 
 ["Off (Full Resolution)"]
 en = "Off (Full Resolution)"
@@ -4241,6 +6056,9 @@ es = "Desactivado (resolución completa)"
 fr = "Désactivé (pleine résolution)"
 de = "Aus (volle Auflösung)"
 ja = "オフ（フル解像度）"
+"zh-CN" = "关（全分辨率）"
+"zh-TW" = "關（全解析度）"
+"ko" = "끄기(전체 해상도)"
 
 ["Origami"]
 en = "Origami"
@@ -4248,6 +6066,9 @@ es = "Origami"
 fr = "Origami"
 de = "Origami"
 ja = "折り紙"
+"zh-CN" = "折纸"
+"zh-TW" = "摺紙"
+"ko" = "종이접기"
 
 ["Path tracing"]
 en = "Path tracing"
@@ -4255,6 +6076,9 @@ es = "Trazado de caminos"
 fr = "Tracé de chemins"
 de = "Pathtracing"
 ja = "パストレーシング"
+"zh-CN" = "路径追踪"
+"zh-TW" = "路徑追蹤"
+"ko" = "경로 추적"
 
 ["Pools"]
 en = "Pools"
@@ -4262,6 +6086,9 @@ es = "Grupos"
 fr = "Pools"
 de = "Pools"
 ja = "プール"
+"zh-CN" = "池"
+"zh-TW" = "集區"
+"ko" = "풀"
 
 ["Push"]
 en = "Push"
@@ -4269,6 +6096,9 @@ es = "Empuje"
 fr = "Poussée"
 de = "Schieben"
 ja = "プッシュ"
+"zh-CN" = "推"
+"zh-TW" = "推"
+"ko" = "푸시"
 
 ["Radial + Fresnel"]
 en = "Radial + Fresnel"
@@ -4276,6 +6106,9 @@ es = "Radial + Fresnel"
 fr = "Radial + Fresnel"
 de = "Radial + Fresnel"
 ja = "放射 + フレネル"
+"zh-CN" = "径向+菲涅尔"
+"zh-TW" = "徑向+菲涅爾"
+"ko" = "방사형 + 프레넬"
 
 ["Radial probes"]
 en = "Radial probes"
@@ -4283,6 +6116,9 @@ es = "Sondas radiales"
 fr = "Sondes radiales"
 de = "Radiale Probes"
 ja = "放射プローブ"
+"zh-CN" = "径向探针"
+"zh-TW" = "徑向探針"
+"ko" = "방사형 프로브"
 
 ["Red X"]
 en = "Red X"
@@ -4290,6 +6126,9 @@ es = "Rojo X"
 fr = "Rouge X"
 de = "Rot X"
 ja = "赤 X"
+"zh-CN" = "红X"
+"zh-TW" = "紅X"
+"ko" = "빨간색 X"
 
 ["Red Y"]
 en = "Red Y"
@@ -4297,6 +6136,9 @@ es = "Rojo Y"
 fr = "Rouge Y"
 de = "Rot Y"
 ja = "赤 Y"
+"zh-CN" = "红Y"
+"zh-TW" = "紅Y"
+"ko" = "빨간색 Y"
 
 ["Red ← blue"]
 en = "Red ← blue"
@@ -4304,6 +6146,9 @@ es = "Rojo ← azul"
 fr = "Rouge ← bleu"
 de = "Rot ← Blau"
 ja = "赤 ← 青"
+"zh-CN" = "红←蓝"
+"zh-TW" = "紅←藍"
+"ko" = "빨간색 ← 파란색"
 
 ["Red ← green"]
 en = "Red ← green"
@@ -4311,6 +6156,9 @@ es = "Rojo ← verde"
 fr = "Rouge ← vert"
 de = "Rot ← Grün"
 ja = "赤 ← 緑"
+"zh-CN" = "红←绿"
+"zh-TW" = "紅←綠"
+"ko" = "빨간색 ← 녹색"
 
 ["Red ← red"]
 en = "Red ← red"
@@ -4318,6 +6166,9 @@ es = "Rojo ← rojo"
 fr = "Rouge ← rouge"
 de = "Rot ← Rot"
 ja = "赤 ← 赤"
+"zh-CN" = "红色←红色"
+"zh-TW" = "紅色←紅色"
+"ko" = "빨간색 ← 빨간색"
 
 ["Render Style"]
 en = "Render Style"
@@ -4325,6 +6176,9 @@ es = "Estilo de renderizado"
 fr = "Style de rendu"
 de = "Renderstil"
 ja = "レンダリングスタイル"
+"zh-CN" = "渲染风格"
+"zh-TW" = "算繪樣式"
+"ko" = "렌더 스타일"
 
 ["Repeat"]
 en = "Repeat"
@@ -4332,6 +6186,9 @@ es = "Repetir"
 fr = "Répéter"
 de = "Wiederholen"
 ja = "繰り返し"
+"zh-CN" = "重复"
+"zh-TW" = "重複"
+"ko" = "반복"
 
 ["Reverse Diffusion"]
 en = "Reverse Diffusion"
@@ -4339,6 +6196,9 @@ es = "Difusión inversa"
 fr = "Diffusion inverse"
 de = "Umgekehrte Diffusion"
 ja = "逆拡散"
+"zh-CN" = "反向扩散"
+"zh-TW" = "反向擴散"
+"ko" = "역확산"
 
 ["Rotated LTR"]
 en = "Rotated LTR"
@@ -4346,6 +6206,9 @@ es = "Girado izq. a der."
 fr = "Rotation gauche à droite"
 de = "Gedreht LTR"
 ja = "回転・左から右"
+"zh-CN" = "旋转LTR"
+"zh-TW" = "旋轉LTR"
+"ko" = "회전된 LTR"
 
 ["Rotated RTL"]
 en = "Rotated RTL"
@@ -4353,6 +6216,9 @@ es = "Girado der. a izq."
 fr = "Rotation droite à gauche"
 de = "Gedreht RTL"
 ja = "回転・右から左"
+"zh-CN" = "旋转 RTL"
+"zh-TW" = "旋轉 RTL"
+"ko" = "회전된 RTL"
 
 ["SVG Colors"]
 en = "SVG Colors"
@@ -4360,6 +6226,9 @@ es = "Colores SVG"
 fr = "Couleurs SVG"
 de = "SVG-Farben"
 ja = "SVGの色"
+"zh-CN" = "SVG 颜色"
+"zh-TW" = "SVG 顏色"
+"ko" = "SVG 색상"
 
 ["SVG color"]
 en = "SVG color"
@@ -4367,6 +6236,9 @@ es = "Color SVG"
 fr = "Couleur SVG"
 de = "SVG-Farbe"
 ja = "SVGの色"
+"zh-CN" = "SVG颜色"
+"zh-TW" = "SVG顏色"
+"ko" = "SVG 색상"
 
 ["Serif"]
 en = "Serif"
@@ -4374,6 +6246,9 @@ es = "Con serifa"
 fr = "Avec empattements"
 de = "Serifenschrift"
 ja = "明朝体"
+"zh-CN" = "衬线"
+"zh-TW" = "襯線"
+"ko" = "세리프"
 
 ["Silhouette"]
 en = "Silhouette"
@@ -4381,6 +6256,9 @@ es = "Silueta"
 fr = "Silhouette"
 de = "Silhouette"
 ja = "シルエット"
+"zh-CN" = "轮廓"
+"zh-TW" = "輪廓"
+"ko" = "실루엣"
 
 ["Silhouette + creases"]
 en = "Silhouette + creases"
@@ -4388,6 +6266,9 @@ es = "Silueta + pliegues"
 fr = "Silhouette + plis"
 de = "Silhouette + Falten"
 ja = "シルエット + 折り目"
+"zh-CN" = "轮廓+折痕"
+"zh-TW" = "輪廓+摺痕"
+"ko" = "실루엣 + 주름"
 
 ["Slide"]
 en = "Slide"
@@ -4395,6 +6276,9 @@ es = "Deslizamiento"
 fr = "Glissement"
 de = "Schieben"
 ja = "スライド"
+"zh-CN" = "滑动"
+"zh-TW" = "滑動"
+"ko" = "슬라이드"
 
 ["Slide + Fade"]
 en = "Slide + Fade"
@@ -4402,6 +6286,9 @@ es = "Deslizamiento + fundido"
 fr = "Glissement + fondu"
 de = "Schieben + Blenden"
 ja = "スライド + フェード"
+"zh-CN" = "滑动+淡入淡出"
+"zh-TW" = "滑動+淡入淡出"
+"ko" = "슬라이드 + 페이드"
 
 ["Small Capitals"]
 en = "Small Capitals"
@@ -4409,6 +6296,9 @@ es = "Versalitas"
 fr = "Petites capitales"
 de = "Kapitälchen"
 ja = "スモールキャップ"
+"zh-CN" = "小型大写字母"
+"zh-TW" = "小型大寫字母"
+"ko" = "스몰 캡"
 
 ["Soft Refraction"]
 en = "Soft Refraction"
@@ -4416,6 +6306,9 @@ es = "Refracción suave"
 fr = "Réfraction douce"
 de = "Weiche Brechung"
 ja = "ソフト屈折"
+"zh-CN" = "软折射"
+"zh-TW" = "軟折射"
+"ko" = "소프트 굴절"
 
 ["Sphere"]
 en = "Sphere"
@@ -4423,6 +6316,9 @@ es = "Esfera"
 fr = "Sphère"
 de = "Kugel"
 ja = "球"
+"zh-CN" = "球体"
+"zh-TW" = "球體"
+"ko" = "구"
 
 ["Standard · 12 samples"]
 en = "Standard · 12 samples"
@@ -4430,6 +6326,9 @@ es = "Estándar · 12 muestras"
 fr = "Standard · 12 échantillons"
 de = "Standard · 12 Samples"
 ja = "標準 · 12サンプル"
+"zh-CN" = "标准·12个样本"
+"zh-TW" = "標準·12個樣本"
+"ko" = "표준 · 12개 샘플"
 
 ["Standard · 4 probes"]
 en = "Standard · 4 probes"
@@ -4437,6 +6336,9 @@ es = "Estándar · 4 sondas"
 fr = "Standard · 4 sondes"
 de = "Standard · 4 Probes"
 ja = "標準 · 4プローブ"
+"zh-CN" = "标准 · 4 个探针"
+"zh-TW" = "標準 · 4 個探針"
+"ko" = "표준 · 프로브 4개"
 
 ["Star"]
 en = "Star"
@@ -4444,6 +6346,9 @@ es = "Estrella"
 fr = "Étoile"
 de = "Stern"
 ja = "星"
+"zh-CN" = "星星"
+"zh-TW" = "星星"
+"ko" = "별"
 
 ["Streak Wipe"]
 en = "Streak Wipe"
@@ -4451,6 +6356,9 @@ es = "Barrido de franjas"
 fr = "Balayage strié"
 de = "Streifen-Wischen"
 ja = "ストリークワイプ"
+"zh-CN" = "条纹擦除"
+"zh-TW" = "條紋擦除"
+"ko" = "줄무늬 와이프"
 
 ["Streamline"]
 en = "Streamline"
@@ -4458,6 +6366,9 @@ es = "Línea de flujo"
 fr = "Ligne de courant"
 de = "Stromlinie"
 ja = "流線"
+"zh-CN" = "流线"
+"zh-TW" = "流線"
+"ko" = "유선형"
 
 ["Stroke Transform"]
 en = "Stroke Transform"
@@ -4465,6 +6376,9 @@ es = "Transformación de trazo"
 fr = "Transformation du trait"
 de = "Strichtransformation"
 ja = "ストローク変形"
+"zh-CN" = "笔画变换"
+"zh-TW" = "筆畫變形"
+"ko" = "스트로크 변환"
 
 ["System default"]
 en = "System default"
@@ -4472,6 +6386,9 @@ es = "Predeterminado del sistema"
 fr = "Valeur système par défaut"
 de = "Systemstandard"
 ja = "システム既定"
+"zh-CN" = "系统默认"
+"zh-TW" = "系統預設"
+"ko" = "시스템 기본값"
 
 ["Thinning"]
 en = "Thinning"
@@ -4479,6 +6396,9 @@ es = "Adelgazamiento"
 fr = "Amincissement"
 de = "Ausdünnung"
 ja = "細線化"
+"zh-CN" = "细化"
+"zh-TW" = "細化"
+"ko" = "세선화"
 
 ["Torus"]
 en = "Torus"
@@ -4486,6 +6406,9 @@ es = "Toro"
 fr = "Tore"
 de = "Torus"
 ja = "トーラス"
+"zh-CN" = "圆环体"
+"zh-TW" = "環形體"
+"ko" = "토러스"
 
 ["Track %{track} · Item %{item}"]
 en = "Track %{track} · Item %{item}"
@@ -4493,6 +6416,9 @@ es = "Pista %{track} · Elemento %{item}"
 fr = "Piste %{track} · Élément %{item}"
 de = "Spur %{track} · Element %{item}"
 ja = "トラック %{track} · 項目 %{item}"
+"zh-CN" = "轨道 %{track} · 项目 %{item}"
+"zh-TW" = "軌道 %{track} · 項目 %{item}"
+"ko" = "트랙 %{track} · 항목 %{item}"
 
 ["Triangular Fold"]
 en = "Triangular Fold"
@@ -4500,6 +6426,9 @@ es = "Pliegue triangular"
 fr = "Pli triangulaire"
 de = "Dreiecksfaltung"
 ja = "三角折り"
+"zh-CN" = "三角折"
+"zh-TW" = "三角折"
+"ko" = "삼각형 접기"
 
 ["Ultra · 16 probes"]
 en = "Ultra · 16 probes"
@@ -4507,6 +6436,9 @@ es = "Ultra · 16 sondas"
 fr = "Ultra · 16 sondes"
 de = "Ultra · 16 Probes"
 ja = "最高 · 16プローブ"
+"zh-CN" = "超高 · 16 个探针"
+"zh-TW" = "超高 · 16 個探針"
+"ko" = "Ultra · 16개 프로브"
 
 ["Ultra · 48 samples"]
 en = "Ultra · 48 samples"
@@ -4514,6 +6446,9 @@ es = "Ultra · 48 muestras"
 fr = "Ultra · 48 échantillons"
 de = "Ultra · 48 Samples"
 ja = "最高 · 48サンプル"
+"zh-CN" = "超·48个样本"
+"zh-TW" = "超·48個樣本"
+"ko" = "울트라 · 48개 샘플"
 
 ["Unwrite"]
 en = "Unwrite"
@@ -4521,6 +6456,9 @@ es = "Desescribir"
 fr = "Désécrire"
 de = "Ausradieren"
 ja = "消去"
+"zh-CN" = "擦除书写"
+"zh-TW" = "擦除書寫"
+"ko" = "쓰기 지우기"
 
 ["Vertical LTR"]
 en = "Vertical LTR"
@@ -4528,6 +6466,9 @@ es = "Vertical izq. a der."
 fr = "Vertical gauche à droite"
 de = "Vertikal LTR"
 ja = "縦書き・左から右"
+"zh-CN" = "垂直LTR"
+"zh-TW" = "垂直LTR"
+"ko" = "수직 LTR"
 
 ["Vertical RTL"]
 en = "Vertical RTL"
@@ -4535,6 +6476,9 @@ es = "Vertical der. a izq."
 fr = "Vertical droite à gauche"
 de = "Vertikal RTL"
 ja = "縦書き・右から左"
+"zh-CN" = "垂直RTL"
+"zh-TW" = "垂直RTL"
+"ko" = "수직 RTL"
 
 ["Video / Render request"]
 en = "Video / Render request"
@@ -4542,6 +6486,9 @@ es = "Solicitud de vídeo / renderizado"
 fr = "Requête vidéo / rendu"
 de = "Video-/Renderanfrage"
 ja = "ビデオ / レンダリング要求"
+"zh-CN" = "视频/渲染请求"
+"zh-TW" = "影片/算繪請求"
+"ko" = "비디오/렌더링 요청"
 
 ["Visual track %{number}"]
 en = "Visual track %{number}"
@@ -4549,6 +6496,9 @@ es = "Pista visual %{number}"
 fr = "Piste visuelle %{number}"
 de = "Visuelle Spur %{number}"
 ja = "ビジュアルトラック %{number}"
+"zh-CN" = "视觉轨道 %{number}"
+"zh-TW" = "視覺軌道 %{number}"
+"ko" = "비주얼 트랙 %{number}"
 
 ["Write"]
 en = "Write"
@@ -4556,6 +6506,9 @@ es = "Escribir"
 fr = "Écrire"
 de = "Schreiben"
 ja = "書く"
+"zh-CN" = "写"
+"zh-TW" = "寫"
+"ko" = "쓰기"
 
 ["Writing"]
 en = "Writing"
@@ -4563,6 +6516,9 @@ es = "Escritura"
 fr = "Écriture"
 de = "Schreiben"
 ja = "書き込み"
+"zh-CN" = "书写"
+"zh-TW" = "書寫"
+"ko" = "쓰기"
 
 ["%{axis} variation axis"]
 en = "%{axis} variation axis"
@@ -4570,6 +6526,9 @@ es = "Eje de variación %{axis}"
 fr = "Axe de variation %{axis}"
 de = "Variationsachse %{axis}"
 ja = "%{axis} バリエーション軸"
+"zh-CN" = "%{axis} 变化轴"
+"zh-TW" = "%{axis} 變化軸"
+"ko" = "%{axis} 변형 축"
 
 ["%{name} copied"]
 en = "%{name} copied"
@@ -4577,6 +6536,9 @@ es = "%{name} copiado"
 fr = "%{name} copié"
 de = "%{name} kopiert"
 ja = "%{name} をコピーしました"
+"zh-CN" = "%{name} 已复制"
+"zh-TW" = "%{name} 已複製"
+"ko" = "%{name} 복사됨"
 
 ["%{label} (Unavailable)"]
 en = "%{label} (Unavailable)"
@@ -4584,6 +6546,9 @@ es = "%{label} (no disponible)"
 fr = "%{label} (indisponible)"
 de = "%{label} (nicht verfügbar)"
 ja = "%{label}（利用不可）"
+"zh-CN" = "%{label}（不可用）"
+"zh-TW" = "%{label}（不可用）"
+"ko" = "%{label}(사용할 수 없음)"
 
 ["%{message} %{completed}/%{total}"]
 en = "%{message} %{completed}/%{total}"
@@ -4591,6 +6556,9 @@ es = "%{message} %{completed}/%{total}"
 fr = "%{message} %{completed}/%{total}"
 de = "%{message} %{completed}/%{total}"
 ja = "%{message} %{completed}/%{total}"
+"zh-CN" = "%{message} %{completed}/%{total}"
+"zh-TW" = "%{message} %{completed}/%{total}"
+"ko" = "%{message} %{completed}/%{total}"
 
 ["Output: %{output}"]
 en = "Output: %{output}"
@@ -4598,6 +6566,9 @@ es = "Salida: %{output}"
 fr = "Sortie : %{output}"
 de = "Ausgabe: %{output}"
 ja = "出力: %{output}"
+"zh-CN" = "输出：%{output}"
+"zh-TW" = "輸出：%{output}"
+"ko" = "출력: %{output}"
 
 ["%{strokes} strokes, %{fills} fills"]
 en = "%{strokes} strokes, %{fills} fills"
@@ -4605,6 +6576,9 @@ es = "%{strokes} trazos, %{fills} rellenos"
 fr = "%{strokes} traits, %{fills} remplissages"
 de = "%{strokes} Striche, %{fills} Füllungen"
 ja = "%{strokes} ストローク、%{fills} 塗り"
+"zh-CN" = "%{strokes} 个笔画，%{fills} 个填充"
+"zh-TW" = "%{strokes} 個筆畫，%{fills} 個填滿"
+"ko" = "스트로크 %{strokes}개, 채우기 %{fills}개"
 
 ["1 keyframe copied"]
 en = "1 keyframe copied"
@@ -4612,6 +6586,9 @@ es = "1 fotograma clave copiado"
 fr = "1 image clé copiée"
 de = "1 Keyframe kopiert"
 ja = "キーフレームを1件コピーしました"
+"zh-CN" = "已复制 1 个关键帧"
+"zh-TW" = "已複製 1 個關鍵影格"
+"ko" = "키프레임 1개 복사됨"
 
 ["1 keyframe pasted"]
 en = "1 keyframe pasted"
@@ -4619,6 +6596,9 @@ es = "1 fotograma clave pegado"
 fr = "1 image clé collée"
 de = "1 Keyframe eingefügt"
 ja = "キーフレームを1件貼り付けました"
+"zh-CN" = "粘贴 1 个关键帧"
+"zh-TW" = "貼上 1 個關鍵影格"
+"ko" = "키프레임 1개를 붙여넣었습니다."
 
 ["%{count} keyframes copied"]
 en = "%{count} keyframes copied"
@@ -4626,6 +6606,9 @@ es = "%{count} fotogramas clave copiados"
 fr = "%{count} images clés copiées"
 de = "%{count} Keyframes kopiert"
 ja = "%{count}件のキーフレームをコピーしました"
+"zh-CN" = "已复制 %{count} 个关键帧"
+"zh-TW" = "已複製 %{count} 個關鍵影格"
+"ko" = "%{count}개의 키프레임이 복사되었습니다."
 
 ["%{count} keyframes pasted"]
 en = "%{count} keyframes pasted"
@@ -4633,6 +6616,9 @@ es = "%{count} fotogramas clave pegados"
 fr = "%{count} images clés collées"
 de = "%{count} Keyframes eingefügt"
 ja = "%{count}件のキーフレームを貼り付けました"
+"zh-CN" = "已粘贴 %{count} 个关键帧"
+"zh-TW" = "已貼上 %{count} 個關鍵影格"
+"ko" = "%{count}개의 키프레임을 붙여넣었습니다."
 
 ["Analysis starts as source-time chunks are viewed"]
 en = "Analysis starts as source-time chunks are viewed"
@@ -4640,6 +6626,9 @@ es = "El análisis comienza al visualizar tramos temporales del origen"
 fr = "L’analyse commence lors de l’affichage des segments temporels source"
 de = "Die Analyse beginnt beim Anzeigen von Quellzeitabschnitten"
 ja = "ソース時間チャンクの表示時に解析を開始"
+"zh-CN" = "查看源时间片段时开始分析"
+"zh-TW" = "檢視來源時間區段時開始分析"
+"ko" = "소스 시간 구간을 볼 때 분석이 시작됩니다."
 
 ["Benchmark report copied"]
 en = "Benchmark report copied"
@@ -4647,6 +6636,9 @@ es = "Informe de rendimiento copiado"
 fr = "Rapport de performance copié"
 de = "Benchmark-Bericht kopiert"
 ja = "ベンチマークレポートをコピーしました"
+"zh-CN" = "已复制基准报告"
+"zh-TW" = "已複製基準報告"
+"ko" = "벤치마크 보고서가 복사되었습니다."
 
 ["Checking compute server..."]
 en = "Checking compute server..."
@@ -4654,6 +6646,9 @@ es = "Comprobando servidor de cálculo..."
 fr = "Vérification du serveur de calcul…"
 de = "Compute-Server wird geprüft..."
 ja = "計算サーバーを確認中..."
+"zh-CN" = "正在检查计算服务器…"
+"zh-TW" = "正在檢查計算伺服器…"
+"ko" = "컴퓨팅 서버를 확인하는 중…"
 
 ["Choose a compatible Blender binary in Preferences"]
 en = "Choose a compatible Blender binary in Preferences"
@@ -4661,6 +6656,9 @@ es = "Elige un ejecutable de Blender compatible en Preferencias"
 fr = "Choisissez un exécutable Blender compatible dans les Préférences"
 de = "Kompatible Blender-Binärdatei in den Einstellungen auswählen"
 ja = "設定で互換性のあるBlender実行ファイルを選択してください"
+"zh-CN" = "请在偏好设置中选择兼容的 Blender 可执行文件"
+"zh-TW" = "請在偏好設定中選擇相容的 Blender 執行檔"
+"ko" = "환경설정에서 호환되는 Blender 실행 파일 선택"
 
 ["Expression output unavailable"]
 en = "Expression output unavailable"
@@ -4668,6 +6666,9 @@ es = "Salida de la expresión no disponible"
 fr = "Sortie de l’expression indisponible"
 de = "Ausgabe des Ausdrucks nicht verfügbar"
 ja = "式の出力を利用できません"
+"zh-CN" = "表达式输出不可用"
+"zh-TW" = "表達式輸出不可用"
+"ko" = "표현식 출력을 사용할 수 없습니다."
 
 ["Jacobi passes used to minimize the MeshFlow energy"]
 en = "Jacobi passes used to minimize the MeshFlow energy"
@@ -4675,6 +6676,9 @@ es = "Pasadas de Jacobi para minimizar la energía de MeshFlow"
 fr = "Passes de Jacobi utilisées pour minimiser l’énergie MeshFlow"
 de = "Jacobi-Durchläufe zum Minimieren der MeshFlow-Energie"
 ja = "MeshFlowエネルギーを最小化するJacobiパス数"
+"zh-CN" = "用于最小化 MeshFlow 能量的 Jacobi 迭代次数"
+"zh-TW" = "用於最小化 MeshFlow 能量的 Jacobi 迭代次數"
+"ko" = "MeshFlow 에너지를 최소화하는 Jacobi 패스 수"
 
 ["Ready (%{count} samples)"]
 en = "Ready (%{count} samples)"
@@ -4682,6 +6686,9 @@ es = "Listo (%{count} muestras)"
 fr = "Prêt (%{count} échantillons)"
 de = "Bereit (%{count} Samples)"
 ja = "準備完了（%{count}サンプル）"
+"zh-CN" = "就绪（%{count} 个样本）"
+"zh-TW" = "就緒（%{count} 個樣本）"
+"ko" = "준비됨(%{count}개 샘플)"
 
 ["Selected tracking method is unavailable"]
 en = "Selected tracking method is unavailable"
@@ -4689,6 +6696,9 @@ es = "El método de seguimiento seleccionado no está disponible"
 fr = "La méthode de suivi sélectionnée est indisponible"
 de = "Die ausgewählte Tracking-Methode ist nicht verfügbar"
 ja = "選択したトラッキング方式は利用できません"
+"zh-CN" = "所选的跟踪方法不可用"
+"zh-TW" = "所選的追蹤方法不可用"
+"ko" = "선택한 추적 방법을 사용할 수 없습니다."
 
 ["Source track is empty"]
 en = "Source track is empty"
@@ -4696,6 +6706,9 @@ es = "La pista de origen está vacía"
 fr = "La piste source est vide"
 de = "Die Quellspur ist leer"
 ja = "ソーストラックが空です"
+"zh-CN" = "源轨道为空"
+"zh-TW" = "源軌道為空"
+"ko" = "소스 트랙이 비어 있습니다."
 
 ["Source track unavailable"]
 en = "Source track unavailable"
@@ -4703,6 +6716,9 @@ es = "Pista de origen no disponible"
 fr = "Piste source indisponible"
 de = "Quellspur nicht verfügbar"
 ja = "ソーストラックを利用できません"
+"zh-CN" = "源轨道不可用"
+"zh-TW" = "來源軌道不可用"
+"ko" = "소스 트랙을 사용할 수 없습니다."
 
 ["3-band EQ"]
 en = "3-band EQ"
@@ -4710,6 +6726,9 @@ es = "Ecualizador de 3 bandas"
 fr = "Égaliseur 3 bandes"
 de = "3-Band-EQ"
 ja = "3バンドEQ"
+"zh-CN" = "3段均衡器"
+"zh-TW" = "3段均衡器"
+"ko" = "3밴드 EQ"
 
 ["3D Object"]
 en = "3D Object"
@@ -4717,6 +6736,9 @@ es = "Objeto 3D"
 fr = "Objet 3D"
 de = "3D-Objekt"
 ja = "3Dオブジェクト"
+"zh-CN" = "3D 对象"
+"zh-TW" = "3D 物件"
+"ko" = "3D 개체"
 
 ["3D Shape"]
 en = "3D Shape"
@@ -4724,6 +6746,9 @@ es = "Forma 3D"
 fr = "Forme 3D"
 de = "3D-Form"
 ja = "3D図形"
+"zh-CN" = "3D形状"
+"zh-TW" = "3D形狀"
+"ko" = "3D 모양"
 
 ["3D Text"]
 en = "3D Text"
@@ -4731,6 +6756,9 @@ es = "Texto 3D"
 fr = "Texte 3D"
 de = "3D-Text"
 ja = "3Dテキスト"
+"zh-CN" = "3D文字"
+"zh-TW" = "3D文字"
+"ko" = "3D 텍스트"
 
 ["Alpha outline"]
 en = "Alpha outline"
@@ -4738,6 +6766,9 @@ es = "Contorno alfa"
 fr = "Contour alpha"
 de = "Alpha-Umriss"
 ja = "アルファアウトライン"
+"zh-CN" = "Alpha 轮廓"
+"zh-TW" = "Alpha 輪廓"
+"ko" = "알파 윤곽선"
 
 ["Append"]
 en = "Append"
@@ -4745,6 +6776,9 @@ es = "Añadir al final"
 fr = "Ajouter à la fin"
 de = "Anhängen"
 ja = "末尾に追加"
+"zh-CN" = "追加"
+"zh-TW" = "附加"
+"ko" = "추가"
 
 ["Bitcrusher"]
 en = "Bitcrusher"
@@ -4752,6 +6786,9 @@ es = "Reductor de bits"
 fr = "Réducteur de bits"
 de = "Bitcrusher"
 ja = "ビットクラッシャー"
+"zh-CN" = "比特破碎机"
+"zh-TW" = "比特破碎機"
+"ko" = "비트크러셔"
 
 ["Bulge"]
 en = "Bulge"
@@ -4759,6 +6796,9 @@ es = "Abombamiento"
 fr = "Bombement"
 de = "Wölbung"
 ja = "膨張"
+"zh-CN" = "凸出"
+"zh-TW" = "凸出"
+"ko" = "볼록 효과"
 
 ["Cache"]
 en = "Cache"
@@ -4766,6 +6806,9 @@ es = "Caché"
 fr = "Cache"
 de = "Cache"
 ja = "キャッシュ"
+"zh-CN" = "缓存"
+"zh-TW" = "快取"
+"ko" = "캐시"
 
 ["Channel mixer"]
 en = "Channel mixer"
@@ -4773,6 +6816,9 @@ es = "Mezclador de canales"
 fr = "Mélangeur de canaux"
 de = "Kanalmischer"
 ja = "チャンネルミキサー"
+"zh-CN" = "通道混合器"
+"zh-TW" = "通道混合器"
+"ko" = "채널 믹서"
 
 ["Chorus"]
 en = "Chorus"
@@ -4780,6 +6826,9 @@ es = "Coro"
 fr = "Chorus"
 de = "Chorus"
 ja = "コーラス"
+"zh-CN" = "合唱"
+"zh-TW" = "合唱效果"
+"ko" = "코러스"
 
 ["Chroma key"]
 en = "Chroma key"
@@ -4787,6 +6836,9 @@ es = "Clave de croma"
 fr = "Incrustation chromatique"
 de = "Chroma-Key"
 ja = "クロマキー"
+"zh-CN" = "色度键"
+"zh-TW" = "色度去背"
+"ko" = "크로마키"
 
 ["Chromatic aberration"]
 en = "Chromatic aberration"
@@ -4794,6 +6846,9 @@ es = "Aberración cromática"
 fr = "Aberration chromatique"
 de = "Chromatische Aberration"
 ja = "色収差"
+"zh-CN" = "色差"
+"zh-TW" = "色差"
+"ko" = "색수차"
 
 ["Close up"]
 en = "Close up"
@@ -4801,6 +6856,9 @@ es = "Primer plano"
 fr = "Gros plan"
 de = "Nahaufnahme"
 ja = "クローズアップ"
+"zh-CN" = "特写"
+"zh-TW" = "特寫"
+"ko" = "클로즈업"
 
 ["Color correction"]
 en = "Color correction"
@@ -4808,6 +6866,9 @@ es = "Corrección de color"
 fr = "Correction des couleurs"
 de = "Farbkorrektur"
 ja = "色補正"
+"zh-CN" = "色彩校正"
+"zh-TW" = "色彩校正"
+"ko" = "색상 보정"
 
 ["Compressor"]
 en = "Compressor"
@@ -4815,6 +6876,9 @@ es = "Compresor"
 fr = "Compresseur"
 de = "Kompressor"
 ja = "コンプレッサー"
+"zh-CN" = "压缩器"
+"zh-TW" = "壓縮器"
+"ko" = "컴프레서"
 
 ["Corner Pin"]
 en = "Corner Pin"
@@ -4822,6 +6886,9 @@ es = "Anclaje de esquinas"
 fr = "Épinglage des angles"
 de = "Eckenanheftung"
 ja = "コーナーピン"
+"zh-CN" = "角点固定"
+"zh-TW" = "角點固定"
+"ko" = "코너 핀"
 
 ["Crop"]
 en = "Crop"
@@ -4829,6 +6896,9 @@ es = "Recorte"
 fr = "Recadrage"
 de = "Zuschnitt"
 ja = "クロップ"
+"zh-CN" = "裁剪"
+"zh-TW" = "裁切"
+"ko" = "자르기"
 
 ["Decode"]
 en = "Decode"
@@ -4836,6 +6906,9 @@ es = "Decodificar"
 fr = "Décoder"
 de = "Dekodieren"
 ja = "デコード"
+"zh-CN" = "解码"
+"zh-TW" = "解碼"
+"ko" = "디코딩"
 
 ["Denoise"]
 en = "Denoise"
@@ -4843,6 +6916,9 @@ es = "Reducción de ruido"
 fr = "Réduction du bruit"
 de = "Entrauschen"
 ja = "ノイズ除去"
+"zh-CN" = "去噪"
+"zh-TW" = "降噪"
+"ko" = "노이즈 제거"
 
 ["Directional blur"]
 en = "Directional blur"
@@ -4850,6 +6926,9 @@ es = "Desenfoque direccional"
 fr = "Flou directionnel"
 de = "Richtungsunschärfe"
 ja = "方向ぼかし"
+"zh-CN" = "方向模糊"
+"zh-TW" = "方向模糊"
+"ko" = "방향성 흐림"
 
 ["Displacement map"]
 en = "Displacement map"
@@ -4857,6 +6936,9 @@ es = "Mapa de desplazamiento"
 fr = "Carte de déplacement"
 de = "Verschiebungsmatrix"
 ja = "ディスプレイスメントマップ"
+"zh-CN" = "位移图"
+"zh-TW" = "位移圖"
+"ko" = "변위 맵"
 
 ["Dithering"]
 en = "Dithering"
@@ -4864,6 +6946,9 @@ es = "Tramado"
 fr = "Tramage"
 de = "Dithering"
 ja = "ディザリング"
+"zh-CN" = "颜色抖动"
+"zh-TW" = "色彩抖動"
+"ko" = "디더링"
 
 ["Drop shadow"]
 en = "Drop shadow"
@@ -4871,6 +6956,9 @@ es = "Sombra paralela"
 fr = "Ombre portée"
 de = "Schlagschatten"
 ja = "ドロップシャドウ"
+"zh-CN" = "投影"
+"zh-TW" = "投影"
+"ko" = "그림자"
 
 ["Duotone"]
 en = "Duotone"
@@ -4878,6 +6966,9 @@ es = "Duotono"
 fr = "Bichromie"
 de = "Duoton"
 ja = "デュオトーン"
+"zh-CN" = "双色调"
+"zh-TW" = "雙色調"
+"ko" = "이중톤"
 
 ["Echo"]
 en = "Echo"
@@ -4885,6 +6976,9 @@ es = "Eco"
 fr = "Écho"
 de = "Echo"
 ja = "エコー"
+"zh-CN" = "回声"
+"zh-TW" = "迴音"
+"ko" = "에코"
 
 ["Edge detection"]
 en = "Edge detection"
@@ -4892,6 +6986,9 @@ es = "Detección de bordes"
 fr = "Détection des contours"
 de = "Kantenerkennung"
 ja = "エッジ検出"
+"zh-CN" = "边缘检测"
+"zh-TW" = "邊緣偵測"
+"ko" = "가장자리 감지"
 
 ["Emboss"]
 en = "Emboss"
@@ -4899,6 +6996,9 @@ es = "Relieve"
 fr = "Embossage"
 de = "Relief"
 ja = "エンボス"
+"zh-CN" = "浮雕"
+"zh-TW" = "浮雕"
+"ko" = "엠보싱"
 
 ["Erode"]
 en = "Erode"
@@ -4906,6 +7006,9 @@ es = "Erosionar"
 fr = "Éroder"
 de = "Erodieren"
 ja = "収縮"
+"zh-CN" = "腐蚀"
+"zh-TW" = "侵蝕"
+"ko" = "침식"
 
 ["Filter"]
 en = "Filter"
@@ -4913,6 +7016,9 @@ es = "Filtro"
 fr = "Filtre"
 de = "Filter"
 ja = "フィルター"
+"zh-CN" = "滤镜"
+"zh-TW" = "濾鏡"
+"ko" = "필터"
 
 ["Fisheye"]
 en = "Fisheye"
@@ -4920,6 +7026,9 @@ es = "Ojo de pez"
 fr = "Œil-de-poisson"
 de = "Fischauge"
 ja = "魚眼"
+"zh-CN" = "鱼眼"
+"zh-TW" = "魚眼"
+"ko" = "피쉬아이"
 
 ["Gain"]
 en = "Gain"
@@ -4927,6 +7036,9 @@ es = "Ganancia"
 fr = "Gain"
 de = "Verstärkung"
 ja = "ゲイン"
+"zh-CN" = "增益"
+"zh-TW" = "增益"
+"ko" = "게인"
 
 ["Gaussian blur"]
 en = "Gaussian blur"
@@ -4934,6 +7046,9 @@ es = "Desenfoque gaussiano"
 fr = "Flou gaussien"
 de = "Gaußsche Unschärfe"
 ja = "ガウスぼかし"
+"zh-CN" = "高斯模糊"
+"zh-TW" = "高斯模糊"
+"ko" = "가우시안 블러"
 
 ["Glow"]
 en = "Glow"
@@ -4941,6 +7056,9 @@ es = "Resplandor"
 fr = "Lueur"
 de = "Leuchten"
 ja = "グロー"
+"zh-CN" = "辉光"
+"zh-TW" = "光暈"
+"ko" = "글로우"
 
 ["Ground"]
 en = "Ground"
@@ -4948,6 +7066,9 @@ es = "Suelo"
 fr = "Sol"
 de = "Boden"
 ja = "地面"
+"zh-CN" = "地面"
+"zh-TW" = "地面"
+"ko" = "지면"
 
 ["Halftone"]
 en = "Halftone"
@@ -4955,6 +7076,9 @@ es = "Semitono"
 fr = "Demi-teinte"
 de = "Halbton"
 ja = "ハーフトーン"
+"zh-CN" = "半色调"
+"zh-TW" = "網點"
+"ko" = "하프톤"
 
 ["Insert"]
 en = "Insert"
@@ -4962,6 +7086,9 @@ es = "Insertar"
 fr = "Insérer"
 de = "Einfügen"
 ja = "挿入"
+"zh-CN" = "插入"
+"zh-TW" = "插入"
+"ko" = "삽입"
 
 ["Jump"]
 en = "Jump"
@@ -4969,6 +7096,9 @@ es = "Salto"
 fr = "Saut"
 de = "Sprung"
 ja = "ジャンプ"
+"zh-CN" = "跳转"
+"zh-TW" = "跳轉"
+"ko" = "점프"
 
 ["Kaleidoscope"]
 en = "Kaleidoscope"
@@ -4976,6 +7106,9 @@ es = "Caleidoscopio"
 fr = "Kaléidoscope"
 de = "Kaleidoskop"
 ja = "万華鏡"
+"zh-CN" = "万花筒"
+"zh-TW" = "萬花筒"
+"ko" = "만화경"
 
 ["Kuwahara"]
 en = "Kuwahara"
@@ -4983,6 +7116,9 @@ es = "Kuwahara"
 fr = "Kuwahara"
 de = "Kuwahara"
 ja = "Kuwahara"
+"zh-CN" = "Kuwahara"
+"zh-TW" = "Kuwahara"
+"ko" = "Kuwahara"
 
 ["Lens distortion"]
 en = "Lens distortion"
@@ -4990,6 +7126,9 @@ es = "Distorsión de lente"
 fr = "Distorsion de l’objectif"
 de = "Objektivverzerrung"
 ja = "レンズ歪み"
+"zh-CN" = "镜头畸变"
+"zh-TW" = "鏡頭畸變"
+"ko" = "렌즈 왜곡"
 
 ["Limiter"]
 en = "Limiter"
@@ -4997,6 +7136,9 @@ es = "Limitador"
 fr = "Limiteur"
 de = "Limiter"
 ja = "リミッター"
+"zh-CN" = "限制器"
+"zh-TW" = "限制器"
+"ko" = "리미터"
 
 ["Luma key"]
 en = "Luma key"
@@ -5004,6 +7146,9 @@ es = "Clave de luminancia"
 fr = "Incrustation par luminance"
 de = "Luma-Key"
 ja = "ルマキー"
+"zh-CN" = "亮度键"
+"zh-TW" = "亮度鍵"
+"ko" = "루마 키"
 
 ["Manim Smooth"]
 en = "Manim Smooth"
@@ -5011,6 +7156,9 @@ es = "Suavizado de Manim"
 fr = "Lissage Manim"
 de = "Manim-Glättung"
 ja = "Manimスムーズ"
+"zh-CN" = "Manim 平滑"
+"zh-TW" = "Manim 平滑"
+"ko" = "Manim 스무스"
 
 ["Mosaic"]
 en = "Mosaic"
@@ -5018,6 +7166,9 @@ es = "Mosaico"
 fr = "Mosaïque"
 de = "Mosaik"
 ja = "モザイク"
+"zh-CN" = "马赛克"
+"zh-TW" = "馬賽克"
+"ko" = "모자이크"
 
 ["Noise"]
 en = "Noise"
@@ -5025,6 +7176,9 @@ es = "Ruido"
 fr = "Bruit"
 de = "Rauschen"
 ja = "ノイズ"
+"zh-CN" = "噪声"
+"zh-TW" = "雜訊"
+"ko" = "노이즈"
 
 ["Noise gate"]
 en = "Noise gate"
@@ -5032,6 +7186,9 @@ es = "Puerta de ruido"
 fr = "Porte de bruit"
 de = "Noise-Gate"
 ja = "ノイズゲート"
+"zh-CN" = "噪声门"
+"zh-TW" = "雜訊閘門"
+"ko" = "노이즈 게이트"
 
 ["Pan"]
 en = "Pan"
@@ -5039,6 +7196,9 @@ es = "Panorámica"
 fr = "Panoramique"
 de = "Panorama"
 ja = "パン"
+"zh-CN" = "平移"
+"zh-TW" = "平移"
+"ko" = "팬"
 
 ["Path offset"]
 en = "Path offset"
@@ -5046,6 +7206,9 @@ es = "Desfase de trazado"
 fr = "Décalage du tracé"
 de = "Pfadversatz"
 ja = "パスオフセット"
+"zh-CN" = "路径偏移"
+"zh-TW" = "路徑偏移"
+"ko" = "경로 오프셋"
 
 ["Phone mic"]
 en = "Phone mic"
@@ -5053,6 +7216,9 @@ es = "Micrófono de teléfono"
 fr = "Micro de téléphone"
 de = "Telefonmikrofon"
 ja = "電話マイク"
+"zh-CN" = "手机麦克风"
+"zh-TW" = "手機麥克風"
+"ko" = "휴대폰 마이크"
 
 ["Point Light"]
 en = "Point Light"
@@ -5060,6 +7226,9 @@ es = "Luz puntual"
 fr = "Lumière ponctuelle"
 de = "Punktlicht"
 ja = "ポイントライト"
+"zh-CN" = "点光源"
+"zh-TW" = "點光源"
+"ko" = "포인트 라이트"
 
 ["Posterize"]
 en = "Posterize"
@@ -5067,6 +7236,9 @@ es = "Posterizar"
 fr = "Postériser"
 de = "Posterisieren"
 ja = "ポスタリゼーション"
+"zh-CN" = "色调分离"
+"zh-TW" = "色調分離"
+"ko" = "포스터라이즈"
 
 ["Radial blur"]
 en = "Radial blur"
@@ -5074,6 +7246,9 @@ es = "Desenfoque radial"
 fr = "Flou radial"
 de = "Radiale Unschärfe"
 ja = "放射状ぼかし"
+"zh-CN" = "径向模糊"
+"zh-TW" = "徑向模糊"
+"ko" = "방사형 흐림"
 
 ["Rasterize"]
 en = "Rasterize"
@@ -5081,6 +7256,9 @@ es = "Rasterizar"
 fr = "Pixelliser"
 de = "Rastern"
 ja = "ラスタライズ"
+"zh-CN" = "光栅化"
+"zh-TW" = "光柵化"
+"ko" = "래스터화"
 
 ["Reverb"]
 en = "Reverb"
@@ -5088,6 +7266,9 @@ es = "Reverberación"
 fr = "Réverbération"
 de = "Hall"
 ja = "リバーブ"
+"zh-CN" = "混响"
+"zh-TW" = "混響"
+"ko" = "리버브"
 
 ["Rewrite"]
 en = "Rewrite"
@@ -5095,6 +7276,9 @@ es = "Reescribir"
 fr = "Réécrire"
 de = "Neu schreiben"
 ja = "書き直し"
+"zh-CN" = "改写"
+"zh-TW" = "改寫"
+"ko" = "고쳐 쓰기"
 
 ["Sampling"]
 en = "Sampling"
@@ -5102,6 +7286,9 @@ es = "Muestreo"
 fr = "Échantillonnage"
 de = "Abtastung"
 ja = "サンプリング"
+"zh-CN" = "采样"
+"zh-TW" = "取樣"
+"ko" = "샘플링"
 
 ["Shaky path"]
 en = "Shaky path"
@@ -5109,6 +7296,9 @@ es = "Trazado tembloroso"
 fr = "Tracé tremblant"
 de = "Wackelpfad"
 ja = "揺れるパス"
+"zh-CN" = "抖动路径"
+"zh-TW" = "抖動路徑"
+"ko" = "흔들리는 경로"
 
 ["Sharpen"]
 en = "Sharpen"
@@ -5116,6 +7306,9 @@ es = "Enfocar"
 fr = "Accentuer"
 de = "Schärfen"
 ja = "シャープ"
+"zh-CN" = "锐化"
+"zh-TW" = "銳化"
+"ko" = "선명하게"
 
 ["Stereo width"]
 en = "Stereo width"
@@ -5123,6 +7316,9 @@ es = "Anchura estéreo"
 fr = "Largeur stéréo"
 de = "Stereobreite"
 ja = "ステレオ幅"
+"zh-CN" = "立体声宽度"
+"zh-TW" = "立體聲寬度"
+"ko" = "스테레오 폭"
 
 ["Sun"]
 en = "Sun"
@@ -5130,6 +7326,9 @@ es = "Sol"
 fr = "Soleil"
 de = "Sonne"
 ja = "太陽"
+"zh-CN" = "太阳"
+"zh-TW" = "太陽"
+"ko" = "해"
 
 ["Text mask"]
 en = "Text mask"
@@ -5137,6 +7336,9 @@ es = "Máscara de texto"
 fr = "Masque de texte"
 de = "Textmaske"
 ja = "テキストマスク"
+"zh-CN" = "文本掩码"
+"zh-TW" = "文字遮罩"
+"ko" = "텍스트 마스크"
 
 ["Texture bounds"]
 en = "Texture bounds"
@@ -5144,6 +7346,9 @@ es = "Límites de textura"
 fr = "Limites de la texture"
 de = "Texturgrenzen"
 ja = "テクスチャ境界"
+"zh-CN" = "纹理边界"
+"zh-TW" = "紋理邊界"
+"ko" = "텍스처 경계"
 
 ["Transparent Fill"]
 en = "Transparent Fill"
@@ -5151,6 +7356,9 @@ es = "Relleno transparente"
 fr = "Remplissage transparent"
 de = "Transparente Füllung"
 ja = "透明塗り"
+"zh-CN" = "透明填充"
+"zh-TW" = "透明填充"
+"ko" = "투명 채우기"
 
 ["Tremolo"]
 en = "Tremolo"
@@ -5158,6 +7366,9 @@ es = "Trémolo"
 fr = "Trémolo"
 de = "Tremolo"
 ja = "トレモロ"
+"zh-CN" = "颤音"
+"zh-TW" = "顫音"
+"ko" = "트레몰로"
 
 ["Twirl"]
 en = "Twirl"
@@ -5165,6 +7376,9 @@ es = "Remolino"
 fr = "Tourbillon"
 de = "Wirbel"
 ja = "渦巻き"
+"zh-CN" = "旋转扭曲"
+"zh-TW" = "旋轉扭曲"
+"ko" = "회오리"
 
 ["Vectorize"]
 en = "Vectorize"
@@ -5172,6 +7386,9 @@ es = "Vectorizar"
 fr = "Vectoriser"
 de = "Vektorisieren"
 ja = "ベクター化"
+"zh-CN" = "矢量化"
+"zh-TW" = "向量化"
+"ko" = "벡터화"
 
 ["Vignette"]
 en = "Vignette"
@@ -5179,6 +7396,9 @@ es = "Viñeta"
 fr = "Vignettage"
 de = "Vignette"
 ja = "ビネット"
+"zh-CN" = "暗角"
+"zh-TW" = "暗角"
+"ko" = "비네트"
 
 ["Voice Change"]
 en = "Voice Change"
@@ -5186,6 +7406,9 @@ es = "Cambio de voz"
 fr = "Changement de voix"
 de = "Stimmänderung"
 ja = "ボイスチェンジ"
+"zh-CN" = "变声"
+"zh-TW" = "變聲"
+"ko" = "음성 변경"
 
 ["Wave"]
 en = "Wave"
@@ -5193,6 +7416,9 @@ es = "Onda"
 fr = "Onde"
 de = "Welle"
 ja = "波"
+"zh-CN" = "波浪"
+"zh-TW" = "波浪"
+"ko" = "웨이브"
 
 ["Zoom blur"]
 en = "Zoom blur"
@@ -5200,6 +7426,9 @@ es = "Desenfoque de zoom"
 fr = "Flou de zoom"
 de = "Zoom-Unschärfe"
 ja = "ズームぼかし"
+"zh-CN" = "变焦模糊"
+"zh-TW" = "變焦模糊"
+"ko" = "줌 블러"
 
 ["Diff"]
 en = "Diff"
@@ -5207,6 +7436,9 @@ es = "Diferencias"
 fr = "Différences"
 de = "Unterschiede"
 ja = "差分"
+"zh-CN" = "差异"
+"zh-TW" = "差異"
+"ko" = "차이"
 
 ["Back In"]
 en = "Back In"
@@ -5214,6 +7446,9 @@ es = "Retroceso de entrada"
 fr = "Retour entrant"
 de = "Zurück ein"
 ja = "バック・イン"
+"zh-CN" = "回退缓入"
+"zh-TW" = "回退緩入"
+"ko" = "백 인"
 
 ["Back Out"]
 en = "Back Out"
@@ -5221,6 +7456,9 @@ es = "Retroceso de salida"
 fr = "Retour sortant"
 de = "Zurück aus"
 ja = "バック・アウト"
+"zh-CN" = "回退缓出"
+"zh-TW" = "回退緩出"
+"ko" = "백 아웃"
 
 ["Back In Out"]
 en = "Back In Out"
@@ -5228,6 +7466,9 @@ es = "Retroceso de entrada y salida"
 fr = "Retour entrant-sortant"
 de = "Zurück ein/aus"
 ja = "バック・インアウト"
+"zh-CN" = "回退缓入缓出"
+"zh-TW" = "回退緩入緩出"
+"ko" = "백 인아웃"
 
 ["Bounce In"]
 en = "Bounce In"
@@ -5235,6 +7476,9 @@ es = "Rebote de entrada"
 fr = "Rebond entrant"
 de = "Abprallen ein"
 ja = "バウンス・イン"
+"zh-CN" = "弹入"
+"zh-TW" = "彈入"
+"ko" = "바운스 인"
 
 ["Bounce Out"]
 en = "Bounce Out"
@@ -5242,6 +7486,9 @@ es = "Rebote de salida"
 fr = "Rebond sortant"
 de = "Abprallen aus"
 ja = "バウンス・アウト"
+"zh-CN" = "弹出"
+"zh-TW" = "彈出"
+"ko" = "바운스 아웃"
 
 ["Bounce In Out"]
 en = "Bounce In Out"
@@ -5249,6 +7496,9 @@ es = "Rebote de entrada y salida"
 fr = "Rebond entrant-sortant"
 de = "Abprallen ein/aus"
 ja = "バウンス・インアウト"
+"zh-CN" = "弹进弹出"
+"zh-TW" = "彈進彈出"
+"ko" = "바운스 인 아웃"
 
 ["Circular In"]
 en = "Circular In"
@@ -5256,6 +7506,9 @@ es = "Circular de entrada"
 fr = "Circulaire entrant"
 de = "Kreis ein"
 ja = "円・イン"
+"zh-CN" = "圆形缓入"
+"zh-TW" = "圓形緩入"
+"ko" = "서큘러 인"
 
 ["Circular Out"]
 en = "Circular Out"
@@ -5263,6 +7516,9 @@ es = "Circular de salida"
 fr = "Circulaire sortant"
 de = "Kreis aus"
 ja = "円・アウト"
+"zh-CN" = "圆形缓出"
+"zh-TW" = "圓形緩出"
+"ko" = "서큘러 아웃"
 
 ["Circular In Out"]
 en = "Circular In Out"
@@ -5270,6 +7526,9 @@ es = "Circular de entrada y salida"
 fr = "Circulaire entrant-sortant"
 de = "Kreis ein/aus"
 ja = "円・インアウト"
+"zh-CN" = "圆形缓入缓出"
+"zh-TW" = "圓形緩入緩出"
+"ko" = "서큘러 인아웃"
 
 ["Cubic In"]
 en = "Cubic In"
@@ -5277,6 +7536,9 @@ es = "Cúbica de entrada"
 fr = "Cubique entrant"
 de = "Kubisch ein"
 ja = "3次・イン"
+"zh-CN" = "三次方缓入"
+"zh-TW" = "三次方緩入"
+"ko" = "큐빅 인"
 
 ["Cubic Out"]
 en = "Cubic Out"
@@ -5284,6 +7546,9 @@ es = "Cúbica de salida"
 fr = "Cubique sortant"
 de = "Kubisch aus"
 ja = "3次・アウト"
+"zh-CN" = "三次方缓出"
+"zh-TW" = "三次方緩出"
+"ko" = "큐빅 아웃"
 
 ["Cubic In Out"]
 en = "Cubic In Out"
@@ -5291,6 +7556,9 @@ es = "Cúbica de entrada y salida"
 fr = "Cubique entrant-sortant"
 de = "Kubisch ein/aus"
 ja = "3次・インアウト"
+"zh-CN" = "三次方缓入缓出"
+"zh-TW" = "三次方緩入緩出"
+"ko" = "큐빅 인아웃"
 
 ["Elastic In"]
 en = "Elastic In"
@@ -5298,6 +7566,9 @@ es = "Elástica de entrada"
 fr = "Élastique entrant"
 de = "Elastisch ein"
 ja = "弾性・イン"
+"zh-CN" = "弹性缓入"
+"zh-TW" = "彈性緩入"
+"ko" = "엘라스틱 인"
 
 ["Elastic Out"]
 en = "Elastic Out"
@@ -5305,6 +7576,9 @@ es = "Elástica de salida"
 fr = "Élastique sortant"
 de = "Elastisch aus"
 ja = "弾性・アウト"
+"zh-CN" = "弹性缓出"
+"zh-TW" = "彈性緩出"
+"ko" = "엘라스틱 아웃"
 
 ["Elastic In Out"]
 en = "Elastic In Out"
@@ -5312,6 +7586,9 @@ es = "Elástica de entrada y salida"
 fr = "Élastique entrant-sortant"
 de = "Elastisch ein/aus"
 ja = "弾性・インアウト"
+"zh-CN" = "弹性缓入缓出"
+"zh-TW" = "彈性緩入緩出"
+"ko" = "엘라스틱 인아웃"
 
 ["Exponential In"]
 en = "Exponential In"
@@ -5319,6 +7596,9 @@ es = "Exponencial de entrada"
 fr = "Exponentiel entrant"
 de = "Exponentiell ein"
 ja = "指数・イン"
+"zh-CN" = "指数缓入"
+"zh-TW" = "指數緩入"
+"ko" = "익스포넨셜 인"
 
 ["Exponential Out"]
 en = "Exponential Out"
@@ -5326,6 +7606,9 @@ es = "Exponencial de salida"
 fr = "Exponentiel sortant"
 de = "Exponentiell aus"
 ja = "指数・アウト"
+"zh-CN" = "指数缓出"
+"zh-TW" = "指數緩出"
+"ko" = "익스포넨셜 아웃"
 
 ["Exponential In Out"]
 en = "Exponential In Out"
@@ -5333,6 +7616,9 @@ es = "Exponencial de entrada y salida"
 fr = "Exponentiel entrant-sortant"
 de = "Exponentiell ein/aus"
 ja = "指数・インアウト"
+"zh-CN" = "指数缓入缓出"
+"zh-TW" = "指數緩入緩出"
+"ko" = "익스포넨셜 인아웃"
 
 ["Quad In"]
 en = "Quad In"
@@ -5340,6 +7626,9 @@ es = "Cuadrática de entrada"
 fr = "Quadratique entrant"
 de = "Quadratisch ein"
 ja = "2次・イン"
+"zh-CN" = "二次方缓入"
+"zh-TW" = "二次方緩入"
+"ko" = "쿼드 인"
 
 ["Quad Out"]
 en = "Quad Out"
@@ -5347,6 +7636,9 @@ es = "Cuadrática de salida"
 fr = "Quadratique sortant"
 de = "Quadratisch aus"
 ja = "2次・アウト"
+"zh-CN" = "二次方缓出"
+"zh-TW" = "二次方緩出"
+"ko" = "쿼드 아웃"
 
 ["Quad In Out"]
 en = "Quad In Out"
@@ -5354,6 +7646,9 @@ es = "Cuadrática de entrada y salida"
 fr = "Quadratique entrant-sortant"
 de = "Quadratisch ein/aus"
 ja = "2次・インアウト"
+"zh-CN" = "二次方缓入缓出"
+"zh-TW" = "二次方緩入緩出"
+"ko" = "쿼드 인아웃"
 
 ["Quart In"]
 en = "Quart In"
@@ -5361,6 +7656,9 @@ es = "Cuártica de entrada"
 fr = "Quartique entrant"
 de = "Quartisch ein"
 ja = "4次・イン"
+"zh-CN" = "四次方缓入"
+"zh-TW" = "四次方緩入"
+"ko" = "쿼트 인"
 
 ["Quart Out"]
 en = "Quart Out"
@@ -5368,6 +7666,9 @@ es = "Cuártica de salida"
 fr = "Quartique sortant"
 de = "Quartisch aus"
 ja = "4次・アウト"
+"zh-CN" = "四次方缓出"
+"zh-TW" = "四次方緩出"
+"ko" = "쿼트 아웃"
 
 ["Quart In Out"]
 en = "Quart In Out"
@@ -5375,6 +7676,9 @@ es = "Cuártica de entrada y salida"
 fr = "Quartique entrant-sortant"
 de = "Quartisch ein/aus"
 ja = "4次・インアウト"
+"zh-CN" = "四次方缓入缓出"
+"zh-TW" = "四次方緩入緩出"
+"ko" = "쿼트 인아웃"
 
 ["Quint In"]
 en = "Quint In"
@@ -5382,6 +7686,9 @@ es = "Quíntica de entrada"
 fr = "Quintique entrant"
 de = "Quintisch ein"
 ja = "5次・イン"
+"zh-CN" = "五次方缓入"
+"zh-TW" = "五次方緩入"
+"ko" = "퀸트 인"
 
 ["Quint Out"]
 en = "Quint Out"
@@ -5389,6 +7696,9 @@ es = "Quíntica de salida"
 fr = "Quintique sortant"
 de = "Quintisch aus"
 ja = "5次・アウト"
+"zh-CN" = "五次方缓出"
+"zh-TW" = "五次方緩出"
+"ko" = "퀸트 아웃"
 
 ["Quint In Out"]
 en = "Quint In Out"
@@ -5396,6 +7706,9 @@ es = "Quíntica de entrada y salida"
 fr = "Quintique entrant-sortant"
 de = "Quintisch ein/aus"
 ja = "5次・インアウト"
+"zh-CN" = "五次方缓入缓出"
+"zh-TW" = "五次方緩入緩出"
+"ko" = "퀸트 인아웃"
 
 ["Sine In"]
 en = "Sine In"
@@ -5403,6 +7716,9 @@ es = "Seno de entrada"
 fr = "Sinusoïdal entrant"
 de = "Sinus ein"
 ja = "サイン・イン"
+"zh-CN" = "正弦缓入"
+"zh-TW" = "正弦緩入"
+"ko" = "사인 인"
 
 ["Sine Out"]
 en = "Sine Out"
@@ -5410,6 +7726,9 @@ es = "Seno de salida"
 fr = "Sinusoïdal sortant"
 de = "Sinus aus"
 ja = "サイン・アウト"
+"zh-CN" = "正弦缓出"
+"zh-TW" = "正弦緩出"
+"ko" = "사인 아웃"
 
 ["Sine In Out"]
 en = "Sine In Out"
@@ -5417,6 +7736,9 @@ es = "Seno de entrada y salida"
 fr = "Sinusoïdal entrant-sortant"
 de = "Sinus ein/aus"
 ja = "サイン・インアウト"
+"zh-CN" = "正弦缓入缓出"
+"zh-TW" = "正弦緩入緩出"
+"ko" = "사인 인아웃"
 
 ["1 video track"]
 en = "1 video track"
@@ -5424,6 +7746,9 @@ es = "1 pista de vídeo"
 fr = "1 piste vidéo"
 de = "1 Videospur"
 ja = "ビデオトラック1本"
+"zh-CN" = "1 条视频轨道"
+"zh-TW" = "1 條影片軌道"
+"ko" = "비디오 트랙 1개"
 
 ["%{count} video tracks"]
 en = "%{count} video tracks"
@@ -5431,6 +7756,9 @@ es = "%{count} pistas de vídeo"
 fr = "%{count} pistes vidéo"
 de = "%{count} Videospuren"
 ja = "ビデオトラック%{count}本"
+"zh-CN" = "%{count} 条视频轨道"
+"zh-TW" = "%{count} 條影片軌道"
+"ko" = "비디오 트랙 %{count}개"
 
 ["1 audio track"]
 en = "1 audio track"
@@ -5438,6 +7766,9 @@ es = "1 pista de audio"
 fr = "1 piste audio"
 de = "1 Audiospur"
 ja = "オーディオトラック1本"
+"zh-CN" = "1 条音轨"
+"zh-TW" = "1 條音軌"
+"ko" = "오디오 트랙 1개"
 
 ["%{count} audio tracks"]
 en = "%{count} audio tracks"
@@ -5445,6 +7776,9 @@ es = "%{count} pistas de audio"
 fr = "%{count} pistes audio"
 de = "%{count} Audiospuren"
 ja = "オーディオトラック%{count}本"
+"zh-CN" = "%{count} 条音轨"
+"zh-TW" = "%{count} 條音軌"
+"ko" = "오디오 트랙 %{count}개"
 
 ["1 caption track"]
 en = "1 caption track"
@@ -5452,6 +7786,9 @@ es = "1 pista de subtítulos"
 fr = "1 piste de sous-titres"
 de = "1 Untertitelspur"
 ja = "字幕トラック1本"
+"zh-CN" = "1 条字幕轨道"
+"zh-TW" = "1 條字幕軌道"
+"ko" = "자막 트랙 1개"
 
 ["%{count} caption tracks"]
 en = "%{count} caption tracks"
@@ -5459,6 +7796,9 @@ es = "%{count} pistas de subtítulos"
 fr = "%{count} pistes de sous-titres"
 de = "%{count} Untertitelspuren"
 ja = "字幕トラック%{count}本"
+"zh-CN" = "%{count} 条字幕轨道"
+"zh-TW" = "%{count} 條字幕軌道"
+"ko" = "자막 트랙 %{count}개"
 
 ["1 page"]
 en = "1 page"
@@ -5466,6 +7806,9 @@ es = "1 página"
 fr = "1 page"
 de = "1 Seite"
 ja = "1ページ"
+"zh-CN" = "1 页"
+"zh-TW" = "1 頁"
+"ko" = "1페이지"
 
 ["%{count} pages"]
 en = "%{count} pages"
@@ -5473,6 +7816,9 @@ es = "%{count} páginas"
 fr = "%{count} pages"
 de = "%{count} Seiten"
 ja = "%{count}ページ"
+"zh-CN" = "%{count} 页"
+"zh-TW" = "%{count} 頁"
+"ko" = "%{count} 페이지"
 
 ["3D models"]
 en = "3D models"
@@ -5480,6 +7826,9 @@ es = "Modelos 3D"
 fr = "Modèles 3D"
 de = "3D-Modelle"
 ja = "3Dモデル"
+"zh-CN" = "3D 模型"
+"zh-TW" = "3D 模型"
+"ko" = "3D 모델"
 
 ["OptiX denoiser"]
 en = "OptiX denoiser"
@@ -5487,6 +7836,9 @@ es = "Reductor de ruido OptiX"
 fr = "Débruiteur OptiX"
 de = "OptiX-Entrauscher"
 ja = "OptiX デノイザー"
+"zh-CN" = "OptiX 降噪器"
+"zh-TW" = "OptiX 降噪器"
+"ko" = "OptiX 디노이저"
 
 ["2× rotated grid"]
 en = "2× rotated grid"
@@ -5494,6 +7846,9 @@ es = "2× rejilla rotada"
 fr = "2× grille tournée"
 de = "2× gedrehtes Raster"
 ja = "2倍回転グリッド"
+"zh-CN" = "2×旋转网格"
+"zh-TW" = "2×旋轉網格"
+"ko" = "2× 회전 그리드"
 
 ["4× grid"]
 en = "4× grid"
@@ -5501,6 +7856,9 @@ es = "4× rejilla"
 fr = "4× grille"
 de = "4× Raster"
 ja = "4倍グリッド"
+"zh-CN" = "4×网格"
+"zh-TW" = "4×網格"
+"ko" = "4× 그리드"
 
 ["8× stochastic"]
 en = "8× stochastic"
@@ -5508,6 +7866,9 @@ es = "8× estocástico"
 fr = "8× stochastique"
 de = "8× stochastisch"
 ja = "8倍確率的"
+"zh-CN" = "8×随机"
+"zh-TW" = "8×隨機"
+"ko" = "8× 확률론적"
 
 ["FLAC · Lossless"]
 en = "FLAC · Lossless"
@@ -5515,6 +7876,9 @@ es = "FLAC · Sin pérdida"
 fr = "FLAC · Sans perte"
 de = "FLAC · Verlustfrei"
 ja = "FLAC · ロスレス"
+"zh-CN" = "FLAC·无损"
+"zh-TW" = "FLAC·無損"
+"ko" = "FLAC · 무손실"
 
 ["H.265 · Balanced"]
 en = "H.265 · Balanced"
@@ -5522,6 +7886,9 @@ es = "H.265 · Equilibrado"
 fr = "H.265 · Équilibré"
 de = "H.265 · Ausgewogen"
 ja = "H.265 · バランス"
+"zh-CN" = "H.265·平衡"
+"zh-TW" = "H.265·平衡"
+"ko" = "H.265 · 균형"
 
 ["H.265 · Compact"]
 en = "H.265 · Compact"
@@ -5529,6 +7896,9 @@ es = "H.265 · Compacto"
 fr = "H.265 · Compact"
 de = "H.265 · Kompakt"
 ja = "H.265 · コンパクト"
+"zh-CN" = "H.265·紧凑型"
+"zh-TW" = "H.265·緊湊型"
+"ko" = "H.265 · 컴팩트"
 
 ["H.265 · High"]
 en = "H.265 · High"
@@ -5536,6 +7906,9 @@ es = "H.265 · Alto"
 fr = "H.265 · Élevé"
 de = "H.265 · Hoch"
 ja = "H.265 · 高品質"
+"zh-CN" = "H.265·高"
+"zh-TW" = "H.265·高"
+"ko" = "H.265 · 높음"
 
 ["H.265 · Lossless"]
 en = "H.265 · Lossless"
@@ -5543,6 +7916,9 @@ es = "H.265 · Sin pérdida"
 fr = "H.265 · Sans perte"
 de = "H.265 · Verlustfrei"
 ja = "H.265 · ロスレス"
+"zh-CN" = "H.265·无损"
+"zh-TW" = "H.265·無損"
+"ko" = "H.265 · 무손실"
 
 ["Monospace Sans"]
 en = "Monospace Sans"
@@ -5550,6 +7926,9 @@ es = "Monoespaciada sin serifas"
 fr = "Monospace sans empattement"
 de = "Monospace ohne Serifen"
 ja = "等幅サンセリフ"
+"zh-CN" = "等宽无衬线体"
+"zh-TW" = "等寬無襯線體"
+"ko" = "고정폭 산세리프"
 
 ["Monospace Serif"]
 en = "Monospace Serif"
@@ -5557,6 +7936,9 @@ es = "Monoespaciada con serifas"
 fr = "Monospace avec empattement"
 de = "Monospace mit Serifen"
 ja = "等幅セリフ"
+"zh-CN" = "等宽衬线体"
+"zh-TW" = "等寬襯線體"
+"ko" = "고정폭 세리프"
 
 ["Opus · Balanced"]
 en = "Opus · Balanced"
@@ -5564,6 +7946,9 @@ es = "Opus · Equilibrado"
 fr = "Opus · Équilibré"
 de = "Opus · Ausgewogen"
 ja = "Opus · バランス"
+"zh-CN" = "Opus · 平衡"
+"zh-TW" = "Opus · 平衡"
+"ko" = "Opus · 균형"
 
 ["Opus · Compact"]
 en = "Opus · Compact"
@@ -5571,6 +7956,9 @@ es = "Opus · Compacto"
 fr = "Opus · Compact"
 de = "Opus · Kompakt"
 ja = "Opus · コンパクト"
+"zh-CN" = "Opus · 紧凑"
+"zh-TW" = "Opus · 精簡"
+"ko" = "Opus · 컴팩트"
 
 ["Opus · High"]
 en = "Opus · High"
@@ -5578,3 +7966,6 @@ es = "Opus · Alto"
 fr = "Opus · Élevé"
 de = "Opus · Hoch"
 ja = "Opus · 高品質"
+"zh-CN" = "Opus · 高质量"
+"zh-TW" = "Opus · 高品質"
+"ko" = "Opus · 고품질"
