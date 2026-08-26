@@ -390,7 +390,7 @@ fn solid_color_item(
         .pointer("/parameters/kdenlive/color")
         .and_then(Value::as_str)
         .and_then(parse_kdenlive_color)
-        .unwrap_or(Color::<u8>::WHITE);
+        .unwrap_or(Color::<u8>::BLACK);
     let mut item = VideoItem::background_item(canvas_size, start, end);
     item.source_duration = end.saturating_sub(start);
     item.content = VisualSource::Background(Box::new(Background {
