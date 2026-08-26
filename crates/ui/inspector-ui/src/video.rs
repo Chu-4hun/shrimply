@@ -4,7 +4,7 @@ use std::rc::Rc;
 use std::sync::OnceLock;
 use std::time::Duration;
 
-use adw::prelude::{ActionRowExt, ComboRowExt, PreferencesGroupExt, PreferencesRowExt};
+use adw::prelude::{ActionRowExt, ComboRowExt, PreferencesRowExt};
 use gtk::glib;
 use gtk::prelude::*;
 
@@ -22,7 +22,7 @@ use shrimply_project::project::{
 use shrimply_project::svg_color;
 use shrimply_resource_pipeline::{Event, JobContext, Pipeline, Processor};
 use shrimply_ui_foundation::resource_pipeline::{UiSubscription, deliver};
-use shrimply_ui_foundation::ui::ColorPicker;
+use shrimply_ui_foundation::ui::{ColorPicker, control_row, dropdown};
 use shrimply_video_modifiers::VisualKind;
 
 use super::{
@@ -384,13 +384,13 @@ fn video_stabilization_controls(
     item: &Option<VideoItem>,
     context: &InspectorContext,
 ) -> Vec<gtk::Widget> {
-    let group = adw::PreferencesGroup::new();
+    let section = InspectorSection::controls();
     if let Some(item) = item {
         for row in video_stabilization_rows(item, context) {
-            group.add(&row);
+            section.add_wide_control(&row);
         }
     }
-    vec![group.upcast()]
+    vec![section.into_widget()]
 }
 
 fn reset_video_stabilization(context: &InspectorContext, _: Option<VideoItem>) {
@@ -422,23 +422,62 @@ fn reset_video_stabilization(context: &InspectorContext, _: Option<VideoItem>) {
 fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec<gtk::Widget> {
     let unavailable = item.alpha_mask_video.is_some();
     let method = item.stabilization_method();
-    let row = adw::ComboRow::builder()
-        .title("Method")
-        .subtitle(stabilization_status(item))
-        .model(&gtk::StringList::new(&["Off", "L1", "MeshFlow"]))
-        .selected(match method {
-            VideoStabilizationMethod::Off => 0,
-            VideoStabilizationMethod::L1 => 1,
-            VideoStabilizationMethod::MeshFlow => 2,
-        })
-        .sensitive(!unavailable)
+    let project = context.project.clone();
+    let player_state = context.player_state.clone();
+    let method_key = context.selected_item.clone();
+    let refresh = context.refresh.clone();
+    let method_control = dropdown(
+        method,
+        [
+            (VideoStabilizationMethod::Off, "Off"),
+            (VideoStabilizationMethod::L1, "L1"),
+            (VideoStabilizationMethod::MeshFlow, "MeshFlow"),
+        ],
+        move |method| {
+            let Some(key) = method_key.clone() else {
+                return;
+            };
+            update_video_item(
+                &project,
+                &player_state,
+                key,
+                "video-stabilization-method",
+                move |item| {
+                    if item.stabilization_method() == method {
+                        return false;
+                    }
+                    shrimply_video::video_stabilization::cancel(item);
+                    item.stabilize_video = !matches!(method, VideoStabilizationMethod::Off);
+                    item.stabilization_method = method;
+                    if item.stabilize_video {
+                        shrimply_video::video_stabilization::request(item);
+                    }
+                    true
+                },
+            );
+            refresh();
+        },
+    );
+    method_control.set_sensitive(!unavailable && context.selected_item.is_some());
+    let method_status = gtk::Label::builder()
+        .label(stabilization_status(item))
+        .halign(gtk::Align::Start)
+        .xalign(0.0)
+        .wrap(true)
+        .css_classes(["caption", "dim-label"])
         .build();
+    method_status.set_visible(!method_status.label().is_empty());
     let spinner = adw::Spinner::new();
     spinner.set_size_request(18, 18);
     spinner.set_visible(
         item.stabilize_video && shrimply_video::video_stabilization::is_generating(item),
     );
-    row.add_suffix(&spinner);
+    let method_controls = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+    method_controls.append(&method_control);
+    method_controls.append(&spinner);
+    let method_row = gtk::Box::new(gtk::Orientation::Vertical, 4);
+    method_row.append(&control_row("Method", &method_controls));
+    method_row.append(&method_status);
 
     let project = context.project.clone();
     let player_state = context.player_state.clone();
@@ -581,37 +620,6 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
     cache_row.add_suffix(&rebuild);
 
     if let Some(key) = context.selected_item.clone() {
-        let method_key = key.clone();
-        let project = context.project.clone();
-        let player_state = context.player_state.clone();
-        let refresh = context.refresh.clone();
-        row.connect_selected_notify(move |row| {
-            let method = match row.selected() {
-                1 => VideoStabilizationMethod::L1,
-                2 => VideoStabilizationMethod::MeshFlow,
-                _ => VideoStabilizationMethod::Off,
-            };
-            update_video_item(
-                &project,
-                &player_state,
-                method_key.clone(),
-                "video-stabilization-method",
-                move |item| {
-                    if item.stabilization_method() == method {
-                        return false;
-                    }
-                    shrimply_video::video_stabilization::cancel(item);
-                    item.stabilize_video = !matches!(method, VideoStabilizationMethod::Off);
-                    item.stabilization_method = method;
-                    if item.stabilize_video {
-                        shrimply_video::video_stabilization::request(item);
-                    }
-                    true
-                },
-            );
-            refresh();
-        });
-
         let project = context.project.clone();
         let player_state = context.player_state.clone();
         let rebuild_key = key.clone();
@@ -630,7 +638,8 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
             }
         });
 
-        let row = row.downgrade();
+        let method_row = method_row.downgrade();
+        let method_status = method_status.downgrade();
         let spinner = spinner.downgrade();
         let rebuild = rebuild.downgrade();
         let project = context.project.clone();
@@ -638,7 +647,10 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
         let status_key = key;
         let mut was_generating = shrimply_video::video_stabilization::is_generating(item);
         glib::timeout_add_local(Duration::from_millis(100), move || {
-            let Some(row) = row.upgrade() else {
+            let Some(_method_row) = method_row.upgrade() else {
+                return glib::ControlFlow::Break;
+            };
+            let Some(method_status) = method_status.upgrade() else {
                 return glib::ControlFlow::Break;
             };
             let Some(spinner) = spinner.upgrade() else {
@@ -663,7 +675,9 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
                 );
             }
             was_generating = generating;
-            row.set_subtitle(stabilization_status(&item));
+            let status = stabilization_status(&item);
+            method_status.set_label(status);
+            method_status.set_visible(!status.is_empty());
             if let Some(rebuild) = rebuild.upgrade() {
                 rebuild.set_sensitive(item.stabilize_video && item.alpha_mask_video.is_none());
                 rebuild.set_label(if generating { "Cancel" } else { "Rebuild" });
@@ -671,7 +685,6 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
             glib::ControlFlow::Continue
         });
     } else {
-        row.set_sensitive(false);
         crop.set_sensitive(false);
         first.set_sensitive(false);
         second.set_sensitive(false);
@@ -679,7 +692,7 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
         rebuild.set_sensitive(false);
     }
 
-    let mut rows = vec![row.upcast()];
+    let mut rows = vec![method_row.upcast()];
     if !matches!(method, VideoStabilizationMethod::Off) {
         rows.push(crop.upcast());
     }
@@ -811,37 +824,23 @@ fn mesh_flow_settings_rows(
         );
     });
 
-    let adaptive = adw::ComboRow::builder()
-        .title("Adaptive weights")
-        .subtitle("Motion-dependent temporal smoothing model")
-        .model(&gtk::StringList::new(&[
-            "Original",
-            "Flipped",
-            "Constant high",
-            "Constant low",
-        ]))
-        .selected(match item.mesh_flow_adaptive_weights {
-            MeshFlowAdaptiveWeights::Original => 0,
-            MeshFlowAdaptiveWeights::Flipped => 1,
-            MeshFlowAdaptiveWeights::ConstantHigh => 2,
-            MeshFlowAdaptiveWeights::ConstantLow => 3,
-        })
-        .sensitive(!unavailable)
-        .build();
-    if let Some(key) = context.selected_item.clone() {
-        let project = context.project.clone();
-        let player_state = context.player_state.clone();
-        adaptive.connect_selected_notify(move |row| {
-            let value = match row.selected() {
-                1 => MeshFlowAdaptiveWeights::Flipped,
-                2 => MeshFlowAdaptiveWeights::ConstantHigh,
-                3 => MeshFlowAdaptiveWeights::ConstantLow,
-                _ => MeshFlowAdaptiveWeights::Original,
-            };
+    let project = context.project.clone();
+    let player_state = context.player_state.clone();
+    let key = context.selected_item.clone();
+    let adaptive_control = dropdown(
+        item.mesh_flow_adaptive_weights,
+        [
+            (MeshFlowAdaptiveWeights::Original, "Original"),
+            (MeshFlowAdaptiveWeights::Flipped, "Flipped"),
+            (MeshFlowAdaptiveWeights::ConstantHigh, "Constant high"),
+            (MeshFlowAdaptiveWeights::ConstantLow, "Constant low"),
+        ],
+        move |value| {
+            let Some(key) = key.clone() else { return };
             update_video_item(
                 &project,
                 &player_state,
-                key.clone(),
+                key,
                 "mesh-flow-adaptive-weights",
                 move |item| {
                     if item.mesh_flow_adaptive_weights == value {
@@ -852,10 +851,11 @@ fn mesh_flow_settings_rows(
                     true
                 },
             );
-        });
-    } else {
-        adaptive.set_sensitive(false);
-    }
+        },
+    );
+    adaptive_control.set_sensitive(!unavailable && context.selected_item.is_some());
+    adaptive_control.set_tooltip_text(Some("Motion-dependent temporal smoothing model"));
+    let adaptive = control_row("Adaptive weights", &adaptive_control);
 
     vec![
         rows.upcast(),
