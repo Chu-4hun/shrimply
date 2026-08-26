@@ -6,13 +6,16 @@ Shrimply uses the `Rhubarb Lip Sync
 The ``shrimply-lip-sync`` crate builds the native library, and the audio crate
 analyzes a 16 kHz mono mix of the selected project audio tracks.
 
-Expression API
---------------
+Using mouth shapes in expressions
+---------------------------------
 
 ``mouth()`` returns the mouth shape for the master audio mix at the
 current project time. ``mouth(1)`` returns the shape for audio track 1,
 and multiple zero-based track indices can be selected with calls such as
 ``mouth(0, 2)``.
+
+See :doc:`expressions` for the rest of the expression API, including property
+values, time, math, color, and audio-level functions.
 
 The result is one of Rhubarb's shape strings. These examples are copied from
 the `mouth-shape table in Rhubarb's README
@@ -77,7 +80,7 @@ shapes that can improve animation when the character artwork supports them.
 
 Expressions can branch on the result:
 
-.. code-block:: text
+.. code-block:: rust
 
    switch mouth() {
        "A" => 0,
@@ -91,29 +94,13 @@ Expressions can branch on the result:
        "X" => 8,
    }
 
-Analysis and caching
---------------------
+Analysis
+--------
 
-Rhubarb analyzes each unique audio mix and visual-item timeline range
-once. The cache key contains the audio-track content, selected track
-indices, and the range of the item evaluating ``mouth()``. Only that
-range is rendered to the 16 kHz analysis WAV. Each rendered frame then
-looks up the cue containing its exact fractional project time. Preview
-analysis runs asynchronously; export analysis blocks until the result is
-ready. Moving or resizing an item requests its new range; obsolete
-pending ranges for that item and track selection are skipped.
-
-``X`` is a valid Rhubarb cue, not a loading or error value. Loading and
-analysis failures must remain separate from mouth shapes so expressions
-cannot mistake unavailable analysis for an intentional rest.
-
-Frame events must preserve their sampled audio analysis even when the
-composited visual frame is empty. In particular, a clear-frame event
-must not replace its analysis with a default silent mixer: preview
-overlays and inspector feedback may evaluate expressions independently,
-and doing so manufactured a periodic ``real shape, X, real shape, X``
-sequence. Direct inspection of Rhubarb's raw cue timeline confirmed that
-Rhubarb did not generate those alternating ``X`` values.
+Shrimply analyzes each unique audio selection once and reuses the result.
+Preview analysis happens in the background, so ``mouth()`` can briefly report
+that analysis is still loading. Export waits for analysis to finish. ``X`` is
+a real rest shape, not a loading or error value.
 
 The mouth-shape images are from the Rhubarb Lip Sync README and are used under
 its MIT License.

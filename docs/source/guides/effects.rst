@@ -6,7 +6,8 @@ Animation
 
 Animatable properties support keyframes, continuous and discrete keyframe
 graphs, and Rhai expressions. Use expressions when a value should be derived
-from project state instead of authored as individual keyframes.
+from project state instead of authored as individual keyframes. See
+:doc:`expressions` for the available values, functions, and examples.
 
 Visual effects
 --------------

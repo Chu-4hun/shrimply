@@ -21,6 +21,8 @@ Start here
 * :doc:`Editor <guides/editor>` describes the main workspaces and shortcuts.
 * :doc:`Importing and creating media <guides/media>` lists accepted sources
   and the content Shrimply can generate.
+* :doc:`Expressions <guides/expressions>` covers values and functions for
+  procedural and audio-reactive properties.
 * :doc:`Compute server <server/index>` covers optional AI and compute features.
 * :doc:`MCP integration <integrations/mcp>` documents live editor automation.
 * :doc:`Development <development>` contains the supported repository workflow.
@@ -34,6 +36,7 @@ Start here
    guides/editor
    guides/media
    guides/effects
+   guides/expressions
    guides/audio-captions
    guides/export
    guides/lip-sync
