@@ -42,9 +42,9 @@ processing time. Requirements vary by model and by the selected compute
 device. Check the model publisher's documentation before downloading weights,
 especially on a shared or storage-constrained machine.
 
-MiniMax H3 weights are governed by the `MiniMax H3 Community License
-<https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE>`__. Review and
-accept it before using the model.
+MiniMax H3 weights are governed by the separate :ref:`MiniMax H3 Community
+License Agreement <minimax-h3-license>`. Review and accept it before using the
+model.
 
 Wan model details and licenses are available from the official `Wan 2.1 1.3B
 <https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers>`__ and `Wan 2.2 5B

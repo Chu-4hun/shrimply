@@ -11,6 +11,22 @@ static theme assets under Creative Commons Attribution-ShareAlike 3.0. The
 corresponding license texts are stored in ``docs/licenses`` and the component
 is recorded in the repository's ``THIRDPARTY.md``.
 
+.. _minimax-h3-license:
+
+MiniMax H3
+----------
+
+The MiniMax H3 model weights and related upstream materials are provided under
+the **MiniMax H3 Community License Agreement**, separately from Shrimply and
+the compute server. The agreement limits use to its defined Applicable
+Territory, which excludes the European Union, the United Kingdom, South Korea,
+and the United States, and includes additional use, distribution, and
+commercial terms. Review the full agreement before downloading or using the
+model; Shrimply's GPL and AGPL licenses do not replace its terms.
+
+See the `upstream MiniMax H3 license
+<https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE>`__.
+
 .. _indextts-license:
 
 IndexTTS
