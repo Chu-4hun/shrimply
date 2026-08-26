@@ -1,4 +1,5 @@
 use super::*;
+use shrimply_ui_foundation::ui::I18nMenuExt;
 
 #[allow(clippy::too_many_arguments)]
 pub(super) fn show_folded_track_context_menu(
@@ -13,7 +14,7 @@ pub(super) fn show_folded_track_context_menu(
 ) {
     prepare_virtual_track_context_menu(runtime);
     let menu = gio::Menu::new();
-    menu.append(Some("Delete Track"), Some("timeline.delete-folded-track"));
+    menu.append_i18n("Delete Track", "timeline.delete-folded-track");
     let actions = gio::SimpleActionGroup::new();
     add_menu_action(&actions, "delete-folded-track", {
         let area = area.clone();

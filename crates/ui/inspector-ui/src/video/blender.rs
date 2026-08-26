@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 use std::rc::Rc;
 
 use gtk::glib;
@@ -10,7 +11,7 @@ use super::update_video_item;
 use crate::InspectorContext;
 use crate::item::{DefaultInspectorItem, HeaderAction, InspectorListItem};
 use crate::section::InspectorSection;
-use crate::selector::{selector, string_selector};
+use crate::selector::{StringChoice, labeled_string_selector, selector};
 
 pub(super) fn item(
     blender: &BlenderItem,
@@ -80,35 +81,54 @@ fn controls(blender: &BlenderItem, source: &Asset, context: &InspectorContext) -
     } else {
         &blender.camera
     };
-    let scenes = string_selector("Scene", scene_value, vec![scene_value.to_string()], {
-        let project = context.project.clone();
-        let player_state = context.player_state.clone();
-        let key = key.clone();
-        move |value| {
-            update_video_item(
-                &project,
-                &player_state,
-                key.clone(),
-                "blender-scene",
-                move |item| {
-                    let VideoItemContent::Blender(blender) = &mut item.content else {
-                        return false;
-                    };
-                    if blender.scene == value {
-                        return false;
-                    }
-                    blender.scene = value;
-                    blender.view_layer.clear();
-                    blender.camera.clear();
-                    true
-                },
-            );
-        }
-    });
-    let view_layers = string_selector(
+    let scenes = labeled_string_selector(
+        "Scene",
+        scene_value,
+        vec![StringChoice {
+            value: scene_value.to_string(),
+            label: if blender.scene.is_empty() {
+                shrimply_ui_foundation::i18n::text(scene_value).into_owned()
+            } else {
+                scene_value.to_string()
+            },
+        }],
+        {
+            let project = context.project.clone();
+            let player_state = context.player_state.clone();
+            let key = key.clone();
+            move |value| {
+                update_video_item(
+                    &project,
+                    &player_state,
+                    key.clone(),
+                    "blender-scene",
+                    move |item| {
+                        let VideoItemContent::Blender(blender) = &mut item.content else {
+                            return false;
+                        };
+                        if blender.scene == value {
+                            return false;
+                        }
+                        blender.scene = value;
+                        blender.view_layer.clear();
+                        blender.camera.clear();
+                        true
+                    },
+                );
+            }
+        },
+    );
+    let view_layers = labeled_string_selector(
         "View Layer",
         view_layer_value,
-        vec![view_layer_value.to_string()],
+        vec![StringChoice {
+            value: view_layer_value.to_string(),
+            label: if blender.view_layer.is_empty() {
+                shrimply_ui_foundation::i18n::text(view_layer_value).into_owned()
+            } else {
+                view_layer_value.to_string()
+            },
+        }],
         {
             let project = context.project.clone();
             let player_state = context.player_state.clone();
@@ -133,29 +153,41 @@ fn controls(blender: &BlenderItem, source: &Asset, context: &InspectorContext) -
             }
         },
     );
-    let cameras = string_selector("Camera", camera_value, vec![camera_value.to_string()], {
-        let project = context.project.clone();
-        let player_state = context.player_state.clone();
-        let key = key.clone();
-        move |value| {
-            update_video_item(
-                &project,
-                &player_state,
-                key.clone(),
-                "blender-camera",
-                move |item| {
-                    let VideoItemContent::Blender(blender) = &mut item.content else {
-                        return false;
-                    };
-                    if blender.camera == value {
-                        return false;
-                    }
-                    blender.camera = value;
-                    true
-                },
-            )
-        }
-    });
+    let cameras = labeled_string_selector(
+        "Camera",
+        camera_value,
+        vec![StringChoice {
+            value: camera_value.to_string(),
+            label: if blender.camera.is_empty() {
+                shrimply_ui_foundation::i18n::text(camera_value).into_owned()
+            } else {
+                camera_value.to_string()
+            },
+        }],
+        {
+            let project = context.project.clone();
+            let player_state = context.player_state.clone();
+            let key = key.clone();
+            move |value| {
+                update_video_item(
+                    &project,
+                    &player_state,
+                    key.clone(),
+                    "blender-camera",
+                    move |item| {
+                        let VideoItemContent::Blender(blender) = &mut item.content else {
+                            return false;
+                        };
+                        if blender.camera == value {
+                            return false;
+                        }
+                        blender.camera = value;
+                        true
+                    },
+                )
+            }
+        },
+    );
     for control in [&scenes, &view_layers, &cameras] {
         control.set_sensitive(false);
         section.add_wide_control(control.widget());
@@ -340,7 +372,7 @@ fn controls(blender: &BlenderItem, source: &Asset, context: &InspectorContext) -
             }
             Ok(_) => scenes
                 .widget()
-                .set_tooltip_text(Some("The Blender file contains no scenes")),
+                .set_tooltip_i18n("The Blender file contains no scenes"),
             Err(error) => {
                 scenes.set_options(
                     "Could not load Blender",

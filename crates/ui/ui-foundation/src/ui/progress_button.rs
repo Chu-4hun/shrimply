@@ -59,7 +59,7 @@ impl ProgressButton {
             );
         });
 
-        let button = gtk::Button::with_label(label);
+        let button = gtk::Button::with_label(crate::i18n::text(label).as_ref());
         button.set_widget_name(&format!(
             "progress-button-{}",
             NEXT_BUTTON_ID.fetch_add(1, Ordering::Relaxed)
@@ -86,6 +86,10 @@ impl ProgressButton {
 
     pub fn widget(&self) -> &gtk::Button {
         &self.button
+    }
+
+    pub fn set_label(&self, key: &str) {
+        self.button.set_label(crate::i18n::text(key).as_ref());
     }
 
     pub fn set_state(&self, state: ProgressButtonState) {

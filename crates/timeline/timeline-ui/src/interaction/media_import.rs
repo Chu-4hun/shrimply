@@ -1,4 +1,6 @@
 use super::*;
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nAlertDialogExt;
 
 const MEDIA_INSPECTION_DELIVERY_INTERVAL: Duration = Duration::from_millis(16);
 
@@ -262,22 +264,29 @@ fn prompt_for_video_settings(
             .to_string()
     });
     let body = match (changes.0, fps_label) {
-        (Some(size), Some(fps)) => format!(
-            "This is the first video in the project. Match the project to its {}×{} resolution and {} FPS?",
-            size.width, size.height, fps,
+        (Some(size), Some(fps)) => shrimply_ui_foundation::i18n::text_args(
+            "This is the first video in the project. Match the project to its %{width}×%{height} resolution and %{fps} FPS?",
+            &[
+                ("width", size.width.to_string()),
+                ("height", size.height.to_string()),
+                ("fps", fps),
+            ],
         ),
-        (Some(size), None) => format!(
-            "This is the first video in the project. Match the project to its {}×{} resolution?",
-            size.width, size.height,
+        (Some(size), None) => shrimply_ui_foundation::i18n::text_args(
+            "This is the first video in the project. Match the project to its %{width}×%{height} resolution?",
+            &[
+                ("width", size.width.to_string()),
+                ("height", size.height.to_string()),
+            ],
         ),
-        (None, Some(fps)) => format!(
-            "This is the first video in the project. Match the project to its {} FPS?",
-            fps,
+        (None, Some(fps)) => shrimply_ui_foundation::i18n::text_args(
+            "This is the first video in the project. Match the project to its %{fps} FPS?",
+            &[("fps", fps)],
         ),
         (None, None) => unreachable!("matching video settings requires a difference"),
     };
-    let dialog = adw::AlertDialog::new(Some("Match Project to Video?"), Some(&body));
-    dialog.add_responses(&[("keep", "Keep Project Settings"), ("match", "Match Video")]);
+    let dialog = adw::AlertDialog::new(Some(tr!("Match Project to Video?").as_ref()), Some(&body));
+    dialog.add_responses_i18n(&[("keep", "Keep Project Settings"), ("match", "Match Video")]);
     dialog.set_close_response("keep");
     dialog.set_default_response(Some("match"));
     dialog.set_response_appearance("match", adw::ResponseAppearance::Suggested);
@@ -310,7 +319,9 @@ pub(crate) fn open_track_import_dialog(
     }
 
     let label = "Import to Track";
-    let dialog = gtk::FileDialog::builder().title(label).build();
+    let dialog = gtk::FileDialog::builder()
+        .title(tr!(label).as_ref())
+        .build();
     let area = area.clone();
     let project = project.clone();
     let player_state = player_state.clone();
@@ -498,7 +509,7 @@ pub(crate) fn ask_remux_then_import_at(
             "MP4 is the supported timeline import format. The file can be remuxed losslessly first.",
         ),
     );
-    dialog.add_responses(&[("cancel", "Cancel"), ("remux", "Remux")]);
+    dialog.add_responses_i18n(&[("cancel", "Cancel"), ("remux", "Remux")]);
     dialog.set_close_response("cancel");
     dialog.set_default_response(Some("remux"));
     dialog.set_response_appearance("remux", adw::ResponseAppearance::Suggested);

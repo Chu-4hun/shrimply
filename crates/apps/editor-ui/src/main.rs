@@ -1,5 +1,8 @@
 use shrimply_export_ui as export;
 use shrimply_support::crash;
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nAlertDialogExt;
+use shrimply_ui_foundation::ui::I18nFileFilterExt;
 mod header_menu;
 mod mcp;
 use shrimply_inspector_ui as inspector;
@@ -42,6 +45,7 @@ fn main() -> glib::ExitCode {
     }
     crash::install();
     shrimply_support::diagnostics::init();
+    shrimply_ui_foundation::i18n::init_system_locale();
     crash::install_glib_hooks();
     let mut args = std::env::args_os().skip(1);
     let Some(project_path) = args.next().map(PathBuf::from) else {
@@ -231,7 +235,7 @@ fn build_ui(window: &adw::ApplicationWindow, project: project::Project) {
     let inspector_toggle = gtk::ToggleButton::builder()
         .active(true)
         .icon_name("dock-left-symbolic")
-        .tooltip_text("Toggle Inspector")
+        .tooltip_text(tr!("Toggle Inspector").as_ref())
         .build();
     let inspector_for_toggle = inspector.clone();
     inspector_toggle.connect_toggled(move |button| {
@@ -240,7 +244,7 @@ fn build_ui(window: &adw::ApplicationWindow, project: project::Project) {
     let timeline_toggle = gtk::ToggleButton::builder()
         .active(true)
         .icon_name("dock-bottom-symbolic")
-        .tooltip_text("Toggle Timeline")
+        .tooltip_text(tr!("Toggle Timeline").as_ref())
         .build();
     timeline_toggle.connect_toggled(move |button| {
         timeline.set_visible(button.is_active());
@@ -315,12 +319,25 @@ fn update_project_title(
     status: &project::CommitStatus,
 ) {
     let label = match status {
-        project::CommitStatus::InProgress(action) => format!("{project_name} — {action}"),
-        project::CommitStatus::SavePending => format!("{project_name} — Unsaved"),
-        project::CommitStatus::Saving => format!("{project_name} — Saving"),
-        project::CommitStatus::SaveFailed(_) => {
-            format!("{project_name} — Unsaved — Save failed")
-        }
+        project::CommitStatus::InProgress(action) => shrimply_ui_foundation::i18n::text_args(
+            "%{project} — %{action}",
+            &[
+                ("project", project_name.to_owned()),
+                ("action", tr!(action).into_owned()),
+            ],
+        ),
+        project::CommitStatus::SavePending => shrimply_ui_foundation::i18n::text_args(
+            "%{project} — Unsaved",
+            &[("project", project_name.to_owned())],
+        ),
+        project::CommitStatus::Saving => shrimply_ui_foundation::i18n::text_args(
+            "%{project} — Saving",
+            &[("project", project_name.to_owned())],
+        ),
+        project::CommitStatus::SaveFailed(_) => shrimply_ui_foundation::i18n::text_args(
+            "%{project} — Unsaved — Save failed",
+            &[("project", project_name.to_owned())],
+        ),
         project::CommitStatus::Idle => project_name.to_string(),
     };
     title.set_label(&label);
@@ -335,7 +352,7 @@ fn begin_project_load(app: &adw::Application, path: PathBuf) {
     shrimply_ui_foundation::icons::register_bundled();
     let window = adw::ApplicationWindow::builder()
         .application(app)
-        .title("Shrimply")
+        .title(tr!("Shrimply").as_ref())
         .default_width(640)
         .default_height(360)
         .build();
@@ -366,7 +383,7 @@ fn choose_kdenlive_destination(
 ) {
     let label = "Import Kdenlive as Shrimply Project";
     let filter = gtk::FileFilter::new();
-    filter.set_name(Some("Shrimply projects"));
+    filter.set_name_i18n("Shrimply projects");
     filter.add_pattern("*.shrimp");
     let filters = gio::ListStore::new::<gtk::FileFilter>();
     filters.append(&filter);
@@ -375,7 +392,7 @@ fn choose_kdenlive_destination(
         .map(|name| format!("{}.shrimp", name.to_string_lossy()))
         .unwrap_or_else(|| "imported.shrimp".to_string());
     let dialog = gtk::FileDialog::builder()
-        .title(label)
+        .title(tr!(label).as_ref())
         .initial_name(initial_name)
         .filters(&filters)
         .default_filter(&filter)
@@ -514,7 +531,7 @@ fn choose_otio_destination(
 ) {
     let label = "Import OTIO as Shrimply Project";
     let filter = gtk::FileFilter::new();
-    filter.set_name(Some("Shrimply projects"));
+    filter.set_name_i18n("Shrimply projects");
     filter.add_pattern("*.shrimp");
     let filters = gio::ListStore::new::<gtk::FileFilter>();
     filters.append(&filter);
@@ -523,7 +540,7 @@ fn choose_otio_destination(
         .map(|name| format!("{}.shrimp", name.to_string_lossy()))
         .unwrap_or_else(|| "imported.shrimp".to_string());
     let dialog = gtk::FileDialog::builder()
-        .title(label)
+        .title(tr!(label).as_ref())
         .initial_name(initial_name)
         .filters(&filters)
         .default_filter(&filter)
@@ -569,18 +586,18 @@ fn choose_otio_settings(
 ) {
     let selector = ProjectSettingsSelector::new();
     let content = adw::PreferencesGroup::builder()
-        .title("Project Settings")
+        .title(tr!("Project Settings").as_ref())
         .build();
     content.add(&selector.preset);
     content.add(&selector.width);
     content.add(&selector.height);
     content.add(&selector.fps);
     let dialog = adw::AlertDialog::builder()
-        .heading("OTIO Project Settings")
-        .body("OTIO does not include the Kdenlive project profile.")
+        .heading(tr!("OTIO Project Settings").as_ref())
+        .body(tr!("OTIO does not include the Kdenlive project profile.").as_ref())
         .extra_child(&content)
         .build();
-    dialog.add_responses(&[("cancel", "Cancel"), ("import", "Import")]);
+    dialog.add_responses_i18n(&[("cancel", "Cancel"), ("import", "Import")]);
     dialog.set_default_response(Some("import"));
     dialog.set_close_response("cancel");
     let app = app.clone();
@@ -697,7 +714,7 @@ fn project_loading_view_with_subtitle(subtitle: &str) -> adw::ToolbarView {
     let spinner = adw::Spinner::new();
     spinner.set_size_request(LOADING_SPINNER_SIZE, LOADING_SPINNER_SIZE);
     let status = gtk::Label::builder()
-        .label("Loading project…")
+        .label(tr!("Loading project…").as_ref())
         .css_classes(["title-3"])
         .build();
     let subtitle = gtk::Label::builder()
@@ -769,13 +786,13 @@ fn show_project_lock_dialog(
     pid: u32,
 ) {
     let dialog = adw::AlertDialog::builder()
-        .heading("Project is in use")
+        .heading(tr!("Project is in use").as_ref())
         .body(format!(
             "The project lock is held by another editor process (PID {pid})."
         ))
         .prefer_wide_layout(false)
         .build();
-    dialog.add_responses(&[
+    dialog.add_responses_i18n(&[
         ("close", "Close"),
         ("stop", "Stop Other Editor"),
         ("retry", "Retry"),
@@ -835,7 +852,7 @@ fn show_project_load_error(
 
 fn header_bar() -> (adw::HeaderBar, gtk::Label) {
     let title = gtk::Label::builder()
-        .label("Shrimply")
+        .label(tr!("Shrimply").as_ref())
         .css_classes(["title"])
         .build();
 

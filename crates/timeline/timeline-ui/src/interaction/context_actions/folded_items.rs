@@ -1,4 +1,5 @@
 use super::*;
+use shrimply_ui_foundation::ui::I18nMenuExt;
 
 #[allow(clippy::too_many_arguments)]
 pub(super) fn show_folded_item_context_menu(
@@ -41,38 +42,29 @@ pub(super) fn show_folded_item_context_menu(
     };
 
     let menu = gio::Menu::new();
-    menu.append(Some("Move Out"), Some("timeline.move-out-of-sequence"));
+    menu.append_i18n("Move Out", "timeline.move-out-of-sequence");
 
     if groupable || ungroupable {
         let section = gio::Menu::new();
         if groupable {
-            section.append(Some("Group"), Some("timeline.group"));
+            section.append_i18n("Group", "timeline.group");
         }
         if ungroupable {
-            section.append(Some("Ungroup"), Some("timeline.ungroup"));
+            section.append_i18n("Ungroup", "timeline.ungroup");
         }
         menu.append_section(None, &section);
     }
 
     if folder {
         let section = gio::Menu::new();
-        section.append(
-            Some("Add Track at Top"),
-            Some("timeline.add-folder-track-top"),
-        );
-        section.append(
-            Some("Add Track at Bottom"),
-            Some("timeline.add-folder-track-bottom"),
-        );
+        section.append_i18n("Add Track at Top", "timeline.add-folder-track-top");
+        section.append_i18n("Add Track at Bottom", "timeline.add-folder-track-bottom");
         menu.append_section(None, &section);
     }
 
     let property_section = gio::Menu::new();
-    property_section.append(
-        Some("Replace Properties"),
-        Some("timeline.replace-properties"),
-    );
-    property_section.append(Some("Paste Modifiers"), Some("timeline.paste-modifiers"));
+    property_section.append_i18n("Replace Properties", "timeline.replace-properties");
+    property_section.append_i18n("Paste Modifiers", "timeline.paste-modifiers");
     menu.append_section(None, &property_section);
 
     let actions = gio::SimpleActionGroup::new();

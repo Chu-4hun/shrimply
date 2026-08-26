@@ -8,6 +8,7 @@ use shrimply_project::project::{
     VisualClipTransition, VisualClipTransitionKind, VisualTransition, VisualTransitionKind,
     WriteOrdering, visual_transition_default_interpolation, visual_transition_effect_defaults,
 };
+use shrimply_ui_foundation::tr;
 use shrimply_ui_foundation::ui::ColorPicker;
 
 use super::{Inspectable, InspectorContext, section::InspectorSection, selector::selector};
@@ -166,7 +167,7 @@ fn visual_clip_rows(
             let color = transition.fade_color;
             let color_context = context.detached();
             let button = ColorPicker::builder(color.with_alpha(u8::MAX))
-                .title("Fade-through color")
+                .title(tr!("Fade-through color").as_ref())
                 .with_alpha(false)
                 .hexpand(true)
                 .on_change(move |color| {

@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -101,7 +102,7 @@ pub fn editor(
         },
     );
     let status = gtk::Label::builder()
-        .label("Connecting to server…")
+        .label(tr!("Connecting to server…").as_ref())
         .wrap(true)
         .xalign(0.0)
         .css_classes(["dim-label"])
@@ -110,11 +111,11 @@ pub fn editor(
     spinner.start();
     spinner.set_size_request(18, 18);
     let generate = gtk::Button::builder()
-        .label(if has_output { "Regenerate" } else { "Generate" })
+        .label(tr!(if has_output { "Regenerate" } else { "Generate" }).as_ref())
         .sensitive(false)
         .css_classes(["suggested-action"])
         .build();
-    let cancel = gtk::Button::with_label("Cancel");
+    let cancel = gtk::Button::with_label(tr!("Cancel").as_ref());
     cancel.set_visible(false);
     let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     actions.append(&spinner);
@@ -135,7 +136,7 @@ pub fn editor(
         let cancel = cancel.clone();
         cancel.clone().connect_clicked(move |_| {
             if let Some(cancellation) = active_generation.borrow().as_ref() {
-                status.set_label("Cancelling…");
+                status.set_label(tr!("Cancelling…").as_ref());
                 cancel.set_sensitive(false);
                 cancellation.cancel();
             }
@@ -150,7 +151,7 @@ pub fn editor(
         glib::timeout_add_local(Duration::from_millis(50), move || {
             if !models.borrow().is_empty() {
                 spinner.set_visible(false);
-                status.set_label("Ready");
+                status.set_label(tr!("Ready").as_ref());
                 generate.set_sensitive(true);
                 glib::ControlFlow::Break
             } else if let Some(error) = catalog_error.borrow_mut().take() {
@@ -180,7 +181,7 @@ pub fn editor(
                     .find(|model| &model.id == id)
                     .cloned()
             }) else {
-                status.set_label("Select a model");
+                status.set_label(tr!("Select a model").as_ref());
                 return;
             };
             let server_url = preferences_store::snapshot(&preferences).compute_server_url;
@@ -197,7 +198,7 @@ pub fn editor(
             cancel.set_sensitive(true);
             spinner.set_visible(true);
             status.set_tooltip_text(None);
-            status.set_label("Sending request…");
+            status.set_label(tr!("Sending request…").as_ref());
             let directory =
                 shrimply_project::project::project_directory().join("media/video-generation");
             let destination = directory.join(format!("{}.mp4", Uuid::new_v4()));
@@ -240,16 +241,16 @@ pub fn editor(
                             active_generation.borrow_mut().take();
                             match result {
                                 Ok((path, result)) => {
-                                    generate.set_label("Regenerate");
-                                    status.set_label("Generated");
+                                    generate.set_label(tr!("Regenerate").as_ref());
+                                    status.set_label(tr!("Generated").as_ref());
                                     (callbacks.borrow().on_generated)(path, result);
                                 }
                                 Err(_) if cancelled => {
-                                    status.set_label("Cancelled")
+                                    status.set_label(tr!("Cancelled").as_ref())
                                 }
                                 Err(error) if error.starts_with("Compute server connection failed") => {
                                     tracing::error!(%error, "Video-generation compute connection failed");
-                                    status.set_label("Compute server connection failed");
+                                    status.set_label(tr!("Compute server connection failed").as_ref());
                                     status.set_tooltip_text(Some(&error));
                                 }
                                 Err(error) => status.set_label(&error),
@@ -263,7 +264,7 @@ pub fn editor(
                             cancel.set_sensitive(true);
                             spinner.set_visible(false);
                             active_generation.borrow_mut().take();
-                            status.set_label("Generation worker stopped unexpectedly");
+                            status.set_label(tr!("Generation worker stopped unexpectedly").as_ref());
                             return glib::ControlFlow::Break;
                         }
                     }
@@ -673,11 +674,14 @@ fn media_widget(
     let content = gtk::Box::new(gtk::Orientation::Vertical, 6);
     let rows = gtk::Box::new(gtk::Orientation::Vertical, 4);
     let add = gtk::Button::builder()
-        .label(if maximum_items == 1 {
-            "Choose…"
-        } else {
-            "Add…"
-        })
+        .label(
+            tr!(if maximum_items == 1 {
+                "Choose…"
+            } else {
+                "Add…"
+            })
+            .as_ref(),
+        )
         .halign(gtk::Align::End)
         .build();
     content.append(&rows);
@@ -781,7 +785,9 @@ fn media_widget(
         rebuild();
     }
     {
-        let chooser = gtk::FileDialog::builder().title(label).build();
+        let chooser = gtk::FileDialog::builder()
+            .title(tr!(label).as_ref())
+            .build();
         let label = label.to_string();
         let input = input.clone();
         let key = key.clone();

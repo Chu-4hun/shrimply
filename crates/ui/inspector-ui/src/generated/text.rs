@@ -447,7 +447,10 @@ fn font_variation_controls(
                 .label(&axis.tag)
                 .halign(gtk::Align::Start)
                 .hexpand(true)
-                .tooltip_text(format!("{} variation axis", axis.tag))
+                .tooltip_text(shrimply_ui_foundation::i18n::text_args(
+                    "%{axis} variation axis",
+                    &[("axis", axis.tag.clone())],
+                ))
                 .build();
             let step = ((axis.maximum - axis.minimum).abs() / 100.0).max(0.01);
             let spin =

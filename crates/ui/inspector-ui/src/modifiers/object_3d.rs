@@ -2,6 +2,8 @@ use adw::prelude::AdwDialogExt;
 use gtk::prelude::*;
 use shrimply_project::project::Project;
 use shrimply_scene_3d::{MAX_IOR, MIN_IOR, MIN_ROUGHNESS, NormalMode};
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nFileFilterExt;
 use shrimply_video_modifiers::{
     ModifierEffect,
     scene_3d::{Object3dModifier, Scene3dModifierEffect},
@@ -128,7 +130,7 @@ fn file_row(value: &Object3dModifier, id: Uuid, context: &InspectorContext) -> g
     let choose = gtk::Button::builder().child(&choose_content).build();
     let clear = gtk::Button::builder()
         .icon_name("window-close-symbolic")
-        .tooltip_text("Clear model")
+        .tooltip_text(tr!("Clear model").as_ref())
         .sensitive(value.file.is_some())
         .build();
     actions.append(&choose);
@@ -139,13 +141,13 @@ fn file_row(value: &Object3dModifier, id: Uuid, context: &InspectorContext) -> g
     choose.connect_clicked(move |_| {
         let label = "Select 3D model";
         let filter = gtk::FileFilter::new();
-        filter.set_name(Some("3D models"));
+        filter.set_name_i18n("3D models");
         filter.add_pattern("*.obj");
         filter.add_pattern("*.glb");
         let filters = gtk::gio::ListStore::new::<gtk::FileFilter>();
         filters.append(&filter);
         let dialog = gtk::FileDialog::builder()
-            .title(label)
+            .title(tr!(label).as_ref())
             .filters(&filters)
             .build();
         let context = choose_context.clone();

@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::Cell;
 
 use gtk::prelude::*;
@@ -23,7 +24,7 @@ impl InspectorSection {
         let header = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         header.set_hexpand(true);
         let title = gtk::Label::builder()
-            .label(title)
+            .label(tr!(title).as_ref())
             .css_classes(["title-2"])
             .halign(gtk::Align::Start)
             .hexpand(true)
@@ -33,7 +34,7 @@ impl InspectorSection {
         if let Some(reset) = reset {
             let button = gtk::Button::builder()
                 .icon_name("edit-undo-symbolic")
-                .tooltip_text("Reset")
+                .tooltip_text(tr!("Reset").as_ref())
                 .halign(gtk::Align::End)
                 .build();
             button.add_css_class("flat");

@@ -215,31 +215,33 @@ fn expression_feedback(
 ) -> String {
     let Some(evaluation_position) = project.timeline_time_to_sequence(&key.track(), position)
     else {
-        return "Expression output unavailable".to_string();
+        return tr!("Expression output unavailable").into_owned();
     };
     let Some(item) = project.video_item(&key) else {
-        return "Expression output unavailable".to_string();
+        return tr!("Expression output unavailable").into_owned();
     };
     let Some(time) = local_time(project, key.clone(), position) else {
-        return "Expression output unavailable".to_string();
+        return tr!("Expression output unavailable").into_owned();
     };
     let Some(value) = text_value(project, key.clone()) else {
-        return "Expression output unavailable".to_string();
+        return tr!("Expression output unavailable").into_owned();
     };
     let base = value.value_at(time);
     let Some(expression) = &value.expression else {
-        return format!("Output: {base}");
+        return shrimply_ui_foundation::i18n::text_args("Output: %{output}", &[("output", base)]);
     };
     if let Some(error) = TransformExpressionCache::syntax_diagnostic(&expression.source) {
         return format!("Syntax error: {}", error.message);
     }
     if expression.source.trim().is_empty() {
-        return format!("Output: {base}");
+        return shrimply_ui_foundation::i18n::text_args("Output: %{output}", &[("output", base)]);
     }
     let evaluation =
         VisualEvaluation::for_item_with_audio(project, item, evaluation_position, audio);
     match cache.eval_timeline_value_result(&evaluation, value.id, &expression.source, &base) {
-        Ok(output) => format!("Output: {output}"),
+        Ok(output) => {
+            shrimply_ui_foundation::i18n::text_args("Output: %{output}", &[("output", output)])
+        }
         Err(error) => format!("Evaluation error: {error}"),
     }
 }
@@ -684,3 +686,4 @@ fn global_time(project: &Project, key: SelectedItem, time: Time) -> Option<Time>
 fn visible_area(project: &Project, key: SelectedItem) -> Option<(Time, Time)> {
     crate::video::visual_visible_area(project, key)
 }
+use shrimply_ui_foundation::tr;

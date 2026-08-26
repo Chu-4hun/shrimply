@@ -1,4 +1,5 @@
 use adw::prelude::*;
+use shrimply_ui_foundation::tr;
 
 use crate::player_state::{self, ProjectChange};
 use shrimply_project::project::{ItemKind, Project, TrackAddress, TrackMut, TrackRef};
@@ -64,8 +65,8 @@ impl Inspectable for TrackInspection {
     fn inspect(&self, context: &InspectorContext) -> Vec<gtk::Widget> {
         let actions = adw::PreferencesGroup::new();
         let enabled = adw::ActionRow::builder()
-            .title("Enabled")
-            .subtitle("Include this track in playback and export")
+            .title(tr!("Enabled").as_ref())
+            .subtitle(tr!("Include this track in playback and export").as_ref())
             .build();
         let enabled_toggle = gtk::Switch::builder()
             .active(self.enabled)
@@ -114,19 +115,19 @@ impl Inspectable for TrackInspection {
         let info = adw::PreferencesGroup::new();
         info.add(
             &adw::ActionRow::builder()
-                .title("Type")
+                .title(tr!("Type").as_ref())
                 .subtitle(self.title())
                 .build(),
         );
         info.add(
             &adw::ActionRow::builder()
-                .title("Track")
+                .title(tr!("Track").as_ref())
                 .subtitle((self.ordinal + 1).to_string())
                 .build(),
         );
         info.add(
             &adw::ActionRow::builder()
-                .title("Items")
+                .title(tr!("Items").as_ref())
                 .subtitle(self.item_count.to_string())
                 .build(),
         );

@@ -1,4 +1,6 @@
 pub use shrimply_export::{audio, video};
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nMenuExt;
 
 pub use shrimply_project::{caption, project, time_format};
 pub use shrimply_ui_foundation::desktop_open;
@@ -27,9 +29,9 @@ pub fn build_export_button(
     preferences: preferences::SharedPreferences,
 ) -> gtk::MenuButton {
     let menu = gio::Menu::new();
-    menu.append(Some("Export video"), Some("export.video"));
-    menu.append(Some("Export captions (YTT)"), Some("export.ytt"));
-    menu.append(Some("Export JSON"), Some("export.json"));
+    menu.append_i18n("Export video", "export.video");
+    menu.append_i18n("Export captions (YTT)", "export.ytt");
+    menu.append_i18n("Export JSON", "export.json");
 
     let actions = gio::SimpleActionGroup::new();
     add_menu_action(&actions, "video", {
@@ -57,7 +59,7 @@ pub fn build_export_button(
 
     let button = gtk::MenuButton::builder()
         .icon_name("share-symbolic")
-        .tooltip_text("Export")
+        .tooltip_text(tr!("Export").as_ref())
         .has_frame(false)
         .popover(&popover)
         .build();
@@ -73,7 +75,7 @@ fn open_ytt_dialog(
     let merge = gtk::CheckButton::new();
     merge.set_active(true);
     let merge_row = adw::ActionRow::builder()
-        .title("Merge into one file")
+        .title(tr!("Merge into one file").as_ref())
         .activatable(true)
         .build();
     merge_row.add_prefix(&merge);
@@ -82,7 +84,7 @@ fn open_ytt_dialog(
     let separate = gtk::CheckButton::new();
     separate.set_group(Some(&merge));
     let separate_row = adw::ActionRow::builder()
-        .title("Export each track separately")
+        .title(tr!("Export each track separately").as_ref())
         .activatable(true)
         .build();
     separate_row.add_prefix(&separate);
@@ -101,14 +103,14 @@ fn open_ytt_dialog(
     content.set_margin_end(18);
     content.append(&modes);
 
-    let export = gtk::Button::with_label("Export YTT");
+    let export = gtk::Button::with_label(tr!("Export YTT").as_ref());
     export.add_css_class("suggested-action");
     export.add_css_class("pill");
     export.set_halign(gtk::Align::End);
     content.append(&export);
 
     let dialog = adw::Dialog::builder()
-        .title("Export Captions")
+        .title(tr!("Export Captions").as_ref())
         .content_width(400)
         .build();
     let toolbar = adw::ToolbarView::new();
@@ -127,7 +129,7 @@ fn open_ytt_dialog(
         };
         let label = "Export YouTube Captions";
         let file_dialog = gtk::FileDialog::builder()
-            .title(label)
+            .title(tr!(label).as_ref())
             .initial_name(default_ytt_filename(&project.borrow()))
             .build();
         let parent_for_result = export_parent.clone();
@@ -160,11 +162,19 @@ fn open_ytt_dialog(
                     Ok(paths) => {
                         if let Some(path) = paths.first() {
                             let title = if paths.len() == 1 {
-                                "Captions exported".to_string()
+                                tr!("Captions exported").into_owned()
                             } else {
-                                format!("{} caption files exported", paths.len())
+                                shrimply_ui_foundation::i18n::text_args(
+                                    "%{count} caption files exported",
+                                    &[("count", paths.len().to_string())],
+                                )
                             };
-                            show_export_finished(&toasts, &parent_for_result, &title, path);
+                            shrimply_ui_foundation::export_feedback::show_export_finished_text(
+                                &toasts,
+                                &parent_for_result,
+                                &title,
+                                path,
+                            );
                         }
                     }
                     Err(error) => {
@@ -201,7 +211,7 @@ impl<T: Copy + PartialEq + 'static> TypedComboRow<T> {
     ) -> Self {
         let choices = choices
             .into_iter()
-            .map(|(value, label)| (value, label.as_ref().to_string()))
+            .map(|(value, label)| (value, tr!(label.as_ref()).into_owned()))
             .collect::<Vec<_>>();
         let selected = choices
             .iter()
@@ -212,7 +222,7 @@ impl<T: Copy + PartialEq + 'static> TypedComboRow<T> {
             .map(|(_, label)| label.as_str())
             .collect::<Vec<_>>();
         let row = adw::ComboRow::new();
-        row.set_title(title);
+        row.set_title(tr!(title).as_ref());
         row.set_model(Some(&gtk::StringList::new(&labels)));
         row.set_selected(selected);
         Self {
@@ -287,8 +297,9 @@ fn open_export_page(
     let fps_row = TypedComboRow::new("Frame rate", fps_rates, project_fps);
 
     let background_alpha_row = adw::SpinRow::with_range(0.0, f64::from(u8::MAX), 1.0);
-    background_alpha_row.set_title("Background Alpha");
-    background_alpha_row.set_subtitle("Values below 128 are transparent in GIF output");
+    background_alpha_row.set_title(tr!("Background Alpha").as_ref());
+    background_alpha_row
+        .set_subtitle(tr!("Values below 128 are transparent in GIF output").as_ref());
     background_alpha_row.set_value(0.0);
     background_alpha_row.set_digits(0);
     background_alpha_row.set_visible(false);
@@ -315,32 +326,32 @@ fn open_export_page(
     );
 
     let bitrate_row = adw::SpinRow::with_range(50.0, 250_000.0, 50.0);
-    bitrate_row.set_title("Video Bitrate");
-    bitrate_row.set_subtitle("Kbps for CBR/VBR");
+    bitrate_row.set_title(tr!("Video Bitrate").as_ref());
+    bitrate_row.set_subtitle(tr!("Kbps for CBR/VBR").as_ref());
     bitrate_row.set_value(10_000.0);
     bitrate_row.set_digits(0);
 
     let max_bitrate_row = adw::SpinRow::with_range(50.0, 250_000.0, 50.0);
-    max_bitrate_row.set_title("Max Video Bitrate");
-    max_bitrate_row.set_subtitle("Kbps for VBR");
+    max_bitrate_row.set_title(tr!("Max Video Bitrate").as_ref());
+    max_bitrate_row.set_subtitle(tr!("Kbps for VBR").as_ref());
     max_bitrate_row.set_value(10_000.0);
     max_bitrate_row.set_digits(0);
 
     let target_quality_row = adw::SpinRow::with_range(1.0, 51.0, 1.0);
-    target_quality_row.set_title("Target Quality");
-    target_quality_row.set_subtitle("Lower values are higher quality");
+    target_quality_row.set_title(tr!("Target Quality").as_ref());
+    target_quality_row.set_subtitle(tr!("Lower values are higher quality").as_ref());
     target_quality_row.set_value(20.0);
     target_quality_row.set_digits(0);
 
     let default_constant_qp_row = adw::SpinRow::with_range(0.0, 51.0, 1.0);
-    default_constant_qp_row.set_title("Constant QP");
-    default_constant_qp_row.set_subtitle("Lower values are higher quality");
+    default_constant_qp_row.set_title(tr!("Constant QP").as_ref());
+    default_constant_qp_row.set_subtitle(tr!("Lower values are higher quality").as_ref());
     default_constant_qp_row.set_value(20.0);
     default_constant_qp_row.set_digits(0);
 
     let keyframe_interval_row = adw::SpinRow::with_range(0.0, 10.0, 1.0);
-    keyframe_interval_row.set_title("Keyframe Interval");
-    keyframe_interval_row.set_subtitle("Seconds; 0 lets NVENC choose");
+    keyframe_interval_row.set_title(tr!("Keyframe Interval").as_ref());
+    keyframe_interval_row.set_subtitle(tr!("Seconds; 0 lets NVENC choose").as_ref());
     keyframe_interval_row.set_value(0.0);
     keyframe_interval_row.set_digits(0);
 
@@ -395,20 +406,20 @@ fn open_export_page(
     );
 
     let look_ahead_row = adw::SwitchRow::new();
-    look_ahead_row.set_title("Look-ahead");
+    look_ahead_row.set_title(tr!("Look-ahead").as_ref());
     look_ahead_row.set_active(true);
 
     let adaptive_quantization_row = adw::SwitchRow::new();
-    adaptive_quantization_row.set_title("Adaptive Quantization");
+    adaptive_quantization_row.set_title(tr!("Adaptive Quantization").as_ref());
     adaptive_quantization_row.set_active(true);
 
     let b_frames_row = adw::SpinRow::with_range(0.0, 16.0, 1.0);
-    b_frames_row.set_title("B Frames");
+    b_frames_row.set_title(tr!("B Frames").as_ref());
     b_frames_row.set_value(2.0);
     b_frames_row.set_digits(0);
 
     let b_frame_as_reference_row = adw::SwitchRow::new();
-    b_frame_as_reference_row.set_title("B Frame as Reference");
+    b_frame_as_reference_row.set_title(tr!("B Frame as Reference").as_ref());
     b_frame_as_reference_row.set_active(false);
 
     let audio_encoder_row = TypedComboRow::new(
@@ -428,8 +439,8 @@ fn open_export_page(
     );
 
     let audio_bitrate_row = adw::SpinRow::with_range(32.0, 512.0, 8.0);
-    audio_bitrate_row.set_title("Audio Bitrate");
-    audio_bitrate_row.set_subtitle("Kbps");
+    audio_bitrate_row.set_title(tr!("Audio Bitrate").as_ref());
+    audio_bitrate_row.set_subtitle(tr!("Kbps").as_ref());
     audio_bitrate_row.set_value(192.0);
     audio_bitrate_row.set_digits(0);
 
@@ -462,13 +473,13 @@ fn open_export_page(
     });
 
     let format_group = adw::PreferencesGroup::builder()
-        .title("Video format")
+        .title(tr!("Video format").as_ref())
         .build();
     format_group.add(format_row.widget());
     format_group.add(container_row.widget());
 
     let encoder_group = adw::PreferencesGroup::builder()
-        .title("Encoder settings")
+        .title(tr!("Encoder settings").as_ref())
         .build();
     encoder_group.add(rate_control_row.widget());
     encoder_group.add(&bitrate_row);
@@ -485,11 +496,15 @@ fn open_export_page(
     encoder_group.add(&b_frames_row);
     encoder_group.add(&b_frame_as_reference_row);
 
-    let output_group = adw::PreferencesGroup::builder().title("Output").build();
+    let output_group = adw::PreferencesGroup::builder()
+        .title(tr!("Output").as_ref())
+        .build();
     output_group.add(fps_row.widget());
     output_group.add(&background_alpha_row);
 
-    let audio_group = adw::PreferencesGroup::builder().title("Audio").build();
+    let audio_group = adw::PreferencesGroup::builder()
+        .title(tr!("Audio").as_ref())
+        .build();
     audio_group.add(audio_encoder_row.widget());
     audio_group.add(audio_sample_rate_row.widget());
     audio_group.add(&audio_bitrate_row);
@@ -509,12 +524,14 @@ fn open_export_page(
     });
 
     let actions_group = adw::PreferencesGroup::builder().build();
-    let export_action = adw::ButtonRow::builder().title("Export").build();
+    let export_action = adw::ButtonRow::builder()
+        .title(tr!("Export").as_ref())
+        .build();
     export_action.add_css_class("suggested-action");
     actions_group.add(&export_action);
 
     let page = adw::PreferencesPage::builder()
-        .title("Export")
+        .title(tr!("Export").as_ref())
         .name("export")
         .build();
     page.add(&format_group);
@@ -524,7 +541,7 @@ fn open_export_page(
     page.add(&actions_group);
 
     let dialog = adw::PreferencesDialog::builder()
-        .title("Export")
+        .title(tr!("Export").as_ref())
         .search_enabled(false)
         .build();
     dialog.add(&page);
@@ -584,7 +601,7 @@ fn open_export_page(
         let default_name = default_video_filename(&project_snapshot, settings.container);
         let label = "Export Video";
         let file_dialog = gtk::FileDialog::builder()
-            .title(label)
+            .title(tr!(label).as_ref())
             .initial_name(&default_name)
             .build();
         let parent_for_save = parent_for_export.clone();
@@ -767,11 +784,13 @@ fn start_video_export(
                 if was_cancelled && output_opened.load(Ordering::Relaxed) {
                     let _ = fs::remove_file(&path);
                 } else {
-                    let title = format!(
-                        "Video exported in {}",
-                        time_format::human_duration(started.elapsed())
+                    let title = shrimply_ui_foundation::i18n::text_args(
+                        "Video exported in %{duration}",
+                        &[("duration", time_format::human_duration(started.elapsed()))],
                     );
-                    show_export_finished(&toasts, &parent, &title, &path);
+                    shrimply_ui_foundation::export_feedback::show_export_finished_text(
+                        &toasts, &parent, &title, &path,
+                    );
                 }
                 glib::ControlFlow::Break
             }
@@ -797,7 +816,7 @@ fn video_export_progress_dialog(
     parent: &adw::ApplicationWindow,
 ) -> (adw::Dialog, gtk::Label, gtk::ProgressBar) {
     let dialog = adw::Dialog::builder()
-        .title("Exporting Video")
+        .title(tr!("Exporting Video").as_ref())
         .content_width(460)
         .build();
 
@@ -807,7 +826,7 @@ fn video_export_progress_dialog(
     content.set_margin_start(24);
     content.set_margin_end(24);
 
-    let state = gtk::Label::new(Some("Preparing"));
+    let state = gtk::Label::new(Some(tr!("Preparing").as_ref()));
     state.set_halign(gtk::Align::Center);
     state.set_wrap(true);
 
@@ -815,7 +834,7 @@ fn video_export_progress_dialog(
 
     let progress = gtk::ProgressBar::new();
     progress.set_show_text(true);
-    progress.set_text(Some("Preparing"));
+    progress.set_text(Some(tr!("Preparing").as_ref()));
     progress.pulse();
     progress_box.append(&progress);
 
@@ -840,7 +859,7 @@ fn update_video_export_progress(
             current_frame,
             total_frames,
         } => {
-            state.set_label("Preparing audio");
+            state.set_label(tr!("Preparing audio").as_ref());
             let fraction = if total_frames == 0 {
                 1.0
             } else {
@@ -848,18 +867,21 @@ fn update_video_export_progress(
             }
             .clamp(0.0, 1.0);
             progress.set_fraction(fraction);
-            progress.set_text(Some(&format!("Preparing audio ({:.0}%)", fraction * 100.0)));
+            progress.set_text(Some(&shrimply_ui_foundation::i18n::text_args(
+                "Preparing audio (%{percent}%)",
+                &[("percent", format!("{:.0}", fraction * 100.0))],
+            )));
         }
         video::ExportProgress::SettingUp(message) => {
-            state.set_label(message);
+            state.set_label(tr!(message).as_ref());
             progress.set_fraction(1.0);
-            progress.set_text(Some(message));
+            progress.set_text(Some(tr!(message).as_ref()));
         }
         video::ExportProgress::EncodingAudio {
             current_frame,
             total_frames,
         } => {
-            state.set_label("Encoding audio");
+            state.set_label(tr!("Encoding audio").as_ref());
             let fraction = if total_frames == 0 {
                 1.0
             } else {
@@ -867,14 +889,17 @@ fn update_video_export_progress(
             }
             .clamp(0.0, 1.0);
             progress.set_fraction(fraction);
-            progress.set_text(Some(&format!("Encoding audio ({:.0}%)", fraction * 100.0)));
+            progress.set_text(Some(&shrimply_ui_foundation::i18n::text_args(
+                "Encoding audio (%{percent}%)",
+                &[("percent", format!("{:.0}", fraction * 100.0))],
+            )));
         }
         video::ExportProgress::EncodingVideo {
             current_frame,
             total_frames,
             fps_milli,
         } => {
-            state.set_label("Rendering frames");
+            state.set_label(tr!("Rendering frames").as_ref());
             let fraction = if total_frames == 0 {
                 1.0
             } else {
@@ -888,21 +913,39 @@ fn update_video_export_progress(
                     fps_milli,
                 ))
             });
-            progress.set_text(Some(&format!(
-                "{current_frame} of {total_frames} frames ({:.0}%){}{}",
-                fraction * 100.0,
-                if fps_milli > 0 {
-                    format!(" - {}.{} fps", fps_milli / 1_000, fps_milli % 1_000 / 100)
-                } else {
-                    String::new()
-                },
-                eta.map(|eta| format!(" - {eta} left")).unwrap_or_default()
-            )));
+            let progress_text = if fps_milli > 0 {
+                shrimply_ui_foundation::i18n::text_args(
+                    "%{current} of %{total} frames (%{percent}%) - %{fps} fps - %{eta} left",
+                    &[
+                        ("current", current_frame.to_string()),
+                        ("total", total_frames.to_string()),
+                        ("percent", format!("{:.0}", fraction * 100.0)),
+                        (
+                            "fps",
+                            format!("{}.{}", fps_milli / 1_000, fps_milli % 1_000 / 100),
+                        ),
+                        (
+                            "eta",
+                            eta.expect("positive frame rate produces an export ETA"),
+                        ),
+                    ],
+                )
+            } else {
+                shrimply_ui_foundation::i18n::text_args(
+                    "%{current} of %{total} frames (%{percent}%)",
+                    &[
+                        ("current", current_frame.to_string()),
+                        ("total", total_frames.to_string()),
+                        ("percent", format!("{:.0}", fraction * 100.0)),
+                    ],
+                )
+            };
+            progress.set_text(Some(&progress_text));
         }
         video::ExportProgress::Finalizing => {
-            state.set_label("Finishing file");
+            state.set_label(tr!("Finishing file").as_ref());
             progress.set_fraction(1.0);
-            progress.set_text(Some("Finishing"));
+            progress.set_text(Some(tr!("Finishing").as_ref()));
         }
     }
 }
@@ -915,7 +958,7 @@ fn open_project_json_dialog(
     let default_name = default_json_filename(&project.borrow());
     let label = "Export JSON";
     let dialog = gtk::FileDialog::builder()
-        .title(label)
+        .title(tr!(label).as_ref())
         .initial_name(&default_name)
         .build();
     let parent_for_save = parent.clone();
@@ -998,7 +1041,7 @@ fn open_project_json_dialog(
 
 fn show_export_error(parent: &adw::ApplicationWindow, heading: &str, body: &str) {
     let dialog = adw::AlertDialog::new(Some(heading), Some(body));
-    dialog.add_response("close", "Close");
+    dialog.add_response("close", tr!("Close").as_ref());
     dialog.set_close_response("close");
     dialog.set_default_response(Some("close"));
     dialog.choose(

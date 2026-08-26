@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::rc::Rc;
 
 use adw::prelude::{ActionRowExt, PreferencesRowExt};
@@ -109,8 +110,16 @@ fn add_page_control(
 
     let pages = Rc::new(pages);
     let page = adw::SpinRow::with_range(1.0, pages.len() as f64, 1.0);
-    page.set_title("Page");
-    page.set_subtitle(&format!("{} pages", pages.len()));
+    page.set_title(tr!("Page").as_ref());
+    let page_count = if pages.len() == 1 {
+        tr!("1 page").into_owned()
+    } else {
+        shrimply_ui_foundation::i18n::text_args(
+            "%{count} pages",
+            &[("count", pages.len().to_string())],
+        )
+    };
+    page.set_subtitle(&page_count);
     page.set_digits(0);
     page.set_value(f64::from(selected_page + 1));
     let context = context.clone();

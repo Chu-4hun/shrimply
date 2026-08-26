@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::{
     cell::RefCell, collections::BTreeSet, fs, path::PathBuf, rc::Rc, sync::OnceLock, time::Duration,
 };
@@ -102,7 +103,7 @@ pub(crate) fn editor(
 
     let expand = gtk::Button::builder()
         .icon_name("view-fullscreen-symbolic")
-        .tooltip_text("Open larger editor")
+        .tooltip_text(tr!("Open larger editor").as_ref())
         .valign(gtk::Align::Start)
         .build();
     expand.add_css_class("flat");
@@ -465,7 +466,7 @@ fn open_large_editor(
     value: ExpressionValue,
 ) {
     let dialog = adw::Dialog::builder()
-        .title("Expression")
+        .title(tr!("Expression").as_ref())
         .content_width(720)
         .content_height(460)
         .build();
@@ -516,7 +517,7 @@ fn track_view(
 
 fn completion_words(value: ExpressionValue) -> (sourceview5::CompletionWords, sourceview5::Buffer) {
     let words = sourceview5::CompletionWords::builder()
-        .title("Expression")
+        .title(tr!("Expression").as_ref())
         .minimum_word_size(2)
         .priority(10)
         .build();

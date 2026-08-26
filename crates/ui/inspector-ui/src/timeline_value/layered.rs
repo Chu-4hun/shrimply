@@ -1,5 +1,7 @@
 use gtk::prelude::*;
 use shrimply_core::timeline_value::{TimelineBase, TimelineValue, TimelineValueType};
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 
 use super::LABEL_WIDTH_CHARS;
 
@@ -56,7 +58,7 @@ fn build<T: TimelineValueType>(
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     row.set_hexpand(true);
     let label = gtk::Label::builder()
-        .label(label)
+        .label(tr!(label).as_ref())
         .halign(gtk::Align::Start)
         .valign(gtk::Align::Center)
         .width_chars(LABEL_WIDTH_CHARS)
@@ -104,7 +106,7 @@ fn build<T: TimelineValueType>(
 fn toggle(icon: &str, tooltip: &str, active: bool) -> gtk::ToggleButton {
     let button = gtk::ToggleButton::new();
     button.set_icon_name(icon);
-    button.set_tooltip_text(Some(tooltip));
+    button.set_tooltip_i18n(tooltip);
     button.set_valign(gtk::Align::Center);
     button.set_size_request(32, 32);
     button.set_active(active);

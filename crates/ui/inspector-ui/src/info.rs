@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::{
     path::{Path, PathBuf},
     sync::{Mutex, OnceLock},
@@ -39,28 +40,28 @@ pub(super) fn item(
     }
     group.add(
         &adw::ActionRow::builder()
-            .title("Type")
+            .title(tr!("Type").as_ref())
             .subtitle(kind)
             .build(),
     );
     if let Some(duration) = natural_duration {
         group.add(
             &adw::ActionRow::builder()
-                .title("Natural Duration")
+                .title(tr!("Natural Duration").as_ref())
                 .subtitle(crate::time_format::playback_time(duration))
                 .build(),
         );
     }
     group.add(
         &adw::ActionRow::builder()
-            .title("Timeline Duration")
+            .title(tr!("Timeline Duration").as_ref())
             .subtitle(crate::time_format::playback_time(timeline_duration))
             .build(),
     );
     if let Some(size) = dimensions.filter(|size| size.x > 0 && size.y > 0) {
         group.add(
             &adw::ActionRow::builder()
-                .title("Dimensions")
+                .title(tr!("Dimensions").as_ref())
                 .subtitle(format!("{} × {}", size.x, size.y))
                 .build(),
         );
@@ -74,18 +75,18 @@ pub(super) fn item(
             };
             group.add(
                 &adw::ActionRow::builder()
-                    .title(title)
+                    .title(tr!(title).as_ref())
                     .subtitle(rate)
                     .build(),
             );
         }
         let row = adw::ActionRow::builder()
-            .title("File Location")
+            .title(tr!("File Location").as_ref())
             .subtitle(file.to_string_lossy())
             .build();
         let button = gtk::Button::builder()
             .icon_name("folder-open-symbolic")
-            .tooltip_text("Show in folder")
+            .tooltip_text(tr!("Show in folder").as_ref())
             .valign(gtk::Align::Center)
             .css_classes(["flat"])
             .build();
@@ -95,7 +96,7 @@ pub(super) fn item(
                 crate::desktop_open::show_path_in_folder(button.upcast_ref(), path.clone())
             {
                 let dialog = adw::AlertDialog::new(Some("Could not show media file"), Some(&error));
-                dialog.add_response("close", "Close");
+                dialog.add_response("close", tr!("Close").as_ref());
                 dialog.present(Some(button));
             }
         });

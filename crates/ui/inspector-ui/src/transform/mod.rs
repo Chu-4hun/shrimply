@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
@@ -1159,7 +1160,7 @@ fn scalar_expression_output(
 fn expression_output_row(value: gtk::Label) -> gtk::Widget {
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     row.set_hexpand(true);
-    let label = gtk::Label::new(Some("Output"));
+    let label = gtk::Label::new(Some(tr!("Output").as_ref()));
     label.add_css_class("dim-label");
     label.set_xalign(0.0);
     row.append(&label);

@@ -19,8 +19,16 @@ impl ProjectSettingsSelector {
             .map(|preset| preset.label)
             .collect::<Vec<_>>();
         preset_labels.push("Custom");
+        let preset_labels = preset_labels
+            .iter()
+            .map(|label| crate::i18n::text(label))
+            .collect::<Vec<_>>();
+        let preset_labels = preset_labels
+            .iter()
+            .map(|label| label.as_ref())
+            .collect::<Vec<_>>();
         let preset = adw::ComboRow::builder()
-            .title("Preset")
+            .title(crate::i18n::text("Preset").as_ref())
             .model(&gtk::StringList::new(&preset_labels))
             .selected(
                 PROJECT_PRESETS
@@ -30,11 +38,11 @@ impl ProjectSettingsSelector {
             )
             .build();
         let width = adw::SpinRow::with_range(1.0, 16_384.0, 1.0);
-        width.set_title("Width");
+        width.set_title(crate::i18n::text("Width").as_ref());
         width.set_value(1920.0);
         width.set_digits(0);
         let height = adw::SpinRow::with_range(1.0, 16_384.0, 1.0);
-        height.set_title("Height");
+        height.set_title(crate::i18n::text("Height").as_ref());
         height.set_value(1080.0);
         height.set_digits(0);
         let labels = COMMON_FRAME_RATES
@@ -42,7 +50,7 @@ impl ProjectSettingsSelector {
             .map(|rate| rate.label)
             .collect::<Vec<_>>();
         let fps = adw::ComboRow::builder()
-            .title("Frame Rate")
+            .title(crate::i18n::text("Frame Rate").as_ref())
             .model(&gtk::StringList::new(&labels))
             .selected(
                 COMMON_FRAME_RATES

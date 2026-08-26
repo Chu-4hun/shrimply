@@ -1,4 +1,5 @@
 use gtk::prelude::*;
+use shrimply_ui_foundation::tr;
 use uuid::Uuid;
 
 use super::{InspectorContext, ScalarOptions, color_row, integer_scalar_row, scalar_row};
@@ -93,7 +94,7 @@ pub fn add_rows(value: &DitheringModifier, out: &gtk::Box, id: Uuid, context: &I
             row.append(&color_control);
             let remove = gtk::Button::builder()
                 .icon_name("user-trash-symbolic")
-                .tooltip_text("Remove color")
+                .tooltip_text(tr!("Remove color").as_ref())
                 .css_classes(["flat"])
                 .build();
             let key = context.selected_item.clone();
@@ -141,7 +142,7 @@ pub fn add_rows(value: &DitheringModifier, out: &gtk::Box, id: Uuid, context: &I
 
         let add = gtk::Button::builder()
             .icon_name("list-add-symbolic")
-            .label("Add color")
+            .label(tr!("Add color").as_ref())
             .halign(gtk::Align::Start)
             .css_classes(["flat"])
             .build();

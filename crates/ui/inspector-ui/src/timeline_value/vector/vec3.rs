@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::{
     cell::{RefCell, RefMut},
     rc::Rc,
@@ -451,7 +452,7 @@ fn expression_output(
         .css_classes(["numeric"])
         .build();
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-    let title = gtk::Label::new(Some("Output"));
+    let title = gtk::Label::new(Some(tr!("Output").as_ref()));
     title.add_css_class("dim-label");
     row.append(&title);
     row.append(&label);

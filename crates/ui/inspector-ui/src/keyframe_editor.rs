@@ -1,3 +1,5 @@
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Instant;
@@ -235,17 +237,17 @@ pub(crate) fn build(
     row.append(&value_editor);
 
     let previous = gtk::Button::from_icon_name("go-previous-symbolic");
-    previous.set_tooltip_text(Some("Previous keyframe"));
+    previous.set_tooltip_i18n("Previous keyframe");
     previous.add_css_class("flat");
     row.append(&previous);
 
     let add = gtk::Button::from_icon_name("list-add-symbolic");
-    add.set_tooltip_text(Some("Add keyframe at playhead"));
+    add.set_tooltip_i18n("Add keyframe at playhead");
     add.add_css_class("flat");
     row.append(&add);
 
     let next = gtk::Button::from_icon_name("go-next-symbolic");
-    next.set_tooltip_text(Some("Next keyframe"));
+    next.set_tooltip_i18n("Next keyframe");
     next.add_css_class("flat");
     row.append(&next);
 
@@ -987,11 +989,14 @@ pub(crate) fn build(
                                 .set_text(KEYFRAME_CLIPBOARD_MARKER);
                             KEYFRAME_CLIPBOARD.with(|stored| stored.replace(Some(clipboard)));
                             let message = if count == 1 {
-                                "1 keyframe copied".to_string()
+                                tr!("1 keyframe copied").into_owned()
                             } else {
-                                format!("{count} keyframes copied")
+                                shrimply_ui_foundation::i18n::text_args(
+                                    "%{count} keyframes copied",
+                                    &[("count", count.to_string())],
+                                )
                             };
-                            shrimply_ui_foundation::toast::show_confirmation_for_widget(
+                            shrimply_ui_foundation::toast::show_confirmation_text_for_widget(
                                 &graph, &message,
                             );
                         }
@@ -1020,11 +1025,14 @@ pub(crate) fn build(
                                     return;
                                 };
                                 let message = if times.len() == 1 {
-                                    "1 keyframe pasted".to_string()
+                                    tr!("1 keyframe pasted").into_owned()
                                 } else {
-                                    format!("{} keyframes pasted", times.len())
+                                    shrimply_ui_foundation::i18n::text_args(
+                                        "%{count} keyframes pasted",
+                                        &[("count", times.len().to_string())],
+                                    )
                                 };
-                                shrimply_ui_foundation::toast::show_confirmation_for_widget(
+                                shrimply_ui_foundation::toast::show_confirmation_text_for_widget(
                                     &graph, &message,
                                 );
                                 let focus = times.first().copied();

@@ -1,5 +1,6 @@
 use super::*;
 use gtk::gdk;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 
 const TRACK_ADD_MENU_ICON_SIZE: i32 = 16;
 const TRACK_ADD_MENU_ITEM_GAP: i32 = 12;
@@ -26,25 +27,25 @@ pub(super) fn timeline_sidebar(
     toolbar.set_margin_end(4);
 
     let magnet = timeline_tool_button("magnet-tilted-symbolic");
-    magnet.set_tooltip_text(Some("Magnet"));
+    magnet.set_tooltip_i18n("Magnet");
 
     let beat_grid = timeline_tool_button("metronome-symbolic");
-    beat_grid.set_tooltip_text(Some("Beat Grid"));
+    beat_grid.set_tooltip_i18n("Beat Grid");
 
     let pointer = timeline_tool_button("pointer-primary-click-symbolic");
-    pointer.set_tooltip_text(Some("Pointer"));
+    pointer.set_tooltip_i18n("Pointer");
 
     let cut = timeline_tool_button("cut-symbolic");
-    cut.set_tooltip_text(Some("Cut"));
+    cut.set_tooltip_i18n("Cut");
 
     let overwrite = timeline_tool_button("track-insert-symbolic");
-    overwrite.set_tooltip_text(Some("Overwrite/Insert"));
+    overwrite.set_tooltip_i18n("Overwrite/Insert");
 
     let block = timeline_tool_button("track-block-symbolic");
-    block.set_tooltip_text(Some("Block"));
+    block.set_tooltip_i18n("Block");
 
     let new_track = timeline_tool_button("track-move-above-symbolic");
-    new_track.set_tooltip_text(Some("New Track"));
+    new_track.set_tooltip_i18n("New Track");
 
     let snapshot = preferences_store::snapshot(preferences);
     magnet.set_active(timeline_magnet_from_preference(&snapshot.timeline_magnet));
@@ -308,7 +309,7 @@ pub(super) fn show_track_add_menu(
         .position(gtk::PositionType::Bottom)
         .build();
     let menu = gtk::Box::new(gtk::Orientation::Vertical, 0);
-    append_add_menu_item(
+    append_add_menu_item_i18n(
         &menu,
         &popover,
         if key.kind == TrackKind::Caption {
@@ -384,13 +385,9 @@ fn add_video_items_to_menu(
             "preferences-desktop-wallpaper-symbolic",
             GeneratedItemKind::Background,
         ),
-        (
-            "3D Scene",
-            "3d-object-symbolic",
-            GeneratedItemKind::Scene3d,
-        ),
+        ("3D Scene", "3d-object-symbolic", GeneratedItemKind::Scene3d),
     ] {
-        append_add_menu_item(menu, popover, label, icon, {
+        append_add_menu_item_i18n(menu, popover, label, icon, {
             let context = context.clone();
             move || {
                 create_generated_item_at_playhead(
@@ -405,7 +402,7 @@ fn add_video_items_to_menu(
             }
         });
     }
-    append_add_menu_item(
+    append_add_menu_item_i18n(
         menu,
         popover,
         "Video Generation",
@@ -432,7 +429,7 @@ fn add_audio_items_to_menu(
     context: &TrackAddContext,
     key: TrackKey,
 ) {
-    append_add_menu_item(
+    append_add_menu_item_i18n(
         menu,
         popover,
         "Text to Speech",
@@ -451,7 +448,7 @@ fn add_audio_items_to_menu(
             }
         },
     );
-    append_add_menu_item(menu, popover, "Audio Generator", "sound-symbolic", {
+    append_add_menu_item_i18n(menu, popover, "Audio Generator", "sound-symbolic", {
         let context = context.clone();
         move || {
             create_audio_generator_item_at_playhead(
@@ -466,7 +463,7 @@ fn add_audio_items_to_menu(
     });
 }
 
-fn append_add_menu_item(
+fn append_add_menu_item_i18n(
     menu: &gtk::Box,
     popover: &gtk::Popover,
     label: &str,

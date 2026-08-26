@@ -1,4 +1,6 @@
 use super::*;
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 
 pub(crate) fn connect_graph_refresh_impl(
     context: &InspectorContext,
@@ -328,10 +330,10 @@ pub(super) fn graph_scrollbar_bounds(width: f64, height: f64) -> shrimply_skia_a
 pub(super) fn sync_keyframe_button(button: &gtk::Button, selected_time: Option<Time>) {
     if selected_time.is_some() {
         button.set_icon_name("list-remove-symbolic");
-        button.set_tooltip_text(Some("Delete selected keyframe"));
+        button.set_tooltip_i18n("Delete selected keyframe");
     } else {
         button.set_icon_name("list-add-symbolic");
-        button.set_tooltip_text(Some("Add keyframe at playhead"));
+        button.set_tooltip_i18n("Add keyframe at playhead");
     }
 }
 
@@ -719,7 +721,7 @@ pub(super) fn show_interpolation_popover(
 ) {
     let curve_picker = changed.is_some();
     let search = gtk::SearchEntry::builder()
-        .placeholder_text("Search interpolations")
+        .placeholder_text(tr!("Search interpolations").as_ref())
         .hexpand(true)
         .build();
     let list = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -745,7 +747,7 @@ pub(super) fn show_interpolation_popover(
     if let Some((selected, set)) = text_interpolation {
         for mode in TextInterpolation::ALL {
             let label = gtk::Label::builder()
-                .label(mode.label())
+                .label(tr!(mode.label()).as_ref())
                 .halign(gtk::Align::Start)
                 .xalign(0.0)
                 .hexpand(true)
@@ -826,7 +828,7 @@ pub(super) fn populate_interpolation_list(
             continue;
         }
         let label = gtk::Label::builder()
-            .label(interpolation.label())
+            .label(tr!(interpolation.label()).as_ref())
             .halign(gtk::Align::Start)
             .xalign(0.0)
             .hexpand(true)

@@ -1,3 +1,5 @@
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 use std::rc::Rc;
 use std::thread;
 
@@ -811,7 +813,7 @@ fn voice_change_rows(
             Ok(Err(error)) => model_update.widget().set_tooltip_text(Some(&error)),
             Err(_) => model_update
                 .widget()
-                .set_tooltip_text(Some("Pneuma model request stopped unexpectedly")),
+                .set_tooltip_i18n("Pneuma model request stopped unexpectedly"),
         }
     });
 
@@ -820,7 +822,7 @@ fn voice_change_rows(
         f64::from(PNEUMA_MAX_PITCH_OFFSET),
         1.0,
     );
-    pitch_offset.set_title("Pitch offset");
+    pitch_offset.set_title(tr!("Pitch offset").as_ref());
     pitch_offset.set_value(f64::from(value.pitch_offset));
     pitch_offset.set_digits(0);
     let detached = context.detached();
@@ -863,7 +865,7 @@ fn voice_change_rows(
         f64::from(PNEUMA_MAX_SPEED),
         0.1,
     );
-    speed.set_title("Speed");
+    speed.set_title(tr!("Speed").as_ref());
     speed.set_value(f64::from(value.speed));
     speed.set_digits(1);
     let detached = context.detached();
@@ -979,9 +981,13 @@ fn apply_action(context: &InspectorContext, id: Uuid, action: Action) {
             .property_clipboard
             .borrow_mut()
             .copy_audio_modifier(modifier);
-        shrimply_ui_foundation::toast::show_confirmation_for_widget(
+        let message = shrimply_ui_foundation::i18n::text_args(
+            "%{name} copied",
+            &[("name", modifier.effect.display_name().to_owned())],
+        );
+        shrimply_ui_foundation::toast::show_confirmation_text_for_widget(
             &context.category_bar,
-            &format!("{} copied", modifier.effect.display_name()),
+            &message,
         );
         drop(project);
         (context.refresh)();
@@ -994,7 +1000,7 @@ fn apply_action(context: &InspectorContext, id: Uuid, action: Action) {
         && matches!(item.modifiers[index].effect, AudioModifierEffect::Cache(_))
         && let Err(error) = shrimply_audio::modifier_cache::invalidate(id)
     {
-        shrimply_ui_foundation::toast::show_confirmation_for_widget(
+        shrimply_ui_foundation::toast::show_confirmation_text_for_widget(
             &context.category_bar,
             &format!("Could not remove cache: {error}"),
         );
@@ -1033,7 +1039,7 @@ fn modifier_buttons(context: &InspectorContext) -> gtk::Widget {
     if sensitive {
         let paste = gtk::Button::builder()
             .icon_name("edit-paste-symbolic")
-            .tooltip_text("Paste Modifier")
+            .tooltip_text(tr!("Paste Modifier").as_ref())
             .build();
         let context = context.detached();
         paste.connect_clicked(move |_| paste_modifiers(&context));
@@ -1061,11 +1067,17 @@ fn paste_modifiers(context: &InspectorContext) {
         return;
     }
     let message = if result.modifiers_added == 1 {
-        "1 effect pasted".to_string()
+        tr!("1 effect pasted").into_owned()
     } else {
-        format!("{} effects pasted", result.modifiers_added)
+        shrimply_ui_foundation::i18n::text_args(
+            "%{count} effects pasted",
+            &[("count", result.modifiers_added.to_string())],
+        )
     };
-    shrimply_ui_foundation::toast::show_confirmation_for_widget(&context.category_bar, &message);
+    shrimply_ui_foundation::toast::show_confirmation_text_for_widget(
+        &context.category_bar,
+        &message,
+    );
     player_state::refresh_project(
         &context.player_state,
         ProjectChange {
@@ -1204,14 +1216,14 @@ fn refresh(context: &InspectorContext) {
 fn add_button(context: &InspectorContext) -> gtk::Widget {
     let content = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     content.append(&gtk::Image::from_icon_name("list-add-symbolic"));
-    content.append(&gtk::Label::new(Some("Add modifier")));
+    content.append(&gtk::Label::new(Some(tr!("Add modifier").as_ref())));
     let button = gtk::MenuButton::builder()
         .child(&content)
         .halign(gtk::Align::Center)
         .css_classes(["flat"])
         .build();
     let search = gtk::SearchEntry::builder()
-        .placeholder_text("Search modifiers")
+        .placeholder_text(tr!("Search modifiers").as_ref())
         .hexpand(true)
         .build();
     let list = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -1278,7 +1290,7 @@ fn populate(list: &gtk::Box, query: &str, context: &InspectorContext, popover: &
     for (_, effect) in effects {
         let name = effect.display_name();
         let row = gtk::Button::builder()
-            .label(name)
+            .label(tr!(name).as_ref())
             .halign(gtk::Align::Fill)
             .hexpand(true)
             .css_classes(["flat"])

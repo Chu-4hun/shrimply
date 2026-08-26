@@ -1,4 +1,5 @@
 use hashbrown::HashMap;
+use shrimply_ui_foundation::tr;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
@@ -27,12 +28,13 @@ pub(crate) fn font_selector(
     selected_google: bool,
     on_change: impl Fn(FontFamily) + 'static,
 ) -> gtk::Widget {
+    let selected_label = if selected_family.trim().is_empty() {
+        tr!("Choose font").into_owned()
+    } else {
+        selected_family.trim().to_string()
+    };
     let label = gtk::Label::builder()
-        .label(if selected_family.trim().is_empty() {
-            "Choose font"
-        } else {
-            selected_family.trim()
-        })
+        .label(&selected_label)
         .ellipsize(gtk::pango::EllipsizeMode::End)
         .halign(gtk::Align::Start)
         .xalign(0.0)
@@ -41,7 +43,7 @@ pub(crate) fn font_selector(
     let content = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     content.append(&label);
     let source_label = gtk::Label::builder()
-        .label("Google")
+        .label(tr!("Google").as_ref())
         .css_classes(["caption", "dim-label"])
         .visible(selected_google)
         .build();
@@ -112,7 +114,7 @@ pub(crate) fn font_selector_list(
     if selected_families.is_empty() {
         list.append(
             &gtk::Label::builder()
-                .label("System default")
+                .label(tr!("System default").as_ref())
                 .halign(gtk::Align::Start)
                 .css_classes(["dim-label"])
                 .build(),
@@ -176,7 +178,7 @@ pub(crate) fn font_selector_list(
 
     let add = gtk::Button::builder()
         .icon_name("list-add-symbolic")
-        .tooltip_text("Add font")
+        .tooltip_text(tr!("Add font").as_ref())
         .build();
     add.set_halign(gtk::Align::End);
     add.add_css_class("flat");
@@ -244,12 +246,12 @@ fn show_font_dialog(
     on_change: Rc<dyn Fn(FontFamily)>,
 ) {
     let dialog = adw::Dialog::builder()
-        .title("Fonts")
+        .title(tr!("Fonts").as_ref())
         .content_width(DIALOG_WIDTH)
         .content_height(DIALOG_HEIGHT)
         .build();
     let search = gtk::SearchEntry::builder()
-        .placeholder_text("Search fonts or paste a Google Fonts specimen URL")
+        .placeholder_text(tr!("Search fonts or paste a Google Fonts specimen URL").as_ref())
         .width_request(SEARCH_WIDTH)
         .max_width_chars(64)
         .build();
@@ -937,7 +939,7 @@ fn font_order_button(
 ) -> gtk::Button {
     let button = gtk::Button::builder()
         .icon_name(icon)
-        .tooltip_text(tooltip)
+        .tooltip_text(tr!(tooltip).as_ref())
         .sensitive(sensitive)
         .build();
     button.add_css_class("flat");

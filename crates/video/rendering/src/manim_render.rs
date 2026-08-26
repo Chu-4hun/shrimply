@@ -150,19 +150,26 @@ impl ManimElement {
                     stage: ProgressStage::StreamingFrames,
                     completed,
                     total,
-                }) if total > 0 => {
-                    format!("Frame {completed} / {total}")
-                }
+                }) if total > 0 => shrimply_i18n::text_args(
+                    "Frame %{completed} / %{total}",
+                    &[
+                        ("completed", completed.to_string()),
+                        ("total", total.to_string()),
+                    ],
+                ),
                 Some(Progress {
                     stage: ProgressStage::StreamingFrames,
                     completed,
                     ..
-                }) => format!("Frame {completed}"),
+                }) => shrimply_i18n::text_args(
+                    "Frame %{completed}",
+                    &[("completed", completed.to_string())],
+                ),
                 Some(Progress {
                     stage: ProgressStage::LoadingScene,
                     ..
-                }) => "Loading scene…".to_string(),
-                None => "Starting Manim…".to_string(),
+                }) => shrimply_i18n::text("Loading scene…").into_owned(),
+                None => shrimply_i18n::text("Starting Manim…").into_owned(),
             };
             let pixels = shrimply_loading_screen::render(
                 self.canvas_size.width,

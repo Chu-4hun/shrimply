@@ -1,4 +1,5 @@
 use super::*;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 
 const CONTROLS_HIDE_DELAY: Duration = Duration::from_secs(3);
 const REVEAL_POINTER_THRESHOLD: f32 = 1.0;
@@ -450,9 +451,9 @@ fn toolbar_view_ancestor(widget: &gtk::Widget) -> Option<adw::ToolbarView> {
 fn set_fullscreen_button_mode(button: &gtk::Button, fullscreen: bool) {
     if fullscreen {
         button.set_icon_name(RESTORE_ICON);
-        button.set_tooltip_text(Some("Restore preview"));
+        button.set_tooltip_i18n("Restore preview");
     } else {
         button.set_icon_name(PREVIEW_FULLSCREEN_ICON);
-        button.set_tooltip_text(Some("Fullscreen preview"));
+        button.set_tooltip_i18n("Fullscreen preview");
     }
 }

@@ -1,4 +1,7 @@
 use super::*;
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nAlertDialogExt;
+use shrimply_ui_foundation::ui::I18nMenuExt;
 
 pub(super) fn add_caption_item_context_actions(
     menu: &gio::Menu,
@@ -10,7 +13,7 @@ pub(super) fn add_caption_item_context_actions(
     preferences: &preferences_store::SharedPreferences,
 ) {
     let section = gio::Menu::new();
-    section.append(Some("Generate Speech"), Some("timeline.generate-speech"));
+    section.append_i18n("Generate Speech", "timeline.generate-speech");
     menu.append_section(None, &section);
     add_menu_action(actions, "generate-speech", {
         let area = area.clone();
@@ -126,7 +129,7 @@ fn show_transcribe_dialog_with_models(
     let model_labels = model_ids.iter().map(String::as_str).collect::<Vec<_>>();
     let model_list = gtk::StringList::new(&model_labels);
     let model = adw::ComboRow::new();
-    model.set_title("Model");
+    model.set_title(tr!("Model").as_ref());
     model.set_model(Some(&model_list));
     let last_model = preferences_store::snapshot(&preferences).last_stt_model;
     model.set_selected(
@@ -137,21 +140,25 @@ fn show_transcribe_dialog_with_models(
     );
 
     let chunked = adw::SwitchRow::new();
-    chunked.set_title("Follow cuts");
+    chunked.set_title(tr!("Follow cuts").as_ref());
     chunked.set_active(true);
 
     let snap_source_labels = TRANSCRIPTION_SNAP_SOURCES
         .iter()
-        .map(|(_, label)| *label)
+        .map(|(_, label)| tr!(*label))
+        .collect::<Vec<_>>();
+    let snap_source_labels = snap_source_labels
+        .iter()
+        .map(|label| label.as_ref())
         .collect::<Vec<_>>();
     let snap_source_list = gtk::StringList::new(&snap_source_labels);
     let snap_source = adw::ComboRow::new();
-    snap_source.set_title("Snap source");
+    snap_source.set_title(tr!("Snap source").as_ref());
     snap_source.set_model(Some(&snap_source_list));
     snap_source.set_selected(0);
 
     let tolerance = adw::SpinRow::with_range(0.0, 2.0, 0.01);
-    tolerance.set_title("Snap tolerance");
+    tolerance.set_title(tr!("Snap tolerance").as_ref());
     tolerance.set_value(1.0);
     tolerance.set_digits(2);
     tolerance.set_tooltip_text(Some(
@@ -159,7 +166,7 @@ fn show_transcribe_dialog_with_models(
     ));
 
     let continue_threshold = adw::SpinRow::with_range(0.0, 10.0, 0.1);
-    continue_threshold.set_title("Continue cut threshold");
+    continue_threshold.set_title(tr!("Continue cut threshold").as_ref());
     continue_threshold.set_value(2.0);
     continue_threshold.set_digits(1);
     continue_threshold.set_tooltip_text(Some(
@@ -196,8 +203,15 @@ fn show_transcribe_dialog_with_models(
                 continuous_intervals((*chunk_intervals).clone())
             };
             let count = absorb_short_chunks(chunks, threshold).len();
-            let noun = if count == 1 { "chunk" } else { "chunks" };
-            chunk_count_label.set_label(&format!("{count} {noun} will be transcribed."));
+            let key = if count == 1 {
+                "%{count} chunk will be transcribed."
+            } else {
+                "%{count} chunks will be transcribed."
+            };
+            chunk_count_label.set_label(&shrimply_ui_foundation::i18n::text_args(
+                key,
+                &[("count", count.to_string())],
+            ));
         }
     };
     update_chunk_count();
@@ -223,10 +237,10 @@ fn show_transcribe_dialog_with_models(
     content.append(&chunk_count_label);
 
     let dialog = adw::AlertDialog::builder()
-        .heading("Transcribe")
+        .heading(tr!("Transcribe").as_ref())
         .extra_child(&content)
         .build();
-    dialog.add_responses(&[("cancel", "Cancel"), ("transcribe", "Transcribe")]);
+    dialog.add_responses_i18n(&[("cancel", "Cancel"), ("transcribe", "Transcribe")]);
     dialog.set_close_response("cancel");
     dialog.set_default_response(Some("transcribe"));
     dialog.set_response_appearance("transcribe", adw::ResponseAppearance::Suggested);
@@ -396,7 +410,7 @@ struct TranscriptionProgress {
 
 impl TranscriptionProgress {
     fn set_progress(&self, message: &str) {
-        self.progress_label.set_label(message);
+        self.progress_label.set_label(tr!(message).as_ref());
     }
 
     fn close(&self) {
@@ -419,7 +433,7 @@ fn show_transcription_progress(
     let spinner = adw::Spinner::new();
     spinner.set_halign(gtk::Align::Center);
     spinner.set_size_request(32, 32);
-    let progress_label = gtk::Label::new(Some("Sending request…"));
+    let progress_label = gtk::Label::new(Some(tr!("Sending request…").as_ref()));
     progress_label.set_halign(gtk::Align::Center);
     let model_label = gtk::Label::new(Some(model_id));
     model_label.set_halign(gtk::Align::Center);
@@ -431,10 +445,10 @@ fn show_transcription_progress(
     content.append(&progress_label);
 
     let dialog = adw::AlertDialog::builder()
-        .heading("Transcribing...")
+        .heading(tr!("Transcribing...").as_ref())
         .extra_child(&content)
         .build();
-    dialog.add_responses(&[("cancel", "Cancel")]);
+    dialog.add_responses_i18n(&[("cancel", "Cancel")]);
     dialog.set_close_response("cancel");
     let cancel_dialog = dialog.clone();
     let cancel_label = progress_label.clone();
@@ -444,7 +458,7 @@ fn show_transcription_progress(
         move |_| {
             cancelled.store(true, Ordering::Relaxed);
             cancel_dialog.set_response_enabled("cancel", false);
-            cancel_label.set_label("Cancelling…");
+            cancel_label.set_label(tr!("Cancelling…").as_ref());
             if let Some(cancellation) = active_job
                 .lock()
                 .expect("transcription active job poisoned")

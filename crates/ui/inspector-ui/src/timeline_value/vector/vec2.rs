@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::RefCell;
 use std::rc::Rc;
 use uuid::Uuid;
@@ -715,7 +716,7 @@ fn expression_output(
     label.add_css_class("numeric");
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     row.set_hexpand(true);
-    let title = gtk::Label::new(Some("Output"));
+    let title = gtk::Label::new(Some(tr!("Output").as_ref()));
     title.add_css_class("dim-label");
     title.set_xalign(0.0);
     row.append(&title);
@@ -816,7 +817,7 @@ fn update_expression_output(
             label.set_tooltip_text(Some(&error));
             let message = error.lines().next().unwrap_or_default().trim();
             if message.is_empty() {
-                label.set_text("Invalid expression");
+                label.set_text(tr!("Invalid expression").as_ref());
             } else {
                 label.set_text(&format!("Invalid expression: {message}"));
             }

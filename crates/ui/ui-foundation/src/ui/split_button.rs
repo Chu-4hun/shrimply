@@ -6,13 +6,15 @@ pub fn split_button(
     primary: impl Fn(&gtk::Widget) + 'static,
     secondary: impl Fn() + 'static,
 ) -> gtk::Widget {
+    let label = crate::i18n::text(label);
+    let secondary_label = crate::i18n::text(secondary_label);
     let secondary_button = gtk::Button::builder()
-        .label(secondary_label)
+        .label(secondary_label.as_ref())
         .css_classes(["flat"])
         .build();
     let popover = gtk::Popover::builder().child(&secondary_button).build();
     let button = adw::SplitButton::builder()
-        .label(label)
+        .label(label.as_ref())
         .popover(&popover)
         .build();
     button.connect_clicked(move |button| primary(button.upcast_ref()));

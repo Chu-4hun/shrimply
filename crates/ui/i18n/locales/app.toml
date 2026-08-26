@@ -1,0 +1,1170 @@
+_version = 2
+
+["A simple video editor"]
+en = "A simple video editor"
+es = "Un editor de vídeo sencillo"
+fr = "Un éditeur vidéo simple"
+de = "Ein einfacher Videoeditor"
+ja = "シンプルな動画エディター"
+
+["About Shrimply"]
+en = "About Shrimply"
+es = "Acerca de Shrimply"
+fr = "À propos de Shrimply"
+de = "Über Shrimply"
+ja = "Shrimply について"
+
+["Add Server"]
+en = "Add Server"
+es = "Añadir servidor"
+fr = "Ajouter un serveur"
+de = "Server hinzufügen"
+ja = "サーバーを追加"
+
+["Available"]
+en = "Available"
+es = "Disponible"
+fr = "Disponible"
+de = "Verfügbar"
+ja = "利用可能"
+
+["Background Color"]
+en = "Background Color"
+es = "Color de fondo"
+fr = "Couleur d’arrière-plan"
+de = "Hintergrundfarbe"
+ja = "背景色"
+
+["Black"]
+en = "Black"
+es = "Negro"
+fr = "Noir"
+de = "Schwarz"
+ja = "黒"
+
+["Blender Binary"]
+en = "Blender Binary"
+es = "Ejecutable de Blender"
+fr = "Exécutable Blender"
+de = "Blender-Programmdatei"
+ja = "Blender 実行ファイル"
+
+["Blender"]
+en = "Blender"
+es = "Blender"
+fr = "Blender"
+de = "Blender"
+ja = "Blender"
+
+["Blue"]
+en = "Blue"
+es = "Azul"
+fr = "Bleu"
+de = "Blau"
+ja = "青"
+
+["Brown"]
+en = "Brown"
+es = "Marrón"
+fr = "Marron"
+de = "Braun"
+ja = "茶"
+
+["Built with help from"]
+en = "Built with help from"
+es = "Creado con la ayuda de"
+fr = "Créé avec l’aide de"
+de = "Erstellt mit Hilfe von"
+ja = "協力"
+
+["Caption background color"]
+en = "Caption background color"
+es = "Color de fondo de los subtítulos"
+fr = "Couleur d’arrière-plan des sous-titres"
+de = "Hintergrundfarbe der Untertitel"
+ja = "字幕の背景色"
+
+["Captions"]
+en = "Captions"
+es = "Subtítulos"
+fr = "Sous-titres"
+de = "Untertitel"
+ja = "字幕"
+
+["CUDA"]
+en = "CUDA"
+es = "CUDA"
+fr = "CUDA"
+de = "CUDA"
+ja = "CUDA"
+
+["Checking server URL"]
+en = "Checking server URL"
+es = "Comprobando la URL del servidor"
+fr = "Vérification de l’URL du serveur"
+de = "Server-URL wird geprüft"
+ja = "サーバー URL を確認中"
+
+["Checking…"]
+en = "Checking…"
+es = "Comprobando…"
+fr = "Vérification…"
+de = "Wird geprüft…"
+ja = "確認中…"
+
+["Choose Blender Binary"]
+en = "Choose Blender Binary"
+es = "Elegir el ejecutable de Blender"
+fr = "Choisir l’exécutable Blender"
+de = "Blender-Programmdatei auswählen"
+ja = "Blender 実行ファイルを選択"
+
+["Clear Blender binary"]
+en = "Clear Blender binary"
+es = "Borrar el ejecutable de Blender"
+fr = "Effacer l’exécutable Blender"
+de = "Blender-Programmdatei entfernen"
+ja = "Blender 実行ファイルの設定を消去"
+
+["Clear History"]
+en = "Clear History"
+es = "Borrar historial"
+fr = "Effacer l’historique"
+de = "Verlauf löschen"
+ja = "履歴を消去"
+
+["Click to type, drag horizontally to adjust"]
+en = "Click to type, drag horizontally to adjust"
+es = "Haz clic para escribir o arrastra horizontalmente para ajustar"
+fr = "Cliquez pour saisir ou faites glisser horizontalement pour ajuster"
+de = "Zum Eingeben klicken oder zum Anpassen horizontal ziehen"
+ja = "クリックして入力、または横にドラッグして調整"
+
+["Compute"]
+en = "Compute"
+es = "Cómputo"
+fr = "Calcul"
+de = "Rechenleistung"
+ja = "コンピュート"
+
+["Confirm color"]
+en = "Confirm color"
+es = "Confirmar color"
+fr = "Confirmer la couleur"
+de = "Farbe bestätigen"
+ja = "色を確定"
+
+["Create Project"]
+en = "Create Project"
+es = "Crear proyecto"
+fr = "Créer un projet"
+de = "Projekt erstellen"
+ja = "プロジェクトを作成"
+
+["Cut selection"]
+en = "Cut selection"
+es = "Cortar selección"
+fr = "Couper la sélection"
+de = "Auswahl ausschneiden"
+ja = "選択範囲を切り取り"
+
+["Dark Blue"]
+en = "Dark Blue"
+es = "Azul oscuro"
+fr = "Bleu foncé"
+de = "Dunkelblau"
+ja = "濃い青"
+
+["Dark Brown"]
+en = "Dark Brown"
+es = "Marrón oscuro"
+fr = "Marron foncé"
+de = "Dunkelbraun"
+ja = "濃い茶"
+
+["Dark Gray 1"]
+en = "Dark Gray 1"
+es = "Gris oscuro 1"
+fr = "Gris foncé 1"
+de = "Dunkelgrau 1"
+ja = "濃いグレー 1"
+
+["Dark Gray 2"]
+en = "Dark Gray 2"
+es = "Gris oscuro 2"
+fr = "Gris foncé 2"
+de = "Dunkelgrau 2"
+ja = "濃いグレー 2"
+
+["Dark Gray 3"]
+en = "Dark Gray 3"
+es = "Gris oscuro 3"
+fr = "Gris foncé 3"
+de = "Dunkelgrau 3"
+ja = "濃いグレー 3"
+
+["Dark Gray 4"]
+en = "Dark Gray 4"
+es = "Gris oscuro 4"
+fr = "Gris foncé 4"
+de = "Dunkelgrau 4"
+ja = "濃いグレー 4"
+
+["Dark Green"]
+en = "Dark Green"
+es = "Verde oscuro"
+fr = "Vert foncé"
+de = "Dunkelgrün"
+ja = "濃い緑"
+
+["Dark Orange"]
+en = "Dark Orange"
+es = "Naranja oscuro"
+fr = "Orange foncé"
+de = "Dunkelorange"
+ja = "濃いオレンジ"
+
+["Dark Purple"]
+en = "Dark Purple"
+es = "Morado oscuro"
+fr = "Violet foncé"
+de = "Dunkelviolett"
+ja = "濃い紫"
+
+["Dark Red"]
+en = "Dark Red"
+es = "Rojo oscuro"
+fr = "Rouge foncé"
+de = "Dunkelrot"
+ja = "濃い赤"
+
+["Dark Yellow"]
+en = "Dark Yellow"
+es = "Amarillo oscuro"
+fr = "Jaune foncé"
+de = "Dunkelgelb"
+ja = "濃い黄"
+
+["Default Text Font"]
+en = "Default Text Font"
+es = "Fuente de texto predeterminada"
+fr = "Police de texte par défaut"
+de = "Standard-Textschrift"
+ja = "既定のテキストフォント"
+
+["Default Visual Duration"]
+en = "Default Visual Duration"
+es = "Duración visual predeterminada"
+fr = "Durée visuelle par défaut"
+de = "Standarddauer visueller Elemente"
+ja = "ビジュアルの既定の長さ"
+
+["Delete Server"]
+en = "Delete Server"
+es = "Eliminar servidor"
+fr = "Supprimer le serveur"
+de = "Server löschen"
+ja = "サーバーを削除"
+
+["Delete selection"]
+en = "Delete selection"
+es = "Eliminar selección"
+fr = "Supprimer la sélection"
+de = "Auswahl löschen"
+ja = "選択範囲を削除"
+
+["Device"]
+en = "Device"
+es = "Dispositivo"
+fr = "Périphérique"
+de = "Gerät"
+ja = "デバイス"
+
+["Distance in pixels for timeline, beat, and preview snapping"]
+en = "Distance in pixels for timeline, beat, and preview snapping"
+es = "Distancia en píxeles para el ajuste a la línea de tiempo, ritmos y vista previa"
+fr = "Distance en pixels pour l’alignement sur la timeline, les temps et l’aperçu"
+de = "Abstand in Pixeln zum Einrasten an Zeitleiste, Takten und Vorschau"
+ja = "タイムライン、ビート、プレビューのスナップ距離（ピクセル）"
+
+["Drop shadow extent around the video frame in pixels"]
+en = "Drop shadow extent around the video frame in pixels"
+es = "Extensión en píxeles de la sombra alrededor del fotograma"
+fr = "Étendue en pixels de l’ombre autour de l’image vidéo"
+de = "Ausdehnung des Schattens um das Videobild in Pixeln"
+ja = "動画フレーム周囲のドロップシャドウの大きさ（ピクセル）"
+
+["Edit Server"]
+en = "Edit Server"
+es = "Editar servidor"
+fr = "Modifier le serveur"
+de = "Server bearbeiten"
+ja = "サーバーを編集"
+
+["External"]
+en = "External"
+es = "Externo"
+fr = "Externe"
+de = "Extern"
+ja = "外部"
+
+["Features"]
+en = "Features"
+es = "Funciones"
+fr = "Fonctionnalités"
+de = "Funktionen"
+ja = "機能"
+
+["Fix typo: %{correction}"]
+en = "Fix typo: %{correction}"
+es = "Corregir error: %{correction}"
+fr = "Corriger la faute : %{correction}"
+de = "Tippfehler korrigieren: %{correction}"
+ja = "入力ミスを修正: %{correction}"
+
+["Font Size"]
+en = "Font Size"
+es = "Tamaño de fuente"
+fr = "Taille de police"
+de = "Schriftgröße"
+ja = "フォントサイズ"
+
+["General"]
+en = "General"
+es = "General"
+fr = "Général"
+de = "Allgemein"
+ja = "一般"
+
+["Green"]
+en = "Green"
+es = "Verde"
+fr = "Vert"
+de = "Grün"
+ja = "緑"
+
+["Height"]
+en = "Height"
+es = "Altura"
+fr = "Hauteur"
+de = "Höhe"
+ja = "高さ"
+
+["Hexadecimal color"]
+en = "Hexadecimal color"
+es = "Color hexadecimal"
+fr = "Couleur hexadécimale"
+de = "Hexadezimale Farbe"
+ja = "16 進数カラー"
+
+["History"]
+en = "History"
+es = "Historial"
+fr = "Historique"
+de = "Verlauf"
+ja = "履歴"
+
+["Image Pool CPU Budget"]
+en = "Image Pool CPU Budget"
+es = "Presupuesto de CPU para el grupo de imágenes"
+fr = "Budget CPU du cache d’images"
+de = "CPU-Budget des Bildpools"
+ja = "画像プールの CPU 予算"
+
+["Import Kdenlive as Shrimply Project"]
+en = "Import Kdenlive as Shrimply Project"
+es = "Importar Kdenlive como proyecto de Shrimply"
+fr = "Importer Kdenlive comme projet Shrimply"
+de = "Kdenlive als Shrimply-Projekt importieren"
+ja = "Kdenlive を Shrimply プロジェクトとして読み込む"
+
+["Import OTIO as Shrimply Project"]
+en = "Import OTIO as Shrimply Project"
+es = "Importar OTIO como proyecto de Shrimply"
+fr = "Importer OTIO comme projet Shrimply"
+de = "OTIO als Shrimply-Projekt importieren"
+ja = "OTIO を Shrimply プロジェクトとして読み込む"
+
+["Import"]
+en = "Import"
+es = "Importar"
+fr = "Importer"
+de = "Importieren"
+ja = "読み込む"
+
+["Inference Servers"]
+en = "Inference Servers"
+es = "Servidores de inferencia"
+fr = "Serveurs d’inférence"
+de = "Inferenzserver"
+ja = "推論サーバー"
+
+["Jobs"]
+en = "Jobs"
+es = "Tareas"
+fr = "Tâches"
+de = "Aufträge"
+ja = "ジョブ"
+
+["Kdenlive project imported with limitations"]
+en = "Kdenlive project imported with limitations"
+es = "Proyecto de Kdenlive importado con limitaciones"
+fr = "Projet Kdenlive importé avec des limitations"
+de = "Kdenlive-Projekt mit Einschränkungen importiert"
+ja = "Kdenlive プロジェクトは一部制限付きで読み込まれました"
+
+["Keyboard Shortcuts"]
+en = "Keyboard Shortcuts"
+es = "Atajos de teclado"
+fr = "Raccourcis clavier"
+de = "Tastenkürzel"
+ja = "キーボードショートカット"
+
+["Last edited %{date}"]
+en = "Last edited %{date}"
+es = "Última edición: %{date}"
+fr = "Dernière modification : %{date}"
+de = "Zuletzt bearbeitet: %{date}"
+ja = "最終編集: %{date}"
+
+["Last edited time unavailable"]
+en = "Last edited time unavailable"
+es = "Hora de la última edición no disponible"
+fr = "Heure de dernière modification indisponible"
+de = "Zeit der letzten Bearbeitung nicht verfügbar"
+ja = "最終編集日時を取得できません"
+
+["Light Blue"]
+en = "Light Blue"
+es = "Azul claro"
+fr = "Bleu clair"
+de = "Hellblau"
+ja = "明るい青"
+
+["Light Brown"]
+en = "Light Brown"
+es = "Marrón claro"
+fr = "Marron clair"
+de = "Hellbraun"
+ja = "明るい茶"
+
+["Light Gray 1"]
+en = "Light Gray 1"
+es = "Gris claro 1"
+fr = "Gris clair 1"
+de = "Hellgrau 1"
+ja = "明るいグレー 1"
+
+["Light Gray 2"]
+en = "Light Gray 2"
+es = "Gris claro 2"
+fr = "Gris clair 2"
+de = "Hellgrau 2"
+ja = "明るいグレー 2"
+
+["Light Gray 3"]
+en = "Light Gray 3"
+es = "Gris claro 3"
+fr = "Gris clair 3"
+de = "Hellgrau 3"
+ja = "明るいグレー 3"
+
+["Light Gray 4"]
+en = "Light Gray 4"
+es = "Gris claro 4"
+fr = "Gris clair 4"
+de = "Hellgrau 4"
+ja = "明るいグレー 4"
+
+["Light Green"]
+en = "Light Green"
+es = "Verde claro"
+fr = "Vert clair"
+de = "Hellgrün"
+ja = "明るい緑"
+
+["Light Orange"]
+en = "Light Orange"
+es = "Naranja claro"
+fr = "Orange clair"
+de = "Hellorange"
+ja = "明るいオレンジ"
+
+["Light Purple"]
+en = "Light Purple"
+es = "Morado claro"
+fr = "Violet clair"
+de = "Hellviolett"
+ja = "明るい紫"
+
+["Light Red"]
+en = "Light Red"
+es = "Rojo claro"
+fr = "Rouge clair"
+de = "Hellrot"
+ja = "明るい赤"
+
+["Light Yellow"]
+en = "Light Yellow"
+es = "Amarillo claro"
+fr = "Jaune clair"
+de = "Hellgelb"
+ja = "明るい黄"
+
+["Loading project…"]
+en = "Loading project…"
+es = "Cargando proyecto…"
+fr = "Chargement du projet…"
+de = "Projekt wird geladen…"
+ja = "プロジェクトを読み込み中…"
+
+["Lock ratio"]
+en = "Lock ratio"
+es = "Bloquear proporción"
+fr = "Verrouiller les proportions"
+de = "Seitenverhältnis sperren"
+ja = "縦横比を固定"
+
+["Maximum number of active video decoder sessions"]
+en = "Maximum number of active video decoder sessions"
+es = "Número máximo de sesiones activas del decodificador de vídeo"
+fr = "Nombre maximal de sessions actives de décodage vidéo"
+de = "Maximale Anzahl aktiver Videodecoder-Sitzungen"
+ja = "有効な動画デコーダーセッションの最大数"
+
+["New Project"]
+en = "New Project"
+es = "Nuevo proyecto"
+fr = "Nouveau projet"
+de = "Neues Projekt"
+ja = "新規プロジェクト"
+
+["No Matching Projects"]
+en = "No Matching Projects"
+es = "No hay proyectos coincidentes"
+fr = "Aucun projet correspondant"
+de = "Keine passenden Projekte"
+ja = "一致するプロジェクトはありません"
+
+["No Recent Projects"]
+en = "No Recent Projects"
+es = "No hay proyectos recientes"
+fr = "Aucun projet récent"
+de = "Keine kürzlich verwendeten Projekte"
+ja = "最近使ったプロジェクトはありません"
+
+["Not configured"]
+en = "Not configured"
+es = "Sin configurar"
+fr = "Non configuré"
+de = "Nicht konfiguriert"
+ja = "未設定"
+
+["OTIO Project Settings"]
+en = "OTIO Project Settings"
+es = "Ajustes del proyecto OTIO"
+fr = "Paramètres du projet OTIO"
+de = "OTIO-Projekteinstellungen"
+ja = "OTIO プロジェクト設定"
+
+["OTIO does not include the Kdenlive project profile."]
+en = "OTIO does not include the Kdenlive project profile."
+es = "OTIO no incluye el perfil del proyecto de Kdenlive."
+fr = "OTIO n’inclut pas le profil du projet Kdenlive."
+de = "OTIO enthält das Kdenlive-Projektprofil nicht."
+ja = "OTIO には Kdenlive のプロジェクトプロファイルが含まれていません。"
+
+["OTIO imported with limitations"]
+en = "OTIO imported with limitations"
+es = "OTIO importado con limitaciones"
+fr = "OTIO importé avec des limitations"
+de = "OTIO mit Einschränkungen importiert"
+ja = "OTIO は一部制限付きで読み込まれました"
+
+["Open Project"]
+en = "Open Project"
+es = "Abrir proyecto"
+fr = "Ouvrir un projet"
+de = "Projekt öffnen"
+ja = "プロジェクトを開く"
+
+["Open Project…"]
+en = "Open Project…"
+es = "Abrir proyecto…"
+fr = "Ouvrir un projet…"
+de = "Projekt öffnen…"
+ja = "プロジェクトを開く…"
+
+["Open the GTK color picker"]
+en = "Open the GTK color picker"
+es = "Abrir el selector de color de GTK"
+fr = "Ouvrir le sélecteur de couleur GTK"
+de = "GTK-Farbauswahl öffnen"
+ja = "GTK カラーピッカーを開く"
+
+["Orange"]
+en = "Orange"
+es = "Naranja"
+fr = "Orange"
+de = "Orange"
+ja = "オレンジ"
+
+["Pick a color from the screen"]
+en = "Pick a color from the screen"
+es = "Elegir un color de la pantalla"
+fr = "Choisir une couleur à l’écran"
+de = "Farbe vom Bildschirm auswählen"
+ja = "画面から色を選択"
+
+["Play / Pause"]
+en = "Play / Pause"
+es = "Reproducir / Pausar"
+fr = "Lecture / Pause"
+de = "Wiedergabe / Pause"
+ja = "再生 / 一時停止"
+
+["Preferences"]
+en = "Preferences"
+es = "Preferencias"
+fr = "Préférences"
+de = "Einstellungen"
+ja = "設定"
+
+["Preview"]
+en = "Preview"
+es = "Vista previa"
+fr = "Aperçu"
+de = "Vorschau"
+ja = "プレビュー"
+
+["Project Name"]
+en = "Project Name"
+es = "Nombre del proyecto"
+fr = "Nom du projet"
+de = "Projektname"
+ja = "プロジェクト名"
+
+["Project Settings"]
+en = "Project Settings"
+es = "Ajustes del proyecto"
+fr = "Paramètres du projet"
+de = "Projekteinstellungen"
+ja = "プロジェクト設定"
+
+["Project options"]
+en = "Project options"
+es = "Opciones del proyecto"
+fr = "Options du projet"
+de = "Projektoptionen"
+ja = "プロジェクトオプション"
+
+["Project saved to the new location"]
+en = "Project saved to the new location"
+es = "Proyecto guardado en la nueva ubicación"
+fr = "Projet enregistré au nouvel emplacement"
+de = "Projekt am neuen Speicherort gespeichert"
+ja = "プロジェクトを新しい場所に保存しました"
+
+["Protocol"]
+en = "Protocol"
+es = "Protocolo"
+fr = "Protocole"
+de = "Protokoll"
+ja = "プロトコル"
+
+["Purple"]
+en = "Purple"
+es = "Morado"
+fr = "Violet"
+de = "Violett"
+ja = "紫"
+
+["Reading and converting Kdenlive timeline…"]
+en = "Reading and converting Kdenlive timeline…"
+es = "Leyendo y convirtiendo la línea de tiempo de Kdenlive…"
+fr = "Lecture et conversion de la timeline Kdenlive…"
+de = "Kdenlive-Zeitleiste wird gelesen und konvertiert…"
+ja = "Kdenlive タイムラインを読み込んで変換中…"
+
+["Recent"]
+en = "Recent"
+es = "Recientes"
+fr = "Récentes"
+de = "Zuletzt verwendet"
+ja = "最近使った色"
+
+["Red"]
+en = "Red"
+es = "Rojo"
+fr = "Rouge"
+de = "Rot"
+ja = "赤"
+
+["Redo"]
+en = "Redo"
+es = "Rehacer"
+fr = "Rétablir"
+de = "Wiederholen"
+ja = "やり直す"
+
+["Replace selected item properties"]
+en = "Replace selected item properties"
+es = "Reemplazar las propiedades del elemento seleccionado"
+fr = "Remplacer les propriétés de l’élément sélectionné"
+de = "Eigenschaften des ausgewählten Elements ersetzen"
+ja = "選択項目のプロパティを置き換え"
+
+["Reserved memory"]
+en = "Reserved memory"
+es = "Memoria reservada"
+fr = "Mémoire réservée"
+de = "Reservierter Speicher"
+ja = "予約済みメモリ"
+
+["Retry"]
+en = "Retry"
+es = "Reintentar"
+fr = "Réessayer"
+de = "Erneut versuchen"
+ja = "再試行"
+
+["Ripple cut"]
+en = "Ripple cut"
+es = "Corte con desplazamiento"
+fr = "Coupe avec raccord"
+de = "Ripple-Schnitt"
+ja = "リップルカット"
+
+["Ripple trim selected clip to playhead"]
+en = "Ripple trim selected clip to playhead"
+es = "Recortar con desplazamiento el clip seleccionado hasta el cabezal"
+fr = "Rogner avec raccord le clip sélectionné jusqu’à la tête de lecture"
+de = "Ausgewählten Clip per Ripple-Trim bis zum Abspielkopf kürzen"
+ja = "選択したクリップを再生ヘッドまでリップルトリム"
+
+["Saturation and value"]
+en = "Saturation and value"
+es = "Saturación y valor"
+fr = "Saturation et valeur"
+de = "Sättigung und Helligkeit"
+ja = "彩度と明度"
+
+["Save As"]
+en = "Save As"
+es = "Guardar como"
+fr = "Enregistrer sous"
+de = "Speichern unter"
+ja = "名前を付けて保存"
+
+["Save As…"]
+en = "Save As…"
+es = "Guardar como…"
+fr = "Enregistrer sous…"
+de = "Speichern unter…"
+ja = "名前を付けて保存…"
+
+["Save Project As"]
+en = "Save Project As"
+es = "Guardar proyecto como"
+fr = "Enregistrer le projet sous"
+de = "Projekt speichern unter"
+ja = "プロジェクトに名前を付けて保存"
+
+["Save"]
+en = "Save"
+es = "Guardar"
+fr = "Enregistrer"
+de = "Speichern"
+ja = "保存"
+
+["Search history"]
+en = "Search history"
+es = "Buscar en el historial"
+fr = "Rechercher dans l’historique"
+de = "Verlauf durchsuchen"
+ja = "履歴を検索"
+
+["Select color"]
+en = "Select color"
+es = "Seleccionar color"
+fr = "Sélectionner une couleur"
+de = "Farbe auswählen"
+ja = "色を選択"
+
+["Selected Server"]
+en = "Selected Server"
+es = "Servidor seleccionado"
+fr = "Serveur sélectionné"
+de = "Ausgewählter Server"
+ja = "選択中のサーバー"
+
+["Server URL"]
+en = "Server URL"
+es = "URL del servidor"
+fr = "URL du serveur"
+de = "Server-URL"
+ja = "サーバー URL"
+
+["Server does not support device selection"]
+en = "Server does not support device selection"
+es = "El servidor no admite la selección de dispositivo"
+fr = "Le serveur ne permet pas de sélectionner le périphérique"
+de = "Der Server unterstützt keine Geräteauswahl"
+ja = "このサーバーはデバイス選択に対応していません"
+
+["Server menu"]
+en = "Server menu"
+es = "Menú del servidor"
+fr = "Menu du serveur"
+de = "Servermenü"
+ja = "サーバーメニュー"
+
+["Shadow Size"]
+en = "Shadow Size"
+es = "Tamaño de la sombra"
+fr = "Taille de l’ombre"
+de = "Schattengröße"
+ja = "影のサイズ"
+
+["Show Keyboard Shortcuts"]
+en = "Show Keyboard Shortcuts"
+es = "Mostrar atajos de teclado"
+fr = "Afficher les raccourcis clavier"
+de = "Tastenkürzel anzeigen"
+ja = "キーボードショートカットを表示"
+
+["Show in Files"]
+en = "Show in Files"
+es = "Mostrar en Archivos"
+fr = "Afficher dans Fichiers"
+de = "In Dateien anzeigen"
+ja = "ファイルで表示"
+
+["Shrimply projects"]
+en = "Shrimply projects"
+es = "Proyectos de Shrimply"
+fr = "Projets Shrimply"
+de = "Shrimply-Projekte"
+ja = "Shrimply プロジェクト"
+
+["Snap Attraction Radius"]
+en = "Snap Attraction Radius"
+es = "Radio de atracción del ajuste"
+fr = "Rayon d’attraction de l’alignement"
+de = "Einrastradius"
+ja = "スナップ吸着範囲"
+
+["Space around the video frame in pixels"]
+en = "Space around the video frame in pixels"
+es = "Espacio en píxeles alrededor del fotograma"
+fr = "Espace en pixels autour de l’image vidéo"
+de = "Abstand um das Videobild in Pixeln"
+ja = "動画フレーム周囲の余白（ピクセル）"
+
+["Split all clips and select left"]
+en = "Split all clips and select left"
+es = "Dividir todos los clips y seleccionar la parte izquierda"
+fr = "Scinder tous les clips et sélectionner la partie gauche"
+de = "Alle Clips teilen und die linke Seite auswählen"
+ja = "すべてのクリップを分割して左側を選択"
+
+["Split all clips at playhead"]
+en = "Split all clips at playhead"
+es = "Dividir todos los clips en el cabezal"
+fr = "Scinder tous les clips à la tête de lecture"
+de = "Alle Clips am Abspielkopf teilen"
+ja = "再生ヘッド位置ですべてのクリップを分割"
+
+["Static image cache in system RAM (GiB)"]
+en = "Static image cache in system RAM (GiB)"
+es = "Caché de imágenes estáticas en la RAM del sistema (GiB)"
+fr = "Cache d’images statiques dans la RAM système (GiB)"
+de = "Cache für statische Bilder im System-RAM (GiB)"
+ja = "システム RAM 内の静止画キャッシュ（GiB）"
+
+["Step playback"]
+en = "Step playback"
+es = "Avanzar la reproducción"
+fr = "Avancer la lecture"
+de = "Wiedergabe schrittweise vorspulen"
+ja = "再生を一段階進める"
+
+["Stop Other Editor"]
+en = "Stop Other Editor"
+es = "Detener el otro editor"
+fr = "Arrêter l’autre éditeur"
+de = "Anderen Editor beenden"
+ja = "別のエディターを停止"
+
+["Temporal Decoder Pool Size"]
+en = "Temporal Decoder Pool Size"
+es = "Tamaño del grupo de decodificadores temporales"
+fr = "Taille du groupe de décodeurs temporels"
+de = "Größe des temporalen Decoder-Pools"
+ja = "時間デコーダープールのサイズ"
+
+["Timeline"]
+en = "Timeline"
+es = "Línea de tiempo"
+fr = "Timeline"
+de = "Zeitleiste"
+ja = "タイムライン"
+
+["Toggle Inspector"]
+en = "Toggle Inspector"
+es = "Mostrar u ocultar el inspector"
+fr = "Afficher ou masquer l’inspecteur"
+de = "Inspektor ein-/ausblenden"
+ja = "インスペクターの表示を切り替え"
+
+["Toggle Timeline"]
+en = "Toggle Timeline"
+es = "Mostrar u ocultar la línea de tiempo"
+fr = "Afficher ou masquer la timeline"
+de = "Zeitleiste ein-/ausblenden"
+ja = "タイムラインの表示を切り替え"
+
+["Toggle timeline zoom"]
+en = "Toggle timeline zoom"
+es = "Alternar el zoom de la línea de tiempo"
+fr = "Basculer le zoom de la timeline"
+de = "Zeitleistenzoom umschalten"
+ja = "タイムラインのズームを切り替え"
+
+["Torch"]
+en = "Torch"
+es = "Torch"
+fr = "Torch"
+de = "Torch"
+ja = "Torch"
+
+["Unavailable"]
+en = "Unavailable"
+es = "No disponible"
+fr = "Indisponible"
+de = "Nicht verfügbar"
+ja = "利用不可"
+
+["Undo"]
+en = "Undo"
+es = "Deshacer"
+fr = "Annuler"
+de = "Rückgängig"
+ja = "元に戻す"
+
+["Untitled Project"]
+en = "Untitled Project"
+es = "Proyecto sin título"
+fr = "Projet sans titre"
+de = "Unbenanntes Projekt"
+ja = "名称未設定のプロジェクト"
+
+["Use this server"]
+en = "Use this server"
+es = "Usar este servidor"
+fr = "Utiliser ce serveur"
+de = "Diesen Server verwenden"
+ja = "このサーバーを使用"
+
+["Validating imported project…"]
+en = "Validating imported project…"
+es = "Validando el proyecto importado…"
+fr = "Validation du projet importé…"
+de = "Importiertes Projekt wird geprüft…"
+ja = "読み込んだプロジェクトを検証中…"
+
+["Version %{version}"]
+en = "Version %{version}"
+es = "Versión %{version}"
+fr = "Version %{version}"
+de = "Version %{version}"
+ja = "バージョン %{version}"
+
+["Very Dark Blue"]
+en = "Very Dark Blue"
+es = "Azul muy oscuro"
+fr = "Bleu très foncé"
+de = "Sehr dunkles Blau"
+ja = "ごく濃い青"
+
+["Very Dark Brown"]
+en = "Very Dark Brown"
+es = "Marrón muy oscuro"
+fr = "Marron très foncé"
+de = "Sehr dunkles Braun"
+ja = "ごく濃い茶"
+
+["Very Dark Green"]
+en = "Very Dark Green"
+es = "Verde muy oscuro"
+fr = "Vert très foncé"
+de = "Sehr dunkles Grün"
+ja = "ごく濃い緑"
+
+["Very Dark Orange"]
+en = "Very Dark Orange"
+es = "Naranja muy oscuro"
+fr = "Orange très foncé"
+de = "Sehr dunkles Orange"
+ja = "ごく濃いオレンジ"
+
+["Very Dark Purple"]
+en = "Very Dark Purple"
+es = "Morado muy oscuro"
+fr = "Violet très foncé"
+de = "Sehr dunkles Violett"
+ja = "ごく濃い紫"
+
+["Very Dark Red"]
+en = "Very Dark Red"
+es = "Rojo muy oscuro"
+fr = "Rouge très foncé"
+de = "Sehr dunkles Rot"
+ja = "ごく濃い赤"
+
+["Very Dark Yellow"]
+en = "Very Dark Yellow"
+es = "Amarillo muy oscuro"
+fr = "Jaune très foncé"
+de = "Sehr dunkles Gelb"
+ja = "ごく濃い黄"
+
+["Very Light Blue"]
+en = "Very Light Blue"
+es = "Azul muy claro"
+fr = "Bleu très clair"
+de = "Sehr helles Blau"
+ja = "ごく明るい青"
+
+["Very Light Brown"]
+en = "Very Light Brown"
+es = "Marrón muy claro"
+fr = "Marron très clair"
+de = "Sehr helles Braun"
+ja = "ごく明るい茶"
+
+["Very Light Green"]
+en = "Very Light Green"
+es = "Verde muy claro"
+fr = "Vert très clair"
+de = "Sehr helles Grün"
+ja = "ごく明るい緑"
+
+["Very Light Orange"]
+en = "Very Light Orange"
+es = "Naranja muy claro"
+fr = "Orange très clair"
+de = "Sehr helles Orange"
+ja = "ごく明るいオレンジ"
+
+["Very Light Purple"]
+en = "Very Light Purple"
+es = "Morado muy claro"
+fr = "Violet très clair"
+de = "Sehr helles Violett"
+ja = "ごく明るい紫"
+
+["Very Light Red"]
+en = "Very Light Red"
+es = "Rojo muy claro"
+fr = "Rouge très clair"
+de = "Sehr helles Rot"
+ja = "ごく明るい赤"
+
+["Very Light Yellow"]
+en = "Very Light Yellow"
+es = "Amarillo muy claro"
+fr = "Jaune très clair"
+de = "Sehr helles Gelb"
+ja = "ごく明るい黄"
+
+["White"]
+en = "White"
+es = "Blanco"
+fr = "Blanc"
+de = "Weiß"
+ja = "白"
+
+["Workers"]
+en = "Workers"
+es = "Procesos de trabajo"
+fr = "Processus de travail"
+de = "Worker"
+ja = "ワーカー"
+
+["Writing Shrimply project…"]
+en = "Writing Shrimply project…"
+es = "Escribiendo el proyecto de Shrimply…"
+fr = "Écriture du projet Shrimply…"
+de = "Shrimply-Projekt wird geschrieben…"
+ja = "Shrimply プロジェクトを書き込み中…"
+
+["Yellow"]
+en = "Yellow"
+es = "Amarillo"
+fr = "Jaune"
+de = "Gelb"
+ja = "黄"
+
+["%{project} — %{action}"]
+en = "%{project} — %{action}"
+es = "%{project} — %{action}"
+fr = "%{project} — %{action}"
+de = "%{project} — %{action}"
+ja = "%{project} — %{action}"
+
+["%{project} — Saving"]
+en = "%{project} — Saving"
+es = "%{project} — Guardando"
+fr = "%{project} — Enregistrement"
+de = "%{project} — Wird gespeichert"
+ja = "%{project} — 保存中"
+
+["%{project} — Unsaved"]
+en = "%{project} — Unsaved"
+es = "%{project} — Sin guardar"
+fr = "%{project} — Non enregistré"
+de = "%{project} — Ungespeichert"
+ja = "%{project} — 未保存"
+
+["%{project} — Unsaved — Save failed"]
+en = "%{project} — Unsaved — Save failed"
+es = "%{project} — Sin guardar — Error al guardar"
+fr = "%{project} — Non enregistré — Échec de l’enregistrement"
+de = "%{project} — Ungespeichert — Speichern fehlgeschlagen"
+ja = "%{project} — 未保存 — 保存に失敗"
+
+["%{runtime} · Available"]
+en = "%{runtime} · Available"
+es = "%{runtime} · Disponible"
+fr = "%{runtime} · Disponible"
+de = "%{runtime} · Verfügbar"
+ja = "%{runtime} · 利用可能"
+
+["%{queued} queued · %{active} active"]
+en = "%{queued} queued · %{active} active"
+es = "%{queued} en cola · %{active} activas"
+fr = "%{queued} en attente · %{active} actives"
+de = "%{queued} in Warteschlange · %{active} aktiv"
+ja = "待機中 %{queued} · 実行中 %{active}"
+
+["Project is in use"]
+en = "Project is in use"
+es = "El proyecto está en uso"
+fr = "Le projet est en cours d’utilisation"
+de = "Das Projekt wird verwendet"
+ja = "プロジェクトは使用中です"
+
+["Shrimply"]
+en = "Shrimply"
+es = "Shrimply"
+fr = "Shrimply"
+de = "Shrimply"
+ja = "Shrimply"
+
+["—"]
+en = "—"
+es = "—"
+fr = "—"
+de = "—"
+ja = "—"

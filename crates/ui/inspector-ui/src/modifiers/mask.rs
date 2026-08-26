@@ -1,5 +1,6 @@
 use gtk::prelude::*;
 use shrimply_project::project::Project;
+use shrimply_ui_foundation::tr;
 use shrimply_video_modifiers::{ModifierEffect, RasterModifierEffect, mask::MaskModifier};
 use uuid::Uuid;
 
@@ -11,17 +12,18 @@ use crate::{
 
 pub fn add_rows(value: &MaskModifier, out: &gtk::Box, id: Uuid, context: &InspectorContext) {
     let source = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+    let item_label = if value.item_id.is_some() {
+        mask_item_label(
+            &context.project.borrow(),
+            context.selected_item.as_ref(),
+            value.item_id,
+        )
+    } else {
+        tr!("Drag onto a visual clip…").into_owned()
+    };
     let pick = gtk::Button::builder()
-        .label(if value.item_id.is_some() {
-            mask_item_label(
-                &context.project.borrow(),
-                context.selected_item.as_ref(),
-                value.item_id,
-            )
-        } else {
-            "Drag onto a visual clip…".to_string()
-        })
-        .tooltip_text("Drag onto a visual clip in the timeline")
+        .label(&item_label)
+        .tooltip_text(tr!("Drag onto a visual clip in the timeline").as_ref())
         .hexpand(true)
         .build();
     let drag = gtk::DragSource::builder()
@@ -36,7 +38,7 @@ pub fn add_rows(value: &MaskModifier, out: &gtk::Box, id: Uuid, context: &Inspec
     source.append(&pick);
     let clear = gtk::Button::builder()
         .icon_name("edit-clear-symbolic")
-        .tooltip_text("Clear mask source")
+        .tooltip_text(tr!("Clear mask source").as_ref())
         .sensitive(value.item_id.is_some())
         .build();
     clear.connect_clicked({
@@ -159,7 +161,15 @@ fn mask_item_label(
                 .items
                 .iter()
                 .position(|item| item.id == id)
-                .map(|item_index| format!("Track {} · Item {}", track_index + 1, item_index + 1))
+                .map(|item_index| {
+                    shrimply_ui_foundation::i18n::text_args(
+                        "Track %{track} · Item %{item}",
+                        &[
+                            ("track", (track_index + 1).to_string()),
+                            ("item", (item_index + 1).to_string()),
+                        ],
+                    )
+                })
         })
         .unwrap_or_else(|| "Missing item".to_string())
 }

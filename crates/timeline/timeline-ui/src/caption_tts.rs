@@ -1,4 +1,5 @@
 use hashbrown::HashSet;
+use shrimply_ui_foundation::tr;
 use std::cell::RefCell;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -170,7 +171,9 @@ pub(super) fn show_dialog(
             )
         }
     );
-    let generate = adw::ButtonRow::builder().title("Generate Speech").build();
+    let generate = adw::ButtonRow::builder()
+        .title(tr!("Generate Speech").as_ref())
+        .build();
     generate.add_css_class("suggested-action");
     let action_group = adw::PreferencesGroup::builder()
         .description(&summary)
@@ -188,7 +191,7 @@ pub(super) fn show_dialog(
     group.add(&content);
     page.add(&group);
     let dialog = adw::PreferencesDialog::builder()
-        .title("Generate Speech")
+        .title(tr!("Generate Speech").as_ref())
         .search_enabled(false)
         .content_width(DIALOG_WIDTH)
         .content_height(DIALOG_HEIGHT)
@@ -560,11 +563,18 @@ struct ProgressDialog {
 
 impl ProgressDialog {
     fn set_status(&self, status: &str) {
-        self.chunk.set_label(status);
+        self.chunk.set_label(tr!(status).as_ref());
     }
 
     fn set(&self, current: usize, total: usize, preview: &str) {
-        self.chunk.set_label(&format!("Chunk {current}/{total}"));
+        self.chunk
+            .set_label(&shrimply_ui_foundation::i18n::text_args(
+                "Chunk %{current}/%{total}",
+                &[
+                    ("current", current.to_string()),
+                    ("total", total.to_string()),
+                ],
+            ));
         self.preview.set_label(preview);
     }
 
@@ -586,7 +596,7 @@ fn show_progress(
     let spinner = adw::Spinner::new();
     spinner.set_halign(gtk::Align::Center);
     spinner.set_size_request(32, 32);
-    let chunk = gtk::Label::new(Some("Sending request…"));
+    let chunk = gtk::Label::new(Some(tr!("Sending request…").as_ref()));
     let preview = gtk::Label::new(None);
     preview.add_css_class("dim-label");
     preview.set_ellipsize(gtk::pango::EllipsizeMode::End);
@@ -594,10 +604,10 @@ fn show_progress(
     content.append(&chunk);
     content.append(&preview);
     let dialog = adw::AlertDialog::builder()
-        .heading("Generating Speech…")
+        .heading(tr!("Generating Speech…").as_ref())
         .extra_child(&content)
         .build();
-    dialog.add_response("cancel", "Cancel");
+    dialog.add_response("cancel", tr!("Cancel").as_ref());
     dialog.set_close_response("cancel");
     let cancel_dialog = dialog.clone();
     let cancel_chunk = chunk.clone();
@@ -607,7 +617,7 @@ fn show_progress(
         move |_| {
             cancelled.store(true, Ordering::Relaxed);
             cancel_dialog.set_response_enabled("cancel", false);
-            cancel_chunk.set_label("Cancelling…");
+            cancel_chunk.set_label(tr!("Cancelling…").as_ref());
             if let Some(cancellation) = active_job
                 .lock()
                 .expect("caption TTS active job poisoned")

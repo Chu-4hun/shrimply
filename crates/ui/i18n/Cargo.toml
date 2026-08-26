@@ -1,0 +1,8 @@
+[package]
+name = "shrimply-i18n"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glib.workspace = true
+rust-i18n.workspace = true

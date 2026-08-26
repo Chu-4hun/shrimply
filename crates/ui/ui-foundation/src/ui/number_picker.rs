@@ -240,7 +240,9 @@ impl NumberPickerBuilder {
         let display = gtk::Button::new();
         display.set_hexpand(true);
         display.set_width_request(width_chars * 12);
-        display.set_tooltip_text(Some("Click to type, drag horizontally to adjust"));
+        display.set_tooltip_text(Some(
+            crate::i18n::text("Click to type, drag horizontally to adjust").as_ref(),
+        ));
         display.set_cursor_from_name(Some("ew-resize"));
 
         let display_content = gtk::Box::new(gtk::Orientation::Horizontal, 4);
@@ -839,7 +841,7 @@ impl Number2PickerBuilder {
 
         let lock = gtk::ToggleButton::new();
         lock.set_icon_name("padlock2-symbolic");
-        lock.set_tooltip_text(Some("Lock ratio"));
+        lock.set_tooltip_text(Some(crate::i18n::text("Lock ratio").as_ref()));
         lock.set_valign(gtk::Align::Center);
         lock.set_active(true);
         lock.add_css_class("flat");
@@ -1019,7 +1021,7 @@ impl Number3PickerBuilder {
         let lock = self.enable_lock.then(|| {
             let button = gtk::ToggleButton::new();
             button.set_icon_name("padlock2-symbolic");
-            button.set_tooltip_text(Some("Lock ratio"));
+            button.set_tooltip_text(Some(crate::i18n::text("Lock ratio").as_ref()));
             button.set_valign(gtk::Align::Center);
             button.set_active(true);
             button.add_css_class("flat");

@@ -1,4 +1,9 @@
 use super::*;
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nAlertDialogExt;
+use shrimply_ui_foundation::ui::I18nFileFilterExt;
+use shrimply_ui_foundation::ui::I18nMenuExt;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 
 mod folded_items;
 mod folded_tracks;
@@ -96,11 +101,11 @@ pub(super) fn show_timeline_item_context_menu(
     }
 
     let menu = gio::Menu::new();
-    let copy = gio::MenuItem::new(Some("Copy"), Some("timeline.copy"));
+    let copy = shrimply_ui_foundation::ui::menu_item_i18n("Copy", "timeline.copy");
     copy.set_icon(&gio::ThemedIcon::new("edit-copy-symbolic"));
     menu.append_item(&copy);
-    menu.append(Some("Cut"), Some("timeline.cut"));
-    let paste = gio::MenuItem::new(Some("Paste"), Some("timeline.paste"));
+    menu.append_i18n("Cut", "timeline.cut");
+    let paste = shrimply_ui_foundation::ui::menu_item_i18n("Paste", "timeline.paste");
     paste.set_icon(&gio::ThemedIcon::new("edit-paste-symbolic"));
     menu.append_item(&paste);
     let property_targets = {
@@ -118,16 +123,13 @@ pub(super) fn show_timeline_item_context_menu(
     };
     if matches!(hit.kind, TrackKind::Video | TrackKind::Audio) {
         let property_section = gio::Menu::new();
-        property_section.append(
-            Some("Replace Properties"),
-            Some("timeline.replace-properties"),
-        );
-        property_section.append(Some("Paste Modifiers"), Some("timeline.paste-modifiers"));
+        property_section.append_i18n("Replace Properties", "timeline.replace-properties");
+        property_section.append_i18n("Paste Modifiers", "timeline.paste-modifiers");
         menu.append_section(None, &property_section);
     }
     if path.is_some() {
         let file_section = gio::Menu::new();
-        file_section.append(Some("Show in Folder"), Some("timeline.show-folder"));
+        file_section.append_i18n("Show in Folder", "timeline.show-folder");
         menu.append_section(None, &file_section);
     }
     let foldable = {
@@ -144,20 +146,14 @@ pub(super) fn show_timeline_item_context_menu(
     if foldable || folder.is_some() {
         let section = gio::Menu::new();
         if foldable {
-            section.append(Some("Fold Sequence"), Some("timeline.fold-sequence"));
+            section.append_i18n("Fold Sequence", "timeline.fold-sequence");
         }
         if unlinkable_folder {
-            section.append(Some("Unlink Folder"), Some("timeline.unlink-folder"));
+            section.append_i18n("Unlink Folder", "timeline.unlink-folder");
         }
         if folder.is_some() {
-            section.append(
-                Some("Add Track at Top"),
-                Some("timeline.add-folder-track-top"),
-            );
-            section.append(
-                Some("Add Track at Bottom"),
-                Some("timeline.add-folder-track-bottom"),
-            );
+            section.append_i18n("Add Track at Top", "timeline.add-folder-track-top");
+            section.append_i18n("Add Track at Bottom", "timeline.add-folder-track-bottom");
         }
         menu.append_section(None, &section);
     }
@@ -189,7 +185,9 @@ pub(super) fn show_timeline_item_context_menu(
     let speed_control = (!speeds.is_empty()).then(|| {
         let first_speed = speeds[0];
         let mixed = speeds.iter().any(|speed| *speed != first_speed);
-        let row = adw::ActionRow::builder().title("Speed").build();
+        let row = adw::ActionRow::builder()
+            .title(tr!("Speed").as_ref())
+            .build();
         let scale = gtk::Scale::with_range(gtk::Orientation::Horizontal, -2.0, 2.0, 0.05);
         scale.set_width_request(260);
         scale.set_draw_value(false);
@@ -454,8 +452,8 @@ fn add_video_frame_context_actions(
     selection: VideoFrameSelection,
 ) {
     let section = gio::Menu::new();
-    section.append(Some("Copy Frame"), Some("timeline.copy-frame"));
-    section.append(Some("Save Frame…"), Some("timeline.save-frame"));
+    section.append_i18n("Copy Frame", "timeline.copy-frame");
+    section.append_i18n("Save Frame…", "timeline.save-frame");
     menu.append_section(None, &section);
 
     add_menu_action(actions, "copy-frame", {
@@ -487,14 +485,14 @@ fn add_video_frame_context_actions(
         let preferences = preferences.clone();
         move || {
             let filter = gtk::FileFilter::new();
-            filter.set_name(Some("PNG image"));
+            filter.set_name_i18n("PNG image");
             filter.add_mime_type("image/png");
             filter.add_pattern("*.png");
             let filters = gio::ListStore::new::<gtk::FileFilter>();
             filters.append(&filter);
             let label = "Save Selected Frame";
             let dialog = gtk::FileDialog::builder()
-                .title(label)
+                .title(tr!(label).as_ref())
                 .initial_name("frame.png")
                 .filters(&filters)
                 .default_filter(&filter)
@@ -701,18 +699,18 @@ fn add_audio_item_context_actions(
     let can_remove_silences =
         silence::can_remove(&project.borrow(), &selected_items, &selected_tracks, hit);
     let section = gio::Menu::new();
-    section.append(
-        Some(if enable_beat_detection {
+    section.append_i18n(
+        if enable_beat_detection {
             "Enable Beat Detection"
         } else {
             "Disable Beat Detection"
-        }),
-        Some("timeline.beat-detection"),
+        },
+        "timeline.beat-detection",
     );
-    section.append(Some("Export Audio…"), Some("timeline.export-audio"));
-    section.append(Some("Transcribe"), Some("timeline.transcribe"));
+    section.append_i18n("Export Audio…", "timeline.export-audio");
+    section.append_i18n("Transcribe", "timeline.transcribe");
     if can_remove_silences {
-        section.append(Some("Remove Silences"), Some("timeline.remove-silences"));
+        section.append_i18n("Remove Silences", "timeline.remove-silences");
     }
     menu.append_section(None, &section);
     add_menu_action(actions, "beat-detection", {
@@ -818,7 +816,7 @@ fn show_export_audio_dialog(
 
     let formats = gtk::StringList::new(&["WAV", "FLAC", "MP3", "OGG Vorbis", "Opus"]);
     let format_row = adw::ComboRow::builder()
-        .title("Format")
+        .title(tr!("Format").as_ref())
         .model(&formats)
         .selected(0)
         .build();
@@ -832,11 +830,11 @@ fn show_export_audio_dialog(
     content.append(&group);
 
     let dialog = adw::AlertDialog::builder()
-        .heading("Export Selected Audio")
-        .body("The selected items will be mixed into one audio file.")
+        .heading(tr!("Export Selected Audio").as_ref())
+        .body(tr!("The selected items will be mixed into one audio file.").as_ref())
         .extra_child(&content)
         .build();
-    dialog.add_responses(&[("cancel", "Cancel"), ("continue", "Choose File")]);
+    dialog.add_responses_i18n(&[("cancel", "Cancel"), ("continue", "Choose File")]);
     dialog.set_close_response("cancel");
     dialog.set_default_response(Some("continue"));
     dialog.set_response_appearance("continue", adw::ResponseAppearance::Suggested);
@@ -851,7 +849,7 @@ fn show_export_audio_dialog(
             let format = export::audio::Format::from_index(format_row.selected());
             let label = "Export Selected Audio";
             let file_dialog = gtk::FileDialog::builder()
-                .title(label)
+                .title(tr!(label).as_ref())
                 .initial_name(format!("selected-audio.{}", format.extension()))
                 .build();
             let area = area.clone();
@@ -1060,12 +1058,9 @@ fn show_new_track_context_menu(
 ) {
     prepare_empty_track_context_menu(project, runtime, selection_state);
     let menu = gio::Menu::new();
-    menu.append(
-        Some("Add Caption Track"),
-        Some("timeline.add-caption-track"),
-    );
-    menu.append(Some("Add Video Track"), Some("timeline.add-video-track"));
-    menu.append(Some("Add Audio Track"), Some("timeline.add-audio-track"));
+    menu.append_i18n("Add Caption Track", "timeline.add-caption-track");
+    menu.append_i18n("Add Video Track", "timeline.add-video-track");
+    menu.append_i18n("Add Audio Track", "timeline.add-audio-track");
     let actions = gio::SimpleActionGroup::new();
     for (name, kind) in [
         ("add-caption-track", TrackKind::Caption),
@@ -1106,10 +1101,10 @@ fn show_audio_track_context_menu(
     );
     prepare_track_context_menu(runtime, selection_state, key);
     let menu = gio::Menu::new();
-    menu.append(Some("Export Audio…"), Some("timeline.export-audio"));
-    menu.append(Some("Transcribe"), Some("timeline.transcribe"));
+    menu.append_i18n("Export Audio…", "timeline.export-audio");
+    menu.append_i18n("Transcribe", "timeline.transcribe");
     if can_remove_silences {
-        menu.append(Some("Remove Silences"), Some("timeline.remove-silences"));
+        menu.append_i18n("Remove Silences", "timeline.remove-silences");
     }
     let gain_item = gio::MenuItem::new(None, None);
     gain_item.set_attribute_value("custom", Some(&"speed-control".to_variant()));
@@ -1142,7 +1137,9 @@ fn show_audio_track_context_menu(
             move || silence::show_dialog(&area, &project, &player_state, &selection_state, &runtime)
         });
     }
-    let gain_row = adw::ActionRow::builder().title("Gain Offset").build();
+    let gain_row = adw::ActionRow::builder()
+        .title(tr!("Gain Offset").as_ref())
+        .build();
     let gain = gtk::Scale::with_range(
         gtk::Orientation::Horizontal,
         f64::from(AUDIO_TRACK_GAIN_MIN_DB),
@@ -1155,7 +1152,7 @@ fn show_audio_track_context_menu(
     gain.set_value(f64::from(
         project.borrow().audio_tracks[key.track_index].gain_db,
     ));
-    gain.set_tooltip_text(Some("Track gain offset in decibels"));
+    gain.set_tooltip_i18n("Track gain offset in decibels");
     let gain_area = area.clone();
     let gain_project = project.clone();
     let gain_player_state = player_state.clone();
@@ -1205,7 +1202,7 @@ fn show_caption_track_context_menu(
 ) {
     prepare_track_context_menu(runtime, selection_state, key);
     let menu = gio::Menu::new();
-    menu.append(Some("Generate Speech"), Some("timeline.generate-speech"));
+    menu.append_i18n("Generate Speech", "timeline.generate-speech");
     let actions = gio::SimpleActionGroup::new();
     add_menu_action(&actions, "generate-speech", {
         let area = area.clone();

@@ -2,6 +2,9 @@ use super::store;
 use adw::prelude::*;
 use gtk::{gio, glib};
 use shrimply_server_client::ServerStatus;
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nAlertDialogExt;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -65,7 +68,7 @@ pub fn page(
 
     let device_factory = gtk::SignalListItemFactory::new();
     let device = adw::ComboRow::builder()
-        .title("Device")
+        .title(tr!("Device").as_ref())
         .model(&gtk::StringList::new(&["—"]))
         .factory(&device_factory)
         .use_subtitle(true)
@@ -180,21 +183,21 @@ pub fn page(
     };
 
     let endpoint_group = adw::PreferencesGroup::builder()
-        .title("Inference Servers")
+        .title(tr!("Inference Servers").as_ref())
         .build();
     let add_server = adw::ButtonRow::builder()
-        .title("Add Server")
+        .title(tr!("Add Server").as_ref())
         .start_icon_name("list-add-symbolic")
         .build();
     endpoint_group.add(&add_server);
 
     let server_group = adw::PreferencesGroup::new();
-    server_group.set_title("Selected Server");
+    server_group.set_title(tr!("Selected Server").as_ref());
     server_group.add(&rows.version);
     server_group.add(&rows.protocol);
 
     let compute_group = adw::PreferencesGroup::new();
-    compute_group.set_title("Compute");
+    compute_group.set_title(tr!("Compute").as_ref());
     compute_group.add(&rows.torch);
     compute_group.add(&rows.cuda);
     compute_group.add(&rows.device);
@@ -203,11 +206,11 @@ pub fn page(
     compute_group.add(&rows.workers);
 
     let features_group = adw::PreferencesGroup::new();
-    features_group.set_title("Features");
+    features_group.set_title(tr!("Features").as_ref());
     features_group.add(&rows.features);
 
     let page = adw::PreferencesPage::builder()
-        .title("External")
+        .title(tr!("External").as_ref())
         .icon_name("application-x-executable-symbolic")
         .name("external")
         .build();
@@ -356,26 +359,26 @@ fn rebuild_server_rows(servers: &ServerList) {
 fn create_server_row(url: &str) -> ServerRow {
     let row = adw::ActionRow::builder()
         .title(url)
-        .subtitle("Checking…")
+        .subtitle(tr!("Checking…").as_ref())
         .title_lines(1)
         .subtitle_lines(1)
         .build();
     let radio = gtk::CheckButton::new();
     radio.set_valign(gtk::Align::Center);
-    radio.set_tooltip_text(Some("Use this server"));
+    radio.set_tooltip_i18n("Use this server");
     row.add_prefix(&radio);
     row.set_activatable_widget(Some(&radio));
 
     let spinner = gtk::Spinner::new();
     spinner.set_size_request(16, 16);
-    spinner.set_tooltip_text(Some("Checking server URL"));
+    spinner.set_tooltip_i18n("Checking server URL");
     spinner.set_valign(gtk::Align::Center);
     spinner.start();
     row.add_suffix(&spinner);
 
     let warning = gtk::Image::from_icon_name("dialog-warning-symbolic");
     warning.add_css_class("warning");
-    warning.set_tooltip_text(Some("Could not reach a Shrimply server at this URL"));
+    warning.set_tooltip_i18n("Could not reach a Shrimply server at this URL");
     warning.set_valign(gtk::Align::Center);
     warning.set_visible(false);
     row.add_suffix(&warning);
@@ -394,7 +397,7 @@ fn create_server_menu_button(
 ) -> gtk::MenuButton {
     let popover = gtk::Popover::new();
     let content = gtk::Box::new(gtk::Orientation::Vertical, 0);
-    let edit = gtk::Button::with_label("Edit Server");
+    let edit = gtk::Button::with_label(tr!("Edit Server").as_ref());
     edit.set_has_frame(false);
     edit.add_css_class("flat");
     let edit_popover = popover.clone();
@@ -404,7 +407,7 @@ fn create_server_menu_button(
     });
     content.append(&edit);
 
-    let delete = gtk::Button::with_label("Delete Server");
+    let delete = gtk::Button::with_label(tr!("Delete Server").as_ref());
     delete.set_has_frame(false);
     delete.add_css_class("flat");
     delete.add_css_class("destructive-action");
@@ -421,7 +424,7 @@ fn create_server_menu_button(
     menu.set_icon_name("view-more-symbolic");
     menu.set_has_frame(false);
     menu.add_css_class("flat");
-    menu.set_tooltip_text(Some("Server menu"));
+    menu.set_tooltip_i18n("Server menu");
     menu.set_valign(gtk::Align::Center);
     menu.set_popover(Some(&popover));
     menu
@@ -435,7 +438,7 @@ fn show_server_editor(
     on_confirm: impl Fn(String) + 'static,
 ) {
     let url = adw::EntryRow::builder()
-        .title("Server URL")
+        .title(tr!("Server URL").as_ref())
         .text(initial_url)
         .input_purpose(gtk::InputPurpose::Url)
         .activates_default(true)
@@ -446,7 +449,7 @@ fn show_server_editor(
     url.add_suffix(&warning);
     let spinner = gtk::Spinner::new();
     spinner.set_size_request(16, 16);
-    spinner.set_tooltip_text(Some("Checking server URL"));
+    spinner.set_tooltip_i18n("Checking server URL");
     spinner.set_visible(false);
     url.add_suffix(&spinner);
     let status = gtk::Label::builder()
@@ -465,7 +468,7 @@ fn show_server_editor(
         .heading(title)
         .extra_child(&group)
         .build();
-    dialog.add_responses(&[("cancel", "Cancel"), ("save", confirm_label)]);
+    dialog.add_responses_i18n(&[("cancel", "Cancel"), ("save", confirm_label)]);
     dialog.set_close_response("cancel");
     dialog.set_default_response(Some("save"));
     dialog.set_response_enabled("save", false);
@@ -494,7 +497,7 @@ fn show_server_editor(
 
             let value = url.text();
             if value.trim().is_empty() {
-                status.set_text("");
+                status.set_text(tr!("").as_ref());
                 return;
             }
             let normalized = match normalize_server_url(&value) {
@@ -511,7 +514,7 @@ fn show_server_editor(
             };
             selected_url.replace(Some(normalized.clone()));
             dialog.set_response_enabled("save", true);
-            status.set_text("Checking…");
+            status.set_text(tr!("Checking…").as_ref());
             spinner.set_visible(true);
             spinner.start();
             check_editor_server(
@@ -565,7 +568,7 @@ fn check_editor_server(
         match result {
             Ok(Ok(server)) => status.set_text(&server_summary(&server)),
             Ok(Err(error)) => {
-                status.set_text("Could not reach a Shrimply server at this URL");
+                status.set_text(tr!("Could not reach a Shrimply server at this URL").as_ref());
                 status.remove_css_class("dim-label");
                 status.add_css_class("warning");
                 warning.set_visible(true);
@@ -695,7 +698,7 @@ fn check_server_summary(servers: &ServerList, url: String, widgets: ServerRow) {
             Ok(Err(error)) => {
                 widgets
                     .row
-                    .set_subtitle("Could not reach a Shrimply server at this URL");
+                    .set_subtitle(tr!("Could not reach a Shrimply server at this URL").as_ref());
                 widgets.warning.set_visible(true);
                 widgets.warning.set_tooltip_text(Some(&error));
             }
@@ -731,7 +734,10 @@ fn update_device_selection_visibility(
 }
 
 fn row(title: &str) -> adw::ActionRow {
-    adw::ActionRow::builder().title(title).subtitle("—").build()
+    adw::ActionRow::builder()
+        .title(tr!(title).as_ref())
+        .subtitle(tr!("—").as_ref())
+        .build()
 }
 
 fn server_version(status: &ServerStatus) -> String {
@@ -746,7 +752,10 @@ fn server_version(status: &ServerStatus) -> String {
 }
 
 fn server_summary(status: &ServerStatus) -> String {
-    let version = format!("Version {}", server_version(status));
+    let version = shrimply_ui_foundation::i18n::text_args(
+        "Version %{version}",
+        &[("version", server_version(status))],
+    );
     if status.status.eq_ignore_ascii_case("ok") {
         version
     } else {
@@ -787,9 +796,12 @@ fn show_status(rows: &Rows, status: &ServerStatus) {
     rows.torch.set_subtitle(&status.torch.version);
     rows.cuda.set_subtitle(
         &match (&status.torch.cuda_runtime, status.torch.cuda_available) {
-            (Some(runtime), true) => format!("{runtime} · Available"),
-            (None, true) => "Available".to_string(),
-            (_, false) => "Unavailable".to_string(),
+            (Some(runtime), true) => shrimply_ui_foundation::i18n::text_args(
+                "%{runtime} · Available",
+                &[("runtime", runtime.clone())],
+            ),
+            (None, true) => tr!("Available").into_owned(),
+            (_, false) => tr!("Unavailable").into_owned(),
         },
     );
     let device_labels = status
@@ -831,16 +843,20 @@ fn show_status(rows: &Rows, status: &ServerStatus) {
     rows.device.set_selected(selected_device.unwrap_or(0));
     rows.device.set_sensitive(selected_device.is_some());
     rows.device.remove_css_class("error");
-    rows.device.set_tooltip_text(
+    rows.device.set_tooltip_i18n_opt(
         (selected_device.is_none() && !device_labels.is_empty())
             .then_some("Server does not support device selection"),
     );
     rows.current_device.set(selected_device);
     rows.updating_device.set(false);
-    rows.jobs.set_subtitle(&format!(
-        "{} queued · {} active",
-        status.compute.queued_jobs, status.compute.active_jobs
-    ));
+    rows.jobs
+        .set_subtitle(&shrimply_ui_foundation::i18n::text_args(
+            "%{queued} queued · %{active} active",
+            &[
+                ("queued", status.compute.queued_jobs.to_string()),
+                ("active", status.compute.active_jobs.to_string()),
+            ],
+        ));
     rows.reservations.set_subtitle(&format!(
         "RAM {:.1} GiB · VRAM {:.1} GiB",
         status.compute.reserved_ram_bytes as f64 / GIB_BYTES,
@@ -872,13 +888,16 @@ fn show_status(rows: &Rows, status: &ServerStatus) {
         })
         .collect::<Vec<_>>()
         .join("\n");
-    rows.workers
-        .set_subtitle(if workers.is_empty() { "None" } else { &workers });
+    if workers.is_empty() {
+        rows.workers.set_subtitle(tr!("None").as_ref());
+    } else {
+        rows.workers.set_subtitle(&workers);
+    }
     rows.workers
         .set_tooltip_text((!workers.is_empty()).then_some(workers.as_str()));
     rows.features
         .set_subtitle(&if status.capabilities.is_empty() {
-            "None".to_string()
+            tr!("None").into_owned()
         } else {
             status.capabilities.join(", ")
         });
@@ -899,7 +918,7 @@ fn show_device_error(rows: &Rows, error: &str) {
 fn show_error(rows: &Rows, error: &str) {
     clear(rows);
     rows.version.add_css_class("error");
-    rows.version.set_subtitle("Unavailable");
+    rows.version.set_subtitle(tr!("Unavailable").as_ref());
     rows.version.set_tooltip_text(Some(error));
 }
 
@@ -925,6 +944,6 @@ fn clear(rows: &Rows) {
         &rows.workers,
         &rows.features,
     ] {
-        row.set_subtitle("—");
+        row.set_subtitle(tr!("—").as_ref());
     }
 }

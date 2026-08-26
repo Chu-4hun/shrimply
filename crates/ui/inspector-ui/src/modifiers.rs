@@ -1,4 +1,5 @@
 use gtk::prelude::*;
+use shrimply_ui_foundation::tr;
 use std::rc::Rc;
 use uuid::Uuid;
 
@@ -663,9 +664,13 @@ fn apply_action(id: Uuid, action: Action, context: &InspectorContext) {
             .property_clipboard
             .borrow_mut()
             .copy_visual_modifier(modifier);
-        shrimply_ui_foundation::toast::show_confirmation_for_widget(
+        let message = shrimply_ui_foundation::i18n::text_args(
+            "%{name} copied",
+            &[("name", modifier.effect.display_name().to_owned())],
+        );
+        shrimply_ui_foundation::toast::show_confirmation_text_for_widget(
             &context.category_bar,
-            &format!("{} copied", modifier.effect.display_name()),
+            &message,
         );
         drop(project);
         (context.refresh)();
@@ -683,7 +688,7 @@ fn apply_action(id: Uuid, action: Action, context: &InspectorContext) {
         )
         && let Err(error) = shrimply_video::modifier_cache::invalidate(id)
     {
-        shrimply_ui_foundation::toast::show_confirmation_for_widget(
+        shrimply_ui_foundation::toast::show_confirmation_text_for_widget(
             &context.category_bar,
             &format!("Could not remove cache: {error}"),
         );
@@ -740,7 +745,7 @@ fn modifier_buttons(context: &InspectorContext) -> gtk::Widget {
     if sensitive {
         let paste = gtk::Button::builder()
             .icon_name("edit-paste-symbolic")
-            .tooltip_text("Paste Modifier")
+            .tooltip_text(tr!("Paste Modifier").as_ref())
             .build();
         let context = context.detached();
         paste.connect_clicked(move |_| paste_modifiers(&context));
@@ -768,11 +773,17 @@ fn paste_modifiers(context: &InspectorContext) {
         return;
     }
     let message = if result.modifiers_added == 1 {
-        "1 effect pasted".to_string()
+        tr!("1 effect pasted").into_owned()
     } else {
-        format!("{} effects pasted", result.modifiers_added)
+        shrimply_ui_foundation::i18n::text_args(
+            "%{count} effects pasted",
+            &[("count", result.modifiers_added.to_string())],
+        )
     };
-    shrimply_ui_foundation::toast::show_confirmation_for_widget(&context.category_bar, &message);
+    shrimply_ui_foundation::toast::show_confirmation_text_for_widget(
+        &context.category_bar,
+        &message,
+    );
     player_state::refresh_project(
         &context.player_state,
         ProjectChange {

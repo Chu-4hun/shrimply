@@ -1,0 +1,295 @@
+_version = 2
+
+["%{count} effects pasted"]
+en = "%{count} effects pasted"
+es = "%{count} efectos pegados"
+fr = "%{count} effets collés"
+de = "%{count} Effekte eingefügt"
+ja = "%{count}件のエフェクトを貼り付けました"
+
+["1 effect pasted"]
+en = "1 effect pasted"
+es = "1 efecto pegado"
+fr = "1 effet collé"
+de = "1 Effekt eingefügt"
+ja = "エフェクトを1件貼り付けました"
+
+["Alpha"]
+en = "Alpha"
+es = "Alfa"
+fr = "Alpha"
+de = "Alpha"
+ja = "アルファ"
+
+["Appearance"]
+en = "Appearance"
+es = "Apariencia"
+fr = "Apparence"
+de = "Erscheinungsbild"
+ja = "外観"
+
+["Audio"]
+en = "Audio"
+es = "Audio"
+fr = "Audio"
+de = "Audio"
+ja = "オーディオ"
+
+["Audio Generator"]
+en = "Audio Generator"
+es = "Generador de audio"
+fr = "Générateur audio"
+de = "Audiogenerator"
+ja = "オーディオジェネレーター"
+
+["Audio Track"]
+en = "Audio Track"
+es = "Pista de audio"
+fr = "Piste audio"
+de = "Audiospur"
+ja = "オーディオトラック"
+
+["Background"]
+en = "Background"
+es = "Fondo"
+fr = "Arrière-plan"
+de = "Hintergrund"
+ja = "背景"
+
+["Cancel"]
+en = "Cancel"
+es = "Cancelar"
+fr = "Annuler"
+de = "Abbrechen"
+ja = "キャンセル"
+
+["Cancelled"]
+en = "Cancelled"
+es = "Cancelado"
+fr = "Annulé"
+de = "Abgebrochen"
+ja = "キャンセル済み"
+
+["Cancelling…"]
+en = "Cancelling…"
+es = "Cancelando…"
+fr = "Annulation…"
+de = "Wird abgebrochen…"
+ja = "キャンセル中…"
+
+["Caption"]
+en = "Caption"
+es = "Subtítulo"
+fr = "Sous-titre"
+de = "Untertitel"
+ja = "字幕"
+
+["Caption Track"]
+en = "Caption Track"
+es = "Pista de subtítulos"
+fr = "Piste de sous-titres"
+de = "Untertitelspur"
+ja = "字幕トラック"
+
+["Choose…"]
+en = "Choose…"
+es = "Elegir…"
+fr = "Choisir…"
+de = "Auswählen…"
+ja = "選択…"
+
+["Clear"]
+en = "Clear"
+es = "Borrar"
+fr = "Effacer"
+de = "Leeren"
+ja = "クリア"
+
+["Close"]
+en = "Close"
+es = "Cerrar"
+fr = "Fermer"
+de = "Schließen"
+ja = "閉じる"
+
+["Copy"]
+en = "Copy"
+es = "Copiar"
+fr = "Copier"
+de = "Kopieren"
+ja = "コピー"
+
+["Custom"]
+en = "Custom"
+es = "Personalizado"
+fr = "Personnalisé"
+de = "Benutzerdefiniert"
+ja = "カスタム"
+
+["Delete"]
+en = "Delete"
+es = "Eliminar"
+fr = "Supprimer"
+de = "Löschen"
+ja = "削除"
+
+["Format"]
+en = "Format"
+es = "Formato"
+fr = "Format"
+de = "Format"
+ja = "形式"
+
+["Frame Rate"]
+en = "Frame Rate"
+es = "Frecuencia de fotogramas"
+fr = "Fréquence d’images"
+de = "Bildrate"
+ja = "フレームレート"
+
+["Frame rate"]
+en = "Frame rate"
+es = "Frecuencia de fotogramas"
+fr = "Fréquence d’images"
+de = "Bildrate"
+ja = "フレームレート"
+
+["Hue"]
+en = "Hue"
+es = "Tono"
+fr = "Teinte"
+de = "Farbton"
+ja = "色相"
+
+["Info"]
+en = "Info"
+es = "Información"
+fr = "Informations"
+de = "Informationen"
+ja = "情報"
+
+["Model"]
+en = "Model"
+es = "Modelo"
+fr = "Modèle"
+de = "Modell"
+ja = "モデル"
+
+["New Track"]
+en = "New Track"
+es = "Nueva pista"
+fr = "Nouvelle piste"
+de = "Neue Spur"
+ja = "新規トラック"
+
+["None"]
+en = "None"
+es = "Ninguno"
+fr = "Aucun"
+de = "Keine"
+ja = "なし"
+
+["Output"]
+en = "Output"
+es = "Salida"
+fr = "Sortie"
+de = "Ausgabe"
+ja = "出力"
+
+["Padding"]
+en = "Padding"
+es = "Margen"
+fr = "Marge"
+de = "Abstand"
+ja = "余白"
+
+["Paint"]
+en = "Paint"
+es = "Pintura"
+fr = "Peinture"
+de = "Malen"
+ja = "ペイント"
+
+["Performance"]
+en = "Performance"
+es = "Rendimiento"
+fr = "Performances"
+de = "Leistung"
+ja = "パフォーマンス"
+
+["Preset"]
+en = "Preset"
+es = "Preajuste"
+fr = "Préréglage"
+de = "Voreinstellung"
+ja = "プリセット"
+
+["Sending request…"]
+en = "Sending request…"
+es = "Enviando solicitud…"
+fr = "Envoi de la requête…"
+de = "Anfrage wird gesendet…"
+ja = "リクエストを送信中…"
+
+["Shape"]
+en = "Shape"
+es = "Forma"
+fr = "Forme"
+de = "Form"
+ja = "図形"
+
+["Speed"]
+en = "Speed"
+es = "Velocidad"
+fr = "Vitesse"
+de = "Geschwindigkeit"
+ja = "速度"
+
+["Text"]
+en = "Text"
+es = "Texto"
+fr = "Texte"
+de = "Text"
+ja = "テキスト"
+
+["Text to Speech"]
+en = "Text to Speech"
+es = "Texto a voz"
+fr = "Synthèse vocale"
+de = "Sprachausgabe"
+ja = "音声読み上げ"
+
+["Version"]
+en = "Version"
+es = "Versión"
+fr = "Version"
+de = "Version"
+ja = "バージョン"
+
+["Video"]
+en = "Video"
+es = "Vídeo"
+fr = "Vidéo"
+de = "Video"
+ja = "ビデオ"
+
+["Video Generation"]
+en = "Video Generation"
+es = "Generación de vídeo"
+fr = "Génération vidéo"
+de = "Videogenerierung"
+ja = "ビデオ生成"
+
+["Video Track"]
+en = "Video Track"
+es = "Pista de vídeo"
+fr = "Piste vidéo"
+de = "Videospur"
+ja = "ビデオトラック"
+
+["Width"]
+en = "Width"
+es = "Anchura"
+fr = "Largeur"
+de = "Breite"
+ja = "幅"

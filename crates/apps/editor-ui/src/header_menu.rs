@@ -2,6 +2,8 @@ use crate::preferences::{page as preferences_page, store as preferences_store};
 use crate::{export, player_state, project};
 use adw::prelude::*;
 use gtk::gio;
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nMenuExt;
 use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -17,29 +19,29 @@ pub(crate) fn add(
 ) {
     let menu = gio::Menu::new();
     let project_menu = gio::Menu::new();
-    project_menu.append(Some("New Project"), Some("win.new-project"));
-    project_menu.append(Some("Open Project…"), Some("win.open-project"));
+    project_menu.append_i18n("New Project", "win.new-project");
+    project_menu.append_i18n("Open Project…", "win.open-project");
     let track_menu = gio::Menu::new();
-    track_menu.append(Some("Caption Track"), Some("win.new-caption-track"));
-    track_menu.append(Some("Video Track"), Some("win.new-video-track"));
-    track_menu.append(Some("Audio Track"), Some("win.new-audio-track"));
-    project_menu.append_submenu(Some("New Track"), &track_menu);
-    project_menu.append(Some("Save"), Some("win.save"));
-    project_menu.append(Some("Save As…"), Some("win.save-as"));
+    track_menu.append_i18n("Caption Track", "win.new-caption-track");
+    track_menu.append_i18n("Video Track", "win.new-video-track");
+    track_menu.append_i18n("Audio Track", "win.new-audio-track");
+    project_menu.append_submenu_i18n("New Track", &track_menu);
+    project_menu.append_i18n("Save", "win.save");
+    project_menu.append_i18n("Save As…", "win.save-as");
     menu.append_section(None, &project_menu);
 
     let history_menu = gio::Menu::new();
-    history_menu.append(Some("Undo"), Some("win.undo"));
-    history_menu.append(Some("Redo"), Some("win.redo"));
+    history_menu.append_i18n("Undo", "win.undo");
+    history_menu.append_i18n("Redo", "win.redo");
     menu.append_section(None, &history_menu);
 
     let settings_menu = gio::Menu::new();
-    settings_menu.append(Some("Preferences"), Some("win.preferences"));
-    settings_menu.append(Some("Keyboard Shortcuts"), Some("win.show-shortcuts"));
+    settings_menu.append_i18n("Preferences", "win.preferences");
+    settings_menu.append_i18n("Keyboard Shortcuts", "win.show-shortcuts");
     menu.append_section(None, &settings_menu);
 
     let about_menu = gio::Menu::new();
-    about_menu.append(Some("About Shrimply"), Some("win.about"));
+    about_menu.append_i18n("About Shrimply", "win.about");
     menu.append_section(None, &about_menu);
 
     add_action(window, "new-project", {
@@ -143,38 +145,74 @@ where
 
 fn show_shortcuts_dialog(window: &adw::ApplicationWindow) {
     let shortcuts = adw::ShortcutsDialog::builder()
-        .title("Keyboard Shortcuts")
+        .title(tr!("Keyboard Shortcuts").as_ref())
         .build();
-    let section = adw::ShortcutsSection::new(Some("General"));
-    section.add(adw::ShortcutsItem::new("New Project", "Ctrl+N"));
-    section.add(adw::ShortcutsItem::new("Open Project", "Ctrl+O"));
-    section.add(adw::ShortcutsItem::new("Save", "Ctrl+S"));
-    section.add(adw::ShortcutsItem::new("Save As", "Ctrl+Shift+S"));
-    section.add(adw::ShortcutsItem::new("Undo", "Ctrl+Z"));
-    section.add(adw::ShortcutsItem::new("Redo", "Ctrl+Shift+Z"));
-    section.add(adw::ShortcutsItem::new("Preferences", "Ctrl+,"));
-    section.add(adw::ShortcutsItem::new("Show Keyboard Shortcuts", "Ctrl+?"));
-    section.add(adw::ShortcutsItem::new("Play / Pause", "Space"));
-    section.add(adw::ShortcutsItem::new("Step playback", "L"));
+    let section = adw::ShortcutsSection::new(Some(tr!("General").as_ref()));
+    section.add(adw::ShortcutsItem::new(
+        tr!("New Project").as_ref(),
+        "Ctrl+N",
+    ));
+    section.add(adw::ShortcutsItem::new(
+        tr!("Open Project").as_ref(),
+        "Ctrl+O",
+    ));
+    section.add(adw::ShortcutsItem::new(tr!("Save").as_ref(), "Ctrl+S"));
+    section.add(adw::ShortcutsItem::new(
+        tr!("Save As").as_ref(),
+        "Ctrl+Shift+S",
+    ));
+    section.add(adw::ShortcutsItem::new(tr!("Undo").as_ref(), "Ctrl+Z"));
+    section.add(adw::ShortcutsItem::new(
+        tr!("Redo").as_ref(),
+        "Ctrl+Shift+Z",
+    ));
+    section.add(adw::ShortcutsItem::new(
+        tr!("Preferences").as_ref(),
+        "Ctrl+,",
+    ));
+    section.add(adw::ShortcutsItem::new(
+        tr!("Show Keyboard Shortcuts").as_ref(),
+        "Ctrl+?",
+    ));
+    section.add(adw::ShortcutsItem::new(
+        tr!("Play / Pause").as_ref(),
+        "Space",
+    ));
+    section.add(adw::ShortcutsItem::new(tr!("Step playback").as_ref(), "L"));
     shortcuts.add(section);
-    let timeline = adw::ShortcutsSection::new(Some("Timeline"));
-    timeline.add(adw::ShortcutsItem::new("Split all clips at playhead", "S"));
+    let timeline = adw::ShortcutsSection::new(Some(tr!("Timeline").as_ref()));
     timeline.add(adw::ShortcutsItem::new(
-        "Split all clips and select left",
+        tr!("Split all clips at playhead").as_ref(),
+        "S",
+    ));
+    timeline.add(adw::ShortcutsItem::new(
+        tr!("Split all clips and select left").as_ref(),
         "Shift+S",
     ));
     timeline.add(adw::ShortcutsItem::new(
-        "Ripple trim selected clip to playhead",
+        tr!("Ripple trim selected clip to playhead").as_ref(),
         "Q",
     ));
-    timeline.add(adw::ShortcutsItem::new("Delete selection", "D"));
-    timeline.add(adw::ShortcutsItem::new("Ripple cut", "Shift+D"));
-    timeline.add(adw::ShortcutsItem::new("Cut selection", "Ctrl+X"));
     timeline.add(adw::ShortcutsItem::new(
-        "Replace selected item properties",
+        tr!("Delete selection").as_ref(),
+        "D",
+    ));
+    timeline.add(adw::ShortcutsItem::new(
+        tr!("Ripple cut").as_ref(),
+        "Shift+D",
+    ));
+    timeline.add(adw::ShortcutsItem::new(
+        tr!("Cut selection").as_ref(),
+        "Ctrl+X",
+    ));
+    timeline.add(adw::ShortcutsItem::new(
+        tr!("Replace selected item properties").as_ref(),
         "Ctrl+Shift+V",
     ));
-    timeline.add(adw::ShortcutsItem::new("Toggle timeline zoom", "Z"));
+    timeline.add(adw::ShortcutsItem::new(
+        tr!("Toggle timeline zoom").as_ref(),
+        "Z",
+    ));
     shortcuts.add(timeline);
     shortcuts.present(Some(window));
 }
@@ -212,7 +250,7 @@ fn show_save_as_dialog(
         .map(|name| format!("{name} copy.shrimp"))
         .unwrap_or_else(|| "project copy.shrimp".to_string());
     let dialog = gtk::FileDialog::builder()
-        .title(label)
+        .title(tr!(label).as_ref())
         .initial_name(initial_name)
         .filters(&filters)
         .default_filter(&filter)
@@ -301,7 +339,7 @@ fn show_about_dialog(window: &adw::ApplicationWindow) {
         .website("https://github.com/soirihiroka/shrimply")
         .issue_url("https://github.com/soirihiroka/shrimply/issues/new")
         .license_type(gtk::License::Gpl30)
-        .title("About Shrimply")
+        .title(tr!("About Shrimply").as_ref())
         .build();
     dialog.add_credit_section(Some("Built with help from"), &["Codex", "Gemini"]);
     dialog.present(Some(window));

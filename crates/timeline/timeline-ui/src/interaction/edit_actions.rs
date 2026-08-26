@@ -1,4 +1,6 @@
 use super::*;
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nAlertDialogExt;
 
 pub(super) fn replace_selected_item_properties(
     area: &gtk::GLArea,
@@ -62,16 +64,22 @@ fn paste_selected_item_properties(
     }
     let message = if modifiers_only {
         if result.modifiers_added == 1 {
-            "1 effect pasted".to_string()
+            tr!("1 effect pasted").into_owned()
         } else {
-            format!("{} effects pasted", result.modifiers_added)
+            shrimply_ui_foundation::i18n::text_args(
+                "%{count} effects pasted",
+                &[("count", result.modifiers_added.to_string())],
+            )
         }
     } else if result.changed_items == 1 {
-        "Properties replaced on 1 item".to_string()
+        tr!("Properties replaced on 1 item").into_owned()
     } else {
-        format!("Properties replaced on {} items", result.changed_items)
+        shrimply_ui_foundation::i18n::text_args(
+            "Properties replaced on %{count} items",
+            &[("count", result.changed_items.to_string())],
+        )
     };
-    shrimply_ui_foundation::toast::show_confirmation_for_widget(area, &message);
+    shrimply_ui_foundation::toast::show_confirmation_text_for_widget(area, &message);
     if result.stabilization {
         let project = project.borrow();
         for target in &targets {
@@ -443,7 +451,7 @@ pub(super) fn delete_tracks(
             "{clip_count} clips are about to be deleted, are you sure?"
         )),
     );
-    dialog.add_responses(&[("cancel", "Cancel"), ("delete", "Delete")]);
+    dialog.add_responses_i18n(&[("cancel", "Cancel"), ("delete", "Delete")]);
     dialog.set_close_response("cancel");
     dialog.set_default_response(Some("delete"));
     dialog.set_response_appearance("delete", adw::ResponseAppearance::Destructive);

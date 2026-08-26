@@ -20,10 +20,26 @@ pub fn show_export_finished(
     title: &str,
     path: &std::path::Path,
 ) {
-    let toast = adw::Toast::builder()
-        .title(title)
-        .button_label("Show in Files")
-        .build();
+    let toast = crate::toast::with_button(title, "Show in Files");
+    add_export_toast(toasts, parent, toast, path);
+}
+
+pub fn show_export_finished_text(
+    toasts: &adw::ToastOverlay,
+    parent: &adw::ApplicationWindow,
+    title: &str,
+    path: &std::path::Path,
+) {
+    let toast = crate::toast::with_button_text(title, "Show in Files");
+    add_export_toast(toasts, parent, toast, path);
+}
+
+fn add_export_toast(
+    toasts: &adw::ToastOverlay,
+    parent: &adw::ApplicationWindow,
+    toast: adw::Toast,
+    path: &std::path::Path,
+) {
     let reveal_parent = parent.clone();
     let path = path.to_path_buf();
     toast.connect_button_clicked(move |_| {

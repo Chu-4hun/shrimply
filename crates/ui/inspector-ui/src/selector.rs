@@ -1,7 +1,10 @@
 use gtk::prelude::Cast;
 use shrimply_core::timeline_value::TimelineStep;
+use shrimply_ui_foundation::tr;
 
-pub(super) use crate::ui::{dropdown, enum_selector, selector, string_selector};
+pub(super) use crate::ui::{
+    StringChoice, dropdown, enum_selector, labeled_string_selector, selector, string_selector,
+};
 
 pub(super) fn step_editor<T: TimelineStep>(value: T, changed: impl Fn(T) + 'static) -> gtk::Widget {
     let variants = T::variants();
@@ -30,9 +33,9 @@ pub(super) fn step_button_editor<T: TimelineStep>(
     for variant in variants {
         let mut toggle = adw::Toggle::builder().name(variant.key);
         toggle = if let Some(icon) = variant.icon {
-            toggle.icon_name(icon).tooltip(variant.label)
+            toggle.icon_name(icon).tooltip(tr!(variant.label).as_ref())
         } else {
-            toggle.label(variant.label)
+            toggle.label(tr!(variant.label).as_ref())
         };
         group.add(toggle.build());
     }

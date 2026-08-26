@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
@@ -39,8 +40,8 @@ impl Inspectable for AudioItem {
 
     fn inspect(&self, context: &InspectorContext) -> Vec<gtk::Widget> {
         let beat_detection = adw::ActionRow::builder()
-            .title("Beat Detection")
-            .subtitle("Analyze this clip for beat-grid snapping")
+            .title(tr!("Beat Detection").as_ref())
+            .subtitle(tr!("Analyze this clip for beat-grid snapping").as_ref())
             .build();
         let spinner = adw::Spinner::new();
         spinner.set_size_request(18, 18);
@@ -439,11 +440,16 @@ fn audio_stream_rows(item: &AudioItem, context: &InspectorContext) -> Vec<gtk::W
         return Vec::new();
     }
     let labels = (0..stream_count)
-        .map(|stream| format!("Audio stream {}", stream + 1))
+        .map(|stream| {
+            shrimply_ui_foundation::i18n::text_args(
+                "Audio stream %{number}",
+                &[("number", (stream + 1).to_string())],
+            )
+        })
         .collect::<Vec<_>>();
     let label_refs = labels.iter().map(String::as_str).collect::<Vec<_>>();
     let stream = adw::ComboRow::builder()
-        .title("Audio Stream")
+        .title(tr!("Audio Stream").as_ref())
         .model(&gtk::StringList::new(&label_refs))
         .selected(item.track_id.min(stream_count - 1))
         .build();

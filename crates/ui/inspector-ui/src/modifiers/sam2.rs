@@ -1,3 +1,5 @@
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 use std::{cell::Cell, rc::Rc, time::Duration};
 
 use gtk::glib;
@@ -56,7 +58,10 @@ pub fn add_rows(value: &Sam2Modifier, out: &gtk::Box, id: Uuid, context: &Inspec
     for (index, point) in value.points.iter().enumerate() {
         let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let position = super::vec_row(
-            &format!("Point {}", index + 1),
+            &shrimply_ui_foundation::i18n::text_args(
+                "Point %{number}",
+                &[("number", (index + 1).to_string())],
+            ),
             &point.position,
             id,
             true,
@@ -77,11 +82,11 @@ pub fn add_rows(value: &Sam2Modifier, out: &gtk::Box, id: Uuid, context: &Inspec
             });
             refresh(&player);
         });
-        point_type.set_tooltip_text(Some("Point type"));
+        point_type.set_tooltip_i18n("Point type");
         row.append(&point_type);
         let remove = gtk::Button::builder()
             .icon_name("user-trash-symbolic")
-            .tooltip_text("Remove point")
+            .tooltip_text(tr!("Remove point").as_ref())
             .css_classes(["flat"])
             .build();
         let project = context.project.clone();
@@ -104,7 +109,7 @@ pub fn add_rows(value: &Sam2Modifier, out: &gtk::Box, id: Uuid, context: &Inspec
     if value.box_prompt.is_some() {
         let remove = gtk::Button::builder()
             .icon_name("user-trash-symbolic")
-            .tooltip_text("Remove box")
+            .tooltip_text(tr!("Remove box").as_ref())
             .css_classes(["flat"])
             .build();
         let project = context.project.clone();
@@ -126,7 +131,7 @@ pub fn add_rows(value: &Sam2Modifier, out: &gtk::Box, id: Uuid, context: &Inspec
     let can_analyze = !value.points.is_empty() || value.box_prompt.is_some();
     analyze.widget().set_halign(gtk::Align::End);
     analyze.widget().set_sensitive(can_analyze);
-    analyze.widget().set_tooltip_text(Some(ANALYZE_TOOLTIP));
+    analyze.widget().set_tooltip_i18n(ANALYZE_TOOLTIP);
     analyze.widget().connect_clicked({
         let project = context.project.clone();
         let player = context.player_state.clone();
@@ -244,7 +249,7 @@ fn update_analysis_status(
 ) {
     button.widget().remove_css_class("destructive-action");
     button.widget().remove_css_class("suggested-action");
-    button.widget().set_tooltip_text(Some(ANALYZE_TOOLTIP));
+    button.widget().set_tooltip_i18n(ANALYZE_TOOLTIP);
     match status {
         Some(shrimply_video::sam2_analysis::Status::Running {
             message,
@@ -253,9 +258,11 @@ fn update_analysis_status(
             ..
         }) => {
             button.widget().set_sensitive(true);
-            button
-                .widget()
-                .set_label(if hovered { "Cancel" } else { message });
+            if hovered {
+                button.set_label("Cancel");
+            } else {
+                button.set_label(message);
+            }
             if hovered {
                 button.widget().add_css_class("destructive-action");
             }
@@ -268,36 +275,34 @@ fn update_analysis_status(
             }
         }
         Some(shrimply_video::sam2_analysis::Status::Complete { .. }) => {
-            button.widget().set_label("Reanalyze");
+            button.set_label("Reanalyze");
             button.widget().set_sensitive(can_analyze);
             button.set_state(ProgressButtonState::Idle);
         }
         Some(shrimply_video::sam2_analysis::Status::Failed(error)) => {
-            button
-                .widget()
-                .set_label(if error == "Compute server connection failed" {
-                    error
-                } else {
-                    "Analyze"
-                });
+            if error == "Compute server connection failed" {
+                button.widget().set_label(error);
+            } else {
+                button.set_label("Analyze");
+            }
             button.widget().set_sensitive(can_analyze);
             button.widget().add_css_class("suggested-action");
             button.widget().set_tooltip_text(Some(error));
             button.set_state(ProgressButtonState::Idle);
         }
         Some(shrimply_video::sam2_analysis::Status::Cancelling) => {
-            button.widget().set_label("Cancelling…");
+            button.set_label("Cancelling…");
             button.widget().set_sensitive(false);
             button.set_state(ProgressButtonState::Indeterminate);
         }
         Some(shrimply_video::sam2_analysis::Status::Cancelled) => {
-            button.widget().set_label("Cancelled");
+            button.set_label("Cancelled");
             button.widget().set_sensitive(can_analyze);
             button.widget().add_css_class("suggested-action");
             button.set_state(ProgressButtonState::Idle);
         }
         None => {
-            button.widget().set_label("Analyze");
+            button.set_label("Analyze");
             button.widget().set_sensitive(can_analyze);
             button.widget().add_css_class("suggested-action");
             button.set_state(ProgressButtonState::Idle);

@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
@@ -9,17 +10,17 @@ const REFRESH_INTERVAL: Duration = Duration::from_millis(500);
 
 pub(super) fn widget() -> gtk::Widget {
     let status = adw::ExpanderRow::builder()
-        .title("Live Performance")
+        .title(tr!("Live Performance").as_ref())
         .build();
     let clear = gtk::Button::builder()
         .icon_name("edit-clear-symbolic")
-        .tooltip_text("Clear")
+        .tooltip_text(tr!("Clear").as_ref())
         .valign(gtk::Align::Center)
         .css_classes(["flat"])
         .build();
     let copy = gtk::Button::builder()
         .icon_name("edit-copy-symbolic")
-        .tooltip_text("Copy JSON")
+        .tooltip_text(tr!("Copy JSON").as_ref())
         .valign(gtk::Align::Center)
         .css_classes(["flat"])
         .build();
@@ -113,14 +114,16 @@ fn refresh(status: &adw::ExpanderRow, rows: &RefCell<Vec<adw::ActionRow>>) {
             .unwrap_or_default();
         let row = adw::ActionRow::builder()
             .title(timing.name)
-            .subtitle(format!(
-                "Last {} · Avg {} · Min {} · Max {} · {} samples{}",
-                duration_label(timing.last),
-                duration_label(timing.average),
-                duration_label(timing.minimum),
-                duration_label(timing.maximum),
-                timing.samples,
-                percentage,
+            .subtitle(shrimply_ui_foundation::i18n::text_args(
+                "Last %{last} · Avg %{average} · Min %{minimum} · Max %{maximum} · %{samples} samples%{percentage}",
+                &[
+                    ("last", duration_label(timing.last)),
+                    ("average", duration_label(timing.average)),
+                    ("minimum", duration_label(timing.minimum)),
+                    ("maximum", duration_label(timing.maximum)),
+                    ("samples", timing.samples.to_string()),
+                    ("percentage", percentage),
+                ],
             ))
             .build();
         status.add_row(&row);

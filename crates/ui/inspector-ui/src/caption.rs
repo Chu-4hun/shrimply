@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -690,7 +691,7 @@ fn add_color_editor(
     let project = context.project.clone();
     let player_state = context.player_state.clone();
     let button = ColorPicker::builder(color)
-        .title("Caption text color")
+        .title(tr!("Caption text color").as_ref())
         .hexpand(true)
         .on_change(move |color| {
             update_caption(&project, &player_state, key.clone(), |item| {

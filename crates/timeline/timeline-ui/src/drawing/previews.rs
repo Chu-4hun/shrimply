@@ -1,5 +1,6 @@
 use super::*;
 use crate::project::ItemRef;
+use shrimply_ui_foundation::{i18n::text_args, tr};
 
 pub(super) fn draw_import_preview(
     draw: &TimelineDraw<'_>,
@@ -481,10 +482,9 @@ pub(super) fn draw_virtual_track_ghosts(
             Stroke::new(1.0, color.alpha_multiply(0.72)),
             StrokeKind::Inside,
         );
-        painter.text(
+        painter.system_text(
             vec2((timeline_x + 8.0) as f32, (y + 11.0) as f32),
-            Align2::LEFT_TOP,
-            format!("New {}", kind.label()),
+            text_args("New %{kind}", &[("kind", tr!(kind.label()).into_owned())]),
             FontId::proportional(12.0),
             color.alpha_multiply(0.92),
         );

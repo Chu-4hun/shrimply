@@ -3,9 +3,11 @@ use std::path::PathBuf;
 use gtk::gio;
 use gtk::prelude::*;
 
+use crate::ui::I18nFileFilterExt;
+
 pub fn project_file_filter() -> gtk::FileFilter {
     let filter = gtk::FileFilter::new();
-    filter.set_name(Some("Shrimply projects"));
+    filter.set_name_i18n("Shrimply projects");
     filter.add_pattern("*.shrimp");
     filter.add_pattern("*.json");
     filter.add_pattern("*.otio");
@@ -22,7 +24,7 @@ pub fn open_project(
     let filters = gio::ListStore::new::<gtk::FileFilter>();
     filters.append(&filter);
     let dialog = gtk::FileDialog::builder()
-        .title(label)
+        .title(crate::i18n::text(label).as_ref())
         .filters(&filters)
         .default_filter(&filter)
         .build();

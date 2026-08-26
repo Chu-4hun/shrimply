@@ -392,7 +392,10 @@ fn set_typo_context_menu(
     {
         let action_name = format!("fix{index}");
         section.append(
-            Some(&format!("Fix typo: {correction}")),
+            Some(&crate::i18n::text_args(
+                "Fix typo: %{correction}",
+                &[("correction", correction.clone())],
+            )),
             Some(&format!("texttypo.{action_name}")),
         );
 

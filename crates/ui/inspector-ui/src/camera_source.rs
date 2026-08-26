@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::{
     cell::RefCell,
     collections::{HashMap, HashSet},
@@ -64,7 +65,15 @@ fn source_dropdown(source: &CameraSource, context: &InspectorContext) -> gtk::Dr
             .flat_map(|tracks| tracks.iter())
             .enumerate()
             .filter(|(_, track)| track.id != key.track_id())
-            .map(|(index, track)| (Some(track.id), format!("Visual track {index}"))),
+            .map(|(index, track)| {
+                (
+                    Some(track.id),
+                    shrimply_ui_foundation::i18n::text_args(
+                        "Visual track %{number}",
+                        &[("number", index.to_string())],
+                    ),
+                )
+            }),
     );
     let selected_id = match source {
         CameraSource::Custom => None,
@@ -72,7 +81,13 @@ fn source_dropdown(source: &CameraSource, context: &InspectorContext) -> gtk::Dr
     };
     if choices.iter().all(|(id, _)| *id != selected_id) {
         let id = selected_id.expect("only tracked sources can be unavailable");
-        choices.push((Some(id), format!("Unavailable ({id})")));
+        choices.push((
+            Some(id),
+            shrimply_ui_foundation::i18n::text_args(
+                "Unavailable (%{id})",
+                &[("id", id.to_string())],
+            ),
+        ));
     }
     drop(project);
     let context = context.detached();
@@ -139,7 +154,10 @@ fn add_tracking_controls(
                 _ => model.clone(),
             };
             if available.is_some_and(|available| !available.contains(model)) {
-                format!("{label} (Unavailable)")
+                shrimply_ui_foundation::i18n::text_args(
+                    "%{label} (Unavailable)",
+                    &[("label", label)],
+                )
             } else {
                 label
             }
@@ -192,7 +210,7 @@ fn add_tracking_controls(
     section.add_control_row("Analysis FPS", &fps);
 
     let status_row = adw::ActionRow::builder()
-        .title("Analysis status")
+        .title(tr!("Analysis status").as_ref())
         .subtitle(match models {
             None => "Checking compute server...".to_string(),
             Some(Err(error)) => format!("Server unavailable: {error}"),
@@ -211,15 +229,18 @@ fn add_tracking_controls(
     let matching = camera_reconstruction::has_matching_cache(camera_item_id, source);
     let can_analyze = available.is_some_and(|models| models.contains(&source.settings.model));
     let button = gtk::Button::builder()
-        .label(if cancellable {
-            "Cancel"
-        } else if matches!(status, AnalysisStatus::Cancelling) {
-            "Cancelling…"
-        } else if matching || matches!(status, AnalysisStatus::OutOfDate) {
-            "Analyze Again"
-        } else {
-            "Analyze"
-        })
+        .label(
+            tr!(if cancellable {
+                "Cancel"
+            } else if matches!(status, AnalysisStatus::Cancelling) {
+                "Cancelling…"
+            } else if matching || matches!(status, AnalysisStatus::OutOfDate) {
+                "Analyze Again"
+            } else {
+                "Analyze"
+            })
+            .as_ref(),
+        )
         .sensitive(cancellable || (!running && can_analyze))
         .halign(gtk::Align::Fill)
         .build();
@@ -313,24 +334,32 @@ fn project_status(
 
 fn status_label(status: &AnalysisStatus) -> String {
     match status {
-        AnalysisStatus::NotAnalyzed => "Not analyzed".to_string(),
-        AnalysisStatus::OutOfDate => "Out of date".to_string(),
-        AnalysisStatus::Queued => "Queued".to_string(),
-        AnalysisStatus::Loading => "Loading tracking model".to_string(),
+        AnalysisStatus::NotAnalyzed => tr!("Not analyzed").into_owned(),
+        AnalysisStatus::OutOfDate => tr!("Out of date").into_owned(),
+        AnalysisStatus::Queued => tr!("Queued").into_owned(),
+        AnalysisStatus::Loading => tr!("Loading tracking model").into_owned(),
         AnalysisStatus::Analyzing {
             message,
             completed_frames,
             total_frames,
-        } if *total_frames != 0 => {
-            format!("{message} {completed_frames}/{total_frames}")
-        }
-        AnalysisStatus::Analyzing { message, .. } => message.clone(),
-        AnalysisStatus::Cancelling => "Cancelling".to_string(),
-        AnalysisStatus::Cancelled => "Cancelled".to_string(),
-        AnalysisStatus::Ready { sample_count } => format!("Ready ({sample_count} samples)"),
+        } if *total_frames != 0 => shrimply_ui_foundation::i18n::text_args(
+            "%{message} %{completed}/%{total}",
+            &[
+                ("message", tr!(message).into_owned()),
+                ("completed", completed_frames.to_string()),
+                ("total", total_frames.to_string()),
+            ],
+        ),
+        AnalysisStatus::Analyzing { message, .. } => tr!(message).into_owned(),
+        AnalysisStatus::Cancelling => tr!("Cancelling").into_owned(),
+        AnalysisStatus::Cancelled => tr!("Cancelled").into_owned(),
+        AnalysisStatus::Ready { sample_count } => shrimply_ui_foundation::i18n::text_args(
+            "Ready (%{count} samples)",
+            &[("count", sample_count.to_string())],
+        ),
         AnalysisStatus::Failed { error } => format!("Failed: {error}"),
-        AnalysisStatus::MissingSourceTrack => "Source track unavailable".to_string(),
-        AnalysisStatus::EmptySourceTrack => "Source track is empty".to_string(),
+        AnalysisStatus::MissingSourceTrack => tr!("Source track unavailable").into_owned(),
+        AnalysisStatus::EmptySourceTrack => tr!("Source track is empty").into_owned(),
     }
 }
 
@@ -355,20 +384,23 @@ fn update_analysis_controls(
     );
     status_row.set_subtitle(&status_label(status));
     spinner.set_visible(running);
-    button.set_label(if cancellable {
-        "Cancel"
-    } else if matches!(status, AnalysisStatus::Cancelling) {
-        "Cancelling…"
-    } else if matching
-        || matches!(
-            status,
-            AnalysisStatus::OutOfDate | AnalysisStatus::Ready { .. }
-        )
-    {
-        "Analyze Again"
-    } else {
-        "Analyze"
-    });
+    button.set_label(
+        tr!(if cancellable {
+            "Cancel"
+        } else if matches!(status, AnalysisStatus::Cancelling) {
+            "Cancelling…"
+        } else if matching
+            || matches!(
+                status,
+                AnalysisStatus::OutOfDate | AnalysisStatus::Ready { .. }
+            )
+        {
+            "Analyze Again"
+        } else {
+            "Analyze"
+        })
+        .as_ref(),
+    );
     button.set_sensitive(cancellable || (!running && can_analyze));
 }
 

@@ -1,0 +1,5580 @@
+_version = 2
+
+["Absorption"]
+en = "Absorption"
+es = "Absorción"
+fr = "Absorption"
+de = "Absorption"
+ja = "吸音"
+
+["Accurate Render Method"]
+en = "Accurate Render Method"
+es = "Método de renderizado preciso"
+fr = "Méthode de rendu précise"
+de = "Präzise Rendermethode"
+ja = "高精度レンダリング方式"
+
+["Actions"]
+en = "Actions"
+es = "Acciones"
+fr = "Actions"
+de = "Aktionen"
+ja = "操作"
+
+["Adaptive weights"]
+en = "Adaptive weights"
+es = "Pesos adaptativos"
+fr = "Poids adaptatifs"
+de = "Adaptive Gewichtung"
+ja = "適応ウェイト"
+
+["Add"]
+en = "Add"
+es = "Añadir"
+fr = "Ajouter"
+de = "Hinzufügen"
+ja = "追加"
+
+["Add color"]
+en = "Add color"
+es = "Añadir color"
+fr = "Ajouter une couleur"
+de = "Farbe hinzufügen"
+ja = "色を追加"
+
+["Add font"]
+en = "Add font"
+es = "Añadir fuente"
+fr = "Ajouter une police"
+de = "Schrift hinzufügen"
+ja = "フォントを追加"
+
+["Add keyframe at playhead"]
+en = "Add keyframe at playhead"
+es = "Añadir fotograma clave en el cabezal"
+fr = "Ajouter une image clé à la tête de lecture"
+de = "Keyframe am Abspielkopf hinzufügen"
+ja = "再生位置にキーフレームを追加"
+
+["Add modifier"]
+en = "Add modifier"
+es = "Añadir modificador"
+fr = "Ajouter un modificateur"
+de = "Modifikator hinzufügen"
+ja = "モディファイアを追加"
+
+["Addressing"]
+en = "Addressing"
+es = "Direccionamiento"
+fr = "Adressage"
+de = "Adressierung"
+ja = "アドレッシング"
+
+["Aggressiveness"]
+en = "Aggressiveness"
+es = "Intensidad"
+fr = "Agressivité"
+de = "Aggressivität"
+ja = "強度"
+
+["Align"]
+en = "Align"
+es = "Alinear"
+fr = "Aligner"
+de = "Ausrichten"
+ja = "整列"
+
+["Alpha Mask Stream"]
+en = "Alpha Mask Stream"
+es = "Flujo de máscara alfa"
+fr = "Flux de masque alpha"
+de = "Alphamasken-Stream"
+ja = "アルファマスクストリーム"
+
+["Amount"]
+en = "Amount"
+es = "Cantidad"
+fr = "Quantité"
+de = "Stärke"
+ja = "量"
+
+["Amplitude"]
+en = "Amplitude"
+es = "Amplitud"
+fr = "Amplitude"
+de = "Amplitude"
+ja = "振幅"
+
+["Analysis FPS"]
+en = "Analysis FPS"
+es = "FPS de análisis"
+fr = "IPS d’analyse"
+de = "Analyse-FPS"
+ja = "解析FPS"
+
+["Analysis status"]
+en = "Analysis status"
+es = "Estado del análisis"
+fr = "État de l’analyse"
+de = "Analysestatus"
+ja = "解析状態"
+
+["Analyze"]
+en = "Analyze"
+es = "Analizar"
+fr = "Analyser"
+de = "Analysieren"
+ja = "解析"
+
+["Analyze Again"]
+en = "Analyze Again"
+es = "Analizar de nuevo"
+fr = "Analyser à nouveau"
+de = "Erneut analysieren"
+ja = "再解析"
+
+["Analyze this clip for beat-grid snapping"]
+en = "Analyze this clip for beat-grid snapping"
+es = "Analizar este clip para ajustar a la cuadrícula de pulsos"
+fr = "Analyser ce clip pour l’alignement sur la grille rythmique"
+de = "Clip für das Einrasten am Taktraster analysieren"
+ja = "ビートグリッドへのスナップ用にクリップを解析"
+
+["Analyzing source motion…"]
+en = "Analyzing source motion…"
+es = "Analizando el movimiento de origen…"
+fr = "Analyse du mouvement source…"
+de = "Quellbewegung wird analysiert…"
+ja = "ソースの動きを解析中…"
+
+["Analyzing…"]
+en = "Analyzing…"
+es = "Analizando…"
+fr = "Analyse…"
+de = "Analyse läuft…"
+ja = "解析中…"
+
+["Anchor"]
+en = "Anchor"
+es = "Ancla"
+fr = "Ancrage"
+de = "Anker"
+ja = "アンカー"
+
+["Angle"]
+en = "Angle"
+es = "Ángulo"
+fr = "Angle"
+de = "Winkel"
+ja = "角度"
+
+["Angular radius"]
+en = "Angular radius"
+es = "Radio angular"
+fr = "Rayon angulaire"
+de = "Winkelradius"
+ja = "角半径"
+
+["Angular randomness"]
+en = "Angular randomness"
+es = "Aleatoriedad angular"
+fr = "Variation angulaire"
+de = "Winkelzufälligkeit"
+ja = "角度のランダム性"
+
+["Animated"]
+en = "Animated"
+es = "Animado"
+fr = "Animé"
+de = "Animiert"
+ja = "アニメーション"
+
+["Anti-aliasing"]
+en = "Anti-aliasing"
+es = "Suavizado"
+fr = "Anticrénelage"
+de = "Kantenglättung"
+ja = "アンチエイリアス"
+
+["Aperture"]
+en = "Aperture"
+es = "Apertura"
+fr = "Ouverture"
+de = "Blende"
+ja = "絞り"
+
+["Arm thickness"]
+en = "Arm thickness"
+es = "Grosor del brazo"
+fr = "Épaisseur des branches"
+de = "Armstärke"
+ja = "アームの太さ"
+
+["Attack"]
+en = "Attack"
+es = "Ataque"
+fr = "Attaque"
+de = "Attack"
+ja = "アタック"
+
+["Audio Stream"]
+en = "Audio Stream"
+es = "Flujo de audio"
+fr = "Flux audio"
+de = "Audiostream"
+ja = "オーディオストリーム"
+
+["Audio stream %{number}"]
+en = "Audio stream %{number}"
+es = "Flujo de audio %{number}"
+fr = "Flux audio %{number}"
+de = "Audiostream %{number}"
+ja = "オーディオストリーム %{number}"
+
+["Auto level"]
+en = "Auto level"
+es = "Nivel automático"
+fr = "Niveau automatique"
+de = "Automatischer Pegel"
+ja = "自動レベル"
+
+["B&W threshold"]
+en = "B&W threshold"
+es = "Umbral B/N"
+fr = "Seuil N&B"
+de = "S/W-Schwelle"
+ja = "白黒しきい値"
+
+["Background color"]
+en = "Background color"
+es = "Color de fondo"
+fr = "Couleur d’arrière-plan"
+de = "Hintergrundfarbe"
+ja = "背景色"
+
+["Background distance"]
+en = "Background distance"
+es = "Distancia del fondo"
+fr = "Distance de l’arrière-plan"
+de = "Hintergrundabstand"
+ja = "背景の距離"
+
+["Background fill"]
+en = "Background fill"
+es = "Relleno de fondo"
+fr = "Remplissage d’arrière-plan"
+de = "Hintergrundfüllung"
+ja = "背景の塗り"
+
+["Background intensity"]
+en = "Background intensity"
+es = "Intensidad del fondo"
+fr = "Intensité de l’arrière-plan"
+de = "Hintergrundintensität"
+ja = "背景の強度"
+
+["Background padding"]
+en = "Background padding"
+es = "Margen del fondo"
+fr = "Marge de l’arrière-plan"
+de = "Hintergrundabstand"
+ja = "背景の余白"
+
+["Background plane"]
+en = "Background plane"
+es = "Plano de fondo"
+fr = "Plan d’arrière-plan"
+de = "Hintergrundebene"
+ja = "背景平面"
+
+["Background roundness"]
+en = "Background roundness"
+es = "Redondez del fondo"
+fr = "Arrondi de l’arrière-plan"
+de = "Hintergrundrundung"
+ja = "背景の丸み"
+
+["Background tiling"]
+en = "Background tiling"
+es = "Mosaico de fondo"
+fr = "Répétition de l’arrière-plan"
+de = "Hintergrundkachelung"
+ja = "背景のタイリング"
+
+["Bake"]
+en = "Bake"
+es = "Precalcular"
+fr = "Précalculer"
+de = "Backen"
+ja = "ベイク"
+
+["Baking…"]
+en = "Baking…"
+es = "Precalculando…"
+fr = "Précalcul…"
+de = "Wird gebacken…"
+ja = "ベイク中…"
+
+["Balanced"]
+en = "Balanced"
+es = "Equilibrado"
+fr = "Équilibré"
+de = "Ausgewogen"
+ja = "バランス"
+
+["Band count"]
+en = "Band count"
+es = "Número de bandas"
+fr = "Nombre de bandes"
+de = "Bandanzahl"
+ja = "バンド数"
+
+["Band width"]
+en = "Band width"
+es = "Ancho de banda"
+fr = "Largeur de bande"
+de = "Bandbreite"
+ja = "バンド幅"
+
+["Bands"]
+en = "Bands"
+es = "Bandas"
+fr = "Bandes"
+de = "Bänder"
+ja = "バンド"
+
+["Base angle"]
+en = "Base angle"
+es = "Ángulo base"
+fr = "Angle de base"
+de = "Basiswinkel"
+ja = "基準角度"
+
+["Base color"]
+en = "Base color"
+es = "Color base"
+fr = "Couleur de base"
+de = "Grundfarbe"
+ja = "ベースカラー"
+
+["Beat Detection"]
+en = "Beat Detection"
+es = "Detección de pulsos"
+fr = "Détection du rythme"
+de = "Beat-Erkennung"
+ja = "ビート検出"
+
+["Bevel"]
+en = "Bevel"
+es = "Bisel"
+fr = "Biseau"
+de = "Abschrägung"
+ja = "ベベル"
+
+["Blend curve"]
+en = "Blend curve"
+es = "Curva de mezcla"
+fr = "Courbe de mélange"
+de = "Mischkurve"
+ja = "ブレンド曲線"
+
+["Blend mode"]
+en = "Blend mode"
+es = "Modo de fusión"
+fr = "Mode de fusion"
+de = "Mischmodus"
+ja = "ブレンドモード"
+
+["Block height"]
+en = "Block height"
+es = "Alto del bloque"
+fr = "Hauteur du bloc"
+de = "Blockhöhe"
+ja = "ブロックの高さ"
+
+["Block width"]
+en = "Block width"
+es = "Ancho del bloque"
+fr = "Largeur du bloc"
+de = "Blockbreite"
+ja = "ブロックの幅"
+
+["Blur"]
+en = "Blur"
+es = "Desenfoque"
+fr = "Flou"
+de = "Unschärfe"
+ja = "ぼかし"
+
+["Bottom"]
+en = "Bottom"
+es = "Abajo"
+fr = "Bas"
+de = "Unten"
+ja = "下"
+
+["Bottom left"]
+en = "Bottom left"
+es = "Abajo a la izquierda"
+fr = "En bas à gauche"
+de = "Unten links"
+ja = "左下"
+
+["Bottom right"]
+en = "Bottom right"
+es = "Abajo a la derecha"
+fr = "En bas à droite"
+de = "Unten rechts"
+ja = "右下"
+
+["Box"]
+en = "Box"
+es = "Cuadro"
+fr = "Boîte"
+de = "Rechteck"
+ja = "ボックス"
+
+["Brightness"]
+en = "Brightness"
+es = "Brillo"
+fr = "Luminosité"
+de = "Helligkeit"
+ja = "明るさ"
+
+["Camera"]
+en = "Camera"
+es = "Cámara"
+fr = "Caméra"
+de = "Kamera"
+ja = "カメラ"
+
+["Camera model"]
+en = "Camera model"
+es = "Modelo de cámara"
+fr = "Modèle de caméra"
+de = "Kameramodell"
+ja = "カメラモデル"
+
+["Camera source"]
+en = "Camera source"
+es = "Fuente de cámara"
+fr = "Source de caméra"
+de = "Kameraquelle"
+ja = "カメラソース"
+
+["Cancelling"]
+en = "Cancelling"
+es = "Cancelando"
+fr = "Annulation"
+de = "Wird abgebrochen"
+ja = "キャンセル中"
+
+["Caption text color"]
+en = "Caption text color"
+es = "Color del texto del subtítulo"
+fr = "Couleur du texte du sous-titre"
+de = "Untertiteltextfarbe"
+ja = "字幕テキストの色"
+
+["Ceiling"]
+en = "Ceiling"
+es = "Techo"
+fr = "Plafond"
+de = "Obergrenze"
+ja = "上限"
+
+["Cell size"]
+en = "Cell size"
+es = "Tamaño de celda"
+fr = "Taille de cellule"
+de = "Zellengröße"
+ja = "セルサイズ"
+
+["Center"]
+en = "Center"
+es = "Centro"
+fr = "Centre"
+de = "Mitte"
+ja = "中央"
+
+["Center X"]
+en = "Center X"
+es = "Centro X"
+fr = "Centre X"
+de = "Mitte X"
+ja = "中心 X"
+
+["Center Y"]
+en = "Center Y"
+es = "Centro Y"
+fr = "Centre Y"
+de = "Mitte Y"
+ja = "中心 Y"
+
+["Chamfer"]
+en = "Chamfer"
+es = "Chaflán"
+fr = "Chanfrein"
+de = "Fase"
+ja = "面取り"
+
+["Change all at once"]
+en = "Change all at once"
+es = "Cambiar todo a la vez"
+fr = "Tout changer à la fois"
+de = "Alles gleichzeitig ändern"
+ja = "一度にすべて変更"
+
+["Channel angle offset"]
+en = "Channel angle offset"
+es = "Desfase angular de canales"
+fr = "Décalage angulaire des canaux"
+de = "Kanalwinkelversatz"
+ja = "チャンネル角度オフセット"
+
+["Channel offset"]
+en = "Channel offset"
+es = "Desfase de canales"
+fr = "Décalage des canaux"
+de = "Kanalversatz"
+ja = "チャンネルオフセット"
+
+["Choose font"]
+en = "Choose font"
+es = "Elegir fuente"
+fr = "Choisir une police"
+de = "Schrift auswählen"
+ja = "フォントを選択"
+
+["Choose item…"]
+en = "Choose item…"
+es = "Elegir elemento…"
+fr = "Choisir un élément…"
+de = "Element auswählen…"
+ja = "項目を選択…"
+
+["Circular"]
+en = "Circular"
+es = "Circular"
+fr = "Circulaire"
+de = "Kreisförmig"
+ja = "円形"
+
+["Classic"]
+en = "Classic"
+es = "Clásico"
+fr = "Classique"
+de = "Klassisch"
+ja = "クラシック"
+
+["Clear and rewrite the whole text"]
+en = "Clear and rewrite the whole text"
+es = "Borrar y reescribir todo el texto"
+fr = "Effacer et réécrire tout le texte"
+de = "Gesamten Text löschen und neu schreiben"
+ja = "テキスト全体を消去して書き直す"
+
+["Clear image"]
+en = "Clear image"
+es = "Quitar imagen"
+fr = "Effacer l’image"
+de = "Bild entfernen"
+ja = "画像をクリア"
+
+["Clear mask source"]
+en = "Clear mask source"
+es = "Quitar fuente de máscara"
+fr = "Effacer la source du masque"
+de = "Maskenquelle entfernen"
+ja = "マスクソースをクリア"
+
+["Clear model"]
+en = "Clear model"
+es = "Quitar modelo"
+fr = "Effacer le modèle"
+de = "Modell entfernen"
+ja = "モデルをクリア"
+
+["Clear texture"]
+en = "Clear texture"
+es = "Quitar textura"
+fr = "Effacer la texture"
+de = "Textur entfernen"
+ja = "テクスチャをクリア"
+
+["Clearcoat"]
+en = "Clearcoat"
+es = "Capa transparente"
+fr = "Vernis"
+de = "Klarlack"
+ja = "クリアコート"
+
+["Clockwise"]
+en = "Clockwise"
+es = "Horario"
+fr = "Horaire"
+de = "Im Uhrzeigersinn"
+ja = "時計回り"
+
+["Coalesce"]
+en = "Coalesce"
+es = "Unir"
+fr = "Fusionner"
+de = "Zusammenführen"
+ja = "結合"
+
+["Collapse"]
+en = "Collapse"
+es = "Contraer"
+fr = "Réduire"
+de = "Einklappen"
+ja = "折りたたむ"
+
+["Color"]
+en = "Color"
+es = "Color"
+fr = "Couleur"
+de = "Farbe"
+ja = "色"
+
+["Color A"]
+en = "Color A"
+es = "Color A"
+fr = "Couleur A"
+de = "Farbe A"
+ja = "色 A"
+
+["Color B"]
+en = "Color B"
+es = "Color B"
+fr = "Couleur B"
+de = "Farbe B"
+ja = "色 B"
+
+["Color mode"]
+en = "Color mode"
+es = "Modo de color"
+fr = "Mode de couleur"
+de = "Farbmodus"
+ja = "カラーモード"
+
+["Color position"]
+en = "Color position"
+es = "Posición del color"
+fr = "Position de la couleur"
+de = "Farbposition"
+ja = "色の位置"
+
+["Color precision"]
+en = "Color precision"
+es = "Precisión del color"
+fr = "Précision des couleurs"
+de = "Farbpräzision"
+ja = "色精度"
+
+["Color %{number}"]
+en = "Color %{number}"
+es = "Color %{number}"
+fr = "Couleur %{number}"
+de = "Farbe %{number}"
+ja = "色 %{number}"
+
+["Coloring"]
+en = "Coloring"
+es = "Coloración"
+fr = "Coloration"
+de = "Färbung"
+ja = "カラーリング"
+
+["Completion"]
+en = "Completion"
+es = "Progreso"
+fr = "Progression"
+de = "Fortschritt"
+ja = "進行度"
+
+["Complexity"]
+en = "Complexity"
+es = "Complejidad"
+fr = "Complexité"
+de = "Komplexität"
+ja = "複雑さ"
+
+["Composite"]
+en = "Composite"
+es = "Composición"
+fr = "Composition"
+de = "Komposition"
+ja = "合成"
+
+["Composite background"]
+en = "Composite background"
+es = "Componer fondo"
+fr = "Composer l’arrière-plan"
+de = "Hintergrund zusammensetzen"
+ja = "背景を合成"
+
+["Compositing"]
+en = "Compositing"
+es = "Composición"
+fr = "Composition"
+de = "Compositing"
+ja = "コンポジット"
+
+["Constant high"]
+en = "Constant high"
+es = "Constante alto"
+fr = "Constant élevé"
+de = "Konstant hoch"
+ja = "常に高"
+
+["Constant low"]
+en = "Constant low"
+es = "Constante bajo"
+fr = "Constant faible"
+de = "Konstant niedrig"
+ja = "常に低"
+
+["Constant-acceleration weight"]
+en = "Constant-acceleration weight"
+es = "Peso de aceleración constante"
+fr = "Poids d’accélération constante"
+de = "Gewichtung konstanter Beschleunigung"
+ja = "等加速度ウェイト"
+
+["Constant-motion weight"]
+en = "Constant-motion weight"
+es = "Peso de movimiento constante"
+fr = "Poids de mouvement constant"
+de = "Gewichtung konstanter Bewegung"
+ja = "等速運動ウェイト"
+
+["Continuous"]
+en = "Continuous"
+es = "Continuo"
+fr = "Continu"
+de = "Kontinuierlich"
+ja = "連続"
+
+["Contrast"]
+en = "Contrast"
+es = "Contraste"
+fr = "Contraste"
+de = "Kontrast"
+ja = "コントラスト"
+
+["Copies X"]
+en = "Copies X"
+es = "Copias X"
+fr = "Copies X"
+de = "Kopien X"
+ja = "コピー数 X"
+
+["Copies Y"]
+en = "Copies Y"
+es = "Copias Y"
+fr = "Copies Y"
+de = "Kopien Y"
+ja = "コピー数 Y"
+
+["Copy JSON"]
+en = "Copy JSON"
+es = "Copiar JSON"
+fr = "Copier le JSON"
+de = "JSON kopieren"
+ja = "JSONをコピー"
+
+["Corner radius"]
+en = "Corner radius"
+es = "Radio de esquina"
+fr = "Rayon des angles"
+de = "Eckenradius"
+ja = "角の半径"
+
+["Corner rounding"]
+en = "Corner rounding"
+es = "Redondeo de esquinas"
+fr = "Arrondi des angles"
+de = "Eckenrundung"
+ja = "角の丸み"
+
+["Corner threshold"]
+en = "Corner threshold"
+es = "Umbral de esquina"
+fr = "Seuil des angles"
+de = "Eckenschwelle"
+ja = "コーナーしきい値"
+
+["Counterclockwise"]
+en = "Counterclockwise"
+es = "Antihorario"
+fr = "Antihoraire"
+de = "Gegen den Uhrzeigersinn"
+ja = "反時計回り"
+
+["Create"]
+en = "Create"
+es = "Crear"
+fr = "Créer"
+de = "Erstellen"
+ja = "作成"
+
+["Crop ratio"]
+en = "Crop ratio"
+es = "Proporción de recorte"
+fr = "Rapport de recadrage"
+de = "Zuschnittverhältnis"
+ja = "クロップ率"
+
+["Cross"]
+en = "Cross"
+es = "Cruz"
+fr = "Croix"
+de = "Kreuz"
+ja = "十字"
+
+["Crosshatch"]
+en = "Crosshatch"
+es = "Tramado cruzado"
+fr = "Hachures croisées"
+de = "Kreuzschraffur"
+ja = "クロスハッチ"
+
+["Curvature"]
+en = "Curvature"
+es = "Curvatura"
+fr = "Courbure"
+de = "Krümmung"
+ja = "曲率"
+
+["Curve"]
+en = "Curve"
+es = "Curva"
+fr = "Courbe"
+de = "Kurve"
+ja = "カーブ"
+
+["Cutoff"]
+en = "Cutoff"
+es = "Corte"
+fr = "Coupure"
+de = "Grenzfrequenz"
+ja = "カットオフ"
+
+["Damping"]
+en = "Damping"
+es = "Amortiguación"
+fr = "Amortissement"
+de = "Dämpfung"
+ja = "ダンピング"
+
+["Darkest tone"]
+en = "Darkest tone"
+es = "Tono más oscuro"
+fr = "Ton le plus sombre"
+de = "Dunkelster Ton"
+ja = "最暗部"
+
+["Dash gap"]
+en = "Dash gap"
+es = "Espacio de guiones"
+fr = "Espacement des tirets"
+de = "Strichabstand"
+ja = "破線の間隔"
+
+["Dash length"]
+en = "Dash length"
+es = "Longitud de guión"
+fr = "Longueur des tirets"
+de = "Strichlänge"
+ja = "破線の長さ"
+
+["Dash position"]
+en = "Dash position"
+es = "Posición de guiones"
+fr = "Position des tirets"
+de = "Strichposition"
+ja = "破線の位置"
+
+["Decay"]
+en = "Decay"
+es = "Decaimiento"
+fr = "Décroissance"
+de = "Abklingen"
+ja = "減衰"
+
+["Default outline color"]
+en = "Default outline color"
+es = "Color de contorno predeterminado"
+fr = "Couleur de contour par défaut"
+de = "Standard-Umrissfarbe"
+ja = "既定のアウトライン色"
+
+["Delay"]
+en = "Delay"
+es = "Retardo"
+fr = "Délai"
+de = "Verzögerung"
+ja = "ディレイ"
+
+["Delete selected keyframe"]
+en = "Delete selected keyframe"
+es = "Eliminar fotograma clave seleccionado"
+fr = "Supprimer l’image clé sélectionnée"
+de = "Ausgewählten Keyframe löschen"
+ja = "選択したキーフレームを削除"
+
+["Depth"]
+en = "Depth"
+es = "Profundidad"
+fr = "Profondeur"
+de = "Tiefe"
+ja = "深度"
+
+["Depth edge roundness"]
+en = "Depth edge roundness"
+es = "Redondez del borde de profundidad"
+fr = "Arrondi des bords de profondeur"
+de = "Rundung der Tiefenkante"
+ja = "深度エッジの丸み"
+
+["Depth threshold"]
+en = "Depth threshold"
+es = "Umbral de profundidad"
+fr = "Seuil de profondeur"
+de = "Tiefenschwelle"
+ja = "深度しきい値"
+
+["Detail"]
+en = "Detail"
+es = "Detalle"
+fr = "Détail"
+de = "Detail"
+ja = "ディテール"
+
+["Diamond"]
+en = "Diamond"
+es = "Rombo"
+fr = "Losange"
+de = "Raute"
+ja = "ひし形"
+
+["Diffusion"]
+en = "Diffusion"
+es = "Difusión"
+fr = "Diffusion"
+de = "Diffusion"
+ja = "拡散"
+
+["Dimensions"]
+en = "Dimensions"
+es = "Dimensiones"
+fr = "Dimensions"
+de = "Abmessungen"
+ja = "寸法"
+
+["Direction"]
+en = "Direction"
+es = "Dirección"
+fr = "Direction"
+de = "Richtung"
+ja = "方向"
+
+["Disable modifier"]
+en = "Disable modifier"
+es = "Desactivar modificador"
+fr = "Désactiver le modificateur"
+de = "Modifikator deaktivieren"
+ja = "モディファイアを無効化"
+
+["Discard and reanalyze the current source-time chunk"]
+en = "Discard and reanalyze the current source-time chunk"
+es = "Descartar y volver a analizar el tramo temporal actual"
+fr = "Ignorer et réanalyser le segment temporel source actuel"
+de = "Aktuellen Quellzeitabschnitt verwerfen und neu analysieren"
+ja = "現在のソース時間チャンクを破棄して再解析"
+
+["Distance"]
+en = "Distance"
+es = "Distancia"
+fr = "Distance"
+de = "Abstand"
+ja = "距離"
+
+["Distortion"]
+en = "Distortion"
+es = "Distorsión"
+fr = "Distorsion"
+de = "Verzerrung"
+ja = "歪み"
+
+["Distribution"]
+en = "Distribution"
+es = "Distribución"
+fr = "Distribution"
+de = "Verteilung"
+ja = "分布"
+
+["Distribution randomness"]
+en = "Distribution randomness"
+es = "Aleatoriedad de distribución"
+fr = "Variation de distribution"
+de = "Verteilungszufälligkeit"
+ja = "分布のランダム性"
+
+["Dot density"]
+en = "Dot density"
+es = "Densidad de puntos"
+fr = "Densité des points"
+de = "Punktdichte"
+ja = "ドット密度"
+
+["Dot size"]
+en = "Dot size"
+es = "Tamaño de punto"
+fr = "Taille des points"
+de = "Punktgröße"
+ja = "ドットサイズ"
+
+["Dots"]
+en = "Dots"
+es = "Puntos"
+fr = "Points"
+de = "Punkte"
+ja = "ドット"
+
+["Downloading font family…"]
+en = "Downloading font family…"
+es = "Descargando familia tipográfica…"
+fr = "Téléchargement de la famille de polices…"
+de = "Schriftfamilie wird heruntergeladen…"
+ja = "フォントファミリーをダウンロード中…"
+
+["Drag onto a visual clip in the timeline"]
+en = "Drag onto a visual clip in the timeline"
+es = "Arrastra sobre un clip visual en la línea de tiempo"
+fr = "Faites glisser sur un clip visuel dans la timeline"
+de = "Auf einen visuellen Clip in der Zeitleiste ziehen"
+ja = "タイムライン上のビジュアルクリップにドラッグ"
+
+["Drag onto a visual clip…"]
+en = "Drag onto a visual clip…"
+es = "Arrastra sobre un clip visual…"
+fr = "Faites glisser sur un clip visuel…"
+de = "Auf einen visuellen Clip ziehen…"
+ja = "ビジュアルクリップにドラッグ…"
+
+["Drawing"]
+en = "Drawing"
+es = "Dibujo"
+fr = "Dessin"
+de = "Zeichnung"
+ja = "描画"
+
+["Drive"]
+en = "Drive"
+es = "Ganancia"
+fr = "Gain"
+de = "Drive"
+ja = "ドライブ"
+
+["Duration"]
+en = "Duration"
+es = "Duración"
+fr = "Durée"
+de = "Dauer"
+ja = "長さ"
+
+["Edge"]
+en = "Edge"
+es = "Borde"
+fr = "Bord"
+de = "Kante"
+ja = "エッジ"
+
+["Edge color"]
+en = "Edge color"
+es = "Color de borde"
+fr = "Couleur du bord"
+de = "Kantenfarbe"
+ja = "エッジ色"
+
+["Edge softness"]
+en = "Edge softness"
+es = "Suavidad del borde"
+fr = "Douceur du bord"
+de = "Kantenweichheit"
+ja = "エッジの柔らかさ"
+
+["Edge width"]
+en = "Edge width"
+es = "Ancho de borde"
+fr = "Largeur du bord"
+de = "Kantenbreite"
+ja = "エッジ幅"
+
+["Edit after the shared beginning"]
+en = "Edit after the shared beginning"
+es = "Editar tras el inicio compartido"
+fr = "Modifier après le début commun"
+de = "Nach dem gemeinsamen Anfang bearbeiten"
+ja = "共通の冒頭以降を編集"
+
+["Edit between the shared ends"]
+en = "Edit between the shared ends"
+es = "Editar entre los extremos compartidos"
+fr = "Modifier entre les extrémités communes"
+de = "Zwischen den gemeinsamen Enden bearbeiten"
+ja = "共通部分の間を編集"
+
+["Edit only the changed characters"]
+en = "Edit only the changed characters"
+es = "Editar solo los caracteres modificados"
+fr = "Modifier uniquement les caractères changés"
+de = "Nur geänderte Zeichen bearbeiten"
+ja = "変更された文字だけを編集"
+
+["Effect strength"]
+en = "Effect strength"
+es = "Intensidad del efecto"
+fr = "Intensité de l’effet"
+de = "Effektstärke"
+ja = "エフェクト強度"
+
+["Ellipse"]
+en = "Ellipse"
+es = "Elipse"
+fr = "Ellipse"
+de = "Ellipse"
+ja = "楕円"
+
+["Enable layout"]
+en = "Enable layout"
+es = "Activar disposición"
+fr = "Activer la mise en page"
+de = "Layout aktivieren"
+ja = "レイアウトを有効化"
+
+["Enable modifier"]
+en = "Enable modifier"
+es = "Activar modificador"
+fr = "Activer le modificateur"
+de = "Modifikator aktivieren"
+ja = "モディファイアを有効化"
+
+["Enable styling"]
+en = "Enable styling"
+es = "Activar estilo"
+fr = "Activer le style"
+de = "Stil aktivieren"
+ja = "スタイルを有効化"
+
+["Enabled"]
+en = "Enabled"
+es = "Activado"
+fr = "Activé"
+de = "Aktiviert"
+ja = "有効"
+
+["End cap"]
+en = "End cap"
+es = "Extremo final"
+fr = "Extrémité de fin"
+de = "Endkappe"
+ja = "終端キャップ"
+
+["End taper"]
+en = "End taper"
+es = "Estrechamiento final"
+fr = "Effilement final"
+de = "Endverjüngung"
+ja = "終端テーパー"
+
+["End taper distance"]
+en = "End taper distance"
+es = "Distancia del estrechamiento final"
+fr = "Distance d’effilement final"
+de = "Endverjüngungsabstand"
+ja = "終端テーパー距離"
+
+["Engine"]
+en = "Engine"
+es = "Motor"
+fr = "Moteur"
+de = "Engine"
+ja = "エンジン"
+
+["Enter a Google font family name"]
+en = "Enter a Google font family name"
+es = "Introduce una familia de Google Fonts"
+fr = "Saisissez une famille Google Fonts"
+de = "Namen einer Google-Schriftfamilie eingeben"
+ja = "Google Fontsのファミリー名を入力"
+
+["Environment"]
+en = "Environment"
+es = "Entorno"
+fr = "Environnement"
+de = "Umgebung"
+ja = "環境"
+
+["Environment images"]
+en = "Environment images"
+es = "Imágenes de entorno"
+fr = "Images d’environnement"
+de = "Umgebungsbilder"
+ja = "環境画像"
+
+["Evolution"]
+en = "Evolution"
+es = "Evolución"
+fr = "Évolution"
+de = "Entwicklung"
+ja = "変化"
+
+["Evolve seed"]
+en = "Evolve seed"
+es = "Evolucionar semilla"
+fr = "Faire évoluer la graine"
+de = "Seed entwickeln"
+ja = "シードを変化"
+
+["Expand"]
+en = "Expand"
+es = "Expandir"
+fr = "Développer"
+de = "Ausklappen"
+ja = "展開"
+
+["Exposure"]
+en = "Exposure"
+es = "Exposición"
+fr = "Exposition"
+de = "Belichtung"
+ja = "露出"
+
+["Expression"]
+en = "Expression"
+es = "Expresión"
+fr = "Expression"
+de = "Ausdruck"
+ja = "式"
+
+["Extend edge"]
+en = "Extend edge"
+es = "Extender borde"
+fr = "Étendre le bord"
+de = "Kante erweitern"
+ja = "エッジを拡張"
+
+["FOV"]
+en = "FOV"
+es = "Campo de visión"
+fr = "Champ de vision"
+de = "Sichtfeld"
+ja = "視野角"
+
+["FPS"]
+en = "FPS"
+es = "FPS"
+fr = "IPS"
+de = "FPS"
+ja = "FPS"
+
+["Fade"]
+en = "Fade"
+es = "Fundido"
+fr = "Fondu"
+de = "Überblendung"
+ja = "フェード"
+
+["Fade length"]
+en = "Fade length"
+es = "Duración del fundido"
+fr = "Longueur du fondu"
+de = "Überblendlänge"
+ja = "フェード長"
+
+["Fade one by one"]
+en = "Fade one by one"
+es = "Fundir uno a uno"
+fr = "Fondre un par un"
+de = "Nacheinander überblenden"
+ja = "1つずつフェード"
+
+["Fade opacity"]
+en = "Fade opacity"
+es = "Opacidad del fundido"
+fr = "Opacité du fondu"
+de = "Überblenddeckkraft"
+ja = "フェード不透明度"
+
+["Fade together"]
+en = "Fade together"
+es = "Fundir juntos"
+fr = "Fondre ensemble"
+de = "Gemeinsam überblenden"
+ja = "まとめてフェード"
+
+["Fade-through color"]
+en = "Fade-through color"
+es = "Color de fundido intermedio"
+fr = "Couleur du fondu intermédiaire"
+de = "Zwischenblendfarbe"
+ja = "中間フェード色"
+
+["Feather"]
+en = "Feather"
+es = "Suavizado"
+fr = "Contour progressif"
+de = "Weiche Kante"
+ja = "フェザー"
+
+["Feedback"]
+en = "Feedback"
+es = "Realimentación"
+fr = "Rétroaction"
+de = "Feedback"
+ja = "フィードバック"
+
+["File Location"]
+en = "File Location"
+es = "Ubicación del archivo"
+fr = "Emplacement du fichier"
+de = "Dateispeicherort"
+ja = "ファイルの場所"
+
+["Fill"]
+en = "Fill"
+es = "Relleno"
+fr = "Remplissage"
+de = "Füllung"
+ja = "塗り"
+
+["Fill color %{number}"]
+en = "Fill color %{number}"
+es = "Color de relleno %{number}"
+fr = "Couleur de remplissage %{number}"
+de = "Füllfarbe %{number}"
+ja = "塗りの色 %{number}"
+
+["Flipped"]
+en = "Flipped"
+es = "Invertido"
+fr = "Inversé"
+de = "Umgekehrt"
+ja = "反転"
+
+["Focal length"]
+en = "Focal length"
+es = "Distancia focal"
+fr = "Distance focale"
+de = "Brennweite"
+ja = "焦点距離"
+
+["Focus distance (0 = off)"]
+en = "Focus distance (0 = off)"
+es = "Distancia de enfoque (0 = desactivado)"
+fr = "Distance de mise au point (0 = désactivé)"
+de = "Fokusabstand (0 = aus)"
+ja = "焦点距離（0 = オフ）"
+
+["Fold depth"]
+en = "Fold depth"
+es = "Profundidad de pliegue"
+fr = "Profondeur du pli"
+de = "Falttiefe"
+ja = "折り深さ"
+
+["Fold size"]
+en = "Fold size"
+es = "Tamaño de pliegue"
+fr = "Taille du pli"
+de = "Faltgröße"
+ja = "折りサイズ"
+
+["Folded Sequence"]
+en = "Folded Sequence"
+es = "Secuencia plegada"
+fr = "Séquence pliée"
+de = "Eingeklappte Sequenz"
+ja = "折りたたみシーケンス"
+
+["Font"]
+en = "Font"
+es = "Fuente"
+fr = "Police"
+de = "Schrift"
+ja = "フォント"
+
+["Font size"]
+en = "Font size"
+es = "Tamaño de fuente"
+fr = "Taille de police"
+de = "Schriftgröße"
+ja = "フォントサイズ"
+
+["Font weight"]
+en = "Font weight"
+es = "Grosor de fuente"
+fr = "Graisse de police"
+de = "Schriftstärke"
+ja = "フォントウェイト"
+
+["Fonts"]
+en = "Fonts"
+es = "Fuentes"
+fr = "Polices"
+de = "Schriften"
+ja = "フォント"
+
+["Formant shift"]
+en = "Formant shift"
+es = "Desplazamiento de formantes"
+fr = "Décalage des formants"
+de = "Formantverschiebung"
+ja = "フォルマントシフト"
+
+["Frequency"]
+en = "Frequency"
+es = "Frecuencia"
+fr = "Fréquence"
+de = "Frequenz"
+ja = "周波数"
+
+["Fresnel contour"]
+en = "Fresnel contour"
+es = "Contorno Fresnel"
+fr = "Contour de Fresnel"
+de = "Fresnel-Kontur"
+ja = "フレネル輪郭"
+
+["From inside"]
+en = "From inside"
+es = "Desde dentro"
+fr = "Depuis l’intérieur"
+de = "Von innen"
+ja = "内側から"
+
+["From outside"]
+en = "From outside"
+es = "Desde fuera"
+fr = "Depuis l’extérieur"
+de = "Von außen"
+ja = "外側から"
+
+["Gamma"]
+en = "Gamma"
+es = "Gamma"
+fr = "Gamma"
+de = "Gamma"
+ja = "ガンマ"
+
+["Generator"]
+en = "Generator"
+es = "Generador"
+fr = "Générateur"
+de = "Generator"
+ja = "ジェネレーター"
+
+["Glow / outline"]
+en = "Glow / outline"
+es = "Resplandor / contorno"
+fr = "Lueur / contour"
+de = "Leuchten / Umriss"
+ja = "グロー / アウトライン"
+
+["Gradient step"]
+en = "Gradient step"
+es = "Paso de gradiente"
+fr = "Pas du dégradé"
+de = "Verlaufsstufe"
+ja = "グラデーション段階"
+
+["Grain size"]
+en = "Grain size"
+es = "Tamaño de grano"
+fr = "Taille du grain"
+de = "Körnung"
+ja = "粒子サイズ"
+
+["Ground intensity"]
+en = "Ground intensity"
+es = "Intensidad del suelo"
+fr = "Intensité du sol"
+de = "Bodenintensität"
+ja = "地面の強度"
+
+["H align"]
+en = "H align"
+es = "Alineación H"
+fr = "Alignement H"
+de = "Horizontale Ausrichtung"
+ja = "水平揃え"
+
+["Hard shadow"]
+en = "Hard shadow"
+es = "Sombra dura"
+fr = "Ombre dure"
+de = "Harter Schatten"
+ja = "ハードシャドウ"
+
+["Head length"]
+en = "Head length"
+es = "Longitud de punta"
+fr = "Longueur de la tête"
+de = "Kopflänge"
+ja = "先端の長さ"
+
+["Heart"]
+en = "Heart"
+es = "Corazón"
+fr = "Cœur"
+de = "Herz"
+ja = "ハート"
+
+["Hexagon"]
+en = "Hexagon"
+es = "Hexágono"
+fr = "Hexagone"
+de = "Sechseck"
+ja = "六角形"
+
+["Hierarchy"]
+en = "Hierarchy"
+es = "Jerarquía"
+fr = "Hiérarchie"
+de = "Hierarchie"
+ja = "階層"
+
+["High"]
+en = "High"
+es = "Alto"
+fr = "Élevé"
+de = "Hoch"
+ja = "高"
+
+["High color"]
+en = "High color"
+es = "Color alto"
+fr = "Couleur haute"
+de = "Obere Farbe"
+ja = "高域色"
+
+["High-pass"]
+en = "High-pass"
+es = "Paso alto"
+fr = "Passe-haut"
+de = "Hochpass"
+ja = "ハイパス"
+
+["Highlight color"]
+en = "Highlight color"
+es = "Color de resaltado"
+fr = "Couleur des hautes lumières"
+de = "Glanzlichtfarbe"
+ja = "ハイライト色"
+
+["Horizontal"]
+en = "Horizontal"
+es = "Horizontal"
+fr = "Horizontal"
+de = "Horizontal"
+ja = "水平"
+
+["Horizontal alignment"]
+en = "Horizontal alignment"
+es = "Alineación horizontal"
+fr = "Alignement horizontal"
+de = "Horizontale Ausrichtung"
+ja = "水平揃え"
+
+["Hue position"]
+en = "Hue position"
+es = "Posición del tono"
+fr = "Position de la teinte"
+de = "Farbtonposition"
+ja = "色相位置"
+
+["Image"]
+en = "Image"
+es = "Imagen"
+fr = "Image"
+de = "Bild"
+ja = "画像"
+
+["Images"]
+en = "Images"
+es = "Imágenes"
+fr = "Images"
+de = "Bilder"
+ja = "画像"
+
+["Immediate"]
+en = "Immediate"
+es = "Inmediato"
+fr = "Immédiat"
+de = "Sofort"
+ja = "即時"
+
+["Include this track in playback and export"]
+en = "Include this track in playback and export"
+es = "Incluir esta pista en la reproducción y exportación"
+fr = "Inclure cette piste dans la lecture et l’exportation"
+de = "Diese Spur bei Wiedergabe und Export einbeziehen"
+ja = "再生と書き出しにこのトラックを含める"
+
+["Index of refraction"]
+en = "Index of refraction"
+es = "Índice de refracción"
+fr = "Indice de réfraction"
+de = "Brechungsindex"
+ja = "屈折率"
+
+["Infinite"]
+en = "Infinite"
+es = "Infinito"
+fr = "Infini"
+de = "Unendlich"
+ja = "無限"
+
+["Inner radius"]
+en = "Inner radius"
+es = "Radio interior"
+fr = "Rayon intérieur"
+de = "Innenradius"
+ja = "内半径"
+
+["Intensity"]
+en = "Intensity"
+es = "Intensidad"
+fr = "Intensité"
+de = "Intensität"
+ja = "強度"
+
+["Intro"]
+en = "Intro"
+es = "Entrada"
+fr = "Introduction"
+de = "Intro"
+ja = "イントロ"
+
+["Invert"]
+en = "Invert"
+es = "Invertir"
+fr = "Inverser"
+de = "Invertieren"
+ja = "反転"
+
+["Iris"]
+en = "Iris"
+es = "Iris"
+fr = "Iris"
+de = "Iris"
+ja = "アイリス"
+
+["Italic"]
+en = "Italic"
+es = "Cursiva"
+fr = "Italique"
+de = "Kursiv"
+ja = "斜体"
+
+["Items"]
+en = "Items"
+es = "Elementos"
+fr = "Éléments"
+de = "Elemente"
+ja = "項目"
+
+["Jitter"]
+en = "Jitter"
+es = "Variación"
+fr = "Tremblement"
+de = "Jitter"
+ja = "ジッター"
+
+["Key color"]
+en = "Key color"
+es = "Color clave"
+fr = "Couleur clé"
+de = "Schlüsselfarbe"
+ja = "キーカラー"
+
+["Keyframes"]
+en = "Keyframes"
+es = "Fotogramas clave"
+fr = "Images clés"
+de = "Keyframes"
+ja = "キーフレーム"
+
+["Kind"]
+en = "Kind"
+es = "Tipo"
+fr = "Type"
+de = "Art"
+ja = "種類"
+
+["Kuwahara radius"]
+en = "Kuwahara radius"
+es = "Radio Kuwahara"
+fr = "Rayon Kuwahara"
+de = "Kuwahara-Radius"
+ja = "Kuwahara半径"
+
+["Kuwahara strength"]
+en = "Kuwahara strength"
+es = "Intensidad Kuwahara"
+fr = "Intensité Kuwahara"
+de = "Kuwahara-Stärke"
+ja = "Kuwahara強度"
+
+["Lacunarity"]
+en = "Lacunarity"
+es = "Lacunaridad"
+fr = "Lacunarité"
+de = "Lacunarität"
+ja = "ラキュナリティ"
+
+["Layered Image"]
+en = "Layered Image"
+es = "Imagen por capas"
+fr = "Image multicouche"
+de = "Ebenenbild"
+ja = "レイヤー画像"
+
+["Layers"]
+en = "Layers"
+es = "Capas"
+fr = "Calques"
+de = "Ebenen"
+ja = "レイヤー"
+
+["Layout"]
+en = "Layout"
+es = "Disposición"
+fr = "Mise en page"
+de = "Layout"
+ja = "レイアウト"
+
+["Left"]
+en = "Left"
+es = "Izquierda"
+fr = "Gauche"
+de = "Links"
+ja = "左"
+
+["Length randomness"]
+en = "Length randomness"
+es = "Aleatoriedad de longitud"
+fr = "Variation de longueur"
+de = "Längenzufälligkeit"
+ja = "長さのランダム性"
+
+["Length timing"]
+en = "Length timing"
+es = "Temporización de longitud"
+fr = "Rythme de longueur"
+de = "Längen-Timing"
+ja = "長さのタイミング"
+
+["Letter"]
+en = "Letter"
+es = "Letra"
+fr = "Lettre"
+de = "Buchstabe"
+ja = "文字"
+
+["Level"]
+en = "Level"
+es = "Nivel"
+fr = "Niveau"
+de = "Pegel"
+ja = "レベル"
+
+["Levels"]
+en = "Levels"
+es = "Niveles"
+fr = "Niveaux"
+de = "Stufen"
+ja = "レベル"
+
+["Light bands"]
+en = "Light bands"
+es = "Bandas claras"
+fr = "Bandes claires"
+de = "Helle Bänder"
+ja = "明部バンド"
+
+["Line count"]
+en = "Line count"
+es = "Número de líneas"
+fr = "Nombre de lignes"
+de = "Linienanzahl"
+ja = "ライン数"
+
+["Line density"]
+en = "Line density"
+es = "Densidad de líneas"
+fr = "Densité des lignes"
+de = "Liniendichte"
+ja = "ライン密度"
+
+["Line direction"]
+en = "Line direction"
+es = "Dirección de línea"
+fr = "Direction des lignes"
+de = "Linienrichtung"
+ja = "ライン方向"
+
+["Line height"]
+en = "Line height"
+es = "Altura de línea"
+fr = "Hauteur de ligne"
+de = "Zeilenhöhe"
+ja = "行の高さ"
+
+["Line length"]
+en = "Line length"
+es = "Longitud de línea"
+fr = "Longueur des lignes"
+de = "Linienlänge"
+ja = "ライン長"
+
+["Line offset"]
+en = "Line offset"
+es = "Desfase de línea"
+fr = "Décalage des lignes"
+de = "Linienversatz"
+ja = "ラインオフセット"
+
+["Line style"]
+en = "Line style"
+es = "Estilo de línea"
+fr = "Style de ligne"
+de = "Linienstil"
+ja = "ラインスタイル"
+
+["Line width"]
+en = "Line width"
+es = "Ancho de línea"
+fr = "Largeur de ligne"
+de = "Linienbreite"
+ja = "線幅"
+
+["Linear"]
+en = "Linear"
+es = "Lineal"
+fr = "Linéaire"
+de = "Linear"
+ja = "線形"
+
+["Lines"]
+en = "Lines"
+es = "Líneas"
+fr = "Lignes"
+de = "Linien"
+ja = "ライン"
+
+["Link stereo channels"]
+en = "Link stereo channels"
+es = "Vincular canales estéreo"
+fr = "Lier les canaux stéréo"
+de = "Stereokanäle koppeln"
+ja = "ステレオチャンネルをリンク"
+
+["Loading cached font…"]
+en = "Loading cached font…"
+es = "Cargando fuente en caché…"
+fr = "Chargement de la police en cache…"
+de = "Zwischengespeicherte Schrift wird geladen…"
+ja = "キャッシュ済みフォントを読み込み中…"
+
+["Loading cameras…"]
+en = "Loading cameras…"
+es = "Cargando cámaras…"
+fr = "Chargement des caméras…"
+de = "Kameras werden geladen…"
+ja = "カメラを読み込み中…"
+
+["Loading installed fonts…"]
+en = "Loading installed fonts…"
+es = "Cargando fuentes instaladas…"
+fr = "Chargement des polices installées…"
+de = "Installierte Schriften werden geladen…"
+ja = "インストール済みフォントを読み込み中…"
+
+["Loading scenes..."]
+en = "Loading scenes..."
+es = "Cargando escenas..."
+fr = "Chargement des scènes…"
+de = "Szenen werden geladen..."
+ja = "シーンを読み込み中..."
+
+["Loading scenes…"]
+en = "Loading scenes…"
+es = "Cargando escenas…"
+fr = "Chargement des scènes…"
+de = "Szenen werden geladen…"
+ja = "シーンを読み込み中…"
+
+["Loading tracking model"]
+en = "Loading tracking model"
+es = "Cargando modelo de seguimiento"
+fr = "Chargement du modèle de suivi"
+de = "Tracking-Modell wird geladen"
+ja = "トラッキングモデルを読み込み中"
+
+["Loading view layers…"]
+en = "Loading view layers…"
+es = "Cargando capas de vista…"
+fr = "Chargement des calques de vue…"
+de = "Ansichtsebenen werden geladen…"
+ja = "ビューレイヤーを読み込み中…"
+
+["Low"]
+en = "Low"
+es = "Bajo"
+fr = "Faible"
+de = "Niedrig"
+ja = "低"
+
+["Low color"]
+en = "Low color"
+es = "Color bajo"
+fr = "Couleur basse"
+de = "Untere Farbe"
+ja = "低域色"
+
+["Low latency"]
+en = "Low latency"
+es = "Baja latencia"
+fr = "Faible latence"
+de = "Niedrige Latenz"
+ja = "低レイテンシ"
+
+["Low-pass"]
+en = "Low-pass"
+es = "Paso bajo"
+fr = "Passe-bas"
+de = "Tiefpass"
+ja = "ローパス"
+
+["Maintain pitch while changing speed"]
+en = "Maintain pitch while changing speed"
+es = "Mantener tono al cambiar la velocidad"
+fr = "Conserver la hauteur en changeant la vitesse"
+de = "Tonhöhe bei Tempoänderung beibehalten"
+ja = "速度変更時にピッチを維持"
+
+["Makeup"]
+en = "Makeup"
+es = "Compensación"
+fr = "Compensation"
+de = "Make-up"
+ja = "メイクアップ"
+
+["Mask"]
+en = "Mask"
+es = "Máscara"
+fr = "Masque"
+de = "Maske"
+ja = "マスク"
+
+["Mask strength"]
+en = "Mask strength"
+es = "Intensidad de máscara"
+fr = "Intensité du masque"
+de = "Maskenstärke"
+ja = "マスク強度"
+
+["Material Preview"]
+en = "Material Preview"
+es = "Vista previa de material"
+fr = "Aperçu du matériau"
+de = "Materialvorschau"
+ja = "マテリアルプレビュー"
+
+["Max iterations"]
+en = "Max iterations"
+es = "Iteraciones máximas"
+fr = "Itérations maximales"
+de = "Maximale Iterationen"
+ja = "最大反復回数"
+
+["Maximum block size"]
+en = "Maximum block size"
+es = "Tamaño máximo de bloque"
+fr = "Taille maximale du bloc"
+de = "Maximale Blockgröße"
+ja = "最大ブロックサイズ"
+
+["Maximum directions"]
+en = "Maximum directions"
+es = "Direcciones máximas"
+fr = "Directions maximales"
+de = "Maximale Richtungen"
+ja = "最大方向数"
+
+["Maximum gap"]
+en = "Maximum gap"
+es = "Espacio máximo"
+fr = "Écart maximal"
+de = "Maximaler Abstand"
+ja = "最大間隔"
+
+["Maximum radius"]
+en = "Maximum radius"
+es = "Radio máximo"
+fr = "Rayon maximal"
+de = "Maximaler Radius"
+ja = "最大半径"
+
+["Mesh columns"]
+en = "Mesh columns"
+es = "Columnas de malla"
+fr = "Colonnes du maillage"
+de = "Netzspalten"
+ja = "メッシュ列"
+
+["Mesh rows"]
+en = "Mesh rows"
+es = "Filas de malla"
+fr = "Lignes du maillage"
+de = "Netzzeilen"
+ja = "メッシュ行"
+
+["Metallic"]
+en = "Metallic"
+es = "Metálico"
+fr = "Métallique"
+de = "Metallisch"
+ja = "メタリック"
+
+["Method"]
+en = "Method"
+es = "Método"
+fr = "Méthode"
+de = "Methode"
+ja = "方式"
+
+["Metric"]
+en = "Metric"
+es = "Métrica"
+fr = "Métrique"
+de = "Metrik"
+ja = "メトリック"
+
+["Mid"]
+en = "Mid"
+es = "Medios"
+fr = "Médiums"
+de = "Mitten"
+ja = "中域"
+
+["Middle"]
+en = "Middle"
+es = "Centro"
+fr = "Milieu"
+de = "Mitte"
+ja = "中央"
+
+["Middle padding"]
+en = "Middle padding"
+es = "Margen central"
+fr = "Marge centrale"
+de = "Mittlerer Abstand"
+ja = "中央余白"
+
+["Midpoint"]
+en = "Midpoint"
+es = "Punto medio"
+fr = "Point médian"
+de = "Mittelpunkt"
+ja = "中間点"
+
+["Mirror"]
+en = "Mirror"
+es = "Espejo"
+fr = "Miroir"
+de = "Spiegeln"
+ja = "ミラー"
+
+["Mix"]
+en = "Mix"
+es = "Mezcla"
+fr = "Mélange"
+de = "Mischung"
+ja = "ミックス"
+
+["Mode"]
+en = "Mode"
+es = "Modo"
+fr = "Mode"
+de = "Modus"
+ja = "モード"
+
+["Morph"]
+en = "Morph"
+es = "Transformación"
+fr = "Morphing"
+de = "Morphing"
+ja = "モーフ"
+
+["Morph by"]
+en = "Morph by"
+es = "Transformar por"
+fr = "Morphing par"
+de = "Morphen nach"
+ja = "モーフ単位"
+
+["Motion amount"]
+en = "Motion amount"
+es = "Cantidad de movimiento"
+fr = "Amplitude du mouvement"
+de = "Bewegungsstärke"
+ja = "モーション量"
+
+["Motion blur"]
+en = "Motion blur"
+es = "Desenfoque de movimiento"
+fr = "Flou de mouvement"
+de = "Bewegungsunschärfe"
+ja = "モーションブラー"
+
+["Motion position"]
+en = "Motion position"
+es = "Posición del movimiento"
+fr = "Position du mouvement"
+de = "Bewegungsposition"
+ja = "モーション位置"
+
+["Motion-dependent temporal smoothing model"]
+en = "Motion-dependent temporal smoothing model"
+es = "Modelo de suavizado temporal dependiente del movimiento"
+fr = "Modèle de lissage temporel dépendant du mouvement"
+de = "Bewegungsabhängiges zeitliches Glättungsmodell"
+ja = "動きに応じた時間平滑化モデル"
+
+["Move down"]
+en = "Move down"
+es = "Bajar"
+fr = "Descendre"
+de = "Nach unten"
+ja = "下へ移動"
+
+["Move up"]
+en = "Move up"
+es = "Subir"
+fr = "Monter"
+de = "Nach oben"
+ja = "上へ移動"
+
+["Name"]
+en = "Name"
+es = "Nombre"
+fr = "Nom"
+de = "Name"
+ja = "名前"
+
+["Natural Duration"]
+en = "Natural Duration"
+es = "Duración natural"
+fr = "Durée naturelle"
+de = "Natürliche Dauer"
+ja = "元の長さ"
+
+["Neighboring frames considered on each side"]
+en = "Neighboring frames considered on each side"
+es = "Fotogramas vecinos considerados a cada lado"
+fr = "Images voisines prises en compte de chaque côté"
+de = "Berücksichtigte Nachbarbilder auf jeder Seite"
+ja = "両側で考慮する隣接フレーム"
+
+["Next keyframe"]
+en = "Next keyframe"
+es = "Siguiente fotograma clave"
+fr = "Image clé suivante"
+de = "Nächster Keyframe"
+ja = "次のキーフレーム"
+
+["Noise evolution"]
+en = "Noise evolution"
+es = "Evolución del ruido"
+fr = "Évolution du bruit"
+de = "Rauschentwicklung"
+ja = "ノイズ変化"
+
+["Noise seed"]
+en = "Noise seed"
+es = "Semilla de ruido"
+fr = "Graine du bruit"
+de = "Rausch-Seed"
+ja = "ノイズシード"
+
+["Normal"]
+en = "Normal"
+es = "Normal"
+fr = "Normal"
+de = "Normal"
+ja = "標準"
+
+["Normal angle"]
+en = "Normal angle"
+es = "Ángulo de normal"
+fr = "Angle des normales"
+de = "Normalenwinkel"
+ja = "法線角度"
+
+["Normals"]
+en = "Normals"
+es = "Normales"
+fr = "Normales"
+de = "Normalen"
+ja = "法線"
+
+["Not analyzed"]
+en = "Not analyzed"
+es = "Sin analizar"
+fr = "Non analysé"
+de = "Nicht analysiert"
+ja = "未解析"
+
+["Number of independently moving cell columns"]
+en = "Number of independently moving cell columns"
+es = "Número de columnas de celdas con movimiento independiente"
+fr = "Nombre de colonnes de cellules à mouvement indépendant"
+de = "Anzahl unabhängig bewegter Zellspalten"
+ja = "独立して動くセル列の数"
+
+["Number of independently moving cell rows"]
+en = "Number of independently moving cell rows"
+es = "Número de filas de celdas con movimiento independiente"
+fr = "Nombre de lignes de cellules à mouvement indépendant"
+de = "Anzahl unabhängig bewegter Zellzeilen"
+ja = "独立して動くセル行の数"
+
+["Octagon"]
+en = "Octagon"
+es = "Octágono"
+fr = "Octogone"
+de = "Achteck"
+ja = "八角形"
+
+["Octaves"]
+en = "Octaves"
+es = "Octavas"
+fr = "Octaves"
+de = "Oktaven"
+ja = "オクターブ"
+
+["Off"]
+en = "Off"
+es = "Desactivado"
+fr = "Désactivé"
+de = "Aus"
+ja = "オフ"
+
+["Offset"]
+en = "Offset"
+es = "Desfase"
+fr = "Décalage"
+de = "Versatz"
+ja = "オフセット"
+
+["Offset axis"]
+en = "Offset axis"
+es = "Eje de desfase"
+fr = "Axe de décalage"
+de = "Versatzachse"
+ja = "オフセット軸"
+
+["Offset frequency"]
+en = "Offset frequency"
+es = "Frecuencia de desfase"
+fr = "Fréquence du décalage"
+de = "Versatzfrequenz"
+ja = "オフセット周波数"
+
+["Offset randomness"]
+en = "Offset randomness"
+es = "Aleatoriedad de desfase"
+fr = "Variation du décalage"
+de = "Versatzzufälligkeit"
+ja = "オフセットのランダム性"
+
+["Offset variation"]
+en = "Offset variation"
+es = "Variación de desfase"
+fr = "Variation du décalage"
+de = "Versatzvariation"
+ja = "オフセット変化"
+
+["On"]
+en = "On"
+es = "Activado"
+fr = "Activé"
+de = "Ein"
+ja = "オン"
+
+["Opacity"]
+en = "Opacity"
+es = "Opacidad"
+fr = "Opacité"
+de = "Deckkraft"
+ja = "不透明度"
+
+["Open larger editor"]
+en = "Open larger editor"
+es = "Abrir editor ampliado"
+fr = "Ouvrir l’éditeur agrandi"
+de = "Größeren Editor öffnen"
+ja = "大きなエディターを開く"
+
+["Operation"]
+en = "Operation"
+es = "Operación"
+fr = "Opération"
+de = "Operation"
+ja = "処理"
+
+["Optimization iterations"]
+en = "Optimization iterations"
+es = "Iteraciones de optimización"
+fr = "Itérations d’optimisation"
+de = "Optimierungsiterationen"
+ja = "最適化の反復回数"
+
+["Ordering"]
+en = "Ordering"
+es = "Orden"
+fr = "Ordre"
+de = "Reihenfolge"
+ja = "順序"
+
+["Original"]
+en = "Original"
+es = "Original"
+fr = "Original"
+de = "Original"
+ja = "オリジナル"
+
+["Orthographic height"]
+en = "Orthographic height"
+es = "Altura ortográfica"
+fr = "Hauteur orthographique"
+de = "Orthografische Höhe"
+ja = "平行投影の高さ"
+
+["Out of date"]
+en = "Out of date"
+es = "Desactualizado"
+fr = "Obsolète"
+de = "Veraltet"
+ja = "期限切れ"
+
+["Outline"]
+en = "Outline"
+es = "Contorno"
+fr = "Contour"
+de = "Umriss"
+ja = "アウトライン"
+
+["Outline method"]
+en = "Outline method"
+es = "Método de contorno"
+fr = "Méthode de contour"
+de = "Umrissmethode"
+ja = "アウトライン方式"
+
+["Outline opacity"]
+en = "Outline opacity"
+es = "Opacidad del contorno"
+fr = "Opacité du contour"
+de = "Umrissdeckkraft"
+ja = "アウトライン不透明度"
+
+["Outline quality"]
+en = "Outline quality"
+es = "Calidad del contorno"
+fr = "Qualité du contour"
+de = "Umrissqualität"
+ja = "アウトライン品質"
+
+["Outline width"]
+en = "Outline width"
+es = "Ancho del contorno"
+fr = "Largeur du contour"
+de = "Umrissbreite"
+ja = "アウトライン幅"
+
+["Outro"]
+en = "Outro"
+es = "Salida"
+fr = "Conclusion"
+de = "Outro"
+ja = "アウトロ"
+
+["Padding randomness"]
+en = "Padding randomness"
+es = "Aleatoriedad del margen"
+fr = "Variation de la marge"
+de = "Abstandszufälligkeit"
+ja = "余白のランダム性"
+
+["Page"]
+en = "Page"
+es = "Página"
+fr = "Page"
+de = "Seite"
+ja = "ページ"
+
+["Palette levels"]
+en = "Palette levels"
+es = "Niveles de paleta"
+fr = "Niveaux de palette"
+de = "Palettenstufen"
+ja = "パレットレベル"
+
+["Parameters"]
+en = "Parameters"
+es = "Parámetros"
+fr = "Paramètres"
+de = "Parameter"
+ja = "パラメーター"
+
+["Partial mode"]
+en = "Partial mode"
+es = "Modo parcial"
+fr = "Mode partiel"
+de = "Teilmodus"
+ja = "部分モード"
+
+["Paste Modifier"]
+en = "Paste Modifier"
+es = "Pegar modificador"
+fr = "Coller le modificateur"
+de = "Modifikator einfügen"
+ja = "モディファイアを貼り付け"
+
+["Path mode"]
+en = "Path mode"
+es = "Modo de trazado"
+fr = "Mode de tracé"
+de = "Pfadmodus"
+ja = "パスモード"
+
+["Path precision"]
+en = "Path precision"
+es = "Precisión del trazado"
+fr = "Précision du tracé"
+de = "Pfadpräzision"
+ja = "パス精度"
+
+["Pattern"]
+en = "Pattern"
+es = "Patrón"
+fr = "Motif"
+de = "Muster"
+ja = "パターン"
+
+["Pattern softness"]
+en = "Pattern softness"
+es = "Suavidad del patrón"
+fr = "Douceur du motif"
+de = "Musterweichheit"
+ja = "パターンの柔らかさ"
+
+["Pentagon"]
+en = "Pentagon"
+es = "Pentágono"
+fr = "Pentagone"
+de = "Fünfeck"
+ja = "五角形"
+
+["Percentage"]
+en = "Percentage"
+es = "Porcentaje"
+fr = "Pourcentage"
+de = "Prozentsatz"
+ja = "割合"
+
+["Persistence"]
+en = "Persistence"
+es = "Persistencia"
+fr = "Persistance"
+de = "Persistenz"
+ja = "持続性"
+
+["Perspective"]
+en = "Perspective"
+es = "Perspectiva"
+fr = "Perspective"
+de = "Perspektive"
+ja = "透視投影"
+
+["Phase"]
+en = "Phase"
+es = "Fase"
+fr = "Phase"
+de = "Phase"
+ja = "位相"
+
+["Picture"]
+en = "Picture"
+es = "Imagen"
+fr = "Image"
+de = "Bild"
+ja = "ピクチャー"
+
+["Ping-pong"]
+en = "Ping-pong"
+es = "Ping-pong"
+fr = "Ping-pong"
+de = "Pingpong"
+ja = "ピンポン"
+
+["Pitch"]
+en = "Pitch"
+es = "Tono"
+fr = "Hauteur"
+de = "Tonhöhe"
+ja = "ピッチ"
+
+["Pitch offset"]
+en = "Pitch offset"
+es = "Desfase de tono"
+fr = "Décalage de hauteur"
+de = "Tonhöhenversatz"
+ja = "ピッチオフセット"
+
+["Pixel size"]
+en = "Pixel size"
+es = "Tamaño de píxel"
+fr = "Taille des pixels"
+de = "Pixelgröße"
+ja = "ピクセルサイズ"
+
+["Pixelate"]
+en = "Pixelate"
+es = "Pixelar"
+fr = "Pixelliser"
+de = "Verpixeln"
+ja = "ピクセル化"
+
+["Pixels"]
+en = "Pixels"
+es = "Píxeles"
+fr = "Pixels"
+de = "Pixel"
+ja = "ピクセル"
+
+["Playback"]
+en = "Playback"
+es = "Reproducción"
+fr = "Lecture"
+de = "Wiedergabe"
+ja = "再生"
+
+["Point type"]
+en = "Point type"
+es = "Tipo de punto"
+fr = "Type de point"
+de = "Punkttyp"
+ja = "ポイント種別"
+
+["Point %{number}"]
+en = "Point %{number}"
+es = "Punto %{number}"
+fr = "Point %{number}"
+de = "Punkt %{number}"
+ja = "ポイント %{number}"
+
+["Points"]
+en = "Points"
+es = "Puntos"
+fr = "Points"
+de = "Punkte"
+ja = "ポイント"
+
+["Polygon"]
+en = "Polygon"
+es = "Polígono"
+fr = "Polygone"
+de = "Polygon"
+ja = "多角形"
+
+["Position"]
+en = "Position"
+es = "Posición"
+fr = "Position"
+de = "Position"
+ja = "位置"
+
+["Position X"]
+en = "Position X"
+es = "Posición X"
+fr = "Position X"
+de = "Position X"
+ja = "位置 X"
+
+["Position Y"]
+en = "Position Y"
+es = "Posición Y"
+fr = "Position Y"
+de = "Position Y"
+ja = "位置 Y"
+
+["Pre-delay"]
+en = "Pre-delay"
+es = "Pre-retardo"
+fr = "Pré-délai"
+de = "Vorverzögerung"
+ja = "プリディレイ"
+
+["Precompute compact CPU mask frames so normal playback does not run SAM2"]
+en = "Precompute compact CPU mask frames so normal playback does not run SAM2"
+es = "Precalcular máscaras compactas en CPU para no ejecutar SAM2 durante la reproducción"
+fr = "Précalculer des masques CPU compacts pour éviter SAM2 pendant la lecture"
+de = "Kompakte CPU-Masken vorab berechnen, damit SAM2 nicht bei der Wiedergabe läuft"
+ja = "通常再生でSAM2を実行しないようCPUマスクを事前計算"
+
+["Precompute exact one-bit transparency masks for every frame"]
+en = "Precompute exact one-bit transparency masks for every frame"
+es = "Precalcular máscaras de transparencia exactas de un bit para cada fotograma"
+fr = "Précalculer des masques de transparence exacts à un bit pour chaque image"
+de = "Exakte 1-Bit-Transparenzmasken für jedes Bild vorab berechnen"
+ja = "全フレームの正確な1ビット透明マスクを事前計算"
+
+["Preference for a steady camera velocity"]
+en = "Preference for a steady camera velocity"
+es = "Preferencia por una velocidad de cámara estable"
+fr = "Préférence pour une vitesse de caméra stable"
+de = "Bevorzugung einer gleichmäßigen Kamerageschwindigkeit"
+ja = "一定のカメラ速度を優先"
+
+["Preference for frames with no camera motion"]
+en = "Preference for frames with no camera motion"
+es = "Preferencia por fotogramas sin movimiento de cámara"
+fr = "Préférence pour les images sans mouvement de caméra"
+de = "Bevorzugung von Bildern ohne Kamerabewegung"
+ja = "カメラが動かないフレームを優先"
+
+["Preference for smoothly changing camera motion"]
+en = "Preference for smoothly changing camera motion"
+es = "Preferencia por cambios suaves del movimiento de cámara"
+fr = "Préférence pour un mouvement de caméra variant en douceur"
+de = "Bevorzugung gleichmäßig veränderter Kamerabewegung"
+ja = "滑らかに変化するカメラ動作を優先"
+
+["Preserve formants"]
+en = "Preserve formants"
+es = "Conservar formantes"
+fr = "Conserver les formants"
+de = "Formanten beibehalten"
+ja = "フォルマントを維持"
+
+["Preserve pitch"]
+en = "Preserve pitch"
+es = "Conservar tono"
+fr = "Conserver la hauteur"
+de = "Tonhöhe beibehalten"
+ja = "ピッチを維持"
+
+["Preview Downsampling"]
+en = "Preview Downsampling"
+es = "Reducción de vista previa"
+fr = "Sous-échantillonnage de l’aperçu"
+de = "Vorschau-Herunterskalierung"
+ja = "プレビューのダウンサンプリング"
+
+["Preview Render Method"]
+en = "Preview Render Method"
+es = "Método de renderizado de vista previa"
+fr = "Méthode de rendu de l’aperçu"
+de = "Vorschau-Rendermethode"
+ja = "プレビューのレンダリング方式"
+
+["Previous keyframe"]
+en = "Previous keyframe"
+es = "Fotograma clave anterior"
+fr = "Image clé précédente"
+de = "Vorheriger Keyframe"
+ja = "前のキーフレーム"
+
+["Project"]
+en = "Project"
+es = "Proyecto"
+fr = "Projet"
+de = "Projekt"
+ja = "プロジェクト"
+
+["Project File"]
+en = "Project File"
+es = "Archivo del proyecto"
+fr = "Fichier du projet"
+de = "Projektdatei"
+ja = "プロジェクトファイル"
+
+["Projection"]
+en = "Projection"
+es = "Proyección"
+fr = "Projection"
+de = "Projektion"
+ja = "投影"
+
+["Pulse width"]
+en = "Pulse width"
+es = "Ancho de pulso"
+fr = "Largeur d’impulsion"
+de = "Pulsbreite"
+ja = "パルス幅"
+
+["Quality"]
+en = "Quality"
+es = "Calidad"
+fr = "Qualité"
+de = "Qualität"
+ja = "品質"
+
+["Queued"]
+en = "Queued"
+es = "En cola"
+fr = "En attente"
+de = "In Warteschlange"
+ja = "待機中"
+
+["Radius"]
+en = "Radius"
+es = "Radio"
+fr = "Rayon"
+de = "Radius"
+ja = "半径"
+
+["Range"]
+en = "Range"
+es = "Rango"
+fr = "Plage"
+de = "Bereich"
+ja = "範囲"
+
+["Rate"]
+en = "Rate"
+es = "Tasa"
+fr = "Fréquence"
+de = "Rate"
+ja = "レート"
+
+["Ratio"]
+en = "Ratio"
+es = "Relación"
+fr = "Rapport"
+de = "Verhältnis"
+ja = "比率"
+
+["Ready (%{sample_count} samples)"]
+en = "Ready (%{sample_count} samples)"
+es = "Listo (%{sample_count} muestras)"
+fr = "Prêt (%{sample_count} échantillons)"
+de = "Bereit (%{sample_count} Samples)"
+ja = "準備完了（%{sample_count}サンプル）"
+
+["Reanalyze"]
+en = "Reanalyze"
+es = "Volver a analizar"
+fr = "Réanalyser"
+de = "Neu analysieren"
+ja = "再解析"
+
+["Rebake"]
+en = "Rebake"
+es = "Recalcular"
+fr = "Recalculer"
+de = "Neu backen"
+ja = "再ベイク"
+
+["Rebuild"]
+en = "Rebuild"
+es = "Reconstruir"
+fr = "Reconstruire"
+de = "Neu erstellen"
+ja = "再構築"
+
+["Rectangle"]
+en = "Rectangle"
+es = "Rectángulo"
+fr = "Rectangle"
+de = "Rechteck"
+ja = "長方形"
+
+["Reduction"]
+en = "Reduction"
+es = "Reducción"
+fr = "Réduction"
+de = "Reduktion"
+ja = "低減"
+
+["Reflection opacity"]
+en = "Reflection opacity"
+es = "Opacidad del reflejo"
+fr = "Opacité du reflet"
+de = "Reflexionsdeckkraft"
+ja = "反射の不透明度"
+
+["Refresh interval"]
+en = "Refresh interval"
+es = "Intervalo de actualización"
+fr = "Intervalle d’actualisation"
+de = "Aktualisierungsintervall"
+ja = "更新間隔"
+
+["Release"]
+en = "Release"
+es = "Liberación"
+fr = "Relâchement"
+de = "Release"
+ja = "リリース"
+
+["Reload Blender file and scene metadata"]
+en = "Reload Blender file and scene metadata"
+es = "Recargar el archivo de Blender y los metadatos de escena"
+fr = "Recharger le fichier Blender et les métadonnées de scène"
+de = "Blender-Datei und Szenenmetadaten neu laden"
+ja = "Blenderファイルとシーンメタデータを再読み込み"
+
+["Reload Python source and rebuild Manim scene states"]
+en = "Reload Python source and rebuild Manim scene states"
+es = "Recargar el código Python y reconstruir los estados de escena de Manim"
+fr = "Recharger le code Python et reconstruire les états de scène Manim"
+de = "Python-Quelle neu laden und Manim-Szenenzustände neu erstellen"
+ja = "Pythonソースを再読み込みしてManimシーン状態を再構築"
+
+["Remove"]
+en = "Remove"
+es = "Eliminar"
+fr = "Supprimer"
+de = "Entfernen"
+ja = "削除"
+
+["Remove box"]
+en = "Remove box"
+es = "Eliminar cuadro"
+fr = "Supprimer la boîte"
+de = "Rechteck entfernen"
+ja = "ボックスを削除"
+
+["Remove color"]
+en = "Remove color"
+es = "Eliminar color"
+fr = "Supprimer la couleur"
+de = "Farbe entfernen"
+ja = "色を削除"
+
+["Remove point"]
+en = "Remove point"
+es = "Eliminar punto"
+fr = "Supprimer le point"
+de = "Punkt entfernen"
+ja = "ポイントを削除"
+
+["Replace"]
+en = "Replace"
+es = "Reemplazar"
+fr = "Remplacer"
+de = "Ersetzen"
+ja = "置換"
+
+["Replace image"]
+en = "Replace image"
+es = "Reemplazar imagen"
+fr = "Remplacer l’image"
+de = "Bild ersetzen"
+ja = "画像を置換"
+
+["Replace model"]
+en = "Replace model"
+es = "Reemplazar modelo"
+fr = "Remplacer le modèle"
+de = "Modell ersetzen"
+ja = "モデルを置換"
+
+["Reset"]
+en = "Reset"
+es = "Restablecer"
+fr = "Réinitialiser"
+de = "Zurücksetzen"
+ja = "リセット"
+
+["Resolution"]
+en = "Resolution"
+es = "Resolución"
+fr = "Résolution"
+de = "Auflösung"
+ja = "解像度"
+
+["Resonance"]
+en = "Resonance"
+es = "Resonancia"
+fr = "Résonance"
+de = "Resonanz"
+ja = "レゾナンス"
+
+["Right"]
+en = "Right"
+es = "Derecha"
+fr = "Droite"
+de = "Rechts"
+ja = "右"
+
+["Rim power"]
+en = "Rim power"
+es = "Potencia de borde"
+fr = "Puissance du contour"
+de = "Randstärke"
+ja = "リムパワー"
+
+["Rim strength"]
+en = "Rim strength"
+es = "Intensidad de borde"
+fr = "Intensité du contour"
+de = "Randintensität"
+ja = "リム強度"
+
+["Rim tint"]
+en = "Rim tint"
+es = "Tinte de borde"
+fr = "Teinte du contour"
+de = "Randfärbung"
+ja = "リム色"
+
+["Room capture"]
+en = "Room capture"
+es = "Captura de sala"
+fr = "Capture de pièce"
+de = "Raumaufnahme"
+ja = "ルームキャプチャー"
+
+["Room scale"]
+en = "Room scale"
+es = "Escala de sala"
+fr = "Échelle de la pièce"
+de = "Raumgröße"
+ja = "部屋の規模"
+
+["Rotation"]
+en = "Rotation"
+es = "Rotación"
+fr = "Rotation"
+de = "Drehung"
+ja = "回転"
+
+["Rotation order"]
+en = "Rotation order"
+es = "Orden de rotación"
+fr = "Ordre de rotation"
+de = "Rotationsreihenfolge"
+ja = "回転順序"
+
+["Roughness"]
+en = "Roughness"
+es = "Rugosidad"
+fr = "Rugosité"
+de = "Rauheit"
+ja = "粗さ"
+
+["Rounded"]
+en = "Rounded"
+es = "Redondeado"
+fr = "Arrondi"
+de = "Abgerundet"
+ja = "角丸"
+
+["Rounding"]
+en = "Rounding"
+es = "Redondeo"
+fr = "Arrondi"
+de = "Rundung"
+ja = "丸み"
+
+["Roundness"]
+en = "Roundness"
+es = "Redondez"
+fr = "Arrondi"
+de = "Rundung"
+ja = "丸み"
+
+["Row offset"]
+en = "Row offset"
+es = "Desfase de fila"
+fr = "Décalage des lignes"
+de = "Zeilenversatz"
+ja = "行オフセット"
+
+["Sample Rate"]
+en = "Sample Rate"
+es = "Frecuencia de muestreo"
+fr = "Fréquence d’échantillonnage"
+de = "Abtastrate"
+ja = "サンプルレート"
+
+["Sample rate"]
+en = "Sample rate"
+es = "Frecuencia de muestreo"
+fr = "Fréquence d’échantillonnage"
+de = "Abtastrate"
+ja = "サンプルレート"
+
+["Samples"]
+en = "Samples"
+es = "Muestras"
+fr = "Échantillons"
+de = "Samples"
+ja = "サンプル"
+
+["Saturation"]
+en = "Saturation"
+es = "Saturación"
+fr = "Saturation"
+de = "Sättigung"
+ja = "彩度"
+
+["Scale"]
+en = "Scale"
+es = "Escala"
+fr = "Échelle"
+de = "Skalierung"
+ja = "スケール"
+
+["Scene"]
+en = "Scene"
+es = "Escena"
+fr = "Scène"
+de = "Szene"
+ja = "シーン"
+
+["Scene Renderer"]
+en = "Scene Renderer"
+es = "Renderizador de escenas"
+fr = "Moteur de rendu de scène"
+de = "Szenenrenderer"
+ja = "シーンレンダラー"
+
+["Scramble, resize, then reveal the new text"]
+en = "Scramble, resize, then reveal the new text"
+es = "Mezclar, redimensionar y revelar el texto nuevo"
+fr = "Mélanger, redimensionner puis révéler le nouveau texte"
+de = "Mischen, skalieren und dann den neuen Text zeigen"
+ja = "並べ替えとサイズ変更後に新しいテキストを表示"
+
+["Search fonts or paste a Google Fonts specimen URL"]
+en = "Search fonts or paste a Google Fonts specimen URL"
+es = "Buscar fuentes o pegar una URL de Google Fonts"
+fr = "Rechercher des polices ou coller une URL Google Fonts"
+de = "Schriften suchen oder eine Google-Fonts-URL einfügen"
+ja = "フォントを検索、またはGoogle FontsのURLを貼り付け"
+
+["Search interpolations"]
+en = "Search interpolations"
+es = "Buscar interpolaciones"
+fr = "Rechercher des interpolations"
+de = "Interpolationen suchen"
+ja = "補間を検索"
+
+["Search modifiers"]
+en = "Search modifiers"
+es = "Buscar modificadores"
+fr = "Rechercher des modificateurs"
+de = "Modifikatoren suchen"
+ja = "モディファイアを検索"
+
+["Searching Google Fonts…"]
+en = "Searching Google Fonts…"
+es = "Buscando en Google Fonts…"
+fr = "Recherche dans Google Fonts…"
+de = "Google Fonts werden durchsucht…"
+ja = "Google Fontsを検索中…"
+
+["Seed"]
+en = "Seed"
+es = "Semilla"
+fr = "Graine"
+de = "Seed"
+ja = "シード"
+
+["Seed frequency"]
+en = "Seed frequency"
+es = "Frecuencia de semilla"
+fr = "Fréquence de la graine"
+de = "Seed-Frequenz"
+ja = "シード周波数"
+
+["Segment length"]
+en = "Segment length"
+es = "Longitud de segmento"
+fr = "Longueur des segments"
+de = "Segmentlänge"
+ja = "セグメント長"
+
+["Segments"]
+en = "Segments"
+es = "Segmentos"
+fr = "Segments"
+de = "Segmente"
+ja = "セグメント"
+
+["Select"]
+en = "Select"
+es = "Seleccionar"
+fr = "Sélectionner"
+de = "Auswählen"
+ja = "選択"
+
+["Select 3D model"]
+en = "Select 3D model"
+es = "Seleccionar modelo 3D"
+fr = "Sélectionner un modèle 3D"
+de = "3D-Modell auswählen"
+ja = "3Dモデルを選択"
+
+["Select environment image"]
+en = "Select environment image"
+es = "Seleccionar imagen de entorno"
+fr = "Sélectionner une image d’environnement"
+de = "Umgebungsbild auswählen"
+ja = "環境画像を選択"
+
+["Select image"]
+en = "Select image"
+es = "Seleccionar imagen"
+fr = "Sélectionner une image"
+de = "Bild auswählen"
+ja = "画像を選択"
+
+["Select model"]
+en = "Select model"
+es = "Seleccionar modelo"
+fr = "Sélectionner un modèle"
+de = "Modell auswählen"
+ja = "モデルを選択"
+
+["Select paint texture"]
+en = "Select paint texture"
+es = "Seleccionar textura de pintura"
+fr = "Sélectionner une texture de peinture"
+de = "Maltextur auswählen"
+ja = "ペイントテクスチャを選択"
+
+["Semitones"]
+en = "Semitones"
+es = "Semitonos"
+fr = "Demi-tons"
+de = "Halbtöne"
+ja = "半音"
+
+["Sensitivity"]
+en = "Sensitivity"
+es = "Sensibilidad"
+fr = "Sensibilité"
+de = "Empfindlichkeit"
+ja = "感度"
+
+["Sequential"]
+en = "Sequential"
+es = "Secuencial"
+fr = "Séquentiel"
+de = "Nacheinander"
+ja = "順次"
+
+["Shader"]
+en = "Shader"
+es = "Sombreador"
+fr = "Shader"
+de = "Shader"
+ja = "シェーダー"
+
+["Shadow blur"]
+en = "Shadow blur"
+es = "Desenfoque de sombra"
+fr = "Flou de l’ombre"
+de = "Schattenunschärfe"
+ja = "影のぼかし"
+
+["Shadow color"]
+en = "Shadow color"
+es = "Color de sombra"
+fr = "Couleur de l’ombre"
+de = "Schattenfarbe"
+ja = "影の色"
+
+["Shadow direction"]
+en = "Shadow direction"
+es = "Dirección de sombra"
+fr = "Direction de l’ombre"
+de = "Schattenrichtung"
+ja = "影の方向"
+
+["Shadow distance"]
+en = "Shadow distance"
+es = "Distancia de sombra"
+fr = "Distance de l’ombre"
+de = "Schattenabstand"
+ja = "影の距離"
+
+["Shadow kind"]
+en = "Shadow kind"
+es = "Tipo de sombra"
+fr = "Type d’ombre"
+de = "Schattenart"
+ja = "影の種類"
+
+["Shadow quality"]
+en = "Shadow quality"
+es = "Calidad de sombra"
+fr = "Qualité de l’ombre"
+de = "Schattenqualität"
+ja = "影の品質"
+
+["Shadow strength"]
+en = "Shadow strength"
+es = "Intensidad de sombra"
+fr = "Intensité de l’ombre"
+de = "Schattenstärke"
+ja = "影の強度"
+
+["Shadow width"]
+en = "Shadow width"
+es = "Ancho de sombra"
+fr = "Largeur de l’ombre"
+de = "Schattenbreite"
+ja = "影の幅"
+
+["Shaft width"]
+en = "Shaft width"
+es = "Ancho del cuerpo"
+fr = "Largeur de la tige"
+de = "Schaftbreite"
+ja = "軸の幅"
+
+["Sharpness"]
+en = "Sharpness"
+es = "Nitidez"
+fr = "Netteté"
+de = "Schärfe"
+ja = "シャープネス"
+
+["Shear"]
+en = "Shear"
+es = "Inclinación"
+fr = "Cisaillement"
+de = "Scherung"
+ja = "シアー"
+
+["Sheen"]
+en = "Sheen"
+es = "Brillo"
+fr = "Lustre"
+de = "Glanz"
+ja = "光沢"
+
+["Show in folder"]
+en = "Show in folder"
+es = "Mostrar en la carpeta"
+fr = "Afficher dans le dossier"
+de = "Im Ordner anzeigen"
+ja = "フォルダーに表示"
+
+["Show project file in folder"]
+en = "Show project file in folder"
+es = "Mostrar archivo del proyecto en la carpeta"
+fr = "Afficher le fichier du projet dans le dossier"
+de = "Projektdatei im Ordner anzeigen"
+ja = "プロジェクトファイルをフォルダーに表示"
+
+["Sigma"]
+en = "Sigma"
+es = "Sigma"
+fr = "Sigma"
+de = "Sigma"
+ja = "シグマ"
+
+["Sigma ratio"]
+en = "Sigma ratio"
+es = "Relación sigma"
+fr = "Rapport sigma"
+de = "Sigma-Verhältnis"
+ja = "シグマ比"
+
+["Similarity"]
+en = "Similarity"
+es = "Similitud"
+fr = "Similarité"
+de = "Ähnlichkeit"
+ja = "類似度"
+
+["Simplify tolerance"]
+en = "Simplify tolerance"
+es = "Tolerancia de simplificación"
+fr = "Tolérance de simplification"
+de = "Vereinfachungstoleranz"
+ja = "簡略化許容値"
+
+["Simultaneous"]
+en = "Simultaneous"
+es = "Simultáneo"
+fr = "Simultané"
+de = "Gleichzeitig"
+ja = "同時"
+
+["Size"]
+en = "Size"
+es = "Tamaño"
+fr = "Taille"
+de = "Größe"
+ja = "サイズ"
+
+["Size randomness"]
+en = "Size randomness"
+es = "Aleatoriedad de tamaño"
+fr = "Variation de taille"
+de = "Größenzufälligkeit"
+ja = "サイズのランダム性"
+
+["Skia drawing"]
+en = "Skia drawing"
+es = "Dibujo Skia"
+fr = "Dessin Skia"
+de = "Skia-Zeichnung"
+ja = "Skia描画"
+
+["Smoothing"]
+en = "Smoothing"
+es = "Suavizado"
+fr = "Lissage"
+de = "Glättung"
+ja = "スムージング"
+
+["Smoothing radius"]
+en = "Smoothing radius"
+es = "Radio de suavizado"
+fr = "Rayon de lissage"
+de = "Glättungsradius"
+ja = "平滑化半径"
+
+["Smoothness"]
+en = "Smoothness"
+es = "Suavidad"
+fr = "Douceur"
+de = "Glätte"
+ja = "滑らかさ"
+
+["Soft shadow"]
+en = "Soft shadow"
+es = "Sombra suave"
+fr = "Ombre douce"
+de = "Weicher Schatten"
+ja = "ソフトシャドウ"
+
+["Softness"]
+en = "Softness"
+es = "Suavidad"
+fr = "Douceur"
+de = "Weichheit"
+ja = "柔らかさ"
+
+["Solid"]
+en = "Solid"
+es = "Sólido"
+fr = "Uni"
+de = "Einfarbig"
+ja = "ソリッド"
+
+["Solid color"]
+en = "Solid color"
+es = "Color sólido"
+fr = "Couleur unie"
+de = "Volltonfarbe"
+ja = "単色"
+
+["Source"]
+en = "Source"
+es = "Fuente"
+fr = "Source"
+de = "Quelle"
+ja = "ソース"
+
+["Spacing"]
+en = "Spacing"
+es = "Espaciado"
+fr = "Espacement"
+de = "Abstand"
+ja = "間隔"
+
+["Speckle size"]
+en = "Speckle size"
+es = "Tamaño de mota"
+fr = "Taille des taches"
+de = "Sprenkelgröße"
+ja = "斑点サイズ"
+
+["Specular size"]
+en = "Specular size"
+es = "Tamaño especular"
+fr = "Taille spéculaire"
+de = "Glanzlichtgröße"
+ja = "スペキュラーサイズ"
+
+["Specular strength"]
+en = "Specular strength"
+es = "Intensidad especular"
+fr = "Intensité spéculaire"
+de = "Glanzlichtstärke"
+ja = "スペキュラー強度"
+
+["Speed method"]
+en = "Speed method"
+es = "Método de velocidad"
+fr = "Méthode de vitesse"
+de = "Geschwindigkeitsmethode"
+ja = "速度方式"
+
+["Spill"]
+en = "Spill"
+es = "Contaminación"
+fr = "Débordement"
+de = "Farbstreuung"
+ja = "スピル"
+
+["Spin"]
+en = "Spin"
+es = "Giro"
+fr = "Rotation"
+de = "Drehung"
+ja = "スピン"
+
+["Splice threshold"]
+en = "Splice threshold"
+es = "Umbral de empalme"
+fr = "Seuil de raccord"
+de = "Verbindungsschwelle"
+ja = "スプライスしきい値"
+
+["Square"]
+en = "Square"
+es = "Cuadrado"
+fr = "Carré"
+de = "Quadrat"
+ja = "正方形"
+
+["Stabilization"]
+en = "Stabilization"
+es = "Estabilización"
+fr = "Stabilisation"
+de = "Stabilisierung"
+ja = "手ぶれ補正"
+
+["Stabilization cache"]
+en = "Stabilization cache"
+es = "Caché de estabilización"
+fr = "Cache de stabilisation"
+de = "Stabilisierungs-Cache"
+ja = "手ぶれ補正キャッシュ"
+
+["Start cap"]
+en = "Start cap"
+es = "Extremo inicial"
+fr = "Extrémité de début"
+de = "Startkappe"
+ja = "始端キャップ"
+
+["Start taper"]
+en = "Start taper"
+es = "Estrechamiento inicial"
+fr = "Effilement initial"
+de = "Startverjüngung"
+ja = "始端テーパー"
+
+["Start taper distance"]
+en = "Start taper distance"
+es = "Distancia del estrechamiento inicial"
+fr = "Distance d’effilement initial"
+de = "Startverjüngungsabstand"
+ja = "始端テーパー距離"
+
+["Starting angle"]
+en = "Starting angle"
+es = "Ángulo inicial"
+fr = "Angle initial"
+de = "Startwinkel"
+ja = "開始角度"
+
+["Starting scale"]
+en = "Starting scale"
+es = "Escala inicial"
+fr = "Échelle initiale"
+de = "Startskalierung"
+ja = "開始スケール"
+
+["Static-camera weight"]
+en = "Static-camera weight"
+es = "Peso de cámara estática"
+fr = "Poids de caméra statique"
+de = "Gewichtung statischer Kamera"
+ja = "固定カメラウェイト"
+
+["Step"]
+en = "Step"
+es = "Paso"
+fr = "Étape"
+de = "Schritt"
+ja = "ステップ"
+
+["Step size"]
+en = "Step size"
+es = "Tamaño de paso"
+fr = "Taille du pas"
+de = "Schrittweite"
+ja = "ステップサイズ"
+
+["Strategy"]
+en = "Strategy"
+es = "Estrategia"
+fr = "Stratégie"
+de = "Strategie"
+ja = "方式"
+
+["Strength"]
+en = "Strength"
+es = "Intensidad"
+fr = "Intensité"
+de = "Stärke"
+ja = "強度"
+
+["Stroke color %{number}"]
+en = "Stroke color %{number}"
+es = "Color de trazo %{number}"
+fr = "Couleur de trait %{number}"
+de = "Konturfarbe %{number}"
+ja = "線の色 %{number}"
+
+["Stroke overlap"]
+en = "Stroke overlap"
+es = "Solapamiento de trazos"
+fr = "Chevauchement des traits"
+de = "Strichüberlappung"
+ja = "ストロークの重なり"
+
+["Strokes"]
+en = "Strokes"
+es = "Trazos"
+fr = "Traits"
+de = "Striche"
+ja = "ストローク"
+
+["Style"]
+en = "Style"
+es = "Estilo"
+fr = "Style"
+de = "Stil"
+ja = "スタイル"
+
+["Subdivision spacing"]
+en = "Subdivision spacing"
+es = "Espaciado de subdivisión"
+fr = "Espacement de subdivision"
+de = "Unterteilungsabstand"
+ja = "細分化間隔"
+
+["Subsurface"]
+en = "Subsurface"
+es = "Subsuperficie"
+fr = "Sous-surface"
+de = "Unterfläche"
+ja = "サブサーフェス"
+
+["Temperature"]
+en = "Temperature"
+es = "Temperatura"
+fr = "Température"
+de = "Temperatur"
+ja = "色温度"
+
+["Text color"]
+en = "Text color"
+es = "Color del texto"
+fr = "Couleur du texte"
+de = "Textfarbe"
+ja = "テキスト色"
+
+["Texture"]
+en = "Texture"
+es = "Textura"
+fr = "Texture"
+de = "Textur"
+ja = "テクスチャ"
+
+["Texture filter"]
+en = "Texture filter"
+es = "Filtro de textura"
+fr = "Filtre de texture"
+de = "Texturfilter"
+ja = "テクスチャフィルター"
+
+["Texture rotation"]
+en = "Texture rotation"
+es = "Rotación de textura"
+fr = "Rotation de la texture"
+de = "Texturdrehung"
+ja = "テクスチャ回転"
+
+["Texture scale"]
+en = "Texture scale"
+es = "Escala de textura"
+fr = "Échelle de la texture"
+de = "Texturskalierung"
+ja = "テクスチャスケール"
+
+["Textures"]
+en = "Textures"
+es = "Texturas"
+fr = "Textures"
+de = "Texturen"
+ja = "テクスチャ"
+
+["Threshold"]
+en = "Threshold"
+es = "Umbral"
+fr = "Seuil"
+de = "Schwelle"
+ja = "しきい値"
+
+["Timeline Duration"]
+en = "Timeline Duration"
+es = "Duración en la línea de tiempo"
+fr = "Durée dans la timeline"
+de = "Zeitleistendauer"
+ja = "タイムライン上の長さ"
+
+["Tint"]
+en = "Tint"
+es = "Tinte"
+fr = "Teinte"
+de = "Färbung"
+ja = "色合い"
+
+["Tolerance"]
+en = "Tolerance"
+es = "Tolerancia"
+fr = "Tolérance"
+de = "Toleranz"
+ja = "許容値"
+
+["Tone"]
+en = "Tone"
+es = "Tono"
+fr = "Tonalité"
+de = "Klangfarbe"
+ja = "トーン"
+
+["Top"]
+en = "Top"
+es = "Arriba"
+fr = "Haut"
+de = "Oben"
+ja = "上"
+
+["Top left"]
+en = "Top left"
+es = "Arriba a la izquierda"
+fr = "En haut à gauche"
+de = "Oben links"
+ja = "左上"
+
+["Top right"]
+en = "Top right"
+es = "Arriba a la derecha"
+fr = "En haut à droite"
+de = "Oben rechts"
+ja = "右上"
+
+["Track"]
+en = "Track"
+es = "Pista"
+fr = "Piste"
+de = "Spur"
+ja = "トラック"
+
+["Tracking"]
+en = "Tracking"
+es = "Seguimiento"
+fr = "Suivi"
+de = "Tracking"
+ja = "トラッキング"
+
+["Tracking method"]
+en = "Tracking method"
+es = "Método de seguimiento"
+fr = "Méthode de suivi"
+de = "Tracking-Methode"
+ja = "トラッキング方式"
+
+["Tracks"]
+en = "Tracks"
+es = "Pistas"
+fr = "Pistes"
+de = "Spuren"
+ja = "トラック"
+
+["Trail length"]
+en = "Trail length"
+es = "Longitud de estela"
+fr = "Longueur de traînée"
+de = "Spurlänge"
+ja = "軌跡の長さ"
+
+["Transform"]
+en = "Transform"
+es = "Transformación"
+fr = "Transformation"
+de = "Transformieren"
+ja = "変形"
+
+["Transition"]
+en = "Transition"
+es = "Transición"
+fr = "Transition"
+de = "Übergang"
+ja = "トランジション"
+
+["Transmission"]
+en = "Transmission"
+es = "Transmisión"
+fr = "Transmission"
+de = "Transmission"
+ja = "透過"
+
+["Triangle"]
+en = "Triangle"
+es = "Triángulo"
+fr = "Triangle"
+de = "Dreieck"
+ja = "三角形"
+
+["Type"]
+en = "Type"
+es = "Tipo"
+fr = "Type"
+de = "Typ"
+ja = "種類"
+
+["Unavailable (%{id})"]
+en = "Unavailable (%{id})"
+es = "No disponible (%{id})"
+fr = "Indisponible (%{id})"
+de = "Nicht verfügbar (%{id})"
+ja = "利用不可（%{id}）"
+
+["Unavailable while an alpha-mask stream is selected"]
+en = "Unavailable while an alpha-mask stream is selected"
+es = "No disponible mientras haya un flujo de máscara alfa seleccionado"
+fr = "Indisponible lorsqu’un flux de masque alpha est sélectionné"
+de = "Nicht verfügbar, solange ein Alphamasken-Stream ausgewählt ist"
+ja = "アルファマスクストリーム選択中は利用不可"
+
+["Upsampling"]
+en = "Upsampling"
+es = "Sobremuestreo"
+fr = "Suréchantillonnage"
+de = "Hochskalierung"
+ja = "アップサンプリング"
+
+["Using the reusable chunked analysis cache"]
+en = "Using the reusable chunked analysis cache"
+es = "Usando la caché reutilizable de análisis por tramos"
+fr = "Utilisation du cache réutilisable d’analyse par segments"
+de = "Wiederverwendbarer abschnittsweiser Analyse-Cache wird verwendet"
+ja = "再利用可能なチャンク解析キャッシュを使用中"
+
+["V align"]
+en = "V align"
+es = "Alineación V"
+fr = "Alignement V"
+de = "Vertikale Ausrichtung"
+ja = "垂直揃え"
+
+["Value"]
+en = "Value"
+es = "Valor"
+fr = "Valeur"
+de = "Wert"
+ja = "値"
+
+["Variation"]
+en = "Variation"
+es = "Variación"
+fr = "Variation"
+de = "Variation"
+ja = "変化"
+
+["Vertical"]
+en = "Vertical"
+es = "Vertical"
+fr = "Vertical"
+de = "Vertikal"
+ja = "垂直"
+
+["Vertical FOV"]
+en = "Vertical FOV"
+es = "Campo de visión vertical"
+fr = "Champ de vision vertical"
+de = "Vertikales Sichtfeld"
+ja = "垂直視野角"
+
+["Vertical alignment"]
+en = "Vertical alignment"
+es = "Alineación vertical"
+fr = "Alignement vertical"
+de = "Vertikale Ausrichtung"
+ja = "垂直揃え"
+
+["Video Stream"]
+en = "Video Stream"
+es = "Flujo de vídeo"
+fr = "Flux vidéo"
+de = "Videostream"
+ja = "ビデオストリーム"
+
+["Video stream %{number}"]
+en = "Video stream %{number}"
+es = "Flujo de vídeo %{number}"
+fr = "Flux vidéo %{number}"
+de = "Videostream %{number}"
+ja = "ビデオストリーム %{number}"
+
+["View Layer"]
+en = "View Layer"
+es = "Capa de vista"
+fr = "Calque de vue"
+de = "Ansichtsebene"
+ja = "ビューレイヤー"
+
+["Visible"]
+en = "Visible"
+es = "Visible"
+fr = "Visible"
+de = "Sichtbar"
+ja = "表示"
+
+["Visible source area after stabilization"]
+en = "Visible source area after stabilization"
+es = "Área visible del origen tras la estabilización"
+fr = "Zone source visible après stabilisation"
+de = "Sichtbarer Quellbereich nach der Stabilisierung"
+ja = "手ぶれ補正後に表示されるソース領域"
+
+["Visual"]
+en = "Visual"
+es = "Visual"
+fr = "Visuel"
+de = "Visuell"
+ja = "ビジュアル"
+
+["Visual track %{index}"]
+en = "Visual track %{index}"
+es = "Pista visual %{index}"
+fr = "Piste visuelle %{index}"
+de = "Visuelle Spur %{index}"
+ja = "ビジュアルトラック %{index}"
+
+["Warp amount"]
+en = "Warp amount"
+es = "Cantidad de deformación"
+fr = "Amplitude de déformation"
+de = "Verformungsstärke"
+ja = "ワープ量"
+
+["Warp scale"]
+en = "Warp scale"
+es = "Escala de deformación"
+fr = "Échelle de déformation"
+de = "Verformungsskalierung"
+ja = "ワープスケール"
+
+["Waveform"]
+en = "Waveform"
+es = "Forma de onda"
+fr = "Forme d’onde"
+de = "Wellenform"
+ja = "波形"
+
+["Wavelength"]
+en = "Wavelength"
+es = "Longitud de onda"
+fr = "Longueur d’onde"
+de = "Wellenlänge"
+ja = "波長"
+
+["Width frequency"]
+en = "Width frequency"
+es = "Frecuencia de ancho"
+fr = "Fréquence de largeur"
+de = "Breitenfrequenz"
+ja = "幅の周波数"
+
+["Width randomness"]
+en = "Width randomness"
+es = "Aleatoriedad de ancho"
+fr = "Variation de largeur"
+de = "Breitenzufälligkeit"
+ja = "幅のランダム性"
+
+["Width variation"]
+en = "Width variation"
+es = "Variación de ancho"
+fr = "Variation de largeur"
+de = "Breitenvariation"
+ja = "幅の変化"
+
+["Wipe"]
+en = "Wipe"
+es = "Barrido"
+fr = "Balayage"
+de = "Wischen"
+ja = "ワイプ"
+
+["Wobble"]
+en = "Wobble"
+es = "Oscilación"
+fr = "Oscillation"
+de = "Wackeln"
+ja = "揺れ"
+
+["Wobble position"]
+en = "Wobble position"
+es = "Posición de oscilación"
+fr = "Position de l’oscillation"
+de = "Wackelposition"
+ja = "揺れ位置"
+
+["Wobble scale"]
+en = "Wobble scale"
+es = "Escala de oscilación"
+fr = "Échelle de l’oscillation"
+de = "Wackelskalierung"
+ja = "揺れスケール"
+
+["Word"]
+en = "Word"
+es = "Palabra"
+fr = "Mot"
+de = "Wort"
+ja = "単語"
+
+["Zoom"]
+en = "Zoom"
+es = "Zoom"
+fr = "Zoom"
+de = "Zoom"
+ja = "ズーム"
+
+["Arrow"]
+en = "Arrow"
+es = "Flecha"
+fr = "Flèche"
+de = "Pfeil"
+ja = "矢印"
+
+["Blue X"]
+en = "Blue X"
+es = "Azul X"
+fr = "Bleu X"
+de = "Blau X"
+ja = "青 X"
+
+["Blue Y"]
+en = "Blue Y"
+es = "Azul Y"
+fr = "Bleu Y"
+de = "Blau Y"
+ja = "青 Y"
+
+["Blue ← blue"]
+en = "Blue ← blue"
+es = "Azul ← azul"
+fr = "Bleu ← bleu"
+de = "Blau ← Blau"
+ja = "青 ← 青"
+
+["Blue ← green"]
+en = "Blue ← green"
+es = "Azul ← verde"
+fr = "Bleu ← vert"
+de = "Blau ← Grün"
+ja = "青 ← 緑"
+
+["Blue ← red"]
+en = "Blue ← red"
+es = "Azul ← rojo"
+fr = "Bleu ← rouge"
+de = "Blau ← Rot"
+ja = "青 ← 赤"
+
+["Capsule"]
+en = "Capsule"
+es = "Cápsula"
+fr = "Capsule"
+de = "Kapsel"
+ja = "カプセル"
+
+["Casual"]
+en = "Casual"
+es = "Informal"
+fr = "Décontracté"
+de = "Locker"
+ja = "カジュアル"
+
+["Clock Wipe"]
+en = "Clock Wipe"
+es = "Barrido de reloj"
+fr = "Balayage horloge"
+de = "Uhr-Wischen"
+ja = "クロックワイプ"
+
+["Cone"]
+en = "Cone"
+es = "Cono"
+fr = "Cône"
+de = "Kegel"
+ja = "円錐"
+
+["Contour Current"]
+en = "Contour Current"
+es = "Corriente de contorno"
+fr = "Courant de contour"
+de = "Konturstrom"
+ja = "輪郭電流"
+
+["Cross Fade"]
+en = "Cross Fade"
+es = "Fundido cruzado"
+fr = "Fondu enchaîné"
+de = "Kreuzblende"
+ja = "クロスフェード"
+
+["Cursive"]
+en = "Cursive"
+es = "Cursiva"
+fr = "Cursive"
+de = "Schreibschrift"
+ja = "筆記体"
+
+["Direct"]
+en = "Direct"
+es = "Directo"
+fr = "Direct"
+de = "Direkt"
+ja = "直接"
+
+["Disk / cylinder"]
+en = "Disk / cylinder"
+es = "Disco / cilindro"
+fr = "Disque / cylindre"
+de = "Scheibe / Zylinder"
+ja = "円盤 / 円柱"
+
+["Dissolve"]
+en = "Dissolve"
+es = "Disolución"
+fr = "Dissolution"
+de = "Auflösen"
+ja = "ディゾルブ"
+
+["Equal Power"]
+en = "Equal Power"
+es = "Potencia uniforme"
+fr = "Puissance égale"
+de = "Gleiche Leistung"
+ja = "等パワー"
+
+["F0 method"]
+en = "F0 method"
+es = "Método F0"
+fr = "Méthode F0"
+de = "F0-Methode"
+ja = "F0方式"
+
+["Facet Assembly"]
+en = "Facet Assembly"
+es = "Ensamblaje de facetas"
+fr = "Assemblage de facettes"
+de = "Facettenaufbau"
+ja = "ファセット構成"
+
+["Fade Through Color"]
+en = "Fade Through Color"
+es = "Fundido por color"
+fr = "Fondu par couleur"
+de = "Über Farbe blenden"
+ja = "カラーフェード"
+
+["Feature contours · multipass"]
+en = "Feature contours · multipass"
+es = "Contornos de rasgos · multipaso"
+fr = "Contours caractéristiques · multipasse"
+de = "Merkmalskonturen · Mehrfachdurchlauf"
+ja = "特徴輪郭 · マルチパス"
+
+["Google"]
+en = "Google"
+es = "Google"
+fr = "Google"
+de = "Google"
+ja = "Google"
+
+["Green ← blue"]
+en = "Green ← blue"
+es = "Verde ← azul"
+fr = "Vert ← bleu"
+de = "Grün ← Blau"
+ja = "緑 ← 青"
+
+["Green ← green"]
+en = "Green ← green"
+es = "Verde ← verde"
+fr = "Vert ← vert"
+de = "Grün ← Grün"
+ja = "緑 ← 緑"
+
+["Green ← red"]
+en = "Green ← red"
+es = "Verde ← rojo"
+fr = "Vert ← rouge"
+de = "Grün ← Rot"
+ja = "緑 ← 赤"
+
+["High · 24 samples"]
+en = "High · 24 samples"
+es = "Alta · 24 muestras"
+fr = "Élevée · 24 échantillons"
+de = "Hoch · 24 Samples"
+ja = "高 · 24サンプル"
+
+["High · 8 probes"]
+en = "High · 8 probes"
+es = "Alta · 8 sondas"
+fr = "Élevée · 8 sondes"
+de = "Hoch · 8 Probes"
+ja = "高 · 8プローブ"
+
+["Kuwahara · painterly"]
+en = "Kuwahara · painterly"
+es = "Kuwahara · pictórico"
+fr = "Kuwahara · pictural"
+de = "Kuwahara · malerisch"
+ja = "Kuwahara · 絵画調"
+
+["Live Performance"]
+en = "Live Performance"
+es = "Rendimiento en directo"
+fr = "Performance en direct"
+de = "Live-Leistung"
+ja = "ライブパフォーマンス"
+
+["Last %{last} · Avg %{average} · Min %{minimum} · Max %{maximum} · %{samples} samples%{percentage}"]
+en = "Last %{last} · Avg %{average} · Min %{minimum} · Max %{maximum} · %{samples} samples%{percentage}"
+es = "Último %{last} · Prom. %{average} · Mín. %{minimum} · Máx. %{maximum} · %{samples} muestras%{percentage}"
+fr = "Dernier %{last} · Moy. %{average} · Min. %{minimum} · Max. %{maximum} · %{samples} échantillons%{percentage}"
+de = "Letzter %{last} · Ø %{average} · Min. %{minimum} · Max. %{maximum} · %{samples} Messungen%{percentage}"
+ja = "直近 %{last} · 平均 %{average} · 最小 %{minimum} · 最大 %{maximum} · %{samples}サンプル%{percentage}"
+
+["Living Fill"]
+en = "Living Fill"
+es = "Relleno vivo"
+fr = "Remplissage vivant"
+de = "Lebendige Füllung"
+ja = "リビングフィル"
+
+["Markdown: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]"]
+en = "Markdown: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]"
+es = "Markdown: **negrita**, *cursiva*, __subrayado__, {milisegundos} karaoke, [base/ruby]"
+fr = "Markdown : **gras**, *italique*, __souligné__, {millisecondes} karaoké, [base/ruby]"
+de = "Markdown: **fett**, *kursiv*, __unterstrichen__, {Millisekunden} Karaoke, [Basis/Ruby]"
+ja = "Markdown: **太字**、*斜体*、__下線__、{ミリ秒} カラオケ、[親文字/ルビ]"
+
+["Missing item"]
+en = "Missing item"
+es = "Elemento ausente"
+fr = "Élément manquant"
+de = "Fehlendes Element"
+ja = "項目がありません"
+
+["Morphological Resolve"]
+en = "Morphological Resolve"
+es = "Resolución morfológica"
+fr = "Résolution morphologique"
+de = "Morphologische Auflösung"
+ja = "形態学的解決"
+
+["Naive"]
+en = "Naive"
+es = "Simple"
+fr = "Naïf"
+de = "Naiv"
+ja = "単純"
+
+["Native"]
+en = "Native"
+es = "Nativo"
+fr = "Natif"
+de = "Nativ"
+ja = "ネイティブ"
+
+["Oblique"]
+en = "Oblique"
+es = "Oblicua"
+fr = "Oblique"
+de = "Schräg"
+ja = "斜体"
+
+["Off (Full Resolution)"]
+en = "Off (Full Resolution)"
+es = "Desactivado (resolución completa)"
+fr = "Désactivé (pleine résolution)"
+de = "Aus (volle Auflösung)"
+ja = "オフ（フル解像度）"
+
+["Origami"]
+en = "Origami"
+es = "Origami"
+fr = "Origami"
+de = "Origami"
+ja = "折り紙"
+
+["Path tracing"]
+en = "Path tracing"
+es = "Trazado de caminos"
+fr = "Tracé de chemins"
+de = "Pathtracing"
+ja = "パストレーシング"
+
+["Pools"]
+en = "Pools"
+es = "Grupos"
+fr = "Pools"
+de = "Pools"
+ja = "プール"
+
+["Push"]
+en = "Push"
+es = "Empuje"
+fr = "Poussée"
+de = "Schieben"
+ja = "プッシュ"
+
+["Radial + Fresnel"]
+en = "Radial + Fresnel"
+es = "Radial + Fresnel"
+fr = "Radial + Fresnel"
+de = "Radial + Fresnel"
+ja = "放射 + フレネル"
+
+["Radial probes"]
+en = "Radial probes"
+es = "Sondas radiales"
+fr = "Sondes radiales"
+de = "Radiale Probes"
+ja = "放射プローブ"
+
+["Red X"]
+en = "Red X"
+es = "Rojo X"
+fr = "Rouge X"
+de = "Rot X"
+ja = "赤 X"
+
+["Red Y"]
+en = "Red Y"
+es = "Rojo Y"
+fr = "Rouge Y"
+de = "Rot Y"
+ja = "赤 Y"
+
+["Red ← blue"]
+en = "Red ← blue"
+es = "Rojo ← azul"
+fr = "Rouge ← bleu"
+de = "Rot ← Blau"
+ja = "赤 ← 青"
+
+["Red ← green"]
+en = "Red ← green"
+es = "Rojo ← verde"
+fr = "Rouge ← vert"
+de = "Rot ← Grün"
+ja = "赤 ← 緑"
+
+["Red ← red"]
+en = "Red ← red"
+es = "Rojo ← rojo"
+fr = "Rouge ← rouge"
+de = "Rot ← Rot"
+ja = "赤 ← 赤"
+
+["Render Style"]
+en = "Render Style"
+es = "Estilo de renderizado"
+fr = "Style de rendu"
+de = "Renderstil"
+ja = "レンダリングスタイル"
+
+["Repeat"]
+en = "Repeat"
+es = "Repetir"
+fr = "Répéter"
+de = "Wiederholen"
+ja = "繰り返し"
+
+["Reverse Diffusion"]
+en = "Reverse Diffusion"
+es = "Difusión inversa"
+fr = "Diffusion inverse"
+de = "Umgekehrte Diffusion"
+ja = "逆拡散"
+
+["Rotated LTR"]
+en = "Rotated LTR"
+es = "Girado izq. a der."
+fr = "Rotation gauche à droite"
+de = "Gedreht LTR"
+ja = "回転・左から右"
+
+["Rotated RTL"]
+en = "Rotated RTL"
+es = "Girado der. a izq."
+fr = "Rotation droite à gauche"
+de = "Gedreht RTL"
+ja = "回転・右から左"
+
+["SVG Colors"]
+en = "SVG Colors"
+es = "Colores SVG"
+fr = "Couleurs SVG"
+de = "SVG-Farben"
+ja = "SVGの色"
+
+["SVG color"]
+en = "SVG color"
+es = "Color SVG"
+fr = "Couleur SVG"
+de = "SVG-Farbe"
+ja = "SVGの色"
+
+["Serif"]
+en = "Serif"
+es = "Con serifa"
+fr = "Avec empattements"
+de = "Serifenschrift"
+ja = "明朝体"
+
+["Silhouette"]
+en = "Silhouette"
+es = "Silueta"
+fr = "Silhouette"
+de = "Silhouette"
+ja = "シルエット"
+
+["Silhouette + creases"]
+en = "Silhouette + creases"
+es = "Silueta + pliegues"
+fr = "Silhouette + plis"
+de = "Silhouette + Falten"
+ja = "シルエット + 折り目"
+
+["Slide"]
+en = "Slide"
+es = "Deslizamiento"
+fr = "Glissement"
+de = "Schieben"
+ja = "スライド"
+
+["Slide + Fade"]
+en = "Slide + Fade"
+es = "Deslizamiento + fundido"
+fr = "Glissement + fondu"
+de = "Schieben + Blenden"
+ja = "スライド + フェード"
+
+["Small Capitals"]
+en = "Small Capitals"
+es = "Versalitas"
+fr = "Petites capitales"
+de = "Kapitälchen"
+ja = "スモールキャップ"
+
+["Soft Refraction"]
+en = "Soft Refraction"
+es = "Refracción suave"
+fr = "Réfraction douce"
+de = "Weiche Brechung"
+ja = "ソフト屈折"
+
+["Sphere"]
+en = "Sphere"
+es = "Esfera"
+fr = "Sphère"
+de = "Kugel"
+ja = "球"
+
+["Standard · 12 samples"]
+en = "Standard · 12 samples"
+es = "Estándar · 12 muestras"
+fr = "Standard · 12 échantillons"
+de = "Standard · 12 Samples"
+ja = "標準 · 12サンプル"
+
+["Standard · 4 probes"]
+en = "Standard · 4 probes"
+es = "Estándar · 4 sondas"
+fr = "Standard · 4 sondes"
+de = "Standard · 4 Probes"
+ja = "標準 · 4プローブ"
+
+["Star"]
+en = "Star"
+es = "Estrella"
+fr = "Étoile"
+de = "Stern"
+ja = "星"
+
+["Streak Wipe"]
+en = "Streak Wipe"
+es = "Barrido de franjas"
+fr = "Balayage strié"
+de = "Streifen-Wischen"
+ja = "ストリークワイプ"
+
+["Streamline"]
+en = "Streamline"
+es = "Línea de flujo"
+fr = "Ligne de courant"
+de = "Stromlinie"
+ja = "流線"
+
+["Stroke Transform"]
+en = "Stroke Transform"
+es = "Transformación de trazo"
+fr = "Transformation du trait"
+de = "Strichtransformation"
+ja = "ストローク変形"
+
+["System default"]
+en = "System default"
+es = "Predeterminado del sistema"
+fr = "Valeur système par défaut"
+de = "Systemstandard"
+ja = "システム既定"
+
+["Thinning"]
+en = "Thinning"
+es = "Adelgazamiento"
+fr = "Amincissement"
+de = "Ausdünnung"
+ja = "細線化"
+
+["Torus"]
+en = "Torus"
+es = "Toro"
+fr = "Tore"
+de = "Torus"
+ja = "トーラス"
+
+["Track %{track} · Item %{item}"]
+en = "Track %{track} · Item %{item}"
+es = "Pista %{track} · Elemento %{item}"
+fr = "Piste %{track} · Élément %{item}"
+de = "Spur %{track} · Element %{item}"
+ja = "トラック %{track} · 項目 %{item}"
+
+["Triangular Fold"]
+en = "Triangular Fold"
+es = "Pliegue triangular"
+fr = "Pli triangulaire"
+de = "Dreiecksfaltung"
+ja = "三角折り"
+
+["Ultra · 16 probes"]
+en = "Ultra · 16 probes"
+es = "Ultra · 16 sondas"
+fr = "Ultra · 16 sondes"
+de = "Ultra · 16 Probes"
+ja = "最高 · 16プローブ"
+
+["Ultra · 48 samples"]
+en = "Ultra · 48 samples"
+es = "Ultra · 48 muestras"
+fr = "Ultra · 48 échantillons"
+de = "Ultra · 48 Samples"
+ja = "最高 · 48サンプル"
+
+["Unwrite"]
+en = "Unwrite"
+es = "Desescribir"
+fr = "Désécrire"
+de = "Ausradieren"
+ja = "消去"
+
+["Vertical LTR"]
+en = "Vertical LTR"
+es = "Vertical izq. a der."
+fr = "Vertical gauche à droite"
+de = "Vertikal LTR"
+ja = "縦書き・左から右"
+
+["Vertical RTL"]
+en = "Vertical RTL"
+es = "Vertical der. a izq."
+fr = "Vertical droite à gauche"
+de = "Vertikal RTL"
+ja = "縦書き・右から左"
+
+["Video / Render request"]
+en = "Video / Render request"
+es = "Solicitud de vídeo / renderizado"
+fr = "Requête vidéo / rendu"
+de = "Video-/Renderanfrage"
+ja = "ビデオ / レンダリング要求"
+
+["Visual track %{number}"]
+en = "Visual track %{number}"
+es = "Pista visual %{number}"
+fr = "Piste visuelle %{number}"
+de = "Visuelle Spur %{number}"
+ja = "ビジュアルトラック %{number}"
+
+["Write"]
+en = "Write"
+es = "Escribir"
+fr = "Écrire"
+de = "Schreiben"
+ja = "書く"
+
+["Writing"]
+en = "Writing"
+es = "Escritura"
+fr = "Écriture"
+de = "Schreiben"
+ja = "書き込み"
+
+["%{axis} variation axis"]
+en = "%{axis} variation axis"
+es = "Eje de variación %{axis}"
+fr = "Axe de variation %{axis}"
+de = "Variationsachse %{axis}"
+ja = "%{axis} バリエーション軸"
+
+["%{name} copied"]
+en = "%{name} copied"
+es = "%{name} copiado"
+fr = "%{name} copié"
+de = "%{name} kopiert"
+ja = "%{name} をコピーしました"
+
+["%{label} (Unavailable)"]
+en = "%{label} (Unavailable)"
+es = "%{label} (no disponible)"
+fr = "%{label} (indisponible)"
+de = "%{label} (nicht verfügbar)"
+ja = "%{label}（利用不可）"
+
+["%{message} %{completed}/%{total}"]
+en = "%{message} %{completed}/%{total}"
+es = "%{message} %{completed}/%{total}"
+fr = "%{message} %{completed}/%{total}"
+de = "%{message} %{completed}/%{total}"
+ja = "%{message} %{completed}/%{total}"
+
+["Output: %{output}"]
+en = "Output: %{output}"
+es = "Salida: %{output}"
+fr = "Sortie : %{output}"
+de = "Ausgabe: %{output}"
+ja = "出力: %{output}"
+
+["%{strokes} strokes, %{fills} fills"]
+en = "%{strokes} strokes, %{fills} fills"
+es = "%{strokes} trazos, %{fills} rellenos"
+fr = "%{strokes} traits, %{fills} remplissages"
+de = "%{strokes} Striche, %{fills} Füllungen"
+ja = "%{strokes} ストローク、%{fills} 塗り"
+
+["1 keyframe copied"]
+en = "1 keyframe copied"
+es = "1 fotograma clave copiado"
+fr = "1 image clé copiée"
+de = "1 Keyframe kopiert"
+ja = "キーフレームを1件コピーしました"
+
+["1 keyframe pasted"]
+en = "1 keyframe pasted"
+es = "1 fotograma clave pegado"
+fr = "1 image clé collée"
+de = "1 Keyframe eingefügt"
+ja = "キーフレームを1件貼り付けました"
+
+["%{count} keyframes copied"]
+en = "%{count} keyframes copied"
+es = "%{count} fotogramas clave copiados"
+fr = "%{count} images clés copiées"
+de = "%{count} Keyframes kopiert"
+ja = "%{count}件のキーフレームをコピーしました"
+
+["%{count} keyframes pasted"]
+en = "%{count} keyframes pasted"
+es = "%{count} fotogramas clave pegados"
+fr = "%{count} images clés collées"
+de = "%{count} Keyframes eingefügt"
+ja = "%{count}件のキーフレームを貼り付けました"
+
+["Analysis starts as source-time chunks are viewed"]
+en = "Analysis starts as source-time chunks are viewed"
+es = "El análisis comienza al visualizar tramos temporales del origen"
+fr = "L’analyse commence lors de l’affichage des segments temporels source"
+de = "Die Analyse beginnt beim Anzeigen von Quellzeitabschnitten"
+ja = "ソース時間チャンクの表示時に解析を開始"
+
+["Benchmark report copied"]
+en = "Benchmark report copied"
+es = "Informe de rendimiento copiado"
+fr = "Rapport de performance copié"
+de = "Benchmark-Bericht kopiert"
+ja = "ベンチマークレポートをコピーしました"
+
+["Checking compute server..."]
+en = "Checking compute server..."
+es = "Comprobando servidor de cálculo..."
+fr = "Vérification du serveur de calcul…"
+de = "Compute-Server wird geprüft..."
+ja = "計算サーバーを確認中..."
+
+["Choose a compatible Blender binary in Preferences"]
+en = "Choose a compatible Blender binary in Preferences"
+es = "Elige un ejecutable de Blender compatible en Preferencias"
+fr = "Choisissez un exécutable Blender compatible dans les Préférences"
+de = "Kompatible Blender-Binärdatei in den Einstellungen auswählen"
+ja = "設定で互換性のあるBlender実行ファイルを選択してください"
+
+["Expression output unavailable"]
+en = "Expression output unavailable"
+es = "Salida de la expresión no disponible"
+fr = "Sortie de l’expression indisponible"
+de = "Ausgabe des Ausdrucks nicht verfügbar"
+ja = "式の出力を利用できません"
+
+["Jacobi passes used to minimize the MeshFlow energy"]
+en = "Jacobi passes used to minimize the MeshFlow energy"
+es = "Pasadas de Jacobi para minimizar la energía de MeshFlow"
+fr = "Passes de Jacobi utilisées pour minimiser l’énergie MeshFlow"
+de = "Jacobi-Durchläufe zum Minimieren der MeshFlow-Energie"
+ja = "MeshFlowエネルギーを最小化するJacobiパス数"
+
+["Ready (%{count} samples)"]
+en = "Ready (%{count} samples)"
+es = "Listo (%{count} muestras)"
+fr = "Prêt (%{count} échantillons)"
+de = "Bereit (%{count} Samples)"
+ja = "準備完了（%{count}サンプル）"
+
+["Selected tracking method is unavailable"]
+en = "Selected tracking method is unavailable"
+es = "El método de seguimiento seleccionado no está disponible"
+fr = "La méthode de suivi sélectionnée est indisponible"
+de = "Die ausgewählte Tracking-Methode ist nicht verfügbar"
+ja = "選択したトラッキング方式は利用できません"
+
+["Source track is empty"]
+en = "Source track is empty"
+es = "La pista de origen está vacía"
+fr = "La piste source est vide"
+de = "Die Quellspur ist leer"
+ja = "ソーストラックが空です"
+
+["Source track unavailable"]
+en = "Source track unavailable"
+es = "Pista de origen no disponible"
+fr = "Piste source indisponible"
+de = "Quellspur nicht verfügbar"
+ja = "ソーストラックを利用できません"
+
+["3-band EQ"]
+en = "3-band EQ"
+es = "Ecualizador de 3 bandas"
+fr = "Égaliseur 3 bandes"
+de = "3-Band-EQ"
+ja = "3バンドEQ"
+
+["3D Object"]
+en = "3D Object"
+es = "Objeto 3D"
+fr = "Objet 3D"
+de = "3D-Objekt"
+ja = "3Dオブジェクト"
+
+["3D Shape"]
+en = "3D Shape"
+es = "Forma 3D"
+fr = "Forme 3D"
+de = "3D-Form"
+ja = "3D図形"
+
+["3D Text"]
+en = "3D Text"
+es = "Texto 3D"
+fr = "Texte 3D"
+de = "3D-Text"
+ja = "3Dテキスト"
+
+["Alpha outline"]
+en = "Alpha outline"
+es = "Contorno alfa"
+fr = "Contour alpha"
+de = "Alpha-Umriss"
+ja = "アルファアウトライン"
+
+["Append"]
+en = "Append"
+es = "Añadir al final"
+fr = "Ajouter à la fin"
+de = "Anhängen"
+ja = "末尾に追加"
+
+["Bitcrusher"]
+en = "Bitcrusher"
+es = "Reductor de bits"
+fr = "Réducteur de bits"
+de = "Bitcrusher"
+ja = "ビットクラッシャー"
+
+["Bulge"]
+en = "Bulge"
+es = "Abombamiento"
+fr = "Bombement"
+de = "Wölbung"
+ja = "膨張"
+
+["Cache"]
+en = "Cache"
+es = "Caché"
+fr = "Cache"
+de = "Cache"
+ja = "キャッシュ"
+
+["Channel mixer"]
+en = "Channel mixer"
+es = "Mezclador de canales"
+fr = "Mélangeur de canaux"
+de = "Kanalmischer"
+ja = "チャンネルミキサー"
+
+["Chorus"]
+en = "Chorus"
+es = "Coro"
+fr = "Chorus"
+de = "Chorus"
+ja = "コーラス"
+
+["Chroma key"]
+en = "Chroma key"
+es = "Clave de croma"
+fr = "Incrustation chromatique"
+de = "Chroma-Key"
+ja = "クロマキー"
+
+["Chromatic aberration"]
+en = "Chromatic aberration"
+es = "Aberración cromática"
+fr = "Aberration chromatique"
+de = "Chromatische Aberration"
+ja = "色収差"
+
+["Close up"]
+en = "Close up"
+es = "Primer plano"
+fr = "Gros plan"
+de = "Nahaufnahme"
+ja = "クローズアップ"
+
+["Color correction"]
+en = "Color correction"
+es = "Corrección de color"
+fr = "Correction des couleurs"
+de = "Farbkorrektur"
+ja = "色補正"
+
+["Compressor"]
+en = "Compressor"
+es = "Compresor"
+fr = "Compresseur"
+de = "Kompressor"
+ja = "コンプレッサー"
+
+["Corner Pin"]
+en = "Corner Pin"
+es = "Anclaje de esquinas"
+fr = "Épinglage des angles"
+de = "Eckenanheftung"
+ja = "コーナーピン"
+
+["Crop"]
+en = "Crop"
+es = "Recorte"
+fr = "Recadrage"
+de = "Zuschnitt"
+ja = "クロップ"
+
+["Decode"]
+en = "Decode"
+es = "Decodificar"
+fr = "Décoder"
+de = "Dekodieren"
+ja = "デコード"
+
+["Denoise"]
+en = "Denoise"
+es = "Reducción de ruido"
+fr = "Réduction du bruit"
+de = "Entrauschen"
+ja = "ノイズ除去"
+
+["Directional blur"]
+en = "Directional blur"
+es = "Desenfoque direccional"
+fr = "Flou directionnel"
+de = "Richtungsunschärfe"
+ja = "方向ぼかし"
+
+["Displacement map"]
+en = "Displacement map"
+es = "Mapa de desplazamiento"
+fr = "Carte de déplacement"
+de = "Verschiebungsmatrix"
+ja = "ディスプレイスメントマップ"
+
+["Dithering"]
+en = "Dithering"
+es = "Tramado"
+fr = "Tramage"
+de = "Dithering"
+ja = "ディザリング"
+
+["Drop shadow"]
+en = "Drop shadow"
+es = "Sombra paralela"
+fr = "Ombre portée"
+de = "Schlagschatten"
+ja = "ドロップシャドウ"
+
+["Duotone"]
+en = "Duotone"
+es = "Duotono"
+fr = "Bichromie"
+de = "Duoton"
+ja = "デュオトーン"
+
+["Echo"]
+en = "Echo"
+es = "Eco"
+fr = "Écho"
+de = "Echo"
+ja = "エコー"
+
+["Edge detection"]
+en = "Edge detection"
+es = "Detección de bordes"
+fr = "Détection des contours"
+de = "Kantenerkennung"
+ja = "エッジ検出"
+
+["Emboss"]
+en = "Emboss"
+es = "Relieve"
+fr = "Embossage"
+de = "Relief"
+ja = "エンボス"
+
+["Erode"]
+en = "Erode"
+es = "Erosionar"
+fr = "Éroder"
+de = "Erodieren"
+ja = "収縮"
+
+["Filter"]
+en = "Filter"
+es = "Filtro"
+fr = "Filtre"
+de = "Filter"
+ja = "フィルター"
+
+["Fisheye"]
+en = "Fisheye"
+es = "Ojo de pez"
+fr = "Œil-de-poisson"
+de = "Fischauge"
+ja = "魚眼"
+
+["Gain"]
+en = "Gain"
+es = "Ganancia"
+fr = "Gain"
+de = "Verstärkung"
+ja = "ゲイン"
+
+["Gaussian blur"]
+en = "Gaussian blur"
+es = "Desenfoque gaussiano"
+fr = "Flou gaussien"
+de = "Gaußsche Unschärfe"
+ja = "ガウスぼかし"
+
+["Glow"]
+en = "Glow"
+es = "Resplandor"
+fr = "Lueur"
+de = "Leuchten"
+ja = "グロー"
+
+["Ground"]
+en = "Ground"
+es = "Suelo"
+fr = "Sol"
+de = "Boden"
+ja = "地面"
+
+["Halftone"]
+en = "Halftone"
+es = "Semitono"
+fr = "Demi-teinte"
+de = "Halbton"
+ja = "ハーフトーン"
+
+["Insert"]
+en = "Insert"
+es = "Insertar"
+fr = "Insérer"
+de = "Einfügen"
+ja = "挿入"
+
+["Jump"]
+en = "Jump"
+es = "Salto"
+fr = "Saut"
+de = "Sprung"
+ja = "ジャンプ"
+
+["Kaleidoscope"]
+en = "Kaleidoscope"
+es = "Caleidoscopio"
+fr = "Kaléidoscope"
+de = "Kaleidoskop"
+ja = "万華鏡"
+
+["Kuwahara"]
+en = "Kuwahara"
+es = "Kuwahara"
+fr = "Kuwahara"
+de = "Kuwahara"
+ja = "Kuwahara"
+
+["Lens distortion"]
+en = "Lens distortion"
+es = "Distorsión de lente"
+fr = "Distorsion de l’objectif"
+de = "Objektivverzerrung"
+ja = "レンズ歪み"
+
+["Limiter"]
+en = "Limiter"
+es = "Limitador"
+fr = "Limiteur"
+de = "Limiter"
+ja = "リミッター"
+
+["Luma key"]
+en = "Luma key"
+es = "Clave de luminancia"
+fr = "Incrustation par luminance"
+de = "Luma-Key"
+ja = "ルマキー"
+
+["Manim Smooth"]
+en = "Manim Smooth"
+es = "Suavizado de Manim"
+fr = "Lissage Manim"
+de = "Manim-Glättung"
+ja = "Manimスムーズ"
+
+["Mosaic"]
+en = "Mosaic"
+es = "Mosaico"
+fr = "Mosaïque"
+de = "Mosaik"
+ja = "モザイク"
+
+["Noise"]
+en = "Noise"
+es = "Ruido"
+fr = "Bruit"
+de = "Rauschen"
+ja = "ノイズ"
+
+["Noise gate"]
+en = "Noise gate"
+es = "Puerta de ruido"
+fr = "Porte de bruit"
+de = "Noise-Gate"
+ja = "ノイズゲート"
+
+["Pan"]
+en = "Pan"
+es = "Panorámica"
+fr = "Panoramique"
+de = "Panorama"
+ja = "パン"
+
+["Path offset"]
+en = "Path offset"
+es = "Desfase de trazado"
+fr = "Décalage du tracé"
+de = "Pfadversatz"
+ja = "パスオフセット"
+
+["Phone mic"]
+en = "Phone mic"
+es = "Micrófono de teléfono"
+fr = "Micro de téléphone"
+de = "Telefonmikrofon"
+ja = "電話マイク"
+
+["Point Light"]
+en = "Point Light"
+es = "Luz puntual"
+fr = "Lumière ponctuelle"
+de = "Punktlicht"
+ja = "ポイントライト"
+
+["Posterize"]
+en = "Posterize"
+es = "Posterizar"
+fr = "Postériser"
+de = "Posterisieren"
+ja = "ポスタリゼーション"
+
+["Radial blur"]
+en = "Radial blur"
+es = "Desenfoque radial"
+fr = "Flou radial"
+de = "Radiale Unschärfe"
+ja = "放射状ぼかし"
+
+["Rasterize"]
+en = "Rasterize"
+es = "Rasterizar"
+fr = "Pixelliser"
+de = "Rastern"
+ja = "ラスタライズ"
+
+["Reverb"]
+en = "Reverb"
+es = "Reverberación"
+fr = "Réverbération"
+de = "Hall"
+ja = "リバーブ"
+
+["Rewrite"]
+en = "Rewrite"
+es = "Reescribir"
+fr = "Réécrire"
+de = "Neu schreiben"
+ja = "書き直し"
+
+["Sampling"]
+en = "Sampling"
+es = "Muestreo"
+fr = "Échantillonnage"
+de = "Abtastung"
+ja = "サンプリング"
+
+["Shaky path"]
+en = "Shaky path"
+es = "Trazado tembloroso"
+fr = "Tracé tremblant"
+de = "Wackelpfad"
+ja = "揺れるパス"
+
+["Sharpen"]
+en = "Sharpen"
+es = "Enfocar"
+fr = "Accentuer"
+de = "Schärfen"
+ja = "シャープ"
+
+["Stereo width"]
+en = "Stereo width"
+es = "Anchura estéreo"
+fr = "Largeur stéréo"
+de = "Stereobreite"
+ja = "ステレオ幅"
+
+["Sun"]
+en = "Sun"
+es = "Sol"
+fr = "Soleil"
+de = "Sonne"
+ja = "太陽"
+
+["Text mask"]
+en = "Text mask"
+es = "Máscara de texto"
+fr = "Masque de texte"
+de = "Textmaske"
+ja = "テキストマスク"
+
+["Texture bounds"]
+en = "Texture bounds"
+es = "Límites de textura"
+fr = "Limites de la texture"
+de = "Texturgrenzen"
+ja = "テクスチャ境界"
+
+["Transparent Fill"]
+en = "Transparent Fill"
+es = "Relleno transparente"
+fr = "Remplissage transparent"
+de = "Transparente Füllung"
+ja = "透明塗り"
+
+["Tremolo"]
+en = "Tremolo"
+es = "Trémolo"
+fr = "Trémolo"
+de = "Tremolo"
+ja = "トレモロ"
+
+["Twirl"]
+en = "Twirl"
+es = "Remolino"
+fr = "Tourbillon"
+de = "Wirbel"
+ja = "渦巻き"
+
+["Vectorize"]
+en = "Vectorize"
+es = "Vectorizar"
+fr = "Vectoriser"
+de = "Vektorisieren"
+ja = "ベクター化"
+
+["Vignette"]
+en = "Vignette"
+es = "Viñeta"
+fr = "Vignettage"
+de = "Vignette"
+ja = "ビネット"
+
+["Voice Change"]
+en = "Voice Change"
+es = "Cambio de voz"
+fr = "Changement de voix"
+de = "Stimmänderung"
+ja = "ボイスチェンジ"
+
+["Wave"]
+en = "Wave"
+es = "Onda"
+fr = "Onde"
+de = "Welle"
+ja = "波"
+
+["Zoom blur"]
+en = "Zoom blur"
+es = "Desenfoque de zoom"
+fr = "Flou de zoom"
+de = "Zoom-Unschärfe"
+ja = "ズームぼかし"
+
+["Diff"]
+en = "Diff"
+es = "Diferencias"
+fr = "Différences"
+de = "Unterschiede"
+ja = "差分"
+
+["Back In"]
+en = "Back In"
+es = "Retroceso de entrada"
+fr = "Retour entrant"
+de = "Zurück ein"
+ja = "バック・イン"
+
+["Back Out"]
+en = "Back Out"
+es = "Retroceso de salida"
+fr = "Retour sortant"
+de = "Zurück aus"
+ja = "バック・アウト"
+
+["Back In Out"]
+en = "Back In Out"
+es = "Retroceso de entrada y salida"
+fr = "Retour entrant-sortant"
+de = "Zurück ein/aus"
+ja = "バック・インアウト"
+
+["Bounce In"]
+en = "Bounce In"
+es = "Rebote de entrada"
+fr = "Rebond entrant"
+de = "Abprallen ein"
+ja = "バウンス・イン"
+
+["Bounce Out"]
+en = "Bounce Out"
+es = "Rebote de salida"
+fr = "Rebond sortant"
+de = "Abprallen aus"
+ja = "バウンス・アウト"
+
+["Bounce In Out"]
+en = "Bounce In Out"
+es = "Rebote de entrada y salida"
+fr = "Rebond entrant-sortant"
+de = "Abprallen ein/aus"
+ja = "バウンス・インアウト"
+
+["Circular In"]
+en = "Circular In"
+es = "Circular de entrada"
+fr = "Circulaire entrant"
+de = "Kreis ein"
+ja = "円・イン"
+
+["Circular Out"]
+en = "Circular Out"
+es = "Circular de salida"
+fr = "Circulaire sortant"
+de = "Kreis aus"
+ja = "円・アウト"
+
+["Circular In Out"]
+en = "Circular In Out"
+es = "Circular de entrada y salida"
+fr = "Circulaire entrant-sortant"
+de = "Kreis ein/aus"
+ja = "円・インアウト"
+
+["Cubic In"]
+en = "Cubic In"
+es = "Cúbica de entrada"
+fr = "Cubique entrant"
+de = "Kubisch ein"
+ja = "3次・イン"
+
+["Cubic Out"]
+en = "Cubic Out"
+es = "Cúbica de salida"
+fr = "Cubique sortant"
+de = "Kubisch aus"
+ja = "3次・アウト"
+
+["Cubic In Out"]
+en = "Cubic In Out"
+es = "Cúbica de entrada y salida"
+fr = "Cubique entrant-sortant"
+de = "Kubisch ein/aus"
+ja = "3次・インアウト"
+
+["Elastic In"]
+en = "Elastic In"
+es = "Elástica de entrada"
+fr = "Élastique entrant"
+de = "Elastisch ein"
+ja = "弾性・イン"
+
+["Elastic Out"]
+en = "Elastic Out"
+es = "Elástica de salida"
+fr = "Élastique sortant"
+de = "Elastisch aus"
+ja = "弾性・アウト"
+
+["Elastic In Out"]
+en = "Elastic In Out"
+es = "Elástica de entrada y salida"
+fr = "Élastique entrant-sortant"
+de = "Elastisch ein/aus"
+ja = "弾性・インアウト"
+
+["Exponential In"]
+en = "Exponential In"
+es = "Exponencial de entrada"
+fr = "Exponentiel entrant"
+de = "Exponentiell ein"
+ja = "指数・イン"
+
+["Exponential Out"]
+en = "Exponential Out"
+es = "Exponencial de salida"
+fr = "Exponentiel sortant"
+de = "Exponentiell aus"
+ja = "指数・アウト"
+
+["Exponential In Out"]
+en = "Exponential In Out"
+es = "Exponencial de entrada y salida"
+fr = "Exponentiel entrant-sortant"
+de = "Exponentiell ein/aus"
+ja = "指数・インアウト"
+
+["Quad In"]
+en = "Quad In"
+es = "Cuadrática de entrada"
+fr = "Quadratique entrant"
+de = "Quadratisch ein"
+ja = "2次・イン"
+
+["Quad Out"]
+en = "Quad Out"
+es = "Cuadrática de salida"
+fr = "Quadratique sortant"
+de = "Quadratisch aus"
+ja = "2次・アウト"
+
+["Quad In Out"]
+en = "Quad In Out"
+es = "Cuadrática de entrada y salida"
+fr = "Quadratique entrant-sortant"
+de = "Quadratisch ein/aus"
+ja = "2次・インアウト"
+
+["Quart In"]
+en = "Quart In"
+es = "Cuártica de entrada"
+fr = "Quartique entrant"
+de = "Quartisch ein"
+ja = "4次・イン"
+
+["Quart Out"]
+en = "Quart Out"
+es = "Cuártica de salida"
+fr = "Quartique sortant"
+de = "Quartisch aus"
+ja = "4次・アウト"
+
+["Quart In Out"]
+en = "Quart In Out"
+es = "Cuártica de entrada y salida"
+fr = "Quartique entrant-sortant"
+de = "Quartisch ein/aus"
+ja = "4次・インアウト"
+
+["Quint In"]
+en = "Quint In"
+es = "Quíntica de entrada"
+fr = "Quintique entrant"
+de = "Quintisch ein"
+ja = "5次・イン"
+
+["Quint Out"]
+en = "Quint Out"
+es = "Quíntica de salida"
+fr = "Quintique sortant"
+de = "Quintisch aus"
+ja = "5次・アウト"
+
+["Quint In Out"]
+en = "Quint In Out"
+es = "Quíntica de entrada y salida"
+fr = "Quintique entrant-sortant"
+de = "Quintisch ein/aus"
+ja = "5次・インアウト"
+
+["Sine In"]
+en = "Sine In"
+es = "Seno de entrada"
+fr = "Sinusoïdal entrant"
+de = "Sinus ein"
+ja = "サイン・イン"
+
+["Sine Out"]
+en = "Sine Out"
+es = "Seno de salida"
+fr = "Sinusoïdal sortant"
+de = "Sinus aus"
+ja = "サイン・アウト"
+
+["Sine In Out"]
+en = "Sine In Out"
+es = "Seno de entrada y salida"
+fr = "Sinusoïdal entrant-sortant"
+de = "Sinus ein/aus"
+ja = "サイン・インアウト"
+
+["1 video track"]
+en = "1 video track"
+es = "1 pista de vídeo"
+fr = "1 piste vidéo"
+de = "1 Videospur"
+ja = "ビデオトラック1本"
+
+["%{count} video tracks"]
+en = "%{count} video tracks"
+es = "%{count} pistas de vídeo"
+fr = "%{count} pistes vidéo"
+de = "%{count} Videospuren"
+ja = "ビデオトラック%{count}本"
+
+["1 audio track"]
+en = "1 audio track"
+es = "1 pista de audio"
+fr = "1 piste audio"
+de = "1 Audiospur"
+ja = "オーディオトラック1本"
+
+["%{count} audio tracks"]
+en = "%{count} audio tracks"
+es = "%{count} pistas de audio"
+fr = "%{count} pistes audio"
+de = "%{count} Audiospuren"
+ja = "オーディオトラック%{count}本"
+
+["1 caption track"]
+en = "1 caption track"
+es = "1 pista de subtítulos"
+fr = "1 piste de sous-titres"
+de = "1 Untertitelspur"
+ja = "字幕トラック1本"
+
+["%{count} caption tracks"]
+en = "%{count} caption tracks"
+es = "%{count} pistas de subtítulos"
+fr = "%{count} pistes de sous-titres"
+de = "%{count} Untertitelspuren"
+ja = "字幕トラック%{count}本"
+
+["1 page"]
+en = "1 page"
+es = "1 página"
+fr = "1 page"
+de = "1 Seite"
+ja = "1ページ"
+
+["%{count} pages"]
+en = "%{count} pages"
+es = "%{count} páginas"
+fr = "%{count} pages"
+de = "%{count} Seiten"
+ja = "%{count}ページ"
+
+["3D models"]
+en = "3D models"
+es = "Modelos 3D"
+fr = "Modèles 3D"
+de = "3D-Modelle"
+ja = "3Dモデル"
+
+["OptiX denoiser"]
+en = "OptiX denoiser"
+es = "Reductor de ruido OptiX"
+fr = "Débruiteur OptiX"
+de = "OptiX-Entrauscher"
+ja = "OptiX デノイザー"
+
+["2× rotated grid"]
+en = "2× rotated grid"
+es = "2× rejilla rotada"
+fr = "2× grille tournée"
+de = "2× gedrehtes Raster"
+ja = "2倍回転グリッド"
+
+["4× grid"]
+en = "4× grid"
+es = "4× rejilla"
+fr = "4× grille"
+de = "4× Raster"
+ja = "4倍グリッド"
+
+["8× stochastic"]
+en = "8× stochastic"
+es = "8× estocástico"
+fr = "8× stochastique"
+de = "8× stochastisch"
+ja = "8倍確率的"
+
+["FLAC · Lossless"]
+en = "FLAC · Lossless"
+es = "FLAC · Sin pérdida"
+fr = "FLAC · Sans perte"
+de = "FLAC · Verlustfrei"
+ja = "FLAC · ロスレス"
+
+["H.265 · Balanced"]
+en = "H.265 · Balanced"
+es = "H.265 · Equilibrado"
+fr = "H.265 · Équilibré"
+de = "H.265 · Ausgewogen"
+ja = "H.265 · バランス"
+
+["H.265 · Compact"]
+en = "H.265 · Compact"
+es = "H.265 · Compacto"
+fr = "H.265 · Compact"
+de = "H.265 · Kompakt"
+ja = "H.265 · コンパクト"
+
+["H.265 · High"]
+en = "H.265 · High"
+es = "H.265 · Alto"
+fr = "H.265 · Élevé"
+de = "H.265 · Hoch"
+ja = "H.265 · 高品質"
+
+["H.265 · Lossless"]
+en = "H.265 · Lossless"
+es = "H.265 · Sin pérdida"
+fr = "H.265 · Sans perte"
+de = "H.265 · Verlustfrei"
+ja = "H.265 · ロスレス"
+
+["Monospace Sans"]
+en = "Monospace Sans"
+es = "Monoespaciada sin serifas"
+fr = "Monospace sans empattement"
+de = "Monospace ohne Serifen"
+ja = "等幅サンセリフ"
+
+["Monospace Serif"]
+en = "Monospace Serif"
+es = "Monoespaciada con serifas"
+fr = "Monospace avec empattement"
+de = "Monospace mit Serifen"
+ja = "等幅セリフ"
+
+["Opus · Balanced"]
+en = "Opus · Balanced"
+es = "Opus · Equilibrado"
+fr = "Opus · Équilibré"
+de = "Opus · Ausgewogen"
+ja = "Opus · バランス"
+
+["Opus · Compact"]
+en = "Opus · Compact"
+es = "Opus · Compacto"
+fr = "Opus · Compact"
+de = "Opus · Kompakt"
+ja = "Opus · コンパクト"
+
+["Opus · High"]
+en = "Opus · High"
+es = "Opus · Alto"
+fr = "Opus · Élevé"
+de = "Opus · Hoch"
+ja = "Opus · 高品質"

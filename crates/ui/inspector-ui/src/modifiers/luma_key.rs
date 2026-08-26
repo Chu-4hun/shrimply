@@ -1,4 +1,5 @@
 use gtk::prelude::*;
+use shrimply_ui_foundation::tr;
 use uuid::Uuid;
 
 use super::{InspectorContext, ScalarOptions, scalar_row};
@@ -28,7 +29,7 @@ pub fn add_rows(value: &LumaKeyModifier, out: &gtk::Box, id: Uuid, context: &Ins
     ));
 
     let row = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-    let label = gtk::Label::new(Some("Invert"));
+    let label = gtk::Label::new(Some(tr!("Invert").as_ref()));
     label.set_halign(gtk::Align::Start);
     label.set_hexpand(true);
     let invert = gtk::Switch::builder()

@@ -1,3 +1,5 @@
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nAlertDialogExt;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -106,27 +108,27 @@ pub(super) fn show_dialog(
 ) {
     let defaults = RemoveSilenceConfig::default();
     let threshold = adw::SpinRow::with_range(-90.0, 0.0, 1.0);
-    threshold.set_title("Silence threshold");
+    threshold.set_title(tr!("Silence threshold").as_ref());
     threshold.set_value(defaults.threshold_db);
     threshold.set_digits(1);
 
     let min_silence = adw::SpinRow::with_range(0.0, 10.0, 0.05);
-    min_silence.set_title("Minimum silence");
+    min_silence.set_title(tr!("Minimum silence").as_ref());
     min_silence.set_value(defaults.min_silence.as_secs_f64());
     min_silence.set_digits(2);
 
     let gap_tolerance = adw::SpinRow::with_range(0.0, 5.0, 0.01);
-    gap_tolerance.set_title("Gap tolerance");
+    gap_tolerance.set_title(tr!("Gap tolerance").as_ref());
     gap_tolerance.set_value(defaults.gap_tolerance.as_secs_f64());
     gap_tolerance.set_digits(2);
 
     let padding = adw::SpinRow::with_range(0.0, 2.0, 0.01);
-    padding.set_title("Padding");
+    padding.set_title(tr!("Padding").as_ref());
     padding.set_value(defaults.padding.as_secs_f64());
     padding.set_digits(2);
 
     let delete_chunks = adw::SpinRow::with_range(0.0, 10.0, 0.05);
-    delete_chunks.set_title("Min chunk");
+    delete_chunks.set_title(tr!("Min chunk").as_ref());
     delete_chunks.set_value(defaults.delete_chunks.as_secs_f64());
     delete_chunks.set_digits(2);
 
@@ -147,10 +149,10 @@ pub(super) fn show_dialog(
     content.append(&group);
 
     let dialog = adw::AlertDialog::builder()
-        .heading("Remove Silences")
+        .heading(tr!("Remove Silences").as_ref())
         .extra_child(&content)
         .build();
-    dialog.add_responses(&[("cancel", "Cancel"), ("remove", "Remove Silences")]);
+    dialog.add_responses_i18n(&[("cancel", "Cancel"), ("remove", "Remove Silences")]);
     dialog.set_close_response("cancel");
     dialog.set_default_response(Some("remove"));
     dialog.set_response_appearance("remove", adw::ResponseAppearance::Destructive);

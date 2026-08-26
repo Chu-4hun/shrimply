@@ -3,6 +3,7 @@ use gtk::{gio, glib};
 use shrimply_project::project;
 use shrimply_support::recent_projects;
 use shrimply_ui_foundation::project_settings::ProjectSettingsSelector;
+use shrimply_ui_foundation::tr;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
 use std::sync::mpsc;
@@ -15,6 +16,7 @@ const RECENT_ROW_HEIGHT: i32 = 64;
 
 fn main() -> glib::ExitCode {
     shrimply_support::diagnostics::init();
+    shrimply_ui_foundation::i18n::init_system_locale();
     let mut args = std::env::args_os().skip(1);
     if let Some(path) = args.next() {
         if args.next().is_some() {
@@ -57,17 +59,17 @@ fn build_ui(app: &adw::Application) {
     let right_header = adw::HeaderBar::new();
     right_header.set_show_start_title_buttons(false);
     let app_title = gtk::Label::builder()
-        .label("Shrimply")
+        .label(tr!("Shrimply").as_ref())
         .css_classes(["title"])
         .build();
     right_header.set_title_widget(Some(&app_title));
     let new_button = gtk::Button::builder()
-        .label("Create Project")
+        .label(tr!("Create Project").as_ref())
         .css_classes(["suggested-action", "pill"])
         .width_request(160)
         .build();
     let open_button = gtk::Button::builder()
-        .label("Open Project")
+        .label(tr!("Open Project").as_ref())
         .css_classes(["pill"])
         .width_request(160)
         .build();
@@ -84,17 +86,17 @@ fn build_ui(app: &adw::Application) {
     sidebar_toolbar.add_top_bar(&left_header);
     sidebar_toolbar.set_content(Some(&actions));
     let sidebar = adw::NavigationPage::builder()
-        .title("Shrimply")
+        .title(tr!("Shrimply").as_ref())
         .child(&sidebar_toolbar)
         .build();
 
     let search = gtk::SearchEntry::builder()
-        .placeholder_text("Search history")
+        .placeholder_text(tr!("Search history").as_ref())
         .hexpand(true)
         .build();
     let clear_history = gtk::Button::builder()
         .icon_name("user-trash-symbolic")
-        .tooltip_text("Clear History")
+        .tooltip_text(tr!("Clear History").as_ref())
         .valign(gtk::Align::Center)
         .css_classes(["flat"])
         .build();
@@ -123,7 +125,7 @@ fn build_ui(app: &adw::Application) {
     history_toolbar.add_top_bar(&right_header);
     history_toolbar.set_content(Some(&history));
     let history_page = adw::NavigationPage::builder()
-        .title("History")
+        .title(tr!("History").as_ref())
         .child(&history_toolbar)
         .build();
     let split = adw::NavigationSplitView::builder()
@@ -137,7 +139,7 @@ fn build_ui(app: &adw::Application) {
 
     let window = adw::ApplicationWindow::builder()
         .application(app)
-        .title("Shrimply")
+        .title(tr!("Shrimply").as_ref())
         .default_width(DEFAULT_WIDTH)
         .default_height(DEFAULT_HEIGHT)
         .content(&split)
@@ -209,11 +211,14 @@ fn refresh_recents(
     if projects.is_empty() {
         let empty = adw::StatusPage::builder()
             .icon_name("document-open-recent-symbolic")
-            .title(if is_empty {
-                "No Recent Projects"
-            } else {
-                "No Matching Projects"
-            })
+            .title(
+                tr!(if is_empty {
+                    "No Recent Projects"
+                } else {
+                    "No Matching Projects"
+                })
+                .as_ref(),
+            )
             .vexpand(true)
             .build();
         area.append(&empty);
@@ -230,15 +235,15 @@ fn refresh_recents(
             .build();
         let menu = gtk::MenuButton::builder()
             .icon_name("view-more-symbolic")
-            .tooltip_text("Project options")
+            .tooltip_text(tr!("Project options").as_ref())
             .valign(gtk::Align::Center)
             .has_frame(false)
             .build();
         let popover = gtk::Popover::new();
         let options = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        let info = gtk::Button::with_label("Info");
+        let info = gtk::Button::with_label(tr!("Info").as_ref());
         info.set_has_frame(false);
-        let delete = gtk::Button::with_label("Delete");
+        let delete = gtk::Button::with_label(tr!("Delete").as_ref());
         delete.set_has_frame(false);
         options.append(&info);
         options.append(&delete);
@@ -289,15 +294,20 @@ fn last_edited(path: &Path) -> String {
         .and_then(|modified| modified.duration_since(UNIX_EPOCH).ok())
         .and_then(|modified| i64::try_from(modified.as_secs()).ok())
         .and_then(|seconds| glib::DateTime::from_unix_local(seconds).ok())
-        .and_then(|date| date.format("Last edited %b %-d, %Y at %-I:%M %p").ok())
-        .map(|date| date.to_string())
-        .unwrap_or_else(|| "Last edited time unavailable".to_string())
+        .and_then(|date| date.format("%x %X").ok())
+        .map(|date| {
+            shrimply_ui_foundation::i18n::text_args(
+                "Last edited %{date}",
+                &[("date", date.to_string())],
+            )
+        })
+        .unwrap_or_else(|| tr!("Last edited time unavailable").into_owned())
 }
 
 fn show_project_info(window: &adw::ApplicationWindow, name: &str, path: &Path, last_edited: &str) {
     let body = format!("{last_edited}\n{}", path.display());
     let dialog = adw::AlertDialog::new(Some(name), Some(&body));
-    dialog.add_response("close", "Close");
+    dialog.add_response("close", tr!("Close").as_ref());
     dialog.set_close_response("close");
     dialog.present(Some(window));
 }
@@ -322,8 +332,8 @@ fn show_create_project(window: &adw::ApplicationWindow, app: &adw::Application) 
     let selector = ProjectSettingsSelector::new();
     let preset = selector.preset.clone();
     let name = adw::EntryRow::builder()
-        .title("Project Name")
-        .text("Untitled Project")
+        .title(tr!("Project Name").as_ref())
+        .text(tr!("Untitled Project").as_ref())
         .build();
     let width = selector.width.clone();
     let height = selector.height.clone();
@@ -333,12 +343,14 @@ fn show_create_project(window: &adw::ApplicationWindow, app: &adw::Application) 
     let presets = adw::PreferencesGroup::new();
     presets.add(&preset);
     let settings = adw::PreferencesGroup::builder()
-        .title("Project Settings")
+        .title(tr!("Project Settings").as_ref())
         .build();
     settings.add(&width);
     settings.add(&height);
     settings.add(&fps);
-    let create = adw::ButtonRow::builder().title("Create Project").build();
+    let create = adw::ButtonRow::builder()
+        .title(tr!("Create Project").as_ref())
+        .build();
     create.add_css_class("suggested-action");
     let actions = adw::PreferencesGroup::new();
     actions.add(&create);
@@ -348,7 +360,7 @@ fn show_create_project(window: &adw::ApplicationWindow, app: &adw::Application) 
     page.add(&settings);
     page.add(&actions);
     let dialog = adw::PreferencesDialog::builder()
-        .title("Create Project")
+        .title(tr!("Create Project").as_ref())
         .search_enabled(false)
         .build();
     dialog.add(&page);
@@ -386,7 +398,7 @@ fn show_create_project(window: &adw::ApplicationWindow, app: &adw::Application) 
             filters.append(&filter);
             let label = "Create Project";
             let save = gtk::FileDialog::builder()
-                .title(label)
+                .title(tr!(label).as_ref())
                 .initial_name(default_project_filename(&project_name))
                 .filters(&filters)
                 .default_filter(&filter)
@@ -497,7 +509,7 @@ fn default_project_filename(name: &str) -> String {
 
 fn show_error(window: &adw::ApplicationWindow, heading: &str, body: &str) {
     let dialog = adw::AlertDialog::new(Some(heading), Some(body));
-    dialog.add_response("close", "Close");
+    dialog.add_response("close", tr!("Close").as_ref());
     dialog.set_close_response("close");
     dialog.present(Some(window));
 }

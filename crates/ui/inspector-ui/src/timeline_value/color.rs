@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -108,7 +109,7 @@ pub(crate) fn color_control(
     let color = current_color(value, current_time(context, target));
     let Some(key) = context.selected_item.clone() else {
         let button = ColorPicker::builder(color)
-            .title(label)
+            .title(tr!(label).as_ref())
             .hexpand(true)
             .build();
         return layered::control(label, value, button, Vec::new(), |_| {}, |_| {});
@@ -118,7 +119,7 @@ pub(crate) fn color_control(
     let refresh = context.refresh.clone();
     let button_key = key.clone();
     let button = ColorPicker::builder(color)
-        .title(label)
+        .title(tr!(label).as_ref())
         .hexpand(true)
         .on_change(move |color| {
             if update_color(&project, &player_state, button_key.clone(), target, color) {

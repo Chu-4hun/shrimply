@@ -47,6 +47,7 @@ impl SingleLineTextInputBuilder {
     }
 
     pub fn build(self) -> gtk::Entry {
+        let placeholder = self.placeholder.as_deref().map(crate::i18n::text);
         let entry = gtk::Entry::builder()
             .text(&self.value)
             .hexpand(true)
@@ -56,7 +57,7 @@ impl SingleLineTextInputBuilder {
             )
             .css_classes(["inspector-selector"])
             .build();
-        entry.set_placeholder_text(self.placeholder.as_deref());
+        entry.set_placeholder_text(placeholder.as_deref());
         let dirty = Rc::new(Cell::new(false));
         if let Some(on_change) = self.on_change {
             let dirty = dirty.clone();

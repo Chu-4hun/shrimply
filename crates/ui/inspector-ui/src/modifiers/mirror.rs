@@ -1,12 +1,13 @@
 use super::InspectorContext;
 use crate::player_state::{self, ProjectChange};
 use gtk::prelude::*;
+use shrimply_ui_foundation::tr;
 use shrimply_video_modifiers::{ModifierEffect, RasterModifierEffect, mirror::MirrorModifier};
 use uuid::Uuid;
 
 pub fn add_rows(value: &MirrorModifier, out: &gtk::Box, id: Uuid, context: &InspectorContext) {
     let horizontal_row = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-    let horizontal_label = gtk::Label::new(Some("Horizontal"));
+    let horizontal_label = gtk::Label::new(Some(tr!("Horizontal").as_ref()));
     horizontal_label.set_halign(gtk::Align::Start);
     horizontal_label.set_hexpand(true);
     let horizontal = gtk::Switch::builder()
@@ -49,7 +50,7 @@ pub fn add_rows(value: &MirrorModifier, out: &gtk::Box, id: Uuid, context: &Insp
     out.append(&horizontal_row);
 
     let vertical_row = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-    let vertical_label = gtk::Label::new(Some("Vertical"));
+    let vertical_label = gtk::Label::new(Some(tr!("Vertical").as_ref()));
     vertical_label.set_halign(gtk::Align::Start);
     vertical_label.set_hexpand(true);
     let vertical = gtk::Switch::builder()

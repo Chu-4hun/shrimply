@@ -1,3 +1,5 @@
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 use std::cell::RefCell;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -30,7 +32,7 @@ use super::{
     item::{DefaultInspectorItem, HeaderAction, InspectorListItem},
     list,
     section::InspectorSection,
-    selector::{selector, string_selector},
+    selector::{StringChoice, labeled_string_selector, selector},
     timeline_value::boolean::{BoolTarget, bool_control},
     timeline_value::scalar::{ScalarAccess, ScalarSpec, ScalarTarget, scalar_control},
     timeline_value::step::{StepTarget, step_control},
@@ -483,8 +485,8 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
     let player_state = context.player_state.clone();
     let key = context.selected_item.clone();
     let crop = adw::SpinRow::with_range(10.0, 100.0, 1.0);
-    crop.set_title("Crop ratio");
-    crop.set_subtitle("Visible source area after stabilization");
+    crop.set_title(tr!("Crop ratio").as_ref());
+    crop.set_subtitle(tr!("Visible source area after stabilization").as_ref());
     crop.set_value(f64::from(item.stabilization_crop_ratio) * 100.0);
     crop.set_digits(0);
     crop.connect_value_notify(move |crop| {
@@ -515,8 +517,8 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
     let player_state = context.player_state.clone();
     let key = context.selected_item.clone();
     let first = adw::SpinRow::with_range(0.0, 1_000.0, 1.0);
-    first.set_title("Static-camera weight");
-    first.set_subtitle("Preference for frames with no camera motion");
+    first.set_title(tr!("Static-camera weight").as_ref());
+    first.set_subtitle(tr!("Preference for frames with no camera motion").as_ref());
     first.set_value(f64::from(item.stabilization_first_derivative_weight));
     first.set_digits(1);
     first.connect_value_notify(move |first| {
@@ -547,8 +549,8 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
     let player_state = context.player_state.clone();
     let key = context.selected_item.clone();
     let second = adw::SpinRow::with_range(0.0, 1_000.0, 1.0);
-    second.set_title("Constant-motion weight");
-    second.set_subtitle("Preference for a steady camera velocity");
+    second.set_title(tr!("Constant-motion weight").as_ref());
+    second.set_subtitle(tr!("Preference for a steady camera velocity").as_ref());
     second.set_value(f64::from(item.stabilization_second_derivative_weight));
     second.set_digits(1);
     second.connect_value_notify(move |second| {
@@ -579,8 +581,8 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
     let player_state = context.player_state.clone();
     let key = context.selected_item.clone();
     let third = adw::SpinRow::with_range(0.0, 1_000.0, 1.0);
-    third.set_title("Constant-acceleration weight");
-    third.set_subtitle("Preference for smoothly changing camera motion");
+    third.set_title(tr!("Constant-acceleration weight").as_ref());
+    third.set_subtitle(tr!("Preference for smoothly changing camera motion").as_ref());
     third.set_value(f64::from(item.stabilization_third_derivative_weight));
     third.set_digits(1);
     third.connect_value_notify(move |third| {
@@ -608,12 +610,12 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
     third.set_sensitive(!unavailable);
 
     let cache_row = adw::ActionRow::builder()
-        .title("Stabilization cache")
-        .subtitle("Discard and reanalyze the current source-time chunk")
+        .title(tr!("Stabilization cache").as_ref())
+        .subtitle(tr!("Discard and reanalyze the current source-time chunk").as_ref())
         .build();
     let generating = shrimply_video::video_stabilization::is_generating(item);
     let rebuild = gtk::Button::builder()
-        .label(if generating { "Cancel" } else { "Rebuild" })
+        .label(tr!(if generating { "Cancel" } else { "Rebuild" }).as_ref())
         .sensitive(item.stabilize_video && !unavailable)
         .valign(gtk::Align::Center)
         .build();
@@ -676,11 +678,11 @@ fn video_stabilization_rows(item: &VideoItem, context: &InspectorContext) -> Vec
             }
             was_generating = generating;
             let status = stabilization_status(&item);
-            method_status.set_label(status);
+            method_status.set_label(tr!(status).as_ref());
             method_status.set_visible(!status.is_empty());
             if let Some(rebuild) = rebuild.upgrade() {
                 rebuild.set_sensitive(item.stabilize_video && item.alpha_mask_video.is_none());
-                rebuild.set_label(if generating { "Cancel" } else { "Rebuild" });
+                rebuild.set_label(tr!(if generating { "Cancel" } else { "Rebuild" }).as_ref());
             }
             glib::ControlFlow::Continue
         });
@@ -713,8 +715,8 @@ fn mesh_flow_settings_rows(
     unavailable: bool,
 ) -> Vec<gtk::Widget> {
     let rows = adw::SpinRow::with_range(2.0, 32.0, 1.0);
-    rows.set_title("Mesh rows");
-    rows.set_subtitle("Number of independently moving cell rows");
+    rows.set_title(tr!("Mesh rows").as_ref());
+    rows.set_subtitle(tr!("Number of independently moving cell rows").as_ref());
     rows.set_value(f64::from(item.mesh_flow_rows));
     rows.set_digits(0);
     rows.set_sensitive(!unavailable);
@@ -741,8 +743,8 @@ fn mesh_flow_settings_rows(
     });
 
     let columns = adw::SpinRow::with_range(2.0, 32.0, 1.0);
-    columns.set_title("Mesh columns");
-    columns.set_subtitle("Number of independently moving cell columns");
+    columns.set_title(tr!("Mesh columns").as_ref());
+    columns.set_subtitle(tr!("Number of independently moving cell columns").as_ref());
     columns.set_value(f64::from(item.mesh_flow_columns));
     columns.set_digits(0);
     columns.set_sensitive(!unavailable);
@@ -769,8 +771,8 @@ fn mesh_flow_settings_rows(
     });
 
     let radius = adw::SpinRow::with_range(1.0, 120.0, 1.0);
-    radius.set_title("Smoothing radius");
-    radius.set_subtitle("Neighboring frames considered on each side");
+    radius.set_title(tr!("Smoothing radius").as_ref());
+    radius.set_subtitle(tr!("Neighboring frames considered on each side").as_ref());
     radius.set_value(f64::from(item.mesh_flow_smoothing_radius));
     radius.set_digits(0);
     radius.set_sensitive(!unavailable);
@@ -797,8 +799,8 @@ fn mesh_flow_settings_rows(
     });
 
     let iterations = adw::SpinRow::with_range(1.0, 500.0, 1.0);
-    iterations.set_title("Optimization iterations");
-    iterations.set_subtitle("Jacobi passes used to minimize the MeshFlow energy");
+    iterations.set_title(tr!("Optimization iterations").as_ref());
+    iterations.set_subtitle(tr!("Jacobi passes used to minimize the MeshFlow energy").as_ref());
     iterations.set_value(f64::from(item.mesh_flow_iterations));
     iterations.set_digits(0);
     iterations.set_sensitive(!unavailable);
@@ -854,7 +856,7 @@ fn mesh_flow_settings_rows(
         },
     );
     adaptive_control.set_sensitive(!unavailable && context.selected_item.is_some());
-    adaptive_control.set_tooltip_text(Some("Motion-dependent temporal smoothing model"));
+    adaptive_control.set_tooltip_i18n("Motion-dependent temporal smoothing model");
     let adaptive = control_row("Adaptive weights", &adaptive_control);
 
     vec![
@@ -1126,11 +1128,16 @@ fn video_stream_rows(item: &VideoItem, context: &InspectorContext) -> Vec<gtk::W
         return Vec::new();
     }
     let labels = (0..stream_count)
-        .map(|stream| format!("Video stream {}", stream + 1))
+        .map(|stream| {
+            shrimply_ui_foundation::i18n::text_args(
+                "Video stream %{number}",
+                &[("number", (stream + 1).to_string())],
+            )
+        })
         .collect::<Vec<_>>();
     let label_refs = labels.iter().map(String::as_str).collect::<Vec<_>>();
     let stream = adw::ComboRow::builder()
-        .title("Video Stream")
+        .title(tr!("Video Stream").as_ref())
         .model(&gtk::StringList::new(&label_refs))
         .selected(item.track_id.min(stream_count - 1))
         .build();
@@ -1145,14 +1152,19 @@ fn video_stream_rows(item: &VideoItem, context: &InspectorContext) -> Vec<gtk::W
         .iter()
         .map(|stream| {
             stream.map_or_else(
-                || "None".to_string(),
-                |stream| format!("Video stream {}", stream + 1),
+                || tr!("None").into_owned(),
+                |stream| {
+                    shrimply_ui_foundation::i18n::text_args(
+                        "Video stream %{number}",
+                        &[("number", (stream + 1).to_string())],
+                    )
+                },
             )
         })
         .collect::<Vec<_>>();
     let alpha_label_refs = alpha_labels.iter().map(String::as_str).collect::<Vec<_>>();
     let alpha = adw::ComboRow::builder()
-        .title("Alpha Mask Stream")
+        .title(tr!("Alpha Mask Stream").as_ref())
         .model(&gtk::StringList::new(&alpha_label_refs))
         .selected(
             alpha_options
@@ -1525,11 +1537,17 @@ fn svg_color_section(
         let label = match color.kind {
             SvgPaintKind::Fill => {
                 fill_count += 1;
-                format!("Fill color {fill_count}")
+                shrimply_ui_foundation::i18n::text_args(
+                    "Fill color %{number}",
+                    &[("number", fill_count.to_string())],
+                )
             }
             SvgPaintKind::Stroke => {
                 stroke_count += 1;
-                format!("Stroke color {stroke_count}")
+                shrimply_ui_foundation::i18n::text_args(
+                    "Stroke color %{number}",
+                    &[("number", stroke_count.to_string())],
+                )
             }
         };
         section.add_control_row(
@@ -1579,14 +1597,14 @@ fn svg_color_button(
 ) -> gtk::Widget {
     let Some(key) = context.selected_item.clone() else {
         return ColorPicker::builder(value)
-            .title("SVG color")
+            .title(tr!("SVG color").as_ref())
             .hexpand(true)
             .build();
     };
     let project = context.project.clone();
     let player_state = context.player_state.clone();
     ColorPicker::builder(value)
-        .title("SVG color")
+        .title(tr!("SVG color").as_ref())
         .hexpand(true)
         .on_change(move |color| {
             update_svg_color_override(&project, &player_state, key.clone(), kind, original, color);
@@ -1750,10 +1768,17 @@ fn manim_controls(
     let project = context.project.clone();
     let player_state = context.player_state.clone();
     let scene_key = key.clone();
-    let scenes = string_selector(
+    let scenes = labeled_string_selector(
         "Scene",
         &placeholder,
-        vec![placeholder.clone()],
+        vec![StringChoice {
+            value: placeholder.clone(),
+            label: if manim.scene.is_empty() {
+                tr!(&placeholder).into_owned()
+            } else {
+                placeholder.clone()
+            },
+        }],
         move |value| {
             update_video_item(
                 &project,

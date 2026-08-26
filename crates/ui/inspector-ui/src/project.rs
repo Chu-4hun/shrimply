@@ -5,6 +5,7 @@ use crate::{
 };
 use adw::prelude::*;
 use shrimply_project::project::Project;
+use shrimply_ui_foundation::tr;
 
 use super::{Inspectable, InspectorContext, item::flat, list, section::InspectorSection};
 
@@ -126,32 +127,52 @@ impl Inspectable for Project {
         config.add_control_row("Resolution", &resolution.widget);
 
         let info = adw::PreferencesGroup::new();
+        let track_count = |count: usize, singular: &str, plural: &str| {
+            if count == 1 {
+                tr!(singular).into_owned()
+            } else {
+                shrimply_ui_foundation::i18n::text_args(plural, &[("count", count.to_string())])
+            }
+        };
+        let track_counts = [
+            track_count(
+                self.video_tracks.len(),
+                "1 video track",
+                "%{count} video tracks",
+            ),
+            track_count(
+                self.audio_tracks.len(),
+                "1 audio track",
+                "%{count} audio tracks",
+            ),
+            track_count(
+                self.caption_tracks.len(),
+                "1 caption track",
+                "%{count} caption tracks",
+            ),
+        ]
+        .join(", ");
         info.add(
             &adw::ActionRow::builder()
-                .title("Tracks")
-                .subtitle(format!(
-                    "{} video, {} audio, {} caption",
-                    self.video_tracks.len(),
-                    self.audio_tracks.len(),
-                    self.caption_tracks.len()
-                ))
+                .title(tr!("Tracks").as_ref())
+                .subtitle(track_counts)
                 .build(),
         );
         info.add(
             &adw::ActionRow::builder()
-                .title("Duration")
+                .title(tr!("Duration").as_ref())
                 .subtitle(time_format::project_duration(self.duration()))
                 .build(),
         );
 
         let project_path = shrimply_project::project::active_project_path();
         let file = adw::ActionRow::builder()
-            .title("Project File")
+            .title(tr!("Project File").as_ref())
             .subtitle(project_path.to_string_lossy())
             .build();
         let show_file = gtk::Button::builder()
             .icon_name("folder-open-symbolic")
-            .tooltip_text("Show project file in folder")
+            .tooltip_text(tr!("Show project file in folder").as_ref())
             .valign(gtk::Align::Center)
             .css_classes(["flat"])
             .build();
@@ -162,7 +183,7 @@ impl Inspectable for Project {
             {
                 let dialog =
                     adw::AlertDialog::new(Some("Could not show project file"), Some(&error));
-                dialog.add_response("close", "Close");
+                dialog.add_response("close", tr!("Close").as_ref());
                 dialog.present(Some(button));
             }
         });

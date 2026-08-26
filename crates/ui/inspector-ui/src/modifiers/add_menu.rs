@@ -1,4 +1,5 @@
 use gtk::prelude::*;
+use shrimply_ui_foundation::tr;
 
 use crate::{InspectorContext, player_state};
 use shrimply_video_modifiers::{
@@ -8,7 +9,7 @@ use shrimply_video_modifiers::{
 pub(super) fn button(context: &InspectorContext) -> gtk::Widget {
     let content = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     content.append(&gtk::Image::from_icon_name("list-add-symbolic"));
-    content.append(&gtk::Label::new(Some("Add modifier")));
+    content.append(&gtk::Label::new(Some(tr!("Add modifier").as_ref())));
 
     let button = gtk::MenuButton::builder()
         .child(&content)
@@ -16,7 +17,7 @@ pub(super) fn button(context: &InspectorContext) -> gtk::Widget {
         .css_classes(["flat"])
         .build();
     let search = gtk::SearchEntry::builder()
-        .placeholder_text("Search modifiers")
+        .placeholder_text(tr!("Search modifiers").as_ref())
         .hexpand(true)
         .build();
     let list = gtk::Box::new(gtk::Orientation::Vertical, 0);
@@ -120,7 +121,7 @@ fn populate(list: &gtk::Box, query: &str, context: &InspectorContext, popover: &
     for (_, effect) in effects {
         let name = effect.display_name();
         let row = gtk::Button::builder()
-            .label(name)
+            .label(tr!(name).as_ref())
             .halign(gtk::Align::Fill)
             .hexpand(true)
             .css_classes(["flat"])

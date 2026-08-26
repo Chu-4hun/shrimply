@@ -1,3 +1,5 @@
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 use std::{cell::Cell, rc::Rc, time::Duration};
 
 use gtk::{glib, prelude::*};
@@ -59,7 +61,10 @@ pub fn add_rows(
     for (index, point) in value.points.iter().enumerate() {
         let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let position = super::vec_row(
-            &format!("Point {}", index + 1),
+            &shrimply_ui_foundation::i18n::text_args(
+                "Point %{number}",
+                &[("number", (index + 1).to_string())],
+            ),
             &point.position,
             id,
             true,
@@ -70,7 +75,7 @@ pub fn add_rows(
         row.append(&position);
         let remove = gtk::Button::builder()
             .icon_name("user-trash-symbolic")
-            .tooltip_text("Remove point")
+            .tooltip_text(tr!("Remove point").as_ref())
             .css_classes(["flat"])
             .build();
         let project = context.project.clone();
@@ -91,7 +96,7 @@ pub fn add_rows(
     let can_analyze = !value.points.is_empty();
     analyze.widget().set_halign(gtk::Align::End);
     analyze.widget().set_sensitive(can_analyze);
-    analyze.widget().set_tooltip_text(Some(ANALYZE_TOOLTIP));
+    analyze.widget().set_tooltip_i18n(ANALYZE_TOOLTIP);
     analyze.widget().connect_clicked({
         let project = context.project.clone();
         let player = context.player_state.clone();
@@ -192,13 +197,11 @@ fn update_analysis_status(
 ) {
     button.widget().remove_css_class("destructive-action");
     button.widget().remove_css_class("suggested-action");
-    button.widget().set_tooltip_text(Some(ANALYZE_TOOLTIP));
+    button.widget().set_tooltip_i18n(ANALYZE_TOOLTIP);
     match status {
         Status::Running { completed, total } => {
             button.widget().set_sensitive(true);
-            button
-                .widget()
-                .set_label(if hovered { "Cancel" } else { "Analyzing…" });
+            button.set_label(if hovered { "Cancel" } else { "Analyzing…" });
             if hovered {
                 button.widget().add_css_class("destructive-action");
             }
@@ -211,19 +214,19 @@ fn update_analysis_status(
             }
         }
         Status::Complete => {
-            button.widget().set_label("Reanalyze");
+            button.set_label("Reanalyze");
             button.widget().set_sensitive(can_analyze);
             button.set_state(ProgressButtonState::Idle);
         }
         Status::Failed(error) => {
-            button.widget().set_label("Analyze");
+            button.set_label("Analyze");
             button.widget().set_sensitive(can_analyze);
             button.widget().add_css_class("suggested-action");
             button.widget().set_tooltip_text(Some(&error));
             button.set_state(ProgressButtonState::Idle);
         }
         Status::Missing | Status::Cancelled => {
-            button.widget().set_label("Analyze");
+            button.set_label("Analyze");
             button.widget().set_sensitive(can_analyze);
             button.widget().add_css_class("suggested-action");
             button.set_state(ProgressButtonState::Idle);

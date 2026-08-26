@@ -135,13 +135,12 @@ fn update_controls(bake: &ProgressButton, format: &gtk::DropDown, status: &Statu
     bake.widget().set_sensitive(true);
     match status {
         Status::Missing => {
-            bake.widget().set_label("Bake");
+            bake.set_label("Bake");
             bake.widget().add_css_class("suggested-action");
             bake.set_state(ProgressButtonState::Idle);
         }
         Status::Baking { completed, total } => {
-            bake.widget()
-                .set_label(if hovered { "Cancel" } else { "Baking…" });
+            bake.set_label(if hovered { "Cancel" } else { "Baking…" });
             if hovered {
                 bake.widget().add_css_class("destructive-action");
             }
@@ -152,12 +151,12 @@ fn update_controls(bake: &ProgressButton, format: &gtk::DropDown, status: &Statu
             });
         }
         Status::Ready => {
-            bake.widget().set_label("Rebake");
+            bake.set_label("Rebake");
             bake.widget().add_css_class("suggested-action");
             bake.set_state(ProgressButtonState::Idle);
         }
         Status::Failed(_) => {
-            bake.widget().set_label("Bake");
+            bake.set_label("Bake");
             bake.widget().add_css_class("suggested-action");
             bake.set_state(ProgressButtonState::Idle);
         }

@@ -8,6 +8,8 @@ use shrimply_scene_3d::{
     EnvironmentSource, LightSamplingQuality, ObjScene, PathTracingMode, PbrMaterial, ShadingModel,
     ToonOutlineMethod, ToonOutlineMode, ToonOutlineQuality, ToonShadowKind, ToonTextureFilter,
 };
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nFileFilterExt;
 
 use crate::InspectedItem as SelectedItem;
 use crate::InspectorContext;
@@ -1301,7 +1303,7 @@ fn environment_picker(value: &Environment3d, context: &InspectorContext) -> gtk:
     } else {
         "Select image"
     });
-    let clear = gtk::Button::with_label("Clear image");
+    let clear = gtk::Button::with_label(tr!("Clear image").as_ref());
     clear.set_sensitive(value.file.is_some());
     row.append(&choose);
     row.append(&clear);
@@ -1309,7 +1311,7 @@ fn environment_picker(value: &Environment3d, context: &InspectorContext) -> gtk:
     choose.connect_clicked(move |_| {
         let label = "Select environment image";
         let filter = gtk::FileFilter::new();
-        filter.set_name(Some("Environment images"));
+        filter.set_name_i18n("Environment images");
         for pattern in [
             "*.png", "*.jpg", "*.jpeg", "*.webp", "*.avif", "*.hdr", "*.exr",
         ] {
@@ -1318,7 +1320,7 @@ fn environment_picker(value: &Environment3d, context: &InspectorContext) -> gtk:
         let filters = gtk::gio::ListStore::new::<gtk::FileFilter>();
         filters.append(&filter);
         let dialog = gtk::FileDialog::builder()
-            .title(label)
+            .title(tr!(label).as_ref())
             .filters(&filters)
             .build();
         let context = choose_context.clone();

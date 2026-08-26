@@ -1,3 +1,5 @@
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nFileFilterExt;
 use std::path::PathBuf;
 use std::rc::Rc;
 
@@ -104,7 +106,10 @@ fn palette_controls(value: &PaintPalette, context: &InspectorContext) -> Vec<gtk
         let color = &entry.color;
         let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let color_control = color_control(
-            &format!("Color {}", display_index + 1),
+            &shrimply_ui_foundation::i18n::text_args(
+                "Color %{number}",
+                &[("number", (display_index + 1).to_string())],
+            ),
             color,
             context,
             ColorTarget {
@@ -122,7 +127,7 @@ fn palette_controls(value: &PaintPalette, context: &InspectorContext) -> Vec<gtk
 
         let remove = gtk::Button::builder()
             .icon_name("user-trash-symbolic")
-            .tooltip_text("Remove color")
+            .tooltip_text(tr!("Remove color").as_ref())
             .css_classes(["flat"])
             .sensitive(value.0.len() > 1)
             .build();
@@ -170,7 +175,7 @@ fn palette_controls(value: &PaintPalette, context: &InspectorContext) -> Vec<gtk
 
     let add = gtk::Button::builder()
         .icon_name("list-add-symbolic")
-        .label("Add")
+        .label(tr!("Add").as_ref())
         .halign(gtk::Align::End)
         .css_classes(["flat"])
         .build();
@@ -322,10 +327,12 @@ fn drawing_control(value: &TimelineValue<PaintDrawing>, context: &InspectorConte
     let time = local_time(context);
     let drawing = value.value_at(time);
     let summary = gtk::Label::builder()
-        .label(format!(
-            "{} strokes, {} fills",
-            drawing.strokes.len(),
-            drawing.fills.len()
+        .label(shrimply_ui_foundation::i18n::text_args(
+            "%{strokes} strokes, %{fills} fills",
+            &[
+                ("strokes", drawing.strokes.len().to_string()),
+                ("fills", drawing.fills.len().to_string()),
+            ],
         ))
         .halign(gtk::Align::Start)
         .xalign(0.0)
@@ -789,7 +796,7 @@ fn texture_picker(entry: &PaintPaletteEntry, context: &InspectorContext) -> gtk:
     });
     let clear = gtk::Button::builder()
         .icon_name("window-close-symbolic")
-        .tooltip_text("Clear texture")
+        .tooltip_text(tr!("Clear texture").as_ref())
         .sensitive(texture.is_some())
         .build();
     actions.append(&choose);
@@ -800,12 +807,12 @@ fn texture_picker(entry: &PaintPaletteEntry, context: &InspectorContext) -> gtk:
     choose.connect_clicked(move |_| {
         let label = "Select paint texture";
         let filter = gtk::FileFilter::new();
-        filter.set_name(Some("Images"));
+        filter.set_name_i18n("Images");
         filter.add_mime_type("image/*");
         let filters = gtk::gio::ListStore::new::<gtk::FileFilter>();
         filters.append(&filter);
         let dialog = gtk::FileDialog::builder()
-            .title(label)
+            .title(tr!(label).as_ref())
             .filters(&filters)
             .build();
         let context = choose_context.clone();

@@ -132,7 +132,11 @@ where
     let options = options.into_iter().collect::<Vec<_>>();
     let labels = options
         .iter()
-        .map(|(_, label)| label.as_ref())
+        .map(|(_, label)| crate::i18n::text(label.as_ref()))
+        .collect::<Vec<_>>();
+    let labels = labels
+        .iter()
+        .map(|label| label.as_ref())
         .collect::<Vec<_>>();
     let selected = options
         .iter()

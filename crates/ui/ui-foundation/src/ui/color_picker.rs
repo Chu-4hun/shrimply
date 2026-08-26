@@ -154,6 +154,7 @@ impl ColorPickerBuilder {
     }
 
     pub fn build(self) -> gtk::Widget {
+        let title = crate::i18n::text(&self.title).into_owned();
         let color = Rc::new(Cell::new(self.color));
         let sample = color_sample(color.clone(), 22, 22);
         let hex = gtk::Label::new(Some(&color_hex(self.color, self.with_alpha)));
@@ -170,14 +171,13 @@ impl ColorPickerBuilder {
         adaptive.add_breakpoint(narrow);
         let button = gtk::Button::builder()
             .child(&adaptive)
-            .tooltip_text(&self.title)
+            .tooltip_text(&title)
             .hexpand(self.hexpand)
             .valign(gtk::Align::Center)
             .build();
         let callback: Rc<dyn Fn(Color<u8>)> = self
             .on_change
             .map_or_else(|| Rc::new(|_| {}) as Rc<dyn Fn(Color<u8>)>, Rc::from);
-        let title = self.title;
         let with_alpha = self.with_alpha;
         button.connect_clicked({
             let color = color.clone();
@@ -225,7 +225,7 @@ fn show_window(
     let entry = gtk::Entry::builder()
         .hexpand(true)
         .max_width_chars(9)
-        .tooltip_text("Hexadecimal color")
+        .tooltip_text(crate::i18n::text("Hexadecimal color").as_ref())
         .build();
     entry.set_text(&color_hex(selected.get(), with_alpha));
 
@@ -235,7 +235,9 @@ fn show_window(
         .build();
     let preview = gtk::ColorDialogButton::new(Some(preview_dialog));
     preview.set_rgba(&selected.get().into());
-    preview.set_tooltip_text(Some("Open the GTK color picker"));
+    preview.set_tooltip_text(Some(
+        crate::i18n::text("Open the GTK color picker").as_ref(),
+    ));
     preview.set_valign(gtk::Align::Center);
 
     let update_hsva: Rc<dyn Fn(Hsva)> = {
@@ -344,7 +346,7 @@ fn show_window(
 
     let confirm = gtk::Button::builder()
         .icon_name("object-select-symbolic")
-        .tooltip_text("Confirm color")
+        .tooltip_text(crate::i18n::text("Confirm color").as_ref())
         .halign(gtk::Align::End)
         .css_classes(["suggested-action", "circular"])
         .build();
@@ -381,7 +383,7 @@ fn color_plane(color: Rc<Cell<Hsva>>, update: Rc<dyn Fn(Hsva)>) -> gtk::DrawingA
         .halign(gtk::Align::Start)
         .valign(gtk::Align::Start)
         .focusable(true)
-        .tooltip_text("Saturation and value")
+        .tooltip_text(crate::i18n::text("Saturation and value").as_ref())
         .build();
     area.set_draw_func({
         let color = color.clone();
@@ -422,7 +424,7 @@ fn hue_bar(color: Rc<Cell<Hsva>>, update: Rc<dyn Fn(Hsva)>) -> gtk::DrawingArea 
         .content_height(SELECTION_SIZE)
         .valign(gtk::Align::Start)
         .focusable(true)
-        .tooltip_text("Hue")
+        .tooltip_text(crate::i18n::text("Hue").as_ref())
         .build();
     area.set_draw_func({
         let color = color.clone();
@@ -472,7 +474,7 @@ fn alpha_bar(color: Rc<Cell<Hsva>>, update: Rc<dyn Fn(Hsva)>) -> gtk::DrawingAre
         .content_height(BAR_SIZE)
         .halign(gtk::Align::Start)
         .focusable(true)
-        .tooltip_text("Alpha")
+        .tooltip_text(crate::i18n::text("Alpha").as_ref())
         .build();
     area.set_draw_func({
         let color = color.clone();
@@ -567,7 +569,7 @@ fn palette_grid(
             let update = update.clone();
             move || update(color)
         });
-        sample.set_tooltip_text(Some(name));
+        sample.set_tooltip_text(Some(crate::i18n::text(name).as_ref()));
         swatches.borrow_mut().push(sample.clone());
         grid.attach(&sample, (index / 5) as i32, (index % 5) as i32, 1, 1);
     }
@@ -592,7 +594,7 @@ fn recent_row(
     let section = gtk::Box::new(gtk::Orientation::Vertical, 6);
     section.append(
         &gtk::Label::builder()
-            .label("Recent")
+            .label(crate::i18n::text("Recent").as_ref())
             .halign(gtk::Align::Start)
             .build(),
     );
@@ -603,7 +605,7 @@ fn recent_row(
 fn screen_picker_button(update: Rc<dyn Fn(Color<u8>)>) -> gtk::Button {
     let picker = gtk::Button::builder()
         .icon_name("color-select-symbolic")
-        .tooltip_text("Pick a color from the screen")
+        .tooltip_text(crate::i18n::text("Pick a color from the screen").as_ref())
         .css_classes(["circular"])
         .build();
     picker.connect_clicked(move |picker| {

@@ -1,6 +1,7 @@
 mod color_picker;
 mod color_swatch;
 mod control_row;
+mod i18n;
 mod keyed_box;
 mod multiline_text_input;
 mod number_picker;
@@ -12,6 +13,7 @@ mod split_button;
 
 pub use color_picker::{ColorPicker, ColorPickerBuilder};
 pub use control_row::control_row;
+pub use i18n::{I18nAlertDialogExt, I18nFileFilterExt, I18nMenuExt, I18nWidgetExt, menu_item_i18n};
 pub use keyed_box::KeyedBox;
 pub use multiline_text_input::{MultilineTextInput, MultilineTextInputBuilder};
 pub use number_picker::{Number2Picker, Number3Picker, NumberPicker, NumberPickerHandle};

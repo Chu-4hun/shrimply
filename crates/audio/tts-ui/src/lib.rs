@@ -1,3 +1,4 @@
+use shrimply_ui_foundation::tr;
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
@@ -106,7 +107,7 @@ pub fn editor(
     );
 
     let status = gtk::Label::builder()
-        .label("Connecting to server…")
+        .label(tr!("Connecting to server…").as_ref())
         .wrap(true)
         .xalign(0.0)
         .css_classes(["dim-label"])
@@ -115,15 +116,18 @@ pub fn editor(
     spinner.start();
     spinner.set_size_request(18, 18);
     let generate = gtk::Button::builder()
-        .label(if value.model.is_some() {
-            "Regenerate"
-        } else {
-            "Generate"
-        })
+        .label(
+            tr!(if value.model.is_some() {
+                "Regenerate"
+            } else {
+                "Generate"
+            })
+            .as_ref(),
+        )
         .sensitive(false)
         .css_classes(["suggested-action"])
         .build();
-    let cancel = gtk::Button::with_label("Cancel");
+    let cancel = gtk::Button::with_label(tr!("Cancel").as_ref());
     cancel.set_visible(false);
     let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     actions.append(&spinner);
@@ -145,7 +149,7 @@ pub fn editor(
         let cancel = cancel.clone();
         cancel.clone().connect_clicked(move |_| {
             if let Some(cancellation) = active_generation.borrow().as_ref() {
-                status.set_label("Cancelling…");
+                status.set_label(tr!("Cancelling…").as_ref());
                 cancel.set_sensitive(false);
                 cancellation.cancel();
             }
@@ -160,7 +164,7 @@ pub fn editor(
         glib::timeout_add_local(Duration::from_millis(50), move || {
             if !models.borrow().is_empty() {
                 spinner.set_visible(false);
-                status.set_label("Ready");
+                status.set_label(tr!("Ready").as_ref());
                 generate.set_sensitive(true);
                 glib::ControlFlow::Break
             } else {
@@ -187,7 +191,7 @@ pub fn editor(
                     .find(|model| &model.id == id)
                     .cloned()
             }) else {
-                status.set_label("Select a model");
+                status.set_label(tr!("Select a model").as_ref());
                 return;
             };
             preferences_store::set_last_tts_model(&preferences, &selected.id);
@@ -205,7 +209,7 @@ pub fn editor(
             cancel.set_sensitive(true);
             spinner.set_visible(true);
             status.set_tooltip_text(None);
-            status.set_label("Sending request…");
+            status.set_label(tr!("Sending request…").as_ref());
 
             let (sender, receiver) = mpsc::channel();
             let request_model = selected.clone();
@@ -249,7 +253,7 @@ pub fn editor(
                             active_generation.borrow_mut().take();
                             match result {
                                 Ok((path, duration, speed)) => {
-                                    generate.set_label("Regenerate");
+                                    generate.set_label(tr!("Regenerate").as_ref());
                                     if settings.borrow().model.as_ref() == Some(&selected.id) {
                                         shrimply_tts::apply_speed_factor(
                                             &mut settings.borrow_mut(),
@@ -258,15 +262,15 @@ pub fn editor(
                                         );
                                         on_changed(settings.borrow().clone());
                                     }
-                                    status.set_label("Generated");
+                                    status.set_label(tr!("Generated").as_ref());
                                     on_generated(path, duration);
                                 }
                                 Err(_) if cancelled => {
-                                    status.set_label("Cancelled")
+                                    status.set_label(tr!("Cancelled").as_ref())
                                 }
                                 Err(error) if error.starts_with("Compute server connection failed") => {
                                     tracing::error!(%error, "Text-to-speech compute connection failed");
-                                    status.set_label("Compute server connection failed");
+                                    status.set_label(tr!("Compute server connection failed").as_ref());
                                     status.set_tooltip_text(Some(&error));
                                 }
                                 Err(error) => status.set_label(&error),
@@ -280,7 +284,7 @@ pub fn editor(
                             cancel.set_sensitive(true);
                             spinner.set_visible(false);
                             active_generation.borrow_mut().take();
-                            status.set_label("Generation worker stopped unexpectedly");
+                            status.set_label(tr!("Generation worker stopped unexpectedly").as_ref());
                             return glib::ControlFlow::Break;
                         }
                     }
@@ -781,16 +785,18 @@ fn audio_widget(key: &str, label: &str, input: InputContext) -> gtk::Widget {
         .xalign(0.0)
         .build();
     let chooser_label = label.to_owned();
-    let chooser = gtk::FileDialog::builder().title(label).build();
-    let choose = gtk::Button::with_label("Choose…");
+    let chooser = gtk::FileDialog::builder()
+        .title(tr!(label).as_ref())
+        .build();
+    let choose = gtk::Button::with_label(tr!("Choose…").as_ref());
     let key = key.to_string();
     let clear = gtk::Button::builder()
-        .label("Clear")
+        .label(tr!("Clear").as_ref())
         .sensitive(selected.is_some())
         .css_classes(["flat"])
         .build();
     let show = gtk::Button::builder()
-        .label("Show in Folder")
+        .label(tr!("Show in Folder").as_ref())
         .sensitive(selected.is_some())
         .css_classes(["flat"])
         .build();
@@ -811,7 +817,7 @@ fn audio_widget(key: &str, label: &str, input: InputContext) -> gtk::Widget {
     popover.add_css_class("menu");
     let menu = gtk::MenuButton::builder()
         .icon_name("pan-down-symbolic")
-        .tooltip_text("Reference audio actions")
+        .tooltip_text(tr!("Reference audio actions").as_ref())
         .popover(&popover)
         .build();
     let split = gtk::Box::new(gtk::Orientation::Horizontal, 0);
@@ -828,7 +834,7 @@ fn audio_widget(key: &str, label: &str, input: InputContext) -> gtk::Widget {
             if input.settings.borrow_mut().inputs.remove(&key).is_none() {
                 return;
             }
-            path_label.set_label("Choose an audio file");
+            path_label.set_label(tr!("Choose an audio file").as_ref());
             button.set_sensitive(false);
             show.set_sensitive(false);
             notify_changed(&input);
@@ -976,7 +982,7 @@ fn table_widget(
     let add = gtk::Button::builder()
         .icon_name("list-add-symbolic")
         .valign(gtk::Align::Center)
-        .tooltip_text("Add row")
+        .tooltip_text(tr!("Add row").as_ref())
         .build();
     let header = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     header.set_halign(gtk::Align::End);
@@ -1071,7 +1077,7 @@ fn rebuild_table(state: &TableEditor) {
         }
         let remove = gtk::Button::builder()
             .icon_name("list-remove-symbolic")
-            .tooltip_text("Remove row")
+            .tooltip_text(tr!("Remove row").as_ref())
             .build();
         {
             let state = state.clone();

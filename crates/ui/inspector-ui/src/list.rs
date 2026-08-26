@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 use gtk::prelude::*;
 use shrimply_project::project::ItemAddress;
+use shrimply_ui_foundation::tr;
 
 use super::InspectorContext;
 use super::item::{HeaderAction, HeaderButtonToggle, HeaderToggle, InspectorListItem};
@@ -56,7 +57,7 @@ pub(super) fn render_categories(
         let toggle_content = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         toggle_content.set_halign(gtk::Align::Center);
         toggle_content.append(&gtk::Image::from_icon_name(category.icon));
-        toggle_content.append(&gtk::Label::new(Some(category.label)));
+        toggle_content.append(&gtk::Label::new(Some(tr!(category.label).as_ref())));
         stack.add_named(&render_list(category.items, context), Some(category.key));
         if index as u32 == active {
             stack.set_visible_child_name(category.key);
@@ -64,7 +65,7 @@ pub(super) fn render_categories(
 
         let mut button = gtk::ToggleButton::builder()
             .hexpand(true)
-            .tooltip_text(category.label)
+            .tooltip_text(tr!(category.label).as_ref())
             .child(&toggle_content);
         if let Some(first_button) = &first_button {
             button = button.group(first_button);
@@ -131,13 +132,13 @@ fn render_list(items: Vec<InspectorListItem>, context: &InspectorContext) -> gtk
                 }
                 let expander = gtk::Button::builder()
                     .child(&expander_icon)
-                    .tooltip_text(if expanded { "Collapse" } else { "Expand" })
+                    .tooltip_text(tr!(if expanded { "Collapse" } else { "Expand" }).as_ref())
                     .css_classes(["flat"])
                     .build();
                 header.append(&expander);
                 header.append(
                     &gtk::Label::builder()
-                        .label(item.title())
+                        .label(tr!(item.title()).as_ref())
                         .halign(gtk::Align::Start)
                         .hexpand(true)
                         .css_classes(["heading"])
@@ -193,7 +194,9 @@ fn render_list(items: Vec<InspectorListItem>, context: &InspectorContext) -> gtk
                         } else {
                             expander_icon.remove_css_class("expanded");
                         }
-                        button.set_tooltip_text(Some(if expanded { "Collapse" } else { "Expand" }));
+                        button.set_tooltip_text(Some(
+                            tr!(if expanded { "Collapse" } else { "Expand" }).as_ref(),
+                        ));
                         if let Some(target) = &target {
                             expanded_rows
                                 .borrow_mut()
@@ -309,7 +312,7 @@ fn sync_preview_focus_class(
 fn add_toggle(header: &gtk::Box, toggle: &HeaderToggle) {
     let switch = gtk::Switch::builder()
         .active(toggle.active)
-        .tooltip_text(toggle.tooltip)
+        .tooltip_text(tr!(toggle.tooltip).as_ref())
         .valign(gtk::Align::Center)
         .build();
     let activate = toggle.activate.clone();
@@ -321,7 +324,7 @@ fn add_button_toggle(header: &gtk::Box, toggle: &HeaderButtonToggle) {
     let button = gtk::ToggleButton::builder()
         .icon_name(toggle.icon)
         .active(toggle.active)
-        .tooltip_text(toggle.tooltip)
+        .tooltip_text(tr!(toggle.tooltip).as_ref())
         .valign(gtk::Align::Center)
         .css_classes(["flat"])
         .build();
@@ -356,7 +359,7 @@ fn install_expander_css(display: &gtk::gdk::Display) {
 fn add_action(header: &gtk::Box, action: &HeaderAction) {
     let button = gtk::Button::builder()
         .icon_name(action.icon)
-        .tooltip_text(action.tooltip)
+        .tooltip_text(tr!(action.tooltip).as_ref())
         .sensitive(action.sensitive)
         .valign(gtk::Align::Center)
         .css_classes(["flat"])

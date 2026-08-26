@@ -1,3 +1,7 @@
+use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::I18nFileFilterExt;
+use shrimply_ui_foundation::ui::I18nMenuExt;
+use shrimply_ui_foundation::ui::I18nWidgetExt;
 use std::cell::{Cell, RefCell};
 
 mod cuda_gl;
@@ -287,17 +291,17 @@ fn player(
     progress_scale.set_hexpand(true);
 
     let step_back_button = gtk::Button::from_icon_name("media-seek-backward-symbolic");
-    step_back_button.set_tooltip_text(Some("Step back one frame"));
+    step_back_button.set_tooltip_i18n("Step back one frame");
     let play_button = gtk::Button::from_icon_name("media-playback-start-symbolic");
-    play_button.set_tooltip_text(Some("Play"));
+    play_button.set_tooltip_i18n("Play");
     let step_forward_button = gtk::Button::from_icon_name("media-seek-forward-symbolic");
-    step_forward_button.set_tooltip_text(Some("Step forward one frame"));
+    step_forward_button.set_tooltip_i18n("Step forward one frame");
     let fullscreen_button = gtk::Button::from_icon_name(PREVIEW_FULLSCREEN_ICON);
-    fullscreen_button.set_tooltip_text(Some("Fullscreen preview"));
+    fullscreen_button.set_tooltip_i18n("Fullscreen preview");
     let guide_button = gtk::ToggleButton::new();
     guide_button.set_child(Some(&gtk::Image::from_icon_name("ruler-angled-symbolic")));
     guide_button.set_size_request(PREVIEW_TOOLBAR_ICON_SIZE, PREVIEW_TOOLBAR_ICON_SIZE);
-    guide_button.set_tooltip_text(Some("Guide"));
+    guide_button.set_tooltip_i18n("Guide");
     guide_button.set_valign(gtk::Align::Start);
     guide_button.set_vexpand(false);
     guide_button.set_margin_start(4);
@@ -326,7 +330,7 @@ fn player(
         .width_chars(34)
         .build();
     time_label.add_css_class("monospace");
-    let playback_speed_label = gtk::Button::with_label("x1");
+    let playback_speed_label = gtk::Button::with_label(tr!("x1").as_ref());
     playback_speed_label.set_can_focus(false);
     playback_speed_label.set_sensitive(false);
     playback_speed_label.set_margin_start(4);
@@ -336,9 +340,9 @@ fn player(
     playback_speed_label.add_css_class("preview-control-chip");
     playback_speed_label.add_css_class("flat");
     playback_speed_label.set_size_request(PREVIEW_TOOLBAR_ICON_SIZE, PREVIEW_TOOLBAR_ICON_SIZE);
-    playback_speed_label.set_tooltip_text(Some("Playback speed"));
+    playback_speed_label.set_tooltip_i18n("Playback speed");
     let frame_rate_label = gtk::Label::builder()
-        .label("--")
+        .label(tr!("--").as_ref())
         .width_chars(3)
         .xalign(0.5)
         .build();
@@ -359,7 +363,7 @@ fn player(
     frame_rate_button.set_margin_end(4);
     frame_rate_button.set_margin_top(2);
     frame_rate_button.set_margin_bottom(2);
-    frame_rate_button.set_tooltip_text(Some("Frame rate"));
+    frame_rate_button.set_tooltip_i18n("Frame rate");
     frame_rate_button.set_child(Some(&frame_rate_label));
 
     let playbar = gtk::Box::new(gtk::Orientation::Horizontal, 8);
@@ -434,7 +438,7 @@ fn player(
         let button = gtk::ToggleButton::new();
         button.set_child(Some(&gtk::Image::from_icon_name(icon)));
         button.set_size_request(PREVIEW_TOOLBAR_ICON_SIZE, PREVIEW_TOOLBAR_ICON_SIZE);
-        button.set_tooltip_text(Some(tooltip));
+        button.set_tooltip_i18n(tooltip);
         button.set_valign(gtk::Align::Start);
         button.set_vexpand(false);
         button.set_margin_start(4);
@@ -468,7 +472,7 @@ fn player(
     let eraser_button = gtk::ToggleButton::new();
     eraser_button.set_child(Some(&gtk::Image::from_icon_name("eraser-symbolic")));
     eraser_button.set_size_request(PREVIEW_TOOLBAR_ICON_SIZE, PREVIEW_TOOLBAR_ICON_SIZE);
-    eraser_button.set_tooltip_text(Some("Eraser (E)"));
+    eraser_button.set_tooltip_i18n("Eraser (E)");
     eraser_button.set_valign(gtk::Align::Start);
     eraser_button.set_vexpand(false);
     eraser_button.set_margin_start(4);
@@ -482,7 +486,7 @@ fn player(
         "function-exponential-symbolic",
     )));
     adjust_button.set_size_request(PREVIEW_TOOLBAR_ICON_SIZE, PREVIEW_TOOLBAR_ICON_SIZE);
-    adjust_button.set_tooltip_text(Some("Adjust points (hold Ctrl for temporary adjustment)"));
+    adjust_button.set_tooltip_i18n("Adjust points (hold Ctrl for temporary adjustment)");
     adjust_button.set_valign(gtk::Align::Start);
     adjust_button.set_vexpand(false);
     adjust_button.set_margin_start(4);
@@ -497,7 +501,7 @@ fn player(
         PREVIEW_TOOLBAR_ICON_SIZE + 22,
         PREVIEW_TOOLBAR_ICON_SIZE + 8,
     );
-    brush_scale.set_tooltip_text(Some("Pen width scale"));
+    brush_scale.set_tooltip_i18n("Pen width scale");
     brush_scale.set_margin_start(2);
     brush_scale.set_margin_end(2);
     brush_scale.add_css_class("preview-control-chip");
@@ -520,16 +524,16 @@ fn player(
             eraser_size.set_label(&paint_fill_tolerance_label(
                 eraser_surface.paint_fill_tolerance(),
             ));
-            eraser_size.set_tooltip_text(Some("Fill gap tolerance"));
+            eraser_size.set_tooltip_i18n("Fill gap tolerance");
         } else {
             eraser_size.set_label(&paint_scale_label(
                 eraser_surface.paint_brush_scale(button.is_active()),
             ));
-            eraser_size.set_tooltip_text(Some(if button.is_active() {
+            eraser_size.set_tooltip_i18n(if button.is_active() {
                 "Eraser width scale"
             } else {
                 "Pen width scale"
-            }));
+            });
         }
     });
     let scale_popover = gtk::Popover::new();
@@ -647,15 +651,15 @@ fn player(
             fill_size.set_label(&paint_fill_tolerance_label(
                 fill_surface.paint_fill_tolerance(),
             ));
-            fill_size.set_tooltip_text(Some("Fill gap tolerance"));
+            fill_size.set_tooltip_i18n("Fill gap tolerance");
         } else {
             let eraser = fill_eraser.is_active();
             fill_size.set_label(&paint_scale_label(fill_surface.paint_brush_scale(eraser)));
-            fill_size.set_tooltip_text(Some(if eraser {
+            fill_size.set_tooltip_i18n(if eraser {
                 "Eraser width scale"
             } else {
                 "Pen width scale"
-            }));
+            });
         }
     });
     let transform_adjust = adjust_button.clone();
@@ -686,7 +690,7 @@ fn player(
     let make_onion_button = |label: &str, tooltip: &str, previous: bool| {
         let button = gtk::ToggleButton::with_label(label);
         button.set_size_request(PREVIEW_TOOLBAR_ICON_SIZE, PREVIEW_TOOLBAR_ICON_SIZE);
-        button.set_tooltip_text(Some(tooltip));
+        button.set_tooltip_i18n(tooltip);
         button.set_margin_start(4);
         button.set_margin_end(4);
         button.add_css_class("preview-control-chip");
@@ -1280,7 +1284,10 @@ fn rebuild_paint_palette_buttons(
         let button = gtk::ToggleButton::new();
         button.set_child(Some(&swatch));
         button.set_size_request(PREVIEW_TOOLBAR_ICON_SIZE, PREVIEW_TOOLBAR_ICON_SIZE);
-        button.set_tooltip_text(Some(&format!("Paint texture {}", index + 1)));
+        button.set_tooltip_text(Some(&shrimply_ui_foundation::i18n::text_args(
+            "Paint texture %{number}",
+            &[("number", (index + 1).to_string())],
+        )));
         button.set_margin_start(4);
         button.set_margin_end(4);
         button.set_margin_top(2);
@@ -1712,7 +1719,7 @@ fn send_video_command(command_tx: &VideoCommandSender, command: VideoCommand) {
 
 fn error_page(error: &str) -> adw::StatusPage {
     let view = adw::StatusPage::builder()
-        .title("Video Player")
+        .title(tr!("Video Player").as_ref())
         .description(error)
         .icon_name("video-display-symbolic")
         .hexpand(true)
@@ -1732,8 +1739,8 @@ fn attach_preview_context_menu(
     let surface = video_surface.clone();
     click.connect_pressed(move |_, _, x, y| {
         let menu = gio::Menu::new();
-        menu.append(Some("Copy Preview Image"), Some("preview.copy-image"));
-        menu.append(Some("Save Preview Image…"), Some("preview.save-image"));
+        menu.append_i18n("Copy Preview Image", "preview.copy-image");
+        menu.append_i18n("Save Preview Image…", "preview.save-image");
 
         let actions = gio::SimpleActionGroup::new();
         let copy = gio::SimpleAction::new("copy-image", None);
@@ -1764,14 +1771,14 @@ fn attach_preview_context_menu(
                 }
             };
             let filter = gtk::FileFilter::new();
-            filter.set_name(Some("PNG image"));
+            filter.set_name_i18n("PNG image");
             filter.add_mime_type("image/png");
             filter.add_pattern("*.png");
             let filters = gio::ListStore::new::<gtk::FileFilter>();
             filters.append(&filter);
             let label = "Save Preview Image";
             let dialog = gtk::FileDialog::builder()
-                .title(label)
+                .title(tr!(label).as_ref())
                 .initial_name("preview.png")
                 .filters(&filters)
                 .default_filter(&filter)
@@ -1854,10 +1861,10 @@ fn update_controls(
     let snapshot = player_state::snapshot(player_state);
     if snapshot.playing {
         play_button.set_icon_name("media-playback-pause-symbolic");
-        play_button.set_tooltip_text(Some("Pause"));
+        play_button.set_tooltip_i18n("Pause");
     } else {
         play_button.set_icon_name("media-playback-start-symbolic");
-        play_button.set_tooltip_text(Some("Play"));
+        play_button.set_tooltip_i18n("Play");
     }
 
     time_label.set_label(&format!(
@@ -1875,7 +1882,10 @@ fn update_controls(
         )
     };
     playback_speed_label.set_label(&playback_speed_text);
-    playback_speed_label.set_tooltip_text(Some(&format!("Playback speed {playback_speed_text}")));
+    playback_speed_label.set_tooltip_text(Some(&shrimply_ui_foundation::i18n::text_args(
+        "Playback speed %{speed}",
+        &[("speed", playback_speed_text)],
+    )));
 
     updating_progress.set(true);
     progress_scale.set_range(
