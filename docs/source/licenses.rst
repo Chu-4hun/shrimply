@@ -8,8 +8,32 @@ License, version 3 or later.
 The documentation layout and visual assets are copied from the GNOME Developer
 Documentation site. Its templates are available under the MIT License and its
 static theme assets under Creative Commons Attribution-ShareAlike 3.0. The
-corresponding license texts are stored in ``docs/licenses`` and the component
-is recorded in the repository's ``THIRDPARTY.md``.
+corresponding texts are available in the repository's `documentation licenses
+<https://github.com/soirihiroka/shrimply/tree/main/docs/licenses>`__, and the
+component is recorded in the `third-party notices
+<https://github.com/soirihiroka/shrimply/blob/main/THIRDPARTY.md>`__.
+
+Non-free and separately licensed components
+--------------------------------------------
+
+Shrimply and the compute server are free software, but some features depend on
+components that are not free software or have additional use restrictions.
+Those terms apply to the individual components and are not replaced by
+Shrimply's GPL or AGPL licenses.
+
+GPU features use NVIDIA's `CUDA Toolkit and display driver
+<https://docs.nvidia.com/cuda/eula/>`__, `OptiX SDK
+<https://developer.nvidia.com/designworks/optix/download>`__, `Optical Flow SDK
+<https://developer.nvidia.com/optical-flow-sdk>`__, and `Video Codec SDK
+<https://developer.nvidia.com/video-codec-sdk>`__ interfaces. Review NVIDIA's
+terms before building or using those features. The NVIDIA Image Scaling code
+included by Shrimply is separately available under the MIT License and is
+listed in the repository's third-party notices.
+
+The compute server can also download model weights governed by separate terms,
+including MiniMax H3 and IndexTTS below. Additional model notices are listed in
+the `server third-party notices
+<https://github.com/soirihiroka/shrimply/blob/main/server/THIRDPARTY.md>`__.
 
 .. _minimax-h3-license:
 
