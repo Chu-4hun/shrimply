@@ -9,6 +9,10 @@ onto the timeline, edit and preview the result, then export a video, GIF,
 captions, or project data. Shrimply also includes an optional compute server
 and an MCP adapter for working with the project currently open in the editor.
 
+.. image:: img/editor-overview.png
+   :alt: Shrimply editor showing the inspector, video preview, and multitrack timeline
+   :width: 100%
+
 Start here
 ----------
 
