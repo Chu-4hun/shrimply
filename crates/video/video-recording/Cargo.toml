@@ -1,0 +1,16 @@
+[package]
+name = "shrimply-video-recording"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+async-channel.workspace = true
+ffmpeg-next.workspace = true
+gtk = { workspace = true, features = ["v4_10"] }
+pipewire.workspace = true
+shrimply-math-media = { path = "../../math/media" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-project = { path = "../../project/project" }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4"] }

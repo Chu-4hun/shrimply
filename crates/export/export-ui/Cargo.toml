@@ -1,0 +1,16 @@
+[package]
+name = "shrimply-export-ui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+adw = { workspace = true, features = ["v1_9"] }
+glam.workspace = true
+gtk = { workspace = true, features = ["v4_10"] }
+shrimply-export = { path = "../export" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-math-media = { path = "../../math/media" }
+shrimply-project = { path = "../../project/project" }
+shrimply-state = { path = "../../state" }
+shrimply-ui-foundation = { path = "../../ui/ui-foundation" }
+tracing.workspace = true

@@ -1,0 +1,10 @@
+[package]
+name = "shrimply-transform-3d"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam = { workspace = true, features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }
+strum = { workspace = true, features = ["derive"] }
+uuid = { workspace = true, features = ["serde"] }

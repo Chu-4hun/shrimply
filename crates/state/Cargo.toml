@@ -1,0 +1,16 @@
+[package]
+name = "shrimply-state"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+rusqlite = { workspace = true, features = ["bundled"] }
+shrimply-benchmarking = { path = "../benchmarking" }
+shrimply-math-color = { path = "../math/color" }
+shrimply-math-core = { path = "../math/core" }
+shrimply-project = { path = "../project/project" }
+shrimply-preview-core = { path = "../preview/preview-core" }
+shrimply-support = { path = "../support" }
+tracing.workspace = true
+uuid.workspace = true

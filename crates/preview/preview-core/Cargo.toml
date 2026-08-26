@@ -1,0 +1,13 @@
+[package]
+name = "shrimply-preview-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam.workspace = true
+skia-safe.workspace = true
+shrimply-math-color = { path = "../../math/color", features = ["skia"] }
+shrimply-math-geometry = { path = "../../math/geometry" }
+shrimply-preview-skia = { path = "../preview-skia" }
+shrimply-timeline-value = { path = "../../timeline/timeline-value" }
+uuid.workspace = true

@@ -1,0 +1,16 @@
+[package]
+name = "shrimply-video-generation-ui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-channel.workspace = true
+gtk = { workspace = true, features = ["v4_10"] }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-project = { path = "../../project/project" }
+shrimply-server-client = { path = "../../server-client" }
+shrimply-state = { path = "../../state" }
+shrimply-ui-foundation = { path = "../../ui/ui-foundation" }
+shrimply-video-generation = { path = "../video-generation" }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4"] }

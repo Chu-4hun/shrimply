@@ -1,0 +1,23 @@
+[package]
+name = "shrimply-ui-foundation"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-channel.workspace = true
+hashbrown.workspace = true
+adw = { workspace = true, features = ["v1_9"] }
+cached.workspace = true
+glow.workspace = true
+gtk = { workspace = true, features = ["v4_10"] }
+num-traits.workspace = true
+shrimply-project-core = { path = "../../project/project-core" }
+shrimply-resource-pipeline = { path = "../../resource-pipeline" }
+shrimply-math-color = { path = "../../math/color", features = ["gdk", "skia"] }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-math-geometry = { path = "../../math/geometry", features = ["skia"] }
+skia-safe = { workspace = true, features = ["gl", "vulkan", "textlayout"] }
+strum.workspace = true
+tracing.workspace = true
+wayland-client = { workspace = true, features = ["system"] }
+wayland-protocols = { workspace = true, features = ["client", "unstable"] }

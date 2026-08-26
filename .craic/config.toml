@@ -1,0 +1,2 @@
+[markdown_lint]
+ignored_rules = ["MD041"]

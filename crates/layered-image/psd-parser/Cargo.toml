@@ -1,0 +1,9 @@
+[package]
+name = "shrimply-psd-parser"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+psd.workspace = true
+rayon.workspace = true

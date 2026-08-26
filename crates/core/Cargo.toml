@@ -1,0 +1,14 @@
+[package]
+name = "shrimply-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+glam = { workspace = true, features = ["serde"] }
+num-traits.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-math-color = { path = "../math/color" }
+shrimply-render-core = { path = "../render-core" }
+shrimply-timeline-value = { path = "../timeline/timeline-value" }
+uuid = { workspace = true, features = ["v4", "serde"] }

@@ -1,0 +1,115 @@
+import logging
+from functools import partial
+from http import HTTPStatus
+
+import msgspec
+from fastapi import Request
+from fastapi.responses import Response
+from pydantic import ValidationError
+
+from api import log_request, request_content_type, resource, respond_error, stream_events
+from api import tts
+from api.tts.errors import log_failure, public_error_message
+from api.tts.protocol import ErrorEvent, SYNTHESIS_REQUEST_VALIDATOR
+from api.tts.requests import parse_request, request_text
+
+logger = logging.getLogger("shrimply.server")
+MAXIMUM_REQUEST_BYTES = 65 * 1024 * 1024
+
+
+async def handle_request(request: Request) -> Response:
+    log_request(request, "text-to-speech")
+    try:
+        job = resource.register_job(request.headers.get(resource.JOB_HEADER))
+    except resource.InvalidJobId as exception:
+        return respond_error(HTTPStatus.BAD_REQUEST, "invalid_job_id", str(exception))
+    except resource.DuplicateJobId as exception:
+        return respond_error(HTTPStatus.CONFLICT, "duplicate_job_id", str(exception))
+    except resource.JobCancelled as exception:
+        return respond_error(HTTPStatus.CONFLICT, exception.code, str(exception))
+    if request_content_type(request) != "application/msgpack":
+        resource.finish_job(job)
+        return respond_error(
+            HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+            "unsupported_media_type",
+            "Expected application/msgpack",
+        )
+    try:
+        content_length = int(request.headers.get("content-length", ""))
+    except ValueError:
+        resource.finish_job(job)
+        return respond_error(
+            HTTPStatus.LENGTH_REQUIRED,
+            "content_length_required",
+            "A valid Content-Length header is required",
+        )
+    if content_length <= 0 or content_length > MAXIMUM_REQUEST_BYTES:
+        resource.finish_job(job)
+        return respond_error(
+            HTTPStatus.BAD_REQUEST,
+            "invalid_content_length",
+            "Speech request must be between 1 byte and 65 MiB",
+        )
+    try:
+        received = bytearray()
+        async for chunk in request.stream():
+            job.check_cancelled()
+            if len(chunk) > content_length - len(received):
+                raise ValueError("Speech request body exceeds Content-Length")
+            received.extend(chunk)
+        payload = bytes(received)
+    except resource.JobCancelled as exception:
+        resource.finish_job(job)
+        return respond_error(HTTPStatus.CONFLICT, exception.code, str(exception))
+    except ValueError as exception:
+        resource.finish_job(job)
+        return respond_error(HTTPStatus.BAD_REQUEST, "invalid_content_length", str(exception))
+    except Exception:
+        resource.finish_job(job)
+        raise
+    if len(payload) != content_length:
+        resource.finish_job(job)
+        return respond_error(
+            HTTPStatus.BAD_REQUEST,
+            "invalid_content_length",
+            "Speech request length does not match Content-Length",
+        )
+    try:
+        synthesis_request = SYNTHESIS_REQUEST_VALIDATOR.validate_python(
+            msgspec.msgpack.decode(payload)
+        )
+        parse_request(synthesis_request)
+    except (msgspec.DecodeError, ValidationError, ValueError) as exception:
+        resource.finish_job(job)
+        return respond_error(
+            HTTPStatus.BAD_REQUEST,
+            "invalid_request",
+            str(exception),
+        )
+    client = request.client.host if request.client is not None else "unknown"
+    logger.info(
+        "Accepted text-to-speech request from %s model=%s text_length=%d",
+        client,
+        synthesis_request.model,
+        len(request_text(synthesis_request)),
+    )
+
+    def failure(exception: Exception) -> ErrorEvent:
+        try:
+            job.check_cancelled()
+        except resource.JobCancelled as cancellation:
+            exception = cancellation
+        if isinstance(exception, resource.JobCancelled):
+            return ErrorEvent(code=exception.code, message=str(exception))
+        log_failure(logger, "Text-to-speech request failed", exception)
+        return ErrorEvent(
+            code="worker_failed",
+            message=public_error_message(exception),
+        )
+
+    return stream_events(
+        partial(tts.synthesize, synthesis_request, job),
+        failure,
+        "tts-request",
+        job,
+    )

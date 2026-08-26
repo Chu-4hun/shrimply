@@ -1,0 +1,13 @@
+[package]
+name = "shrimply-support"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glib = { workspace = true, features = ["log"] }
+libc.workspace = true
+rusqlite = { workspace = true, features = ["bundled"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter"] }

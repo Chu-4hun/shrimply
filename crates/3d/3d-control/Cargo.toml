@@ -1,0 +1,9 @@
+[package]
+name = "shrimply-3d-control"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam.workspace = true
+shrimply-math-geometry = { path = "../../math/geometry" }
+shrimply-transform-3d = { path = "../transform-3d" }

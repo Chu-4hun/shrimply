@@ -1,0 +1,17 @@
+[package]
+name = "shrimply-tts-ui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-channel.workspace = true
+gtk = { workspace = true, features = ["v4_10"] }
+shrimply-audio = { path = "../audio" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-project = { path = "../../project/project" }
+shrimply-server-client = { path = "../../server-client" }
+shrimply-state = { path = "../../state" }
+shrimply-tts = { path = "../tts" }
+shrimply-ui-foundation = { path = "../../ui/ui-foundation" }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4"] }

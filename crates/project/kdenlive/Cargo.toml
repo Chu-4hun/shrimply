@@ -1,0 +1,20 @@
+[package]
+name = "shrimply-kdenlive"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam.workspace = true
+num-traits.workspace = true
+quick-xml.workspace = true
+serde_json.workspace = true
+shrimply-audio-modifiers = { path = "../../audio/audio-modifiers" }
+shrimply-core = { path = "../../core" }
+shrimply-interpolation = { path = "../../interpolation" }
+shrimply-math-geometry = { path = "../../math/geometry" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-pdf = { path = "../../pdf" }
+shrimply-layered-image = { path = "../../layered-image/layered-image" }
+shrimply-project = { path = "../project", default-features = false }
+shrimply-video-modifiers = { path = "../../video/video-modifiers" }
+uuid.workspace = true

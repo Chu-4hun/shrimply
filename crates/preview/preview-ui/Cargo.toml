@@ -1,0 +1,31 @@
+[package]
+name = "shrimply-preview-ui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+adw = { workspace = true, features = ["v1_9"] }
+cuda-core.workspace = true
+glam.workspace = true
+glow.workspace = true
+gtk = { workspace = true, features = ["v4_10"] }
+libc.workspace = true
+shrimply-audio = { path = "../../audio/audio" }
+shrimply-benchmarking = { path = "../../benchmarking" }
+shrimply-core = { path = "../../core" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-evaluation = { path = "../../evaluation" }
+shrimply-paint-edit = { path = "../../paint/paint-edit" }
+shrimply-project = { path = "../../project/project" }
+shrimply-preview-core = { path = "../preview-core" }
+shrimply-playback-performance = { path = "../playback-performance" }
+shrimply-render-core = { path = "../../render-core" }
+shrimply-state = { path = "../../state" }
+shrimply-timeline = { path = "../../timeline/timeline" }
+shrimply-ui-foundation = { path = "../../ui/ui-foundation" }
+shrimply-video = { path = "../../video/rendering" }
+shrimply-video-modifiers = { path = "../../video/video-modifiers" }
+shrimply-math-color = { path = "../../math/color", features = ["gdk"] }
+skia-safe = { workspace = true, features = ["textlayout"] }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4"] }

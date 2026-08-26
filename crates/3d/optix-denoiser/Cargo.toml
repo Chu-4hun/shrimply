@@ -1,0 +1,12 @@
+[package]
+name = "shrimply-optix-denoiser"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+
+[dependencies]
+cuda-core.workspace = true
+shrimply-math-color = { path = "../../math/color", features = ["cuda"] }
+
+[build-dependencies]
+cc.workspace = true

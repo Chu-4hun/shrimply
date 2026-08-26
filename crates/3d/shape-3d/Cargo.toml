@@ -1,0 +1,14 @@
+[package]
+name = "shrimply-shape-3d"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+glam.workspace = true
+lyon_tessellation.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-core = { path = "../../core" }
+shrimply-math-geometry = { path = "../../math/geometry" }
+shrimply-scene-3d = { path = "../scene-3d" }
+uuid = { workspace = true, features = ["v4", "serde"] }

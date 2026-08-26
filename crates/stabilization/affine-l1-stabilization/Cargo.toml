@@ -1,0 +1,13 @@
+[package]
+name = "shrimply-affine-l1-stabilization"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cuda-core.workspace = true
+good_lp.workspace = true
+glam.workspace = true
+opencv.workspace = true
+shrimply-math-core = { path = "../../math/core" }
+shrimply-nvidia-optical-flow = { path = "../nvidia-optical-flow" }
+tracing.workspace = true

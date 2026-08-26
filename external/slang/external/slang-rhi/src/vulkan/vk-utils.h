@@ -1,0 +1,131 @@
+#pragma once
+
+#include <slang-rhi.h>
+
+#include "vk-api.h"
+
+#include "core/common.h"
+#include "core/diagnostics.h"
+
+namespace rhi {
+class Device;
+}
+
+namespace rhi::vk {
+
+// Macros to make testing vulkan return codes simpler
+
+const char* getVkResultName(VkResult res);
+void reportVulkanError(VkResult res, const char* call, const SourceLocation location, Device* device = nullptr);
+
+/// SLANG_VK_RETURN_ON_FAIL can be used in a similar way to SLANG_RETURN_ON_FAIL macro.
+#define SLANG_VK_RETURN_ON_FAIL(x)                                                                                     \
+    {                                                                                                                  \
+        VkResult _res = x;                                                                                             \
+        if (_res != VK_SUCCESS)                                                                                        \
+        {                                                                                                              \
+            return SLANG_FAIL;                                                                                         \
+        }                                                                                                              \
+    }
+
+/// Pass nullptr for device to write the diagnostic to stderr.
+#define SLANG_VK_RETURN_ON_FAIL_REPORT(x, device)                                                                      \
+    {                                                                                                                  \
+        VkResult _res = x;                                                                                             \
+        if (_res != VK_SUCCESS)                                                                                        \
+        {                                                                                                              \
+            ::rhi::vk::reportVulkanError(_res, #x, SLANG_RHI_SOURCE_LOCATION(), device);                               \
+            return SLANG_FAIL;                                                                                         \
+        }                                                                                                              \
+    }
+
+/// Report and assert if a Vulkan call fails.
+#define SLANG_VK_ASSERT_ON_FAIL(x)                                                                                     \
+    {                                                                                                                  \
+        VkResult _res = x;                                                                                             \
+        if (_res != VK_SUCCESS)                                                                                        \
+        {                                                                                                              \
+            ::rhi::vk::reportVulkanError(_res, #x, SLANG_RHI_SOURCE_LOCATION());                                       \
+            SLANG_RHI_ASSERT_FAILURE("Vulkan call failed");                                                            \
+        }                                                                                                              \
+    }
+
+// Utility functions for Vulkan
+
+/// Get the equivalent VkFormat from the format
+/// Returns VK_FORMAT_UNDEFINED if a match is not found
+VkFormat getVkFormat(Format format);
+
+VkAttachmentLoadOp translateLoadOp(LoadOp loadOp);
+VkAttachmentStoreOp translateStoreOp(StoreOp storeOp);
+VkPipelineCreateFlags translateRayTracingPipelineFlags(RayTracingPipelineFlags flags);
+VkPipelineCreateFlags2 translateRayTracingPipelineFlags2(RayTracingPipelineFlags flags);
+
+VkImageLayout translateImageLayout(ResourceState state);
+
+VkAccessFlagBits calcAccessFlags(ResourceState state);
+VkPipelineStageFlags calcPipelineStageFlags(
+    VkPipelineStageFlags supportedShaderStageFlags,
+    ResourceState state,
+    bool src
+);
+VkAccessFlags translateAccelerationStructureAccessFlag(AccessFlag access);
+
+VkBufferUsageFlagBits _calcBufferUsageFlags(BufferUsage usage);
+VkImageUsageFlagBits _calcImageUsageFlags(ResourceState state);
+VkImageUsageFlagBits _calcImageUsageFlags(TextureUsage usage);
+VkImageUsageFlags _calcImageUsageFlags(TextureUsage usage, MemoryType memoryType, const void* initData);
+
+VkAccessFlags calcAccessFlagsFromImageLayout(VkImageLayout layout);
+VkPipelineStageFlags calcPipelineStageFlagsFromImageLayout(VkImageLayout layout);
+
+VkImageAspectFlags getAspectMaskFromFormat(VkFormat format, TextureAspect aspect = TextureAspect::All);
+
+AdapterLUID getAdapterLUID(const VkPhysicalDeviceIDProperties& props);
+
+VkShaderStageFlags translateShaderStage(SlangStage stage);
+
+VkImageLayout getImageLayoutFromState(ResourceState state);
+
+bool isDepthFormat(VkFormat format);
+bool isStencilFormat(VkFormat format);
+
+VkSampleCountFlagBits translateSampleCount(uint32_t sampleCount);
+
+VkCullModeFlags translateCullMode(CullMode cullMode);
+
+VkFrontFace translateFrontFaceMode(FrontFaceMode frontFaceMode);
+
+VkPolygonMode translateFillMode(FillMode fillMode);
+
+VkBlendFactor translateBlendFactor(BlendFactor blendFactor);
+
+VkBlendOp translateBlendOp(BlendOp op);
+
+VkPrimitiveTopology translatePrimitiveListTopology(PrimitiveTopology topology);
+
+VkStencilOp translateStencilOp(StencilOp op);
+
+VkFilter translateFilterMode(TextureFilteringMode mode);
+
+VkSamplerMipmapMode translateMipFilterMode(TextureFilteringMode mode);
+
+VkSamplerAddressMode translateAddressingMode(TextureAddressingMode mode);
+
+VkCompareOp translateComparisonFunc(ComparisonFunc func);
+
+VkStencilOpState translateStencilState(DepthStencilOpDesc desc);
+
+VkSamplerReductionMode translateReductionOp(TextureReductionOp op);
+
+VkAccelerationStructureTypeKHR translateAccelerationStructureKind(AccelerationStructureKind kind);
+
+VkComponentTypeKHR translateCooperativeVectorComponentType(CooperativeVectorComponentType type);
+CooperativeVectorComponentType translateCooperativeVectorComponentType(VkComponentTypeKHR type);
+VkCooperativeVectorMatrixLayoutNV translateCooperativeVectorMatrixLayout(CooperativeVectorMatrixLayout layout);
+CooperativeVectorMatrixLayout translateCooperativeVectorMatrixLayout(VkCooperativeVectorMatrixLayoutNV layout);
+
+bool translateCooperativeMatrixComponentType(VkComponentTypeKHR type, CooperativeMatrixComponentType& outType);
+bool translateCooperativeMatrixScope(VkScopeKHR scope, CooperativeMatrixScope& outScope);
+
+} // namespace rhi::vk

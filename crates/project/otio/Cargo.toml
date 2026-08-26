@@ -1,0 +1,15 @@
+[package]
+name = "shrimply-otio"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ffmpeg-next.workspace = true
+glam.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+shrimply-core = { path = "../../core" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-pdf = { path = "../../pdf" }
+shrimply-layered-image = { path = "../../layered-image/layered-image" }
+shrimply-project = { path = "../project", default-features = false }

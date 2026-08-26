@@ -1,0 +1,146 @@
+uniform int mode;
+
+float luminosity(float3 color) {
+    return dot(color, float3(0.3, 0.59, 0.11));
+}
+
+float saturation(float3 color) {
+    return max(color.r, max(color.g, color.b)) - min(color.r, min(color.g, color.b));
+}
+
+float3 clip_color(float3 color) {
+    float l = luminosity(color);
+    float minimum = min(color.r, min(color.g, color.b));
+    float maximum = max(color.r, max(color.g, color.b));
+    if (minimum < 0.0) {
+        color = l + (color - l) * l / (l - minimum);
+    }
+    if (maximum > 1.0) {
+        color = l + (color - l) * (1.0 - l) / (maximum - l);
+    }
+    return clamp(color, 0.0, 1.0);
+}
+
+float3 with_luminosity(float3 color, float l) {
+    return clip_color(color + (l - luminosity(color)));
+}
+
+float3 with_saturation(float3 color, float target) {
+    float minimum = min(color.r, min(color.g, color.b));
+    float maximum = max(color.r, max(color.g, color.b));
+    if (minimum == maximum) {
+        return float3(0.0);
+    }
+    float middle = color.r + color.g + color.b - minimum - maximum;
+    float scaled_middle = (middle - minimum) * target / (maximum - minimum);
+    if (color.r == minimum) {
+        return color.g == maximum
+            ? float3(0.0, target, scaled_middle)
+            : float3(0.0, scaled_middle, target);
+    }
+    if (color.g == minimum) {
+        return color.r == maximum
+            ? float3(target, 0.0, scaled_middle)
+            : float3(scaled_middle, 0.0, target);
+    }
+    return color.r == maximum
+        ? float3(target, scaled_middle, 0.0)
+        : float3(scaled_middle, target, 0.0);
+}
+
+float burn(float source, float destination) {
+    return source <= 0.0 ? 0.0 : 1.0 - min((1.0 - destination) / source, 1.0);
+}
+
+float dodge(float source, float destination) {
+    return source >= 1.0 ? 1.0 : min(destination / (1.0 - source), 1.0);
+}
+
+float hard_light(float source, float destination) {
+    return source <= 0.5
+        ? 2.0 * source * destination
+        : 1.0 - 2.0 * (1.0 - source) * (1.0 - destination);
+}
+
+float vivid_light(float source, float destination) {
+    return source <= 0.5
+        ? burn(source * 2.0, destination)
+        : dodge((source - 0.5) * 2.0, destination);
+}
+
+float channel(float source, float destination) {
+    if (mode == 3) return min(source, destination);
+    if (mode == 4) return source * destination;
+    if (mode == 5) return burn(source, destination);
+    if (mode == 6) return max(source + destination - 1.0, 0.0);
+    if (mode == 8) return max(source, destination);
+    if (mode == 9) return source + destination - source * destination;
+    if (mode == 10) return dodge(source, destination);
+    if (mode == 11) return min(source + destination, 1.0);
+    if (mode == 13) return hard_light(destination, source);
+    if (mode == 14) {
+        if (source <= 0.5) {
+            return destination - (1.0 - 2.0 * source) * destination * (1.0 - destination);
+        }
+        float curve = destination <= 0.25
+            ? ((16.0 * destination - 12.0) * destination + 4.0) * destination
+            : sqrt(destination);
+        return destination + (2.0 * source - 1.0) * (curve - destination);
+    }
+    if (mode == 15) return hard_light(source, destination);
+    if (mode == 16) return vivid_light(source, destination);
+    if (mode == 17) return clamp(destination + 2.0 * source - 1.0, 0.0, 1.0);
+    if (mode == 18) return source <= 0.5
+        ? min(destination, source * 2.0)
+        : max(destination, 2.0 * source - 1.0);
+    if (mode == 19) return vivid_light(source, destination) >= 0.5 ? 1.0 : 0.0;
+    if (mode == 20) return abs(destination - source);
+    if (mode == 21) return destination + source - 2.0 * destination * source;
+    if (mode == 22) return max(destination - source, 0.0);
+    if (mode == 23) return source <= 0.0 ? 1.0 : min(destination / source, 1.0);
+    return source;
+}
+
+half4 main(half4 source, half4 destination) {
+    float source_alpha = source.a;
+    float destination_alpha = destination.a;
+    float3 source_rgb = source_alpha > 0.000001 ? source.rgb / source_alpha : float3(0.0);
+    float3 destination_rgb = destination_alpha > 0.000001
+        ? destination.rgb / destination_alpha
+        : float3(0.0);
+    float3 blended;
+    if (mode == 7) {
+        blended = luminosity(source_rgb) < luminosity(destination_rgb)
+            ? source_rgb
+            : destination_rgb;
+    } else if (mode == 12) {
+        blended = luminosity(source_rgb) > luminosity(destination_rgb)
+            ? source_rgb
+            : destination_rgb;
+    } else if (mode == 24) {
+        blended = with_luminosity(
+            with_saturation(source_rgb, saturation(destination_rgb)),
+            luminosity(destination_rgb)
+        );
+    } else if (mode == 25) {
+        blended = with_luminosity(
+            with_saturation(destination_rgb, saturation(source_rgb)),
+            luminosity(destination_rgb)
+        );
+    } else if (mode == 26) {
+        blended = with_luminosity(source_rgb, luminosity(destination_rgb));
+    } else if (mode == 27) {
+        blended = with_luminosity(destination_rgb, luminosity(source_rgb));
+    } else {
+        blended = float3(
+            channel(source_rgb.r, destination_rgb.r),
+            channel(source_rgb.g, destination_rgb.g),
+            channel(source_rgb.b, destination_rgb.b)
+        );
+    }
+    float output_alpha = source_alpha + destination_alpha * (1.0 - source_alpha);
+    float3 output_rgb = (1.0 - destination_alpha) * source.rgb
+        + (1.0 - source_alpha) * destination.rgb
+        + source_alpha * destination_alpha * blended;
+    return half4(output_rgb, output_alpha);
+}

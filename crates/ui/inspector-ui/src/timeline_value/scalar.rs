@@ -1,0 +1,959 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+use uuid::Uuid;
+
+use gtk::prelude::*;
+
+use crate::InspectedItem as SelectedItem;
+use crate::player_state::{self, ProjectChange, SharedPlayerState};
+use crate::timeline_value::*;
+use crate::transform_eval;
+use crate::ui::{NumberPicker, NumberPickerHandle};
+use shrimply_project::project::VisualAlphaMaskTarget;
+use shrimply_project::project::{Project, Time};
+
+use crate::keyframe_editor::{
+    self, KeyframeEditorActions, KeyframeGraph, KeyframePoint, RawSegment,
+};
+use crate::timeline_value::layered;
+use crate::{InspectorContext, keyframe_model};
+
+pub(crate) type ScalarGet = for<'a> fn(&'a Project, SelectedItem) -> Option<&'a TimelineValue<f32>>;
+pub(crate) type ScalarGetMut =
+    for<'a> fn(&'a mut Project, SelectedItem) -> Option<&'a mut TimelineValue<f32>>;
+pub(crate) type SceneScalarGet =
+    for<'a> fn(&'a shrimply_scene_3d::ObjScene) -> &'a TimelineValue<f32>;
+pub(crate) type SceneScalarGetMut =
+    for<'a> fn(&'a mut shrimply_scene_3d::ObjScene) -> &'a mut TimelineValue<f32>;
+
+#[derive(Clone, Copy)]
+pub(crate) enum ScalarAccess {
+    Item {
+        get: ScalarGet,
+        get_mut: ScalarGetMut,
+    },
+    ItemWithMutation {
+        get: ScalarGet,
+        get_mut: ScalarGetMut,
+        mutated: fn(&mut Project, SelectedItem),
+    },
+    Modifier {
+        id: Uuid,
+        value_id: Uuid,
+    },
+    AlphaMask {
+        target: VisualAlphaMaskTarget,
+        value_id: Uuid,
+    },
+    AudioModifier {
+        id: Uuid,
+        value_id: Uuid,
+    },
+    Background {
+        value_id: Uuid,
+    },
+    PaintPalette {
+        value_id: Uuid,
+    },
+    Scene3d {
+        get: SceneScalarGet,
+        get_mut: SceneScalarGetMut,
+    },
+}
+
+impl ScalarAccess {
+    fn get(self, project: &Project, key: SelectedItem) -> Option<&TimelineValue<f32>> {
+        match self {
+            Self::Item { get, .. } | Self::ItemWithMutation { get, .. } => {
+                get(project, key.clone())
+            }
+            Self::Modifier { id, value_id } => crate::modifiers::number(
+                project
+                    .video_item(&key)?
+                    .modifiers
+                    .iter()
+                    .find(|m| m.id == id)?,
+                value_id,
+            ),
+            Self::AlphaMask { target, value_id } => project
+                .video_item(&key)?
+                .alpha_mask(target)?
+                .number(value_id),
+            Self::AudioModifier { id, value_id } => {
+                use shrimply_video_modifiers::ModifierModel;
+                project
+                    .audio_item(&key)?
+                    .modifiers
+                    .iter()
+                    .find(|modifier| modifier.id == id)?
+                    .effect
+                    .number(value_id)
+            }
+            Self::Background { value_id } => {
+                let shrimply_project::project::VideoItemContent::Background(background) =
+                    &project.video_item(&key)?.content
+                else {
+                    return None;
+                };
+                background.generator.number(value_id)
+            }
+            Self::PaintPalette { value_id } => {
+                let shrimply_project::project::VideoItemContent::Paint(paint) =
+                    &project.video_item(&key)?.content
+                else {
+                    return None;
+                };
+                paint.palette.iter().find_map(|entry| {
+                    let texture = entry.texture.as_ref()?;
+                    [&texture.repeat_scale, &texture.rotation_degrees]
+                        .into_iter()
+                        .find(|value| value.id == value_id)
+                })
+            }
+            Self::Scene3d { get, .. } => scene_3d(project, key.clone()).map(get),
+        }
+    }
+    fn get_mut(self, project: &mut Project, key: SelectedItem) -> Option<&mut TimelineValue<f32>> {
+        match self {
+            Self::Item { get_mut, .. } | Self::ItemWithMutation { get_mut, .. } => {
+                get_mut(project, key.clone())
+            }
+            Self::Modifier { id, value_id } => crate::modifiers::number_mut(
+                project
+                    .video_item_mut(&key)?
+                    .modifiers
+                    .iter_mut()
+                    .find(|m| m.id == id)?,
+                value_id,
+            ),
+            Self::AlphaMask { target, value_id } => project
+                .video_item_mut(&key)?
+                .alpha_mask_mut(target)?
+                .number_mut(value_id),
+            Self::AudioModifier { id, value_id } => {
+                use shrimply_video_modifiers::ModifierModel;
+                project
+                    .audio_item_mut(&key)?
+                    .modifiers
+                    .iter_mut()
+                    .find(|modifier| modifier.id == id)?
+                    .effect
+                    .number_mut(value_id)
+            }
+            Self::Background { value_id } => {
+                let shrimply_project::project::VideoItemContent::Background(background) =
+                    &mut project.video_item_mut(&key)?.content
+                else {
+                    return None;
+                };
+                background.generator.number_mut(value_id)
+            }
+            Self::PaintPalette { value_id } => {
+                let shrimply_project::project::VideoItemContent::Paint(paint) =
+                    &mut project.video_item_mut(&key)?.content
+                else {
+                    return None;
+                };
+                paint.palette.iter_mut().find_map(|entry| {
+                    let texture = entry.texture.as_mut()?;
+                    [&mut texture.repeat_scale, &mut texture.rotation_degrees]
+                        .into_iter()
+                        .find(|value| value.id == value_id)
+                })
+            }
+            Self::Scene3d { get_mut, .. } => scene_3d_mut(project, key.clone()).map(get_mut),
+        }
+    }
+
+    fn mark_mutated(self, project: &mut Project, key: SelectedItem) {
+        match self {
+            Self::ItemWithMutation { mutated, .. } => mutated(project, key),
+            Self::PaintPalette { .. } => crate::paint::bump_revision_for_key(project, key),
+            _ => {}
+        }
+    }
+}
+
+fn scene_3d(project: &Project, key: SelectedItem) -> Option<&shrimply_scene_3d::ObjScene> {
+    let item = project.video_item(&key)?;
+    let shrimply_project::project::VideoItemContent::Obj(scene) = &item.content else {
+        return None;
+    };
+    Some(scene)
+}
+
+fn scene_3d_mut(
+    project: &mut Project,
+    key: SelectedItem,
+) -> Option<&mut shrimply_scene_3d::ObjScene> {
+    let item = project.video_item_mut(&key)?;
+    let shrimply_project::project::VideoItemContent::Obj(scene) = &mut item.content else {
+        return None;
+    };
+    Some(scene)
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct ScalarTarget {
+    pub(crate) access: ScalarAccess,
+    pub(crate) scope_id: Option<Uuid>,
+    pub(crate) local_time: fn(&Project, SelectedItem, Time) -> Option<Time>,
+    pub(crate) global_time: fn(&Project, SelectedItem, Time) -> Option<Time>,
+    pub(crate) duration: fn(&Project, SelectedItem) -> Option<Time>,
+    pub(crate) refresh: ProjectChange,
+    pub(crate) commit_name: &'static str,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct ScalarSpec {
+    pub(crate) drag_step: f64,
+    pub(crate) digits: usize,
+    pub(crate) integer: bool,
+    pub(crate) width_chars: i32,
+    pub(crate) minimum: Option<f64>,
+    pub(crate) maximum: Option<f64>,
+    pub(crate) unit_name: Option<&'static str>,
+    pub(crate) rotating_icon: Option<(&'static str, f64)>,
+    pub(crate) display: fn(f32) -> f64,
+    pub(crate) store: fn(f64) -> f32,
+    pub(crate) clamp: fn(f32) -> f32,
+}
+
+pub(crate) fn scalar_control(
+    label: &str,
+    value: &TimelineValue<f32>,
+    context: &InspectorContext,
+    target: ScalarTarget,
+    spec: ScalarSpec,
+) -> gtk::Widget {
+    let Some(key) = context.selected_item.clone() else {
+        return layered::control(
+            label,
+            value,
+            scalar_picker((spec.display)(value.fallback()), context, target, spec),
+            Vec::new(),
+            |_| {},
+            |_| {},
+        );
+    };
+    let local_time = current_local_time(context, target, key.clone()).unwrap_or(Time::ZERO);
+    let display = (spec.display)(current_base_value(value, local_time));
+    let keyframes_enabled = matches!(value.base, TimelineBase::Keyframes(_));
+    let expression_enabled = value
+        .expression
+        .as_ref()
+        .is_some_and(|expression| expression.enabled);
+    let picker = scalar_picker(display, context, target, spec);
+
+    let mut body = Vec::new();
+    if keyframes_enabled {
+        let graph = scalar_graph(value, spec, display);
+        let duration = {
+            let project = context.project.borrow();
+            (target.duration)(&project, key.clone()).unwrap_or(Time::ZERO)
+        };
+        let built = keyframe_editor::build(
+            context,
+            keyframe_body_placeholder(),
+            graph,
+            (Time::ZERO, duration),
+            format!(
+                "scalar:{}:{:?}:{label}",
+                target.commit_name, target.scope_id
+            ),
+            keyframe_actions(context, key.clone(), target, spec),
+        );
+        let project = context.project.clone();
+        let player = context.player_state.clone();
+        let graph_key = key.clone();
+        keyframe_editor::connect_graph_refresh(
+            context,
+            "inspector scalar keyframe graph refresh",
+            built.update_graph.clone(),
+            move || {
+                let position = player_state::snapshot(&player).position;
+                let project = project.borrow();
+                let value = target.access.get(&project, graph_key.clone())?;
+                let static_value = (target.local_time)(&project, graph_key.clone(), position)
+                    .map(|time| (spec.display)(current_base_value(value, time)))
+                    .unwrap_or_else(|| (spec.display)(value.fallback()));
+                Some(scalar_graph(value, spec, static_value))
+            },
+        );
+        body.push(built.widget);
+    }
+
+    if expression_enabled {
+        body.push(expression_editor(context, key.clone(), target));
+    }
+
+    let keyframe_project = context.project.clone();
+    let keyframe_player_state = context.player_state.clone();
+    let keyframe_refresh = context.refresh.clone();
+    let expression_project = context.project.clone();
+    let expression_player_state = context.player_state.clone();
+    let expression_refresh = context.refresh.clone();
+    let keyframe_key = key.clone();
+    let expression_key = key;
+    layered::control(
+        label,
+        value,
+        picker,
+        body,
+        move |enabled| {
+            if set_keyframes_enabled(
+                &keyframe_project,
+                &keyframe_player_state,
+                keyframe_key.clone(),
+                target,
+                enabled,
+            ) {
+                keyframe_refresh();
+            }
+        },
+        move |enabled| {
+            if set_expression_enabled(
+                &expression_project,
+                &expression_player_state,
+                expression_key.clone(),
+                target,
+                enabled,
+            ) {
+                expression_refresh();
+            }
+        },
+    )
+}
+
+fn keyframe_body_placeholder() -> gtk::Widget {
+    gtk::Box::new(gtk::Orientation::Horizontal, 0).upcast()
+}
+
+fn scalar_picker(
+    value: f64,
+    context: &InspectorContext,
+    target: ScalarTarget,
+    spec: ScalarSpec,
+) -> gtk::Widget {
+    let mut picker = if spec.integer {
+        NumberPicker::integer_builder(value.round() as i64)
+    } else {
+        NumberPicker::builder(value)
+    }
+    .drag_step(spec.drag_step)
+    .digits(spec.digits)
+    .width_chars(spec.width_chars);
+    if let Some(minimum) = spec.minimum {
+        picker = picker.minimum(minimum);
+    }
+    if let (Some(minimum), Some(maximum)) = (spec.minimum, spec.maximum) {
+        picker = picker.accepted_range(minimum, maximum);
+    }
+    if let Some(unit_name) = spec.unit_name {
+        picker = picker.unit_name(unit_name);
+    }
+    if let Some((icon_name, offset_degrees)) = spec.rotating_icon {
+        picker = picker.rotating_prefix_icon_name_with_offset(icon_name, offset_degrees);
+    }
+    let Some(key) = context.selected_item.clone() else {
+        return picker.build();
+    };
+    let project = context.project.clone();
+    let player_state = context.player_state.clone();
+    let commit_project = context.project.clone();
+    let commit_player_state = context.player_state.clone();
+    let integer_key = key.clone();
+    let float_key = key.clone();
+    let parts = if spec.integer {
+        picker
+            .on_change_integer::<i64>(move |next| {
+                update_scalar_live(
+                    &project,
+                    &player_state,
+                    integer_key.clone(),
+                    target,
+                    spec,
+                    next as f64,
+                );
+            })
+            .on_commit_integer::<i64>(move |_| {
+                shrimply_project::project::commit_edit(
+                    &commit_project.borrow(),
+                    target.commit_name,
+                );
+                player_state::refresh_project(&commit_player_state, target.refresh);
+            })
+            .build_with_handle()
+    } else {
+        picker
+            .on_change(move |next| {
+                update_scalar_live(
+                    &project,
+                    &player_state,
+                    float_key.clone(),
+                    target,
+                    spec,
+                    next,
+                );
+            })
+            .on_commit(move |_| {
+                shrimply_project::project::commit_edit(
+                    &commit_project.borrow(),
+                    target.commit_name,
+                );
+                player_state::refresh_project(&commit_player_state, target.refresh);
+            })
+            .build_with_handle()
+    };
+    connect_scalar_display(context, key.clone(), target, spec, parts.handle);
+    parts.widget
+}
+
+fn connect_scalar_display(
+    context: &InspectorContext,
+    key: SelectedItem,
+    target: ScalarTarget,
+    spec: ScalarSpec,
+    handle: NumberPickerHandle,
+) {
+    let project = context.project.clone();
+    let player_state = context.player_state.clone();
+    let alive = Rc::downgrade(&context.listener_scope);
+    let handle = handle.downgrade();
+    player_state::connect_while_alive_named(
+        &context.player_state,
+        "inspector scalar base display",
+        {
+            let alive = alive.clone();
+            move || alive.upgrade().is_some()
+        },
+        move |event| {
+            if !matches!(
+                event,
+                player_state::PlayerEvent::State | player_state::PlayerEvent::Project(_)
+            ) {
+                return;
+            }
+            let Some(handle) = handle.upgrade() else {
+                return;
+            };
+            let position = player_state::snapshot(&player_state).position;
+            let value = {
+                let project = project.borrow();
+                let Some(local_time) = (target.local_time)(&project, key.clone(), position) else {
+                    return;
+                };
+                let Some(value) = target.access.get(&project, key.clone()) else {
+                    return;
+                };
+                current_base_value(value, local_time)
+            };
+            handle.set_f64((spec.display)(value));
+        },
+    );
+}
+
+fn expression_editor(
+    context: &InspectorContext,
+    key: SelectedItem,
+    target: ScalarTarget,
+) -> gtk::Widget {
+    let source = {
+        let project = context.project.borrow();
+        target
+            .access
+            .get(&project, key.clone())
+            .and_then(|value| value.expression_source().map(str::to_string))
+    };
+    let project = context.project.clone();
+    let player_state = context.player_state.clone();
+    crate::rhai_editor::editor(
+        source,
+        crate::rhai_editor::ExpressionValue::Scalar,
+        move |source| {
+            update_expression_source(&project, &player_state, key.clone(), target, source);
+        },
+    )
+}
+
+fn keyframe_actions(
+    context: &InspectorContext,
+    key: SelectedItem,
+    target: ScalarTarget,
+    spec: ScalarSpec,
+) -> KeyframeEditorActions {
+    let project = context.project.clone();
+    let player_state = context.player_state.clone();
+    let playhead_project = project.clone();
+    let playhead_player = player_state.clone();
+    let select_project = project.clone();
+    let select_player = player_state.clone();
+    let add_project = project.clone();
+    let add_player = player_state.clone();
+    let delete_project = project.clone();
+    let delete_player = player_state.clone();
+    let point_project = project.clone();
+    let point_player = player_state.clone();
+    let copy_project = project.clone();
+    let paste_project = project.clone();
+    let paste_player = player_state.clone();
+    let interpolation_project = project;
+    let interpolation_player = player_state.clone();
+    let playback_player = player_state;
+    let refresh_add = context.refresh.clone();
+    let refresh_delete = context.refresh.clone();
+    let playhead_key = key.clone();
+    let select_key = key.clone();
+    let add_key = key.clone();
+    let delete_key = key.clone();
+    let point_key = key.clone();
+    let copy_key = key.clone();
+    let paste_key = key.clone();
+    let interpolation_key = key;
+    KeyframeEditorActions {
+        playhead: Rc::new(move || {
+            let project = playhead_project.borrow();
+            let position = player_state::snapshot(&playhead_player).position;
+            (target.local_time)(&project, playhead_key.clone(), position).unwrap_or(Time::ZERO)
+        }),
+        select_time: Rc::new(move |time| {
+            let project = select_project.borrow();
+            if let Some(position) = (target.global_time)(&project, select_key.clone(), time) {
+                player_state::set_position(&select_player, position);
+            }
+        }),
+        add_at_time: Rc::new(move |time| {
+            if add_keyframe_at_time(
+                &add_project,
+                &add_player,
+                add_key.clone(),
+                target,
+                spec,
+                time,
+            ) {
+                refresh_add();
+            }
+        }),
+        delete_at_time: Rc::new(move |time| {
+            if delete_keyframe_at_time(
+                &delete_project,
+                &delete_player,
+                delete_key.clone(),
+                target,
+                time,
+            ) {
+                refresh_delete();
+            }
+        }),
+        update_point: Rc::new(move |old_time, time, value| {
+            update_keyframe_point(
+                &point_project,
+                &point_player,
+                point_key.clone(),
+                target,
+                spec,
+                (old_time, time, value),
+            );
+        }),
+        copy_keyframes: Rc::new(move |times| {
+            target
+                .access
+                .get(&copy_project.borrow(), copy_key.clone())
+                .and_then(|value| keyframe_model::copy_keyframes(value, times))
+        }),
+        paste_keyframes: Rc::new(move |clipboard, time| {
+            let mut project = paste_project.borrow_mut();
+            let frame_step = keyframe_editor::project_frame_step(&project);
+            let value = target.access.get_mut(&mut project, paste_key.clone())?;
+            let times = keyframe_model::paste_keyframes(value, clipboard, time, frame_step)?;
+            target.access.mark_mutated(&mut project, paste_key.clone());
+            shrimply_project::project::commit_edit(&project, target.commit_name);
+            drop(project);
+            player_state::refresh_project(&paste_player, target.refresh);
+            Some(times)
+        }),
+        set_interpolation: Some(Rc::new(move |owner_id, interpolation| {
+            set_keyframe_interpolation(
+                &interpolation_project,
+                &interpolation_player,
+                interpolation_key.clone(),
+                target,
+                owner_id,
+                interpolation,
+            );
+        })),
+        text_interpolation: None,
+        toggle_playback: Rc::new(move || player_state::toggle_playing(&playback_player)),
+    }
+}
+
+fn scalar_graph(value: &TimelineValue<f32>, spec: ScalarSpec, static_value: f64) -> KeyframeGraph {
+    let Some(keyframes) = (match &value.base {
+        TimelineBase::Keyframes(keyframes) => Some(keyframes.as_slice()),
+        TimelineBase::Const(_) => None,
+    }) else {
+        return KeyframeGraph::RawValue {
+            points: Vec::new(),
+            segments: Vec::new(),
+            static_value,
+        };
+    };
+    KeyframeGraph::RawValue {
+        points: keyframes
+            .iter()
+            .map(|keyframe| KeyframePoint {
+                time: keyframe.time,
+                value: (spec.display)(keyframe.value),
+            })
+            .collect(),
+        segments: keyframes
+            .windows(2)
+            .map(|pair| RawSegment {
+                owner_id: pair[0].id,
+                start: pair[0].time,
+                end: pair[1].time,
+                start_value: (spec.display)(pair[0].value),
+                end_value: (spec.display)(pair[1].value),
+                interpolation: pair[0].interpolation_to_next,
+            })
+            .collect(),
+        static_value,
+    }
+}
+
+fn update_scalar_live(
+    project: &Rc<RefCell<Project>>,
+    player_state: &SharedPlayerState,
+    key: SelectedItem,
+    target: ScalarTarget,
+    spec: ScalarSpec,
+    value: f64,
+) {
+    let position = player_state::snapshot(player_state).position;
+    let mut project = project.borrow_mut();
+    let Some(local_time) = (target.local_time)(&project, key.clone(), position) else {
+        return;
+    };
+    let frame_step = keyframe_editor::project_frame_step(&project);
+    let local_time = keyframe_model::snap_to_frame(local_time, frame_step);
+    let next = (spec.clamp)((spec.store)(value));
+    let Some(number) = target.access.get_mut(&mut project, key.clone()) else {
+        return;
+    };
+    if !set_number_value(number, local_time, frame_step, next) {
+        return;
+    }
+    target.access.mark_mutated(&mut project, key);
+    drop(project);
+    let mut refresh = keyframe_model::live_refresh(target.refresh);
+    refresh.audio_waveforms = false;
+    player_state::refresh_project(player_state, refresh);
+}
+
+fn set_keyframes_enabled(
+    project: &Rc<RefCell<Project>>,
+    player_state: &SharedPlayerState,
+    key: SelectedItem,
+    target: ScalarTarget,
+    enabled: bool,
+) -> bool {
+    let position = player_state::snapshot(player_state).position;
+    let mut project = project.borrow_mut();
+    let Some(local_time) = (target.local_time)(&project, key.clone(), position) else {
+        return false;
+    };
+    let local_time =
+        keyframe_model::snap_to_frame(local_time, keyframe_editor::project_frame_step(&project));
+    let Some(number) = target.access.get_mut(&mut project, key.clone()) else {
+        return false;
+    };
+    let current = current_base_value(number, local_time);
+    match (&mut number.base, enabled) {
+        (TimelineBase::Const(_), false) | (TimelineBase::Keyframes(_), true) => return false,
+        (base @ TimelineBase::Const(_), true) => {
+            *base = TimelineBase::Keyframes(vec![new_keyframe(local_time, current)]);
+        }
+        (base @ TimelineBase::Keyframes(_), false) => {
+            *base = TimelineBase::Const(current);
+        }
+    }
+    target.access.mark_mutated(&mut project, key);
+    shrimply_project::project::commit_edit(&project, target.commit_name);
+    drop(project);
+    player_state::refresh_project(player_state, target.refresh);
+    true
+}
+
+fn set_expression_enabled(
+    project: &Rc<RefCell<Project>>,
+    player_state: &SharedPlayerState,
+    key: SelectedItem,
+    target: ScalarTarget,
+    enabled: bool,
+) -> bool {
+    let mut project = project.borrow_mut();
+    let Some(number) = target.access.get_mut(&mut project, key.clone()) else {
+        return false;
+    };
+    let changed = match &mut number.expression {
+        Some(expression) => {
+            if expression.enabled == enabled {
+                false
+            } else {
+                expression.enabled = enabled;
+                true
+            }
+        }
+        None if enabled => {
+            number.expression = Some(TimelineExpression {
+                id: uuid::Uuid::new_v4(),
+                enabled: true,
+                source: "value".to_string(),
+            });
+            true
+        }
+        None => false,
+    };
+    if !changed {
+        return false;
+    }
+    target.access.mark_mutated(&mut project, key);
+    shrimply_project::project::commit_edit(&project, target.commit_name);
+    drop(project);
+    player_state::refresh_project(player_state, target.refresh);
+    true
+}
+
+fn update_expression_source(
+    project: &Rc<RefCell<Project>>,
+    player_state: &SharedPlayerState,
+    key: SelectedItem,
+    target: ScalarTarget,
+    source: String,
+) {
+    let mut project = project.borrow_mut();
+    let Some(number) = target.access.get_mut(&mut project, key.clone()) else {
+        return;
+    };
+    let Some(expression) = &mut number.expression else {
+        return;
+    };
+    if expression.source == source {
+        return;
+    }
+    expression.source = source;
+    target.access.mark_mutated(&mut project, key);
+    shrimply_project::project::commit_coalesced_edit(&project, target.commit_name);
+    drop(project);
+    let mut refresh = target.refresh;
+    refresh.inspector = false;
+    player_state::refresh_project(player_state, refresh);
+}
+
+fn add_keyframe_at_time(
+    project: &Rc<RefCell<Project>>,
+    player_state: &SharedPlayerState,
+    key: SelectedItem,
+    target: ScalarTarget,
+    _spec: ScalarSpec,
+    time: Time,
+) -> bool {
+    let mut project = project.borrow_mut();
+    let Some(number) = target.access.get_mut(&mut project, key.clone()) else {
+        return false;
+    };
+    let value = current_base_value(number, time);
+    let TimelineBase::Keyframes(keyframes) = &mut number.base else {
+        return false;
+    };
+    upsert_keyframe(keyframes, new_keyframe(time, value));
+    target.access.mark_mutated(&mut project, key);
+    shrimply_project::project::commit_edit(&project, target.commit_name);
+    drop(project);
+    player_state::refresh_project(player_state, target.refresh);
+    true
+}
+
+fn delete_keyframe_at_time(
+    project: &Rc<RefCell<Project>>,
+    player_state: &SharedPlayerState,
+    key: SelectedItem,
+    target: ScalarTarget,
+    time: Time,
+) -> bool {
+    let mut project = project.borrow_mut();
+    let Some(number) = target.access.get_mut(&mut project, key.clone()) else {
+        return false;
+    };
+    let TimelineBase::Keyframes(keyframes) = &mut number.base else {
+        return false;
+    };
+    let Some(index) = keyframes
+        .iter()
+        .position(|keyframe| keyframe.time.approx_eq(time))
+    else {
+        return false;
+    };
+    keyframes.remove(index);
+    if keyframes.is_empty() {
+        number.base = TimelineBase::Const(0.0);
+    }
+    target.access.mark_mutated(&mut project, key);
+    shrimply_project::project::commit_edit(&project, target.commit_name);
+    drop(project);
+    player_state::refresh_project(player_state, target.refresh);
+    true
+}
+
+fn update_keyframe_point(
+    project: &Rc<RefCell<Project>>,
+    player_state: &SharedPlayerState,
+    key: SelectedItem,
+    target: ScalarTarget,
+    spec: ScalarSpec,
+    point: (Time, Time, f64),
+) -> bool {
+    let (old_time, time, value) = point;
+    let mut project = project.borrow_mut();
+    let Some(number) = target.access.get_mut(&mut project, key.clone()) else {
+        return false;
+    };
+    let TimelineBase::Keyframes(keyframes) = &mut number.base else {
+        return false;
+    };
+    let Some(index) = keyframes
+        .iter()
+        .position(|keyframe| keyframe.time.approx_eq(old_time))
+    else {
+        return false;
+    };
+    let next = (spec.clamp)((spec.store)(value));
+    if !next.is_finite() {
+        return false;
+    }
+    keyframes[index].time = time;
+    keyframes[index].value = next;
+    keyframes.sort_by_key(|keyframe| keyframe.time);
+    target.access.mark_mutated(&mut project, key);
+    shrimply_project::project::commit_coalesced_edit(&project, target.commit_name);
+    drop(project);
+    player_state::refresh_project(player_state, keyframe_model::live_refresh(target.refresh));
+    true
+}
+
+fn set_keyframe_interpolation(
+    project: &Rc<RefCell<Project>>,
+    player_state: &SharedPlayerState,
+    key: SelectedItem,
+    target: ScalarTarget,
+    owner_id: Uuid,
+    interpolation: Interpolation,
+) -> bool {
+    let mut project = project.borrow_mut();
+    let Some(number) = target.access.get_mut(&mut project, key.clone()) else {
+        return false;
+    };
+    let TimelineBase::Keyframes(keyframes) = &mut number.base else {
+        return false;
+    };
+    let Some(keyframe) = keyframes
+        .iter_mut()
+        .find(|keyframe| keyframe.id == owner_id)
+    else {
+        return false;
+    };
+    if keyframe.interpolation_to_next == interpolation {
+        return false;
+    }
+    keyframe.interpolation_to_next = interpolation;
+    target.access.mark_mutated(&mut project, key);
+    shrimply_project::project::commit_edit(&project, target.commit_name);
+    drop(project);
+    player_state::refresh_project(player_state, keyframe_model::live_refresh(target.refresh));
+    true
+}
+
+fn current_local_time(
+    context: &InspectorContext,
+    target: ScalarTarget,
+    key: SelectedItem,
+) -> Option<Time> {
+    let project = context.project.borrow();
+    let position = player_state::snapshot(&context.player_state).position;
+    (target.local_time)(&project, key.clone(), position)
+}
+
+fn current_base_value(value: &TimelineValue<f32>, local_time: Time) -> f32 {
+    match &value.base {
+        TimelineBase::Const(value) => *value,
+        TimelineBase::Keyframes(keyframes) => {
+            transform_eval::scalar_keyframes_value(keyframes, local_time)
+        }
+    }
+}
+
+fn set_number_value(
+    value: &mut TimelineValue<f32>,
+    local_time: Time,
+    frame_step: Time,
+    next: f32,
+) -> bool {
+    if !next.is_finite() {
+        return false;
+    }
+    match &mut value.base {
+        TimelineBase::Const(current) => {
+            if (*current - next).abs() <= 0.000001 {
+                return false;
+            }
+            *current = next;
+            true
+        }
+        TimelineBase::Keyframes(keyframes) => {
+            if let Some(keyframe) = keyframes
+                .iter_mut()
+                .find(|keyframe| keyframe_model::same_frame(keyframe.time, local_time, frame_step))
+            {
+                if (keyframe.value - next).abs() <= 0.000001 {
+                    return false;
+                }
+                keyframe.value = next;
+            } else {
+                upsert_keyframe(keyframes, new_keyframe(local_time, next));
+            }
+            true
+        }
+    }
+}
+
+fn new_keyframe(time: Time, value: f32) -> TimelineScalarKeyframe<f32> {
+    TimelineScalarKeyframe::<f32> {
+        id: uuid::Uuid::new_v4(),
+        time,
+        value,
+        interpolation_to_next: Interpolation::default(),
+    }
+}
+
+fn upsert_keyframe(
+    keyframes: &mut Vec<TimelineScalarKeyframe<f32>>,
+    mut next: TimelineScalarKeyframe<f32>,
+) {
+    if let Some(index) = keyframes
+        .iter()
+        .position(|keyframe| keyframe.time.approx_eq(next.time))
+    {
+        keyframes[index].value = next.value;
+    } else {
+        if let Some(previous) = keyframes
+            .iter()
+            .rev()
+            .find(|keyframe| keyframe.time < next.time)
+            && keyframes.iter().any(|keyframe| keyframe.time > next.time)
+        {
+            next.interpolation_to_next = previous.interpolation_to_next;
+        }
+        keyframes.push(next);
+        keyframes.sort_by_key(|keyframe| keyframe.time);
+    }
+}

@@ -1,0 +1,16 @@
+[package]
+name = "shrimply-math-media"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+glam = { workspace = true, features = ["serde"] }
+num-traits.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-interpolation = { path = "../../interpolation" }
+shrimply-math-color = { path = "../color" }
+shrimply-math-core = { path = "../core" }
+shrimply-math-geometry = { path = "../geometry" }
+shrimply-project-core = { path = "../../project/project-core" }
+shrimply-render-core = { path = "../../render-core" }

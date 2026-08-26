@@ -1,0 +1,8 @@
+[package]
+name = "shrimply-visual-frame"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cuda-core.workspace = true
+ffmpeg-next.workspace = true

@@ -1,0 +1,14 @@
+[package]
+name = "shrimply-math-geometry"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+skia = ["dep:skia-safe"]
+
+[dependencies]
+glam = { workspace = true, features = ["serde"] }
+rayon.workspace = true
+serde = { workspace = true, features = ["derive"] }
+skia-safe = { workspace = true, optional = true }
+uuid = { workspace = true, features = ["v4", "serde"] }

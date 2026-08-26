@@ -1,0 +1,595 @@
+#include "vk-surface.h"
+#include "vk-device.h"
+#include "vk-command.h"
+#include "vk-texture.h"
+#include "vk-utils.h"
+#include "cocoa-util.h"
+
+#include "core/static_vector.h"
+#include "core/reverse-map.h"
+
+#include <algorithm>
+#include <vector>
+
+namespace rhi::vk {
+
+static Format translateVkFormat(VkFormat format)
+{
+    return reverseMapLookup<Format, VkFormat, Format::Undefined, Format::_Count>(getVkFormat, format);
+}
+
+static VkImageUsageFlags getSwapchainImageUsage(TextureUsage usage)
+{
+    // Present is a surface semantic, not a VkImageUsageFlagBits value. The generic Vulkan
+    // texture-usage translation maps it to TRANSFER_SRC, which is not appropriate here unless
+    // CopySource was explicitly requested.
+    VkImageUsageFlags result = _calcImageUsageFlags(usage & ~TextureUsage::Present);
+    if (result == 0 && is_set(usage, TextureUsage::Present))
+        result = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    return result;
+}
+
+static Result querySwapchainImageUsageSupport(
+    DeviceImpl* device,
+    Format format,
+    VkImageUsageFlags imageUsage,
+    bool* outSupported
+)
+{
+    *outSupported = false;
+    if (imageUsage == 0)
+        return SLANG_OK;
+
+    VkPhysicalDeviceImageFormatInfo2 imageInfo = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2};
+    imageInfo.format = getVkFormat(format);
+    imageInfo.type = VK_IMAGE_TYPE_2D;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.usage = imageUsage;
+
+    VkImageFormatProperties2 imageProperties = {VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2};
+    VkResult result = device->m_api.vkGetPhysicalDeviceImageFormatProperties2(
+        device->m_api.m_physicalDevice,
+        &imageInfo,
+        &imageProperties
+    );
+    if (result == VK_ERROR_FORMAT_NOT_SUPPORTED)
+        return SLANG_OK;
+    SLANG_VK_RETURN_ON_FAIL_REPORT(result, device);
+
+    *outSupported = true;
+    return SLANG_OK;
+}
+
+SurfaceImpl::~SurfaceImpl()
+{
+    auto& api = m_device->m_api;
+
+    destroySwapchain();
+
+    if (m_surface)
+    {
+        api.vkDestroySurfaceKHR(api.m_instance, m_surface, nullptr);
+    }
+
+#if SLANG_APPLE_FAMILY
+    CocoaUtil::destroyMetalLayer(m_metalLayer);
+#endif
+}
+
+Result SurfaceImpl::init(DeviceImpl* device, WindowHandle windowHandle)
+{
+    m_device = device;
+    m_windowHandle = windowHandle;
+
+    auto& api = m_device->m_api;
+
+    switch (windowHandle.type)
+    {
+#if SLANG_WINDOWS_FAMILY
+    case WindowHandleType::HWND:
+    {
+        VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
+        surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+        surfaceCreateInfo.hinstance = ::GetModuleHandle(nullptr);
+        surfaceCreateInfo.hwnd = (HWND)windowHandle.handleValues[0];
+        SLANG_VK_RETURN_ON_FAIL_REPORT(
+            api.vkCreateWin32SurfaceKHR(api.m_instance, &surfaceCreateInfo, nullptr, &m_surface),
+            m_device
+        );
+        break;
+    }
+#elif SLANG_APPLE_FAMILY
+    case WindowHandleType::NSWindow:
+    {
+        m_metalLayer = CocoaUtil::createMetalLayer((void*)windowHandle.handleValues[0]);
+        VkMetalSurfaceCreateInfoEXT surfaceCreateInfo = {};
+        surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+        surfaceCreateInfo.pLayer = (CAMetalLayer*)m_metalLayer;
+        SLANG_VK_RETURN_ON_FAIL_REPORT(
+            api.vkCreateMetalSurfaceEXT(api.m_instance, &surfaceCreateInfo, nullptr, &m_surface),
+            m_device
+        );
+        break;
+    }
+#elif SLANG_LINUX_FAMILY
+
+#if SLANG_ANDROID
+    case WindowHandleType::AndroidWindow:
+    {
+        VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo = {};
+        surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+        surfaceCreateInfo.window = (ANativeWindow*)windowHandle.handleValues[0];
+        SLANG_VK_RETURN_ON_FAIL_REPORT(
+            api.vkCreateAndroidSurfaceKHR(api.m_instance, &surfaceCreateInfo, nullptr, &m_surface),
+            m_device
+        );
+        break;
+    }
+#else
+    case WindowHandleType::XlibWindow:
+    {
+        VkXlibSurfaceCreateInfoKHR surfaceCreateInfo = {};
+        surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+        surfaceCreateInfo.dpy = (Display*)windowHandle.handleValues[0];
+        surfaceCreateInfo.window = (Window)windowHandle.handleValues[1];
+        SLANG_VK_RETURN_ON_FAIL_REPORT(
+            api.vkCreateXlibSurfaceKHR(api.m_instance, &surfaceCreateInfo, nullptr, &m_surface),
+            m_device
+        );
+        break;
+    }
+#endif
+
+#endif
+    default:
+        return SLANG_E_INVALID_HANDLE;
+    }
+
+    VkBool32 supported = false;
+    api.vkGetPhysicalDeviceSurfaceSupportKHR(api.m_physicalDevice, m_device->m_queueFamilyIndex, m_surface, &supported);
+    if (!supported)
+    {
+        return SLANG_FAIL;
+    }
+
+    uint32_t formatCount = 0;
+    api.vkGetPhysicalDeviceSurfaceFormatsKHR(api.m_physicalDevice, m_surface, &formatCount, nullptr);
+    std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
+    api.vkGetPhysicalDeviceSurfaceFormatsKHR(api.m_physicalDevice, m_surface, &formatCount, surfaceFormats.data());
+
+    Format preferredFormat = Format::Undefined;
+    for (uint32_t i = 0; i < formatCount; ++i)
+    {
+        Format format = translateVkFormat(surfaceFormats[i].format);
+        if (format != Format::Undefined)
+            m_supportedFormats.push_back(format);
+        if (preferredFormat == Format::Undefined &&
+            (format == Format::RGBA8UnormSrgb || format == Format::BGRA8UnormSrgb || format == Format::BGRX8UnormSrgb))
+            preferredFormat = format;
+    }
+    if (preferredFormat == Format::Undefined && !m_supportedFormats.empty())
+    {
+        preferredFormat = m_supportedFormats.front();
+    }
+
+    m_info.preferredFormat = preferredFormat;
+    // Derive the supported usage from the surface capabilities.
+    VkSurfaceCapabilitiesKHR surfaceCaps = {};
+    SLANG_VK_RETURN_ON_FAIL_REPORT(
+        api.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(api.m_physicalDevice, m_surface, &surfaceCaps),
+        m_device
+    );
+    m_info.supportedUsage = TextureUsage::Present;
+    if (surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+        m_info.supportedUsage |= TextureUsage::RenderTarget;
+    if (surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_STORAGE_BIT)
+        m_info.supportedUsage |= TextureUsage::UnorderedAccess;
+    if (surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_SAMPLED_BIT)
+        m_info.supportedUsage |= TextureUsage::ShaderResource;
+    if (surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+        m_info.supportedUsage |= TextureUsage::CopySource;
+    if (surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+        m_info.supportedUsage |= TextureUsage::CopyDestination;
+    m_info.formats = m_supportedFormats.data();
+    m_info.formatCount = (uint32_t)m_supportedFormats.size();
+
+    return SLANG_OK;
+}
+
+Result SurfaceImpl::createSwapchain()
+{
+    auto& api = m_device->m_api;
+
+    // It is necessary to query the caps -> otherwise the LunarG verification layer will
+    // issue an error. The reported supportedUsageFlags are also used below to validate the
+    // requested image usage.
+    VkSurfaceCapabilitiesKHR surfaceCaps = {};
+    SLANG_VK_RETURN_ON_FAIL_REPORT(
+        api.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(api.m_physicalDevice, m_surface, &surfaceCaps),
+        m_device
+    );
+
+    VkExtent2D imageExtent = {};
+    if (surfaceCaps.currentExtent.width != UINT32_MAX)
+    {
+        imageExtent = surfaceCaps.currentExtent;
+    }
+    else
+    {
+        imageExtent.width =
+            std::clamp(m_config.width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
+        imageExtent.height =
+            std::clamp(m_config.height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
+    }
+
+    if (imageExtent.width == 0 || imageExtent.height == 0)
+    {
+        return SLANG_FAIL;
+    }
+
+    uint32_t imageCount = std::max(m_config.desiredImageCount, surfaceCaps.minImageCount);
+    if (surfaceCaps.maxImageCount > 0)
+    {
+        imageCount = std::min(imageCount, surfaceCaps.maxImageCount);
+    }
+
+    VkSurfaceTransformFlagBitsKHR preTransform =
+        (surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
+            ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR
+            : surfaceCaps.currentTransform;
+
+    VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    if (!(surfaceCaps.supportedCompositeAlpha & compositeAlpha))
+    {
+        static const VkCompositeAlphaFlagBitsKHR kCompositeAlphaModes[] = {
+            VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
+            VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
+            VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR
+        };
+        for (VkCompositeAlphaFlagBitsKHR mode : kCompositeAlphaModes)
+        {
+            if (surfaceCaps.supportedCompositeAlpha & mode)
+            {
+                compositeAlpha = mode;
+                break;
+            }
+        }
+    }
+
+    m_config.width = imageExtent.width;
+    m_config.height = imageExtent.height;
+
+    // Query available present modes.
+    uint32_t presentModeCount = 0;
+    api.vkGetPhysicalDeviceSurfacePresentModesKHR(api.m_physicalDevice, m_surface, &presentModeCount, nullptr);
+    std::vector<VkPresentModeKHR> presentModes(presentModeCount);
+    api.vkGetPhysicalDeviceSurfacePresentModesKHR(
+        api.m_physicalDevice,
+        m_surface,
+        &presentModeCount,
+        presentModes.data()
+    );
+
+    // Choose present mode.
+    static const VkPresentModeKHR kVsyncOffModes[] = {
+        VK_PRESENT_MODE_IMMEDIATE_KHR,
+        VK_PRESENT_MODE_MAILBOX_KHR,
+        VK_PRESENT_MODE_FIFO_KHR,
+        VK_PRESENT_MODE_MAX_ENUM_KHR
+    };
+    static const VkPresentModeKHR kVsyncOnModes[] = {
+        VK_PRESENT_MODE_FIFO_KHR,
+        VK_PRESENT_MODE_FIFO_RELAXED_KHR,
+        VK_PRESENT_MODE_IMMEDIATE_KHR,
+        VK_PRESENT_MODE_MAILBOX_KHR,
+        VK_PRESENT_MODE_MAX_ENUM_KHR
+    };
+    const VkPresentModeKHR* checkPresentModes = m_config.vsync ? kVsyncOnModes : kVsyncOffModes;
+    VkPresentModeKHR selectedPresentMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+    for (int i = 0; checkPresentModes[i] != VK_PRESENT_MODE_MAX_ENUM_KHR; ++i)
+    {
+        if (std::find(presentModes.begin(), presentModes.end(), checkPresentModes[i]) != presentModes.end())
+        {
+            selectedPresentMode = checkPresentModes[i];
+            break;
+        }
+    }
+    if (selectedPresentMode == VK_PRESENT_MODE_MAX_ENUM_KHR)
+    {
+        return SLANG_FAIL;
+    }
+
+    VkFormat format = getVkFormat(m_config.format);
+    VkSwapchainKHR oldSwapchain = VK_NULL_HANDLE;
+
+    VkSwapchainCreateInfoKHR swapchainDesc = {VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
+    swapchainDesc.surface = m_surface;
+    swapchainDesc.minImageCount = imageCount;
+    swapchainDesc.imageFormat = format;
+    swapchainDesc.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    swapchainDesc.imageExtent = imageExtent;
+    swapchainDesc.imageArrayLayers = 1;
+    swapchainDesc.imageUsage = getSwapchainImageUsage(m_config.usage);
+    if (swapchainDesc.imageUsage != (swapchainDesc.imageUsage & surfaceCaps.supportedUsageFlags))
+    {
+        m_device->printError("Surface does not support the requested usage.");
+        return SLANG_E_INVALID_ARG;
+    }
+    swapchainDesc.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    swapchainDesc.preTransform = preTransform;
+    swapchainDesc.compositeAlpha = compositeAlpha;
+    swapchainDesc.presentMode = selectedPresentMode;
+    swapchainDesc.clipped = VK_TRUE;
+    swapchainDesc.oldSwapchain = oldSwapchain;
+
+    SLANG_VK_RETURN_ON_FAIL_REPORT(
+        api.vkCreateSwapchainKHR(api.m_device, &swapchainDesc, nullptr, &m_swapchain),
+        m_device
+    );
+
+    uint32_t swapchainImageCount = 0;
+    api.vkGetSwapchainImagesKHR(api.m_device, m_swapchain, &swapchainImageCount, nullptr);
+    std::vector<VkImage> swapchainImages(swapchainImageCount);
+    api.vkGetSwapchainImagesKHR(api.m_device, m_swapchain, &swapchainImageCount, swapchainImages.data());
+
+    for (uint32_t i = 0; i < swapchainImageCount; i++)
+    {
+        TextureDesc textureDesc = {};
+        textureDesc.type = TextureType::Texture2D;
+        textureDesc.size.width = m_config.width;
+        textureDesc.size.height = m_config.height;
+        textureDesc.size.depth = 1;
+        textureDesc.arrayLength = 1;
+        textureDesc.mipCount = 1;
+        textureDesc.format = m_config.format;
+        textureDesc.usage = m_config.usage;
+        textureDesc.defaultState = ResourceState::Present;
+        RefPtr<TextureImpl> texture = new TextureImpl(m_device, textureDesc);
+        texture->m_image = swapchainImages[i];
+        texture->m_imageMemory = 0;
+        texture->m_vkformat = format;
+        texture->m_shouldDestroyImage = false;
+        texture->m_isSwapchainTexture = true;
+        m_textures.push_back(texture);
+    }
+
+    m_frameData.resize(swapchainImageCount);
+    for (uint32_t i = 0; i < swapchainImageCount; ++i)
+    {
+        FrameData& frameData = m_frameData[i];
+        // Create fence.
+        {
+            VkFenceCreateInfo createInfo = {VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
+            createInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+            SLANG_VK_RETURN_ON_FAIL_REPORT(
+                api.vkCreateFence(api.m_device, &createInfo, nullptr, &frameData.fence),
+                m_device
+            );
+        }
+
+        // Create semaphores.
+        {
+            VkSemaphoreCreateInfo createInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+            SLANG_VK_RETURN_ON_FAIL_REPORT(
+                api.vkCreateSemaphore(api.m_device, &createInfo, nullptr, &frameData.imageAvailableSemaphore),
+                m_device
+            );
+            SLANG_VK_RETURN_ON_FAIL_REPORT(
+                api.vkCreateSemaphore(api.m_device, &createInfo, nullptr, &frameData.renderFinishedSemaphore),
+                m_device
+            );
+        }
+    }
+
+    m_currentFrameIndex = 0;
+
+    return SLANG_OK;
+}
+
+void SurfaceImpl::destroySwapchain()
+{
+    auto& api = m_device->m_api;
+    api.vkQueueWaitIdle(m_device->m_queue->m_queue);
+    m_textures.clear();
+    for (FrameData& frameData : m_frameData)
+    {
+        if (frameData.fence != VK_NULL_HANDLE)
+        {
+            api.vkDestroyFence(api.m_device, frameData.fence, nullptr);
+        }
+        if (frameData.imageAvailableSemaphore != VK_NULL_HANDLE)
+        {
+            api.vkDestroySemaphore(api.m_device, frameData.imageAvailableSemaphore, nullptr);
+        }
+        if (frameData.renderFinishedSemaphore != VK_NULL_HANDLE)
+        {
+            api.vkDestroySemaphore(api.m_device, frameData.renderFinishedSemaphore, nullptr);
+        }
+    }
+    m_frameData.clear();
+    m_currentTextureIndex = -1;
+    if (m_swapchain != VK_NULL_HANDLE)
+    {
+        api.vkDestroySwapchainKHR(api.m_device, m_swapchain, nullptr);
+        m_swapchain = VK_NULL_HANDLE;
+    }
+}
+
+Result SurfaceImpl::configure(const SurfaceConfig& config)
+{
+    SLANG_RETURN_ON_FAIL(validateConfig(config));
+    SurfaceConfig resolvedConfig = config;
+    if (resolvedConfig.format == Format::Undefined)
+    {
+        resolvedConfig.format = m_info.preferredFormat;
+    }
+    if (resolvedConfig.usage == TextureUsage::None)
+    {
+        // Do not auto-add UnorderedAccess here: a format's optimal-tiling features may report
+        // storage support while the swapchain still rejects VK_IMAGE_USAGE_STORAGE_BIT for that
+        // format (e.g. *_SRGB), tripping VUID-VkSwapchainCreateInfoKHR-imageFormat-01778. Apps
+        // that need storage on the swapchain must request it explicitly; configure() then
+        // validates it against the format below.
+        resolvedConfig.usage = (TextureUsage::Present | TextureUsage::RenderTarget | TextureUsage::CopyDestination) &
+                               m_info.supportedUsage;
+
+        // CopyDestination is useful for the compute fallback, but it is not required for a
+        // presentable surface. Drop it when the selected format does not support the complete
+        // optimal-tiling usage combination.
+        bool usageSupported = false;
+        SLANG_RETURN_ON_FAIL(querySwapchainImageUsageSupport(
+            m_device,
+            resolvedConfig.format,
+            getSwapchainImageUsage(resolvedConfig.usage),
+            &usageSupported
+        ));
+        if (!usageSupported)
+        {
+            resolvedConfig.usage &= ~TextureUsage::CopyDestination;
+        }
+    }
+    else
+    {
+        if (resolvedConfig.usage != (resolvedConfig.usage & m_info.supportedUsage))
+        {
+            m_device->printError("Surface does not support the requested usage.");
+            return SLANG_E_INVALID_ARG;
+        }
+    }
+
+    bool usageSupported = false;
+    SLANG_RETURN_ON_FAIL(querySwapchainImageUsageSupport(
+        m_device,
+        resolvedConfig.format,
+        getSwapchainImageUsage(resolvedConfig.usage),
+        &usageSupported
+    ));
+    if (!usageSupported)
+    {
+        m_device->printError("Surface format does not support the requested usage.");
+        return SLANG_E_INVALID_ARG;
+    }
+
+    setConfig(resolvedConfig);
+    m_configured = false;
+    destroySwapchain();
+    SLANG_RETURN_ON_FAIL(createSwapchain());
+    m_configured = true;
+
+    return SLANG_OK;
+}
+
+Result SurfaceImpl::unconfigure()
+{
+    if (!m_configured)
+    {
+        return SLANG_OK;
+    }
+
+    m_configured = false;
+    destroySwapchain();
+
+    return SLANG_OK;
+}
+
+Result SurfaceImpl::acquireNextImage(ITexture** outTexture)
+{
+    *outTexture = nullptr;
+
+    if (!m_configured)
+    {
+        return SLANG_FAIL;
+    }
+
+    auto& api = m_device->m_api;
+
+    FrameData& frameData = m_frameData[m_currentFrameIndex];
+    SLANG_VK_RETURN_ON_FAIL_REPORT(
+        api.vkWaitForFences(api.m_device, 1, &frameData.fence, VK_TRUE, UINT64_MAX),
+        m_device
+    );
+    SLANG_VK_RETURN_ON_FAIL_REPORT(api.vkResetFences(api.m_device, 1, &frameData.fence), m_device);
+
+    m_currentTextureIndex = -1;
+    VkResult result = api.vkAcquireNextImageKHR(
+        api.m_device,
+        m_swapchain,
+        UINT64_MAX,
+        frameData.imageAvailableSemaphore,
+        VK_NULL_HANDLE,
+        (uint32_t*)&m_currentTextureIndex
+    );
+
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    {
+        return SLANG_FAIL;
+    }
+
+    // Setup queue's next submit for synchronization with the swapchain.
+    m_device->m_queue->m_surfaceSync.fence = frameData.fence;
+    m_device->m_queue->m_surfaceSync.imageAvailableSemaphore = frameData.imageAvailableSemaphore;
+    // Present consumes this semaphore outside the submitted command buffer's fence.
+    // Reuse it only when the same swapchain image is acquired again.
+    m_device->m_queue->m_surfaceSync.renderFinishedSemaphore =
+        m_frameData[m_currentTextureIndex].renderFinishedSemaphore;
+
+    // Mark texture to be in swapchain initial state.
+    // This is used by the first image barrier to transition the texture from the correct state.
+    m_textures[m_currentTextureIndex]->m_isSwapchainInitialState = true;
+
+    returnComPtr(outTexture, m_textures[m_currentTextureIndex]);
+    return SLANG_OK;
+}
+
+Result SurfaceImpl::present()
+{
+    auto& api = m_device->m_api;
+
+    if (!m_configured)
+    {
+        return SLANG_FAIL;
+    }
+    if (m_currentTextureIndex == -1)
+    {
+        return SLANG_FAIL;
+    }
+
+    m_currentFrameIndex = (m_currentFrameIndex + 1) % m_frameData.size();
+    VkSemaphore renderFinishedSemaphore = m_frameData[m_currentTextureIndex].renderFinishedSemaphore;
+
+    // If no submit has taken place yet, then we need to submit a dummy command buffer to transition the texture to the
+    // correct state.
+    if (m_device->m_queue->m_surfaceSync.fence != VK_NULL_HANDLE)
+    {
+        ICommandQueue* queue = m_device->m_queue.get();
+        ComPtr<ICommandEncoder> encoder;
+        SLANG_RETURN_ON_FAIL(queue->createCommandEncoder(encoder.writeRef()));
+        encoder->setTextureState(m_textures[m_currentTextureIndex], ResourceState::General);
+        SLANG_RETURN_ON_FAIL(queue->submit(encoder->finish()));
+    }
+
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = &m_swapchain;
+    presentInfo.pImageIndices = &m_currentTextureIndex;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &renderFinishedSemaphore;
+    VkResult result = api.vkQueuePresentKHR(m_device->m_queue->m_queue, &presentInfo);
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    {
+        reportVulkanError(result, "vkQueuePresentKHR", SLANG_RHI_SOURCE_LOCATION(), m_device);
+        return SLANG_FAIL;
+    }
+    return SLANG_OK;
+}
+
+Result DeviceImpl::createSurface(WindowHandle windowHandle, ISurface** outSurface)
+{
+    RefPtr<SurfaceImpl> surface = new SurfaceImpl();
+    SLANG_RETURN_ON_FAIL(surface->init(this, windowHandle));
+    returnComPtr(outSurface, surface);
+    return SLANG_OK;
+}
+
+} // namespace rhi::vk

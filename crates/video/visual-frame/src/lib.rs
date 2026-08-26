@@ -1,0 +1,484 @@
+use std::any::Any;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+use cuda_core::{CudaContext, DeviceBuffer, sys};
+
+mod ffmpeg;
+
+pub const GPU_FRAME_ALLOCATION_EXHAUSTED: &str =
+    "allocate visual frame plane: CUDA ran out of memory";
+
+static GPU_FRAME_COUNT: AtomicU64 = AtomicU64::new(0);
+static GPU_FRAME_BYTES: AtomicU64 = AtomicU64::new(0);
+static GPU_OOM_GENERATION: AtomicU64 = AtomicU64::new(0);
+
+pub use ffmpeg::ffmpeg_cuda_context;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum VisualFormat {
+    Rgba8,
+    Nv12,
+    P010,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Device {
+    Cpu,
+    Cuda(usize),
+}
+
+#[derive(Clone, Copy)]
+pub struct VisualPlane {
+    pub device_ptr: sys::CUdeviceptr,
+    pub pitch_bytes: usize,
+    pub width_bytes: usize,
+    pub height: usize,
+}
+
+#[derive(Clone)]
+pub struct VisualFrame {
+    inner: Arc<FrameStorage>,
+    format: VisualFormat,
+    width: u32,
+    height: u32,
+}
+
+enum FrameStorage {
+    Gpu(GpuStorage),
+    Cpu(Vec<CpuPlane>),
+}
+
+struct GpuStorage {
+    context: Arc<CudaContext>,
+    device_index: usize,
+    planes: Vec<GpuPlane>,
+    allocation_bytes: u64,
+    _owner: GpuOwner,
+}
+
+enum GpuOwner {
+    Oxide { _buffers: Vec<DeviceBuffer<u8>> },
+    External { _owner: Box<dyn Any + Send + Sync> },
+}
+
+struct GpuPlane {
+    device_ptr: sys::CUdeviceptr,
+    pitch_bytes: usize,
+    width_bytes: usize,
+    height: usize,
+}
+
+struct CpuPlane {
+    bytes: Vec<u8>,
+    width_bytes: usize,
+    height: usize,
+}
+
+impl GpuStorage {
+    fn new(
+        context: Arc<CudaContext>,
+        device_index: usize,
+        planes: Vec<GpuPlane>,
+        owner: GpuOwner,
+    ) -> Self {
+        let allocation_bytes = planes
+            .iter()
+            .try_fold(0_u64, |bytes, plane| {
+                let plane_bytes = plane
+                    .pitch_bytes
+                    .checked_mul(plane.height)
+                    .and_then(|bytes| u64::try_from(bytes).ok())?;
+                bytes.checked_add(plane_bytes)
+            })
+            .expect("GPU visual frame byte accounting overflowed");
+        GPU_FRAME_BYTES
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |bytes| {
+                bytes.checked_add(allocation_bytes)
+            })
+            .expect("GPU visual frame byte counter overflowed");
+        GPU_FRAME_COUNT
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                count.checked_add(1)
+            })
+            .expect("GPU visual frame counter overflowed");
+        Self {
+            context,
+            device_index,
+            planes,
+            allocation_bytes,
+            _owner: owner,
+        }
+    }
+}
+
+impl Drop for GpuStorage {
+    fn drop(&mut self) {
+        GPU_FRAME_COUNT
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |count| {
+                count.checked_sub(1)
+            })
+            .expect("GPU visual frame counter underflowed");
+        GPU_FRAME_BYTES
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |bytes| {
+                bytes.checked_sub(self.allocation_bytes)
+            })
+            .expect("GPU visual frame byte counter underflowed");
+    }
+}
+
+pub fn gpu_allocation_stats() -> (u64, u64) {
+    (
+        GPU_FRAME_COUNT.load(Ordering::Acquire),
+        GPU_FRAME_BYTES.load(Ordering::Acquire),
+    )
+}
+
+pub fn gpu_oom_generation() -> u64 {
+    GPU_OOM_GENERATION.load(Ordering::Acquire)
+}
+
+impl VisualFrame {
+    pub fn allocate(
+        context: Arc<CudaContext>,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+    ) -> Result<Self, String> {
+        Self::allocate_on(context, 0, format, width, height)
+    }
+
+    fn allocate_on(
+        context: Arc<CudaContext>,
+        device_index: usize,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+    ) -> Result<Self, String> {
+        let layout = plane_layout(format, width, height)?;
+        context
+            .bind_to_thread()
+            .map_err(|error| format!("bind CUDA context for visual frame allocation: {error}"))?;
+        let mut buffers = Vec::with_capacity(layout.len());
+        let mut planes = Vec::with_capacity(layout.len());
+        for (width_bytes, height) in layout {
+            let (device_ptr, pitch_bytes, length) = allocate_gpu_plane(width_bytes, height)?;
+            buffers
+                .push(unsafe { DeviceBuffer::from_raw_parts(device_ptr, length, context.clone()) });
+            planes.push(GpuPlane {
+                device_ptr,
+                pitch_bytes,
+                width_bytes,
+                height,
+            });
+        }
+        Ok(Self {
+            inner: Arc::new(FrameStorage::Gpu(GpuStorage::new(
+                context,
+                device_index,
+                planes,
+                GpuOwner::Oxide { _buffers: buffers },
+            ))),
+            format,
+            width,
+            height,
+        })
+    }
+
+    /// # Safety
+    ///
+    /// Every plane must remain valid for the lifetime of `owner`, belong to `context`, and match
+    /// the declared format and dimensions. Dropping `owner` must release the external storage.
+    pub unsafe fn from_external_gpu(
+        context: Arc<CudaContext>,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+        planes: &[VisualPlane],
+        owner: Box<dyn Any + Send + Sync>,
+    ) -> Result<Self, String> {
+        let layout = plane_layout(format, width, height)?;
+        if planes.len() != layout.len()
+            || planes
+                .iter()
+                .zip(layout)
+                .any(|(plane, (width_bytes, height))| {
+                    plane.device_ptr == 0
+                        || plane.pitch_bytes < width_bytes
+                        || plane.width_bytes != width_bytes
+                        || plane.height != height
+                })
+        {
+            return Err("external visual frame planes do not match its format".to_string());
+        }
+        Ok(Self {
+            inner: Arc::new(FrameStorage::Gpu(GpuStorage::new(
+                context,
+                0,
+                planes
+                    .iter()
+                    .map(|plane| GpuPlane {
+                        device_ptr: plane.device_ptr,
+                        pitch_bytes: plane.pitch_bytes,
+                        width_bytes: plane.width_bytes,
+                        height: plane.height,
+                    })
+                    .collect(),
+                GpuOwner::External { _owner: owner },
+            ))),
+            format,
+            width,
+            height,
+        })
+    }
+
+    pub fn from_rgba_bytes(width: u32, height: u32, bytes: Vec<u8>) -> Result<Self, String> {
+        let [(width_bytes, height_rows)] = plane_layout(VisualFormat::Rgba8, width, height)?
+            .try_into()
+            .expect("RGBA layout must contain exactly one plane");
+        let expected = width_bytes
+            .checked_mul(height_rows)
+            .ok_or("RGBA frame size overflow")?;
+        if bytes.len() != expected {
+            return Err(format!(
+                "RGBA frame has {} bytes, expected {expected}",
+                bytes.len()
+            ));
+        }
+        Ok(Self {
+            inner: Arc::new(FrameStorage::Cpu(vec![CpuPlane {
+                bytes,
+                width_bytes,
+                height: height_rows,
+            }])),
+            format: VisualFormat::Rgba8,
+            width,
+            height,
+        })
+    }
+
+    pub fn format(&self) -> VisualFormat {
+        self.format
+    }
+
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    pub fn context(&self) -> Option<&Arc<CudaContext>> {
+        match &*self.inner {
+            FrameStorage::Gpu(storage) => Some(&storage.context),
+            FrameStorage::Cpu(_) => None,
+        }
+    }
+
+    pub fn plane(&self, index: usize) -> Option<VisualPlane> {
+        let FrameStorage::Gpu(storage) = &*self.inner else {
+            return None;
+        };
+        let plane = storage.planes.get(index)?;
+        Some(VisualPlane {
+            device_ptr: plane.device_ptr,
+            pitch_bytes: plane.pitch_bytes,
+            width_bytes: plane.width_bytes,
+            height: plane.height,
+        })
+    }
+
+    pub fn plane_count(&self) -> usize {
+        match &*self.inner {
+            FrameStorage::Gpu(storage) => storage.planes.len(),
+            FrameStorage::Cpu(planes) => planes.len(),
+        }
+    }
+
+    pub fn is_gpu(&self) -> bool {
+        matches!(&*self.inner, FrameStorage::Gpu(_))
+    }
+
+    pub fn device(&self) -> Device {
+        match &*self.inner {
+            FrameStorage::Gpu(storage) => Device::Cuda(storage.device_index),
+            FrameStorage::Cpu(_) => Device::Cpu,
+        }
+    }
+
+    pub fn bytes(&self) -> u64 {
+        match &*self.inner {
+            FrameStorage::Gpu(storage) => storage.allocation_bytes,
+            FrameStorage::Cpu(planes) => planes.iter().map(|plane| plane.bytes.len() as u64).sum(),
+        }
+    }
+
+    pub fn copy_to(&self, device: Device) -> Result<Self, String> {
+        if self.device() == device {
+            return Ok(self.clone());
+        }
+        match device {
+            Device::Cpu => self.copy_to_cpu(),
+            Device::Cuda(index) => {
+                if self.is_gpu() {
+                    self.copy_to_cpu()?.copy_to_cuda(index)
+                } else {
+                    self.copy_to_cuda(index)
+                }
+            }
+        }
+    }
+
+    pub fn copy_plane_to_vec(&self, index: usize) -> Result<Vec<u8>, String> {
+        let cpu = self.copy_to_cpu()?;
+        let FrameStorage::Cpu(planes) = &*cpu.inner else {
+            unreachable!("copying a visual frame to the CPU returned GPU storage");
+        };
+        planes
+            .get(index)
+            .map(|plane| plane.bytes.clone())
+            .ok_or_else(|| format!("visual frame has no plane {index}"))
+    }
+
+    fn copy_to_cpu(&self) -> Result<Self, String> {
+        let FrameStorage::Gpu(storage) = &*self.inner else {
+            return Ok(self.clone());
+        };
+        storage
+            .context
+            .bind_to_thread()
+            .map_err(|error| format!("bind CUDA context for visual frame download: {error}"))?;
+        let stream = storage.context.default_stream();
+        let mut planes = Vec::with_capacity(storage.planes.len());
+        for source in &storage.planes {
+            let length = source
+                .width_bytes
+                .checked_mul(source.height)
+                .ok_or("CPU visual frame size overflow")?;
+            let mut bytes = vec![0_u8; length];
+            let mut copy: sys::CUDA_MEMCPY2D = unsafe { std::mem::zeroed() };
+            copy.srcMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
+            copy.srcDevice = source.device_ptr;
+            copy.srcPitch = source.pitch_bytes;
+            copy.dstMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_HOST;
+            copy.dstHost = bytes.as_mut_ptr().cast();
+            copy.dstPitch = source.width_bytes;
+            copy.WidthInBytes = source.width_bytes;
+            copy.Height = source.height;
+            let result = unsafe { sys::cuMemcpy2DAsync_v2(&copy, stream.cu_stream()) };
+            if result != sys::cudaError_enum_CUDA_SUCCESS {
+                return Err(format!("download visual frame plane: {result:?}"));
+            }
+            planes.push(CpuPlane {
+                bytes,
+                width_bytes: source.width_bytes,
+                height: source.height,
+            });
+        }
+        stream
+            .synchronize()
+            .map_err(|error| format!("finish visual frame download: {error}"))?;
+        Ok(Self {
+            inner: Arc::new(FrameStorage::Cpu(planes)),
+            format: self.format,
+            width: self.width,
+            height: self.height,
+        })
+    }
+
+    fn copy_to_cuda(&self, device_ordinal: usize) -> Result<Self, String> {
+        let FrameStorage::Cpu(planes) = &*self.inner else {
+            return Ok(self.clone());
+        };
+        let context = CudaContext::new(device_ordinal)
+            .map_err(|error| format!("create CUDA context for visual frame upload: {error}"))?;
+        let frame = Self::allocate_on(
+            context.clone(),
+            device_ordinal,
+            self.format,
+            self.width,
+            self.height,
+        )?;
+        let stream = context.default_stream();
+        for (index, source) in planes.iter().enumerate() {
+            let destination = frame
+                .plane(index)
+                .expect("uploaded visual frame lost a format plane");
+            let mut copy: sys::CUDA_MEMCPY2D = unsafe { std::mem::zeroed() };
+            copy.srcMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_HOST;
+            copy.srcHost = source.bytes.as_ptr().cast();
+            copy.srcPitch = source.width_bytes;
+            copy.dstMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
+            copy.dstDevice = destination.device_ptr;
+            copy.dstPitch = destination.pitch_bytes;
+            copy.WidthInBytes = source.width_bytes;
+            copy.Height = source.height;
+            let result = unsafe { sys::cuMemcpy2DAsync_v2(&copy, stream.cu_stream()) };
+            if result != sys::cudaError_enum_CUDA_SUCCESS {
+                return Err(format!("upload visual frame plane: {result:?}"));
+            }
+        }
+        stream
+            .synchronize()
+            .map_err(|error| format!("finish visual frame upload: {error}"))?;
+        Ok(frame)
+    }
+}
+
+fn allocate_gpu_plane(
+    width_bytes: usize,
+    height: usize,
+) -> Result<(sys::CUdeviceptr, usize, usize), String> {
+    let requested_bytes = width_bytes
+        .checked_mul(height)
+        .ok_or("visual frame allocation size overflow")? as u64;
+    let mut device_ptr = 0;
+    let mut pitch_bytes = 0;
+    let result = unsafe {
+        sys::cuMemAllocPitch_v2(&mut device_ptr, &mut pitch_bytes, width_bytes, height, 16)
+    };
+    if result == sys::cudaError_enum_CUDA_ERROR_OUT_OF_MEMORY {
+        GPU_OOM_GENERATION
+            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |generation| {
+                generation.checked_add(1)
+            })
+            .expect("GPU OOM generation overflowed");
+        return Err(format!(
+            "{GPU_FRAME_ALLOCATION_EXHAUSTED}; requested {requested_bytes} bytes"
+        ));
+    }
+    if result != sys::cudaError_enum_CUDA_SUCCESS {
+        return Err(format!("allocate visual frame plane: {result:?}"));
+    }
+    let Some(length) = pitch_bytes.checked_mul(height) else {
+        if unsafe { sys::cuMemFree_v2(device_ptr) } != sys::cudaError_enum_CUDA_SUCCESS {
+            std::process::abort();
+        }
+        return Err("visual frame allocation size overflow".to_string());
+    };
+    Ok((device_ptr, pitch_bytes, length))
+}
+
+fn plane_layout(
+    format: VisualFormat,
+    width: u32,
+    height: u32,
+) -> Result<Vec<(usize, usize)>, String> {
+    if width == 0 || height == 0 {
+        return Err("a visual frame cannot be empty".to_string());
+    }
+    let width = width as usize;
+    let height = height as usize;
+    Ok(match format {
+        VisualFormat::Rgba8 => vec![(
+            width.checked_mul(4).ok_or("RGBA frame row size overflow")?,
+            height,
+        )],
+        VisualFormat::Nv12 => vec![(width, height), (width, height.div_ceil(2))],
+        VisualFormat::P010 => {
+            let row = width.checked_mul(2).ok_or("P010 frame row size overflow")?;
+            vec![(row, height), (row, height.div_ceil(2))]
+        }
+    })
+}

@@ -1,0 +1,16 @@
+[package]
+name = "shrimply-video-modifiers"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+glam = { workspace = true, features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+shrimply-core = { path = "../../core" }
+shrimply-preview-core = { path = "../../preview/preview-core" }
+shrimply-scene-3d-modifiers = { path = "../../3d/scene-3d-modifiers" }
+strum = { workspace = true, features = ["derive"] }
+shrimply-math-geometry = { path = "../../math/geometry" }
+uuid = { workspace = true, features = ["v4", "serde"] }

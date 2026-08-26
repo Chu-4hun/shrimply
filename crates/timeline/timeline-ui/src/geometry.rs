@@ -1,0 +1,134 @@
+use super::*;
+
+pub(super) fn timeline_track_content_height(
+    project: &Project,
+    virtual_tracks: &[(TrackKind, usize)],
+) -> f64 {
+    (items::track_rows(project).len() + virtual_tracks.len() + 1).max(1) as f64 * TRACK_HEIGHT
+}
+
+pub(super) fn visible_track_height(height: f64) -> f64 {
+    (height - RULER_HEIGHT).max(0.0)
+}
+
+pub(super) fn max_scroll_y(track_content_height: f64, height: f64) -> f64 {
+    (track_content_height - visible_track_height(height)).max(0.0)
+}
+
+pub(crate) fn timeline_x() -> f64 {
+    LABEL_WIDTH + TIMELINE_PADDING_LEFT
+}
+
+pub(crate) fn timeline_width(width: f64) -> f64 {
+    (width - timeline_x() - TIMELINE_PADDING_RIGHT).max(0.0)
+}
+
+pub(super) fn vertical_scrollbar(
+    view: TimelineViewState,
+    width: f64,
+    height: f64,
+    track_content_height: f64,
+    state: shrimply_skia_adw_ui::ScrollbarState,
+) -> Option<shrimply_skia_adw_ui::Scrollbar> {
+    let visible_height = visible_track_height(height);
+    if visible_height <= 0.0 || track_content_height <= visible_height {
+        return None;
+    }
+
+    Some(shrimply_skia_adw_ui::Scrollbar {
+        axis: shrimply_skia_adw_ui::Axis::Vertical,
+        bounds: scrollbar_bounds(timeline_width(width), height),
+        content_length: track_content_height,
+        viewport_length: visible_height,
+        value: view.scroll_y,
+        color: Color::LIGHT1,
+        outline_color: Color::<f32>::from_rgb8_alpha(0x00, 0x00, 0x0c, 0.95),
+        state,
+    })
+}
+
+pub(super) fn horizontal_scrollbar(
+    view: TimelineViewState,
+    timeline_width: f64,
+    height: f64,
+    duration_seconds: f64,
+    state: shrimply_skia_adw_ui::ScrollbarState,
+) -> shrimply_skia_adw_ui::Scrollbar {
+    let visible_seconds = timeline_width * view.seconds_per_pixel;
+    shrimply_skia_adw_ui::Scrollbar {
+        axis: shrimply_skia_adw_ui::Axis::Horizontal,
+        bounds: scrollbar_bounds(timeline_width, height),
+        content_length: duration_seconds.max(visible_seconds) + visible_seconds * 2.0,
+        viewport_length: visible_seconds,
+        value: view.scroll_seconds,
+        color: Color::LIGHT1,
+        outline_color: Color::<f32>::from_rgb8_alpha(0x00, 0x00, 0x0c, 0.95),
+        state,
+    }
+}
+
+pub(super) fn ruler_scale(view: TimelineViewState) -> ruler::TimelineScale {
+    ruler::TimelineScale::new(view.scroll_seconds, view.seconds_per_pixel)
+}
+
+pub(super) fn scrollbar_bounds(timeline_width: f64, height: f64) -> shrimply_skia_adw_ui::Rect {
+    shrimply_skia_adw_ui::Rect::from_xywh(
+        timeline_x() as f32,
+        RULER_HEIGHT as f32,
+        timeline_width.max(0.0) as f32,
+        visible_track_height(height) as f32,
+    )
+}
+
+pub(super) fn x_to_time(x: f64, scroll_seconds: f64, seconds_per_pixel: f64) -> f64 {
+    scroll_seconds + (x - timeline_x()) * seconds_per_pixel
+}
+
+pub(super) fn time_to_x(time_seconds: f64, x: f64, view: TimelineViewState) -> f64 {
+    ruler_scale(view).time_to_x(time_seconds, x)
+}
+
+pub(super) fn snap_seconds(seconds: f64, frame_step_seconds: f64) -> f64 {
+    if !seconds.is_finite() || seconds <= 0.0 {
+        return 0.0;
+    }
+    if !frame_step_seconds.is_finite() || frame_step_seconds <= 0.0 {
+        return seconds;
+    }
+    (seconds / frame_step_seconds).round() * frame_step_seconds
+}
+
+pub(super) fn frame_step_seconds(project: &Project) -> f64 {
+    let numerator = fraction_numerator(project.fps);
+    let denominator = fraction_denominator(project.fps);
+    if numerator > 0 && denominator > 0 {
+        denominator as f64 / numerator as f64
+    } else {
+        1.0 / 30.0
+    }
+}
+
+pub(crate) fn waveform_chunks_per_second_from_frame_step(frame_step_seconds: f64) -> u32 {
+    if frame_step_seconds.is_finite() && frame_step_seconds > 0.0 {
+        (f64::from(WAVEFORM_CHUNKS_PER_FRAME) / frame_step_seconds)
+            .round()
+            .clamp(1.0, f64::from(u32::MAX)) as u32
+    } else {
+        0
+    }
+}
+
+pub(super) fn min_seconds_per_pixel(frame_step_seconds: f64) -> f64 {
+    (frame_step_seconds / MAX_FRAME_PIXEL_WIDTH).clamp(MIN_SECONDS_PER_PIXEL, MAX_SECONDS_PER_PIXEL)
+}
+
+pub(super) fn frame_width(view: TimelineViewState, frame_step_seconds: f64) -> f64 {
+    ruler_scale(view).frame_width(frame_step_seconds)
+}
+
+pub(super) fn rect(x: f64, y: f64, width: f64, height: f64) -> Rect {
+    Rect::from_min_size(
+        vec2(x as f32, y as f32),
+        vec2(width.max(0.0) as f32, height.max(0.0) as f32),
+    )
+}

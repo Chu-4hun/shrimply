@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Shrimply
+GenericName=Video Editor
+Comment=Edit video and audio on a timeline
+Exec=shrimply %f
+TryExec=shrimply
+Icon=dev.shrimply.Shrimply
+Terminal=false
+StartupNotify=true
+PrefersNonDefaultGPU=true
+Categories=AudioVideo;Video;GTK;
+Keywords=video;audio;editor;timeline;

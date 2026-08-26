@@ -1,0 +1,178 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/apps/editor-ui",
+    "crates/apps/launcher-ui",
+    "crates/asset",
+    "crates/audio/audio",
+    "crates/audio/audio-modifiers",
+    "crates/audio/lip-sync",
+    "crates/audio/transcription",
+    "crates/audio/tts",
+    "crates/audio/tts-ui",
+    "crates/background",
+    "crates/benchmarking",
+    "crates/blender/blender-bridge",
+    "crates/core",
+    "crates/evaluation",
+    "crates/export/export",
+    "crates/export/export-ui",
+    "crates/math/color",
+    "crates/math/core",
+    "crates/math/geometry",
+    "crates/math/media",
+    "crates/manim/manim-parser",
+    "crates/manim/manim-ir",
+    "crates/manim/manim-wgpu",
+    "crates/mcp",
+    "crates/paint/paint-edit",
+    "crates/paint/paint-geometry",
+    "crates/paint/paint-interpolation",
+    "crates/paint/paint-model",
+    "crates/paint/paint-skia",
+    "crates/paint/paint-topology",
+    "crates/paint/perfect-freehand",
+    "crates/pdf",
+    "crates/interpolation",
+    "crates/project/project",
+    "crates/project/project-core",
+    "crates/project/kdenlive",
+    "crates/project/otio",
+    "crates/property-transfer",
+    "crates/preview/preview-core",
+    "crates/preview/loading-screen",
+    "crates/preview/preview-skia",
+    "crates/preview/playback-performance",
+    "crates/preview/preview-ui",
+    "crates/layered-image/layered-image",
+    "crates/layered-image/kra-parser",
+    "crates/layered-image/psd-parser",
+    "crates/render-core",
+    "crates/resource-pipeline",
+    "crates/server-client",
+    "crates/slang-build",
+    "crates/stabilization/affine-l1-stabilization",
+    "crates/stabilization/mesh-flow-stabilization",
+    "crates/stabilization/nvidia-optical-flow",
+    "crates/state",
+    "crates/support",
+    "crates/timeline/timeline",
+    "crates/timeline/timeline-snap",
+    "crates/timeline/timeline-ui",
+    "crates/timeline/timeline-value",
+    "crates/timeline/keyframe-graph-ui",
+    "crates/timeline/discrete-keyframe-graph-ui",
+    "crates/ui/inspector-ui",
+    "crates/ui/skia-adw-ui",
+    "crates/ui/ui-foundation",
+    "crates/video/rendering",
+    "crates/video/video-modifiers",
+    "crates/video/video-recording",
+    "crates/video/video-generation",
+    "crates/video/video-generation-ui",
+    "crates/video/anime4k",
+    "crates/video/decoder",
+    "crates/video/decoder-pool",
+    "crates/video/frame-pool",
+    "crates/video/visual-frame",
+    "crates/3d/3d-control",
+    "crates/3d/3dgs",
+    "crates/3d/optix-denoiser",
+    "crates/3d/render-3d",
+    "crates/3d/scene-3d",
+    "crates/3d/scene-3d-modifiers",
+    "crates/3d/shape-3d",
+    "crates/3d/text-3d",
+    "crates/3d/transform-3d",
+]
+default-members = ["crates/apps/editor-ui", "crates/apps/launcher-ui"]
+
+[workspace.dependencies]
+adw = { package = "libadwaita", version = "0.9" }
+ash = "0.38"
+async-channel = "2"
+autodiff = "0.7"
+cached = { version = "2", default-features = false, features = ["ahash"] }
+cairo = { package = "cairo-rs", version = "0.22" }
+cint = "0.3"
+cpal = "0.18"
+cuda-core = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
+cuda-device = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
+cuda-host = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
+cc = "1"
+deep_filter = { path = "vendor/deepfilternet/libDF" }
+easyfft = "0.4"
+ffmpeg-next = "9"
+fraction = "0.16"
+fundsp = { version = "0.23", default-features = false }
+good_lp = { version = "1", default-features = false, features = ["highs"] }
+glam = "0.33"
+gltf = { version = "1", features = ["KHR_texture_transform"] }
+glib = "0.22"
+gdk = { package = "gdk4", version = "0.11" }
+glow = "0.18"
+gtk = { package = "gtk4", version = "0.11" }
+half = "2"
+hashbrown = { version = "0.17", features = ["serde"] }
+libc = "0.2"
+lyon_tessellation = "1"
+lzf = "1"
+moxcms = "0.9"
+nalgebra = "0.35"
+ndarray = "0.17"
+nnnoiseless = "0.5"
+notify = "8"
+num-traits = "0.2"
+oklab = "1"
+opencv = { version = "0.100", default-features = false, features = ["calib3d", "clang-runtime", "imgproc", "video", "videoio"] }
+pango = "0.22"
+pangocairo = "0.22"
+pipewire = { version = "0.10", features = ["v0_3_44"] }
+png = "0.18"
+poppler = { package = "poppler-rs", version = "0.26", features = ["v0_82"] }
+psd = "0.3"
+quick-xml = "0.41"
+rangemap = "1"
+rayon = "1"
+reqwest = "0.13"
+rmcp = { version = "3.1", default-features = false, features = ["macros", "server", "transport-io"] }
+rhai = "1"
+rmp-serde = "1"
+rusqlite = "0.40"
+serde = "1"
+serde_bytes = "0.11"
+serde_json = "1"
+serde-value = "0.7"
+schemars = "1"
+skia-safe = "0.99"
+sourceview5 = "0.11"
+tempfile = "3"
+tracing = "0.1"
+strum = "0.28"
+tracing-subscriber = "0.3"
+tokio = { version = "1", features = ["io-std", "macros", "rt-multi-thread"] }
+typos = "0.10"
+typos-dict = "0.14"
+unicase = "2"
+unicode-segmentation = "1"
+uuid = "1"
+vtracer = { git = "https://github.com/visioncortex/vtracer.git", rev = "1ddc9ebbf7120af7d2b92518f1b56ddd95430db1" }
+wayland-client = "0.31"
+wayland-protocols = "0.32"
+wgpu = { version = "30", default-features = false, features = ["std", "parking_lot", "vulkan", "wgsl"] }
+zip = { version = "8", default-features = false, features = ["deflate"] }
+
+[profile.dev]
+opt-level = 0
+debug = "line-tables-only"
+incremental = true
+lto = "off"
+
+[profile.dev.package."*"]
+debug = 0
+
+[profile.dev.package.shrimply-editor-ui]
+opt-level = 0
+
+[profile.dev.package.shrimply-launcher-ui]
+opt-level = 0

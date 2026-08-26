@@ -1,0 +1,21 @@
+[package]
+name = "shrimply-3dgs"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+
+[dependencies]
+ash.workspace = true
+glam.workspace = true
+rayon.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-asset = { path = "../../asset" }
+shrimply-3d-control = { path = "../3d-control" }
+shrimply-core = { path = "../../core" }
+shrimply-render-core = { path = "../../render-core" }
+tracing.workspace = true
+shrimply-transform-3d = { path = "../transform-3d" }
+
+[build-dependencies]
+serde_json.workspace = true
+shrimply-slang-build = { path = "../../slang-build" }

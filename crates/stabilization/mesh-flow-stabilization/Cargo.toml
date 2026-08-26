@@ -1,0 +1,11 @@
+[package]
+name = "shrimply-mesh-flow-stabilization"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam.workspace = true
+opencv.workspace = true
+shrimply-math-core = { path = "../../math/core" }
+shrimply-math-geometry = { path = "../../math/geometry" }
+tracing.workspace = true

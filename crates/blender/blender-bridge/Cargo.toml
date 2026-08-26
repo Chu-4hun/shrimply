@@ -1,0 +1,11 @@
+[package]
+name = "shrimply-blender"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+libc.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+shrimply-math-core = { path = "../../math/core" }
+tempfile.workspace = true

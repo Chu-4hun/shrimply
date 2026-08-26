@@ -1,0 +1,30 @@
+addict
+appdirs
+audioop-lts; python_version>='3.13'
+colour
+diskcache
+ipython>=8.18.0
+isosurfaces
+fontTools
+glfw
+manimpango>=0.6.0
+matplotlib
+numpy
+Pillow
+pydub
+pygments
+pyperclip
+pywavefront
+pyyaml
+rendercanvas
+rich
+scipy
+setuptools
+skia-pathops
+svgelements>=1.8.1
+sympy
+trimesh
+tqdm
+typing-extensions; python_version < "3.11"
+validators
+wgpu

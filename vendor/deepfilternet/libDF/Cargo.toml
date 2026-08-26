@@ -1,0 +1,29 @@
+[package]
+name = "deep_filter"
+version = "0.5.7-pre"
+authors = ["Hendrik Schröter"]
+edition = "2021"
+description = "DeepFilterNet Rust inference core vendored for Shrimply"
+repository = "https://github.com/Rikorose/DeepFilterNet"
+license = "MIT OR Apache-2.0"
+readme = "../README.md"
+rust-version = "1.91"
+
+[lib]
+name = "df"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1"
+flate2 = "1"
+itertools = "0.15"
+log = "0.4"
+ndarray = "0.17"
+num-complex = { version = "0.4", features = ["serde"] }
+realfft = "3"
+rust-ini = "0.21"
+rustfft = "6"
+tar = "0.4"
+tract-core = "0.23"
+tract-onnx = "0.23"
+tract-pulse = "0.23"

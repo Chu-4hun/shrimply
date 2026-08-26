@@ -1,0 +1,22 @@
+[package]
+name = "shrimply-export"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ffmpeg-next.workspace = true
+glam.workspace = true
+libc.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+shrimply-audio = { path = "../../audio/audio" }
+shrimply-math-color = { path = "../../math/color", features = ["gif"] }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-math-media = { path = "../../math/media" }
+shrimply-project = { path = "../../project/project" }
+shrimply-video = { path = "../../video/rendering" }
+tracing.workspace = true
+
+[dev-dependencies]
+fastrand = "2"
+hound = "3"

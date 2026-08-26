@@ -1,0 +1,14 @@
+[package]
+name = "shrimply-kra-parser"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+half.workspace = true
+glam.workspace = true
+lzf.workspace = true
+moxcms.workspace = true
+quick-xml.workspace = true
+rayon.workspace = true
+skia-safe = { workspace = true, features = ["svg"] }
+zip.workspace = true

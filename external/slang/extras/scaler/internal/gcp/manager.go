@@ -1,0 +1,1047 @@
+// Package gcp provides GCP Compute Engine VM lifecycle management for
+// ephemeral GitHub Actions runners.
+package gcp
+
+import (
+	"context"
+	_ "embed"
+	"fmt"
+	"log/slog"
+	"sort"
+	"strings"
+	"sync"
+	"time"
+
+	compute "cloud.google.com/go/compute/apiv1"
+	computepb "cloud.google.com/go/compute/apiv1/computepb"
+	"google.golang.org/api/iterator"
+	"google.golang.org/protobuf/proto"
+
+	regionspb "cloud.google.com/go/compute/apiv1/computepb"
+)
+
+const (
+	cleanupZoneScanTimeout = 30 * time.Second
+	cleanupDeleteTimeout   = 45 * time.Second
+	defaultCleanupInterval = 2 * time.Minute
+	// defaultOrphanGracePeriod is the time a tracked VM is allowed to sit
+	// idle (never marked busy by HandleJobStarted) before the periodic
+	// cleanup pass treats it as an orphan and tears it down. Legitimate
+	// idle time between VM-ready and first-job-dispatch is normally
+	// well under 5 minutes; 30 minutes gives plenty of headroom while
+	// still catching the #11115 wedge before --session-max-age fires.
+	defaultOrphanGracePeriod = 30 * time.Minute
+)
+
+//go:embed startup.ps1
+var windowsStartupScript string
+
+//go:embed startup.sh
+var linuxStartupScript string
+
+// ManagerConfig holds the GCP configuration for VM management.
+type ManagerConfig struct {
+	Project          string // GCP project ID
+	Zones            string // Comma-separated preferred zones (e.g., "us-east1-c,us-west1-a")
+	InstanceTemplate string // Name of the instance template
+	GPUType          string // GPU accelerator type (e.g., "nvidia-tesla-t4")
+	Platform         string // "windows" or "linux"
+	VMPrefix         string // VM name prefix for cleanup (e.g., "win-runner" or "linux-runner")
+	CleanupInterval  time.Duration
+	// OrphanGracePeriod is the maximum time a tracked VM may remain idle
+	// (busy == false) before being evicted as an orphan. A negative value
+	// disables eviction. Zero (unset) uses defaultOrphanGracePeriod.
+	OrphanGracePeriod time.Duration
+}
+
+type vmInfo struct {
+	vmName    string
+	zone      string
+	busy      bool
+	createdAt time.Time
+}
+
+type zoneCandidate struct {
+	zone      string
+	region    string
+	available float64
+}
+
+// Manager handles creating and deleting GCP VMs for GitHub Actions runners.
+type Manager struct {
+	config          ManagerConfig
+	instancesClient *compute.InstancesClient
+	regionsClient   *compute.RegionsClient
+	cancelCleanup   context.CancelFunc
+	cleanupPass     func(context.Context)
+	listTerminated  func(context.Context, string) ([]string, error)
+	listLive        func(context.Context, string) ([]string, error)
+	deleteVMFunc    func(context.Context, string, string) error
+	selectZonesFunc func(context.Context) ([]zoneCandidate, error)
+	insertVMFunc    func(context.Context, *computepb.InsertInstanceRequest) error
+	// beforeOrphanDelete is a test hook used to simulate races between the
+	// orphan candidate snapshot and the pre-delete revalidation.
+	beforeOrphanDelete func(orphanCandidate)
+	// nowFunc is overridable in tests to control the clock used for
+	// orphan eviction. Use m.now() at call sites — that falls back to
+	// time.Now when this is nil so existing tests that construct
+	// Manager directly keep working.
+	nowFunc func() time.Time
+
+	mu sync.Mutex
+	// runnerName -> vmInfo
+	vms            map[string]*vmInfo
+	pendingCreates map[string]zoneCandidate
+	nextNonGPUZone int
+}
+
+// NewManager creates a new GCP VM manager.
+func NewManager(ctx context.Context, cfg ManagerConfig) (*Manager, error) {
+	instancesClient, err := compute.NewInstancesRESTClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("creating instances client: %w", err)
+	}
+
+	regionsClient, err := compute.NewRegionsRESTClient(ctx)
+	if err != nil {
+		instancesClient.Close()
+		return nil, fmt.Errorf("creating regions client: %w", err)
+	}
+
+	if cfg.GPUType == "" {
+		cfg.GPUType = "nvidia-tesla-t4"
+	}
+	if cfg.Platform == "" {
+		cfg.Platform = "windows"
+	}
+	if cfg.CleanupInterval <= 0 {
+		cfg.CleanupInterval = defaultCleanupInterval
+	}
+	cfg.OrphanGracePeriod = normalizeOrphanGracePeriod(cfg.OrphanGracePeriod)
+
+	cleanupCtx, cancelCleanup := context.WithCancel(ctx)
+
+	mgr := &Manager{
+		config:          cfg,
+		instancesClient: instancesClient,
+		regionsClient:   regionsClient,
+		cancelCleanup:   cancelCleanup,
+		nowFunc:         time.Now,
+		vms:             make(map[string]*vmInfo),
+		pendingCreates:  make(map[string]zoneCandidate),
+	}
+
+	// Start background loop to clean up TERMINATED VMs.
+	// VMs self-terminate via shutdown in the startup script after the job
+	// completes. The scaler normally deletes them via HandleJobCompleted,
+	// but after a restart or if the deletion fails, they linger as
+	// TERMINATED. This loop catches those orphans.
+	if cfg.VMPrefix != "" {
+		go mgr.cleanupTerminatedVMs(cleanupCtx)
+	}
+
+	return mgr, nil
+}
+
+func normalizeOrphanGracePeriod(grace time.Duration) time.Duration {
+	if grace == 0 {
+		return defaultOrphanGracePeriod
+	}
+	return grace
+}
+
+// now returns the current time using the injected clock, or time.Now
+// when nowFunc is unset (e.g. tests that build a Manager literal).
+func (m *Manager) now() time.Time {
+	if m.nowFunc != nil {
+		return m.nowFunc()
+	}
+	return time.Now()
+}
+
+// Close shuts down the manager.
+func (m *Manager) Close() {
+	m.cancelCleanup()
+	m.instancesClient.Close()
+	m.regionsClient.Close()
+}
+
+// ActiveCount returns the number of VMs currently tracked or being created.
+func (m *Manager) ActiveCount() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return len(m.vms) + len(m.pendingCreates)
+}
+
+// ActiveRunnerNames returns the names of all tracked runners.
+func (m *Manager) ActiveRunnerNames() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	names := make([]string, 0, len(m.vms)+len(m.pendingCreates))
+	for name := range m.vms {
+		names = append(names, name)
+	}
+	for name := range m.pendingCreates {
+		if _, ok := m.vms[name]; !ok {
+			names = append(names, name)
+		}
+	}
+	return names
+}
+
+// MarkBusy marks a runner as busy (job started).
+func (m *Manager) MarkBusy(runnerName string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if vm, ok := m.vms[runnerName]; ok {
+		vm.busy = true
+	}
+}
+
+func splitZones(zonesValue string) []string {
+	parts := strings.Split(zonesValue, ",")
+	zones := make([]string, 0, len(parts))
+	seen := make(map[string]struct{}, len(parts))
+	for _, zone := range parts {
+		zone = strings.TrimSpace(zone)
+		if zone == "" {
+			continue
+		}
+		if _, ok := seen[zone]; ok {
+			continue
+		}
+		seen[zone] = struct{}{}
+		zones = append(zones, zone)
+	}
+	return zones
+}
+
+func zoneRegion(zone string) string {
+	parts := strings.Split(zone, "-")
+	if len(parts) < 3 {
+		return ""
+	}
+	return parts[0] + "-" + parts[1]
+}
+
+func validateZones(zones []string) error {
+	var invalidZones []string
+	for _, zone := range zones {
+		if zoneRegion(zone) == "" {
+			invalidZones = append(invalidZones, zone)
+		}
+	}
+	if len(invalidZones) > 0 {
+		return fmt.Errorf("invalid zone(s): %s", strings.Join(invalidZones, ", "))
+	}
+	return nil
+}
+
+// selectZones picks candidate zones for creating a VM. For GPU VMs, it checks
+// quota availability across regions. For non-GPU VMs (GPUType == "none"),
+// it round-robins through configured zones.
+func (m *Manager) selectZones(ctx context.Context) ([]zoneCandidate, error) {
+	if m.selectZonesFunc != nil {
+		return m.selectZonesFunc(ctx)
+	}
+
+	zones := splitZones(m.config.Zones)
+	if len(zones) == 0 {
+		return nil, fmt.Errorf("no zones configured")
+	}
+	if err := validateZones(zones); err != nil {
+		return nil, err
+	}
+
+	// Non-GPU VMs: all configured zones are candidates. CreateVM reserves
+	// one under the manager lock, so concurrent creates still round-robin
+	// instead of all observing the same active VM count.
+	if m.config.GPUType == "none" {
+		candidates := make([]zoneCandidate, 0, len(zones))
+		for _, zone := range zones {
+			candidates = append(candidates, zoneCandidate{zone: zone, region: zoneRegion(zone)})
+		}
+		return candidates, nil
+	}
+
+	// GPU VMs: select zone by quota availability
+
+	// Group zones by region (e.g., "us-east1-c" -> "us-east1")
+	regionZones := make(map[string][]string)
+	regionOrder := make(map[string]int)
+	for _, z := range zones {
+		region := zoneRegion(z)
+		if _, ok := regionOrder[region]; !ok {
+			regionOrder[region] = len(regionOrder)
+		}
+		regionZones[region] = append(regionZones[region], z)
+	}
+
+	// Check quota for each region
+	type regionQuota struct {
+		region    string
+		available float64
+		order     int
+	}
+
+	var quotas []regionQuota
+
+	quotaMetric := gpuQuotaMetric(m.config.GPUType)
+
+	for region := range regionZones {
+		req := &regionspb.GetRegionRequest{
+			Project: m.config.Project,
+			Region:  region,
+		}
+		regionInfo, err := m.regionsClient.Get(ctx, req)
+		if err != nil {
+			slog.Warn("failed to get region info", "region", region, "error", err)
+			continue
+		}
+
+		for _, q := range regionInfo.GetQuotas() {
+			if q.GetMetric() == quotaMetric {
+				// GCP's reported usage already includes our running VMs,
+				// so we only need limit - usage (no double-subtraction).
+				available := q.GetLimit() - q.GetUsage()
+				quotas = append(quotas, regionQuota{
+					region:    region,
+					available: available,
+					order:     regionOrder[region],
+				})
+				slog.Debug("region quota",
+					"region", region,
+					"limit", q.GetLimit(),
+					"usage", q.GetUsage(),
+					"available", available,
+				)
+				break
+			}
+		}
+	}
+
+	if len(quotas) == 0 {
+		return nil, fmt.Errorf("no regions with %s quota found", m.config.GPUType)
+	}
+
+	// Sort by available quota (most available first)
+	sort.Slice(quotas, func(i, j int) bool {
+		if quotas[i].available == quotas[j].available {
+			return quotas[i].order < quotas[j].order
+		}
+		return quotas[i].available > quotas[j].available
+	})
+
+	best := quotas[0]
+	if best.available <= 0 {
+		return nil, fmt.Errorf("no GPU quota available in any configured region (best: %s with %.0f available)", best.region, best.available)
+	}
+
+	candidates := make([]zoneCandidate, 0, len(zones))
+	for _, quota := range quotas {
+		if quota.available <= 0 {
+			continue
+		}
+		for _, zone := range regionZones[quota.region] {
+			candidates = append(candidates, zoneCandidate{
+				zone:      zone,
+				region:    quota.region,
+				available: quota.available,
+			})
+		}
+	}
+	if len(candidates) == 0 {
+		return nil, fmt.Errorf("no GPU quota available in any configured region")
+	}
+	return candidates, nil
+}
+
+// selectZone is kept for focused tests and callers that only need the first
+// candidate. CreateVM uses the full candidate list for stockout fallback.
+func (m *Manager) selectZone(ctx context.Context) (string, error) {
+	candidates, err := m.selectZones(ctx)
+	if err != nil {
+		return "", err
+	}
+	if len(candidates) == 0 {
+		return "", fmt.Errorf("no zone candidates available")
+	}
+	return candidates[0].zone, nil
+}
+
+// gpuQuotaMetric returns the GCP quota metric name for a GPU type.
+func gpuQuotaMetric(gpuType string) string {
+	// GCP quota metric names are uppercase with underscores
+	// e.g., "nvidia-tesla-t4" -> "NVIDIA_T4_GPUS"
+	switch gpuType {
+	case "nvidia-tesla-t4":
+		return "NVIDIA_T4_GPUS"
+	case "nvidia-tesla-v100":
+		return "NVIDIA_V100_GPUS"
+	case "nvidia-tesla-p4":
+		return "NVIDIA_P4_GPUS"
+	case "nvidia-tesla-p100":
+		return "NVIDIA_P100_GPUS"
+	case "nvidia-l4":
+		return "NVIDIA_L4_GPUS"
+	case "nvidia-tesla-a100":
+		return "NVIDIA_A100_GPUS"
+	default:
+		// Best effort: uppercase and replace dashes
+		return strings.ToUpper(strings.ReplaceAll(strings.TrimPrefix(gpuType, "nvidia-tesla-"), "-", "_")) + "_GPUS"
+	}
+}
+
+// CreateVM creates a new GPU VM from the instance template, trying candidate
+// zones in quota order and falling through on zonal resource stockouts.
+func (m *Manager) CreateVM(ctx context.Context, runnerName, jitConfig string) (string, error) {
+	candidates, err := m.selectZones(ctx)
+	if err != nil {
+		return "", fmt.Errorf("selecting zones: %w", err)
+	}
+
+	vmName := runnerName
+
+	templateURL := fmt.Sprintf(
+		"projects/%s/global/instanceTemplates/%s",
+		m.config.Project, m.config.InstanceTemplate,
+	)
+
+	// Select the startup script and metadata key based on platform
+	var scriptKey, scriptContent string
+	if m.config.Platform == "linux" {
+		scriptKey = "startup-script"
+		scriptContent = linuxStartupScript
+	} else {
+		scriptKey = "windows-startup-script-ps1"
+		scriptContent = windowsStartupScript
+	}
+
+	// Tell the VM whether this pool expects a GPU, so the startup script can
+	// treat a missing accelerator as a fatal misconfiguration on GPU pools
+	// (where a runner with no device would silently accept GPU-labeled jobs)
+	// while skipping GPU init on the CPU-only build/analytics pools. Derived
+	// from the pool's own --gcp-gpu-type config rather than guessed from the
+	// VM's PCI state, so the expectation is authoritative per pool.
+	expectGPU := "true"
+	if m.config.GPUType == "none" {
+		expectGPU = "false"
+	}
+
+	var stockoutErrors []string
+	for len(candidates) > 0 {
+		candidate, err := m.reserveCreate(runnerName, candidates)
+		if err != nil {
+			return "", err
+		}
+		zone := candidate.zone
+		slog.Info("selected zone", "zone", zone, "region", candidate.region, "available_gpus", candidate.available)
+
+		req := &computepb.InsertInstanceRequest{
+			Project: m.config.Project,
+			Zone:    zone,
+			InstanceResource: &computepb.Instance{
+				Name: proto.String(vmName),
+				Metadata: &computepb.Metadata{
+					Items: []*computepb.Items{
+						{
+							Key:   proto.String("jit-config"),
+							Value: proto.String(jitConfig),
+						},
+						{
+							Key:   proto.String(scriptKey),
+							Value: proto.String(scriptContent),
+						},
+						{
+							Key:   proto.String("expect-gpu"),
+							Value: proto.String(expectGPU),
+						},
+					},
+				},
+			},
+			SourceInstanceTemplate: proto.String(templateURL),
+		}
+
+		if err := m.insertVM(ctx, req); err != nil {
+			m.releaseCreate(runnerName)
+			if isZoneResourceExhausted(err) {
+				slog.Warn("zone resource exhausted, trying next candidate zone", "zone", zone, "error", err)
+				stockoutErrors = append(stockoutErrors, fmt.Sprintf("%s: %v", zone, err))
+				candidates = removeZoneCandidate(candidates, zone)
+				continue
+			}
+			return "", err
+		}
+
+		m.completeCreate(runnerName, vmName, candidate)
+
+		slog.Info("VM created", "vm", vmName, "zone", zone)
+		return vmName, nil
+	}
+
+	if len(stockoutErrors) > 0 {
+		return "", fmt.Errorf("all candidate zones are out of stock for %s: %s", m.config.GPUType, strings.Join(stockoutErrors, "; "))
+	}
+	return "", fmt.Errorf("no candidate zones available for %s", m.config.GPUType)
+}
+
+func removeZoneCandidate(candidates []zoneCandidate, zone string) []zoneCandidate {
+	filtered := make([]zoneCandidate, 0, len(candidates))
+	for _, candidate := range candidates {
+		if candidate.zone != zone {
+			filtered = append(filtered, candidate)
+		}
+	}
+	return filtered
+}
+
+func (m *Manager) reserveCreate(runnerName string, candidates []zoneCandidate) (zoneCandidate, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, ok := m.vms[runnerName]; ok {
+		return zoneCandidate{}, fmt.Errorf("runner %q is already tracked", runnerName)
+	}
+	if _, ok := m.pendingCreates[runnerName]; ok {
+		return zoneCandidate{}, fmt.Errorf("runner %q already has a pending create", runnerName)
+	}
+	if len(candidates) == 0 {
+		return zoneCandidate{}, fmt.Errorf("no candidate zones available for %s", m.config.GPUType)
+	}
+
+	var selected zoneCandidate
+	if m.config.GPUType == "none" {
+		// selectZones returns the full configured zone set for non-GPU
+		// pools, so this counter rotates through a stable ring.
+		selected = candidates[m.nextNonGPUZone%len(candidates)]
+		m.nextNonGPUZone++
+	} else {
+		var err error
+		selected, err = m.selectGPUZone(candidates)
+		if err != nil {
+			return zoneCandidate{}, err
+		}
+	}
+
+	m.pendingCreates[runnerName] = selected
+	return selected, nil
+}
+
+// selectGPUZone picks a GPU zone for a new reservation given the quota-ordered
+// candidates from selectZones and the creates already in flight. Quota is
+// enforced per region (GCP's GPU quota is regional), so a region is only
+// eligible while its reported availability exceeds the reservations already
+// pending against it. Among eligible candidates it keeps selectZones' region
+// ordering (most-available region first) but, within the chosen region,
+// spreads onto the zone with the fewest pending reservations — otherwise
+// concurrent creates would all herd onto the first zone in the region and
+// recreate the zonal stockouts this fan-out is meant to avoid. The caller must
+// hold m.mu.
+func (m *Manager) selectGPUZone(candidates []zoneCandidate) (zoneCandidate, error) {
+	pendingByRegion := make(map[string]int)
+	pendingByZone := make(map[string]int)
+	for _, pending := range m.pendingCreates {
+		pendingByRegion[pending.region]++
+		pendingByZone[pending.zone]++
+	}
+
+	var selected zoneCandidate
+	for _, candidate := range candidates {
+		if candidate.available <= float64(pendingByRegion[candidate.region]) {
+			continue
+		}
+		switch {
+		case selected.zone == "":
+			selected = candidate
+		case candidate.region != selected.region:
+			// candidates are region-ordered, so once we leave the
+			// already-selected region there is no better choice.
+			return selected, nil
+		case pendingByZone[candidate.zone] < pendingByZone[selected.zone]:
+			selected = candidate
+		}
+	}
+	if selected.zone == "" {
+		return zoneCandidate{}, fmt.Errorf("no candidate zones have unreserved %s quota", m.config.GPUType)
+	}
+	return selected, nil
+}
+
+func (m *Manager) releaseCreate(runnerName string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.pendingCreates, runnerName)
+}
+
+func (m *Manager) completeCreate(runnerName, vmName string, candidate zoneCandidate) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.pendingCreates, runnerName)
+	m.vms[runnerName] = &vmInfo{vmName: vmName, zone: candidate.zone, createdAt: m.now()}
+}
+
+func (m *Manager) insertVM(ctx context.Context, req *computepb.InsertInstanceRequest) error {
+	if m.insertVMFunc != nil {
+		return m.insertVMFunc(ctx, req)
+	}
+
+	op, err := m.instancesClient.Insert(ctx, req)
+	if err != nil {
+		return fmt.Errorf("inserting instance in %s: %w", req.GetZone(), err)
+	}
+
+	if err := op.Wait(ctx); err != nil {
+		return fmt.Errorf("waiting for instance creation in %s: %w", req.GetZone(), err)
+	}
+
+	return nil
+}
+
+func isZoneResourceExhausted(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "zone_resource_pool_exhausted") ||
+		strings.Contains(msg, "resource_availability") ||
+		strings.Contains(msg, "does not have enough resources")
+}
+
+// DeleteByRunnerName deletes the VM associated with a runner name.
+func (m *Manager) DeleteByRunnerName(ctx context.Context, runnerName string) error {
+	m.mu.Lock()
+	vm, ok := m.vms[runnerName]
+	if !ok {
+		m.mu.Unlock()
+		return fmt.Errorf("no VM found for runner %q", runnerName)
+	}
+	vmName := vm.vmName
+	zone := vm.zone
+	delete(m.vms, runnerName)
+	m.mu.Unlock()
+
+	return m.deleteVM(ctx, vmName, zone)
+}
+
+// DeleteAll deletes all tracked VMs. Used during shutdown.
+func (m *Manager) DeleteAll(ctx context.Context) {
+	m.mu.Lock()
+	vms := make(map[string]*vmInfo)
+	for rn, vm := range m.vms {
+		vms[rn] = vm
+	}
+	m.mu.Unlock()
+
+	for rn, vm := range vms {
+		if err := m.deleteVM(ctx, vm.vmName, vm.zone); err != nil {
+			slog.Error("failed to delete VM during cleanup", "vm", vm.vmName, "error", err)
+		}
+		m.mu.Lock()
+		delete(m.vms, rn)
+		m.mu.Unlock()
+	}
+}
+
+func (m *Manager) deleteVM(ctx context.Context, vmName, zone string) error {
+	req := &computepb.DeleteInstanceRequest{
+		Project:  m.config.Project,
+		Zone:     zone,
+		Instance: vmName,
+	}
+
+	op, err := m.instancesClient.Delete(ctx, req)
+	if err != nil {
+		return fmt.Errorf("deleting instance %s in %s: %w", vmName, zone, err)
+	}
+
+	if err := op.Wait(ctx); err != nil {
+		return fmt.Errorf("waiting for instance deletion %s in %s: %w", vmName, zone, err)
+	}
+
+	slog.Info("VM deleted", "vm", vmName, "zone", zone)
+	return nil
+}
+
+// cleanupTerminatedVMs periodically scans all configured zones for VMs
+// matching our name prefix that are in TERMINATED state, and deletes them.
+// This catches VMs that self-terminated (via shutdown in the startup script)
+// but weren't cleaned up by the scaler (e.g., after a restart).
+func (m *Manager) cleanupTerminatedVMs(ctx context.Context) {
+	ticker := time.NewTicker(m.config.CleanupInterval)
+	defer ticker.Stop()
+
+	m.runCleanupLoop(ctx, ticker.C)
+}
+
+func (m *Manager) runCleanupLoop(ctx context.Context, ticks <-chan time.Time) {
+	// Run one pass immediately on startup so orphaned VMs are reclaimed
+	// without waiting for the first ticker interval.
+	m.runCleanupPass(ctx)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticks:
+			m.runCleanupPass(ctx)
+		}
+	}
+}
+
+func (m *Manager) runCleanupPass(ctx context.Context) {
+	if m.cleanupPass != nil {
+		m.cleanupPass(ctx)
+		return
+	}
+	m.doCleanupTerminatedVMs(ctx)
+}
+
+func cleanupFilter(vmPrefix string) string {
+	return fmt.Sprintf("name=%s-* AND status=TERMINATED", vmPrefix)
+}
+
+func (m *Manager) removeTrackedVMByVMName(vmName string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for runnerName, vm := range m.vms {
+		if runnerName == vmName || vm.vmName == vmName {
+			delete(m.vms, runnerName)
+			return
+		}
+	}
+}
+
+func (m *Manager) listVMNamesByFilter(ctx context.Context, zone, filter string) ([]string, error) {
+	req := &computepb.ListInstancesRequest{
+		Project: m.config.Project,
+		Zone:    zone,
+		Filter:  proto.String(filter),
+	}
+
+	it := m.instancesClient.List(ctx, req)
+	var names []string
+	for {
+		instance, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return names, err
+		}
+		names = append(names, instance.GetName())
+	}
+	return names, nil
+}
+
+func (m *Manager) listTerminatedVMNames(ctx context.Context, zone string) ([]string, error) {
+	if m.listTerminated != nil {
+		return m.listTerminated(ctx, zone)
+	}
+	return m.listVMNamesByFilter(ctx, zone, cleanupFilter(m.config.VMPrefix))
+}
+
+func liveFilter(vmPrefix string) string {
+	return fmt.Sprintf("name=%s-* AND (status=PROVISIONING OR status=STAGING OR status=RUNNING OR status=REPAIRING)", vmPrefix)
+}
+
+func isLiveStatus(status string) bool {
+	switch status {
+	case "PROVISIONING", "STAGING", "RUNNING", "REPAIRING":
+		return true
+	default:
+		return false
+	}
+}
+
+func (m *Manager) listLiveVMNames(ctx context.Context, zone string) ([]string, error) {
+	if m.listLive != nil {
+		return m.listLive(ctx, zone)
+	}
+	if m.instancesClient == nil {
+		return nil, nil
+	}
+
+	req := &computepb.ListInstancesRequest{
+		Project: m.config.Project,
+		Zone:    zone,
+		Filter:  proto.String(liveFilter(m.config.VMPrefix)),
+	}
+
+	it := m.instancesClient.List(ctx, req)
+	var names []string
+	for {
+		instance, err := it.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return names, err
+		}
+		if isLiveStatus(instance.GetStatus()) {
+			names = append(names, instance.GetName())
+		}
+	}
+	return names, nil
+}
+
+func (m *Manager) deleteVMForCleanup(ctx context.Context, vmName, zone string) error {
+	if m.deleteVMFunc != nil {
+		return m.deleteVMFunc(ctx, vmName, zone)
+	}
+	return m.deleteVM(ctx, vmName, zone)
+}
+
+func (m *Manager) doCleanupTerminatedVMs(ctx context.Context) {
+	zones := strings.Split(m.config.Zones, ",")
+	deletedCount := 0
+
+	for _, zone := range zones {
+		zone = strings.TrimSpace(zone)
+		if zone == "" {
+			continue
+		}
+
+		listCtx, cancelList := context.WithTimeout(ctx, cleanupZoneScanTimeout)
+		names, err := m.listTerminatedVMNames(listCtx, zone)
+		cancelList()
+		if err != nil {
+			slog.Warn("failed to list instances for cleanup", "zone", zone, "error", err)
+			if len(names) == 0 {
+				continue
+			}
+		}
+
+		for _, name := range names {
+			slog.Info("cleaning up terminated VM", "vm", name, "zone", zone)
+			deleteCtx, cancelDelete := context.WithTimeout(ctx, cleanupDeleteTimeout)
+			err = m.deleteVMForCleanup(deleteCtx, name, zone)
+			cancelDelete()
+			if err != nil {
+				slog.Warn("failed to delete terminated VM", "vm", name, "zone", zone, "error", err)
+			} else {
+				deletedCount++
+			}
+
+			// Also remove from tracked VMs if still there
+			m.removeTrackedVMByVMName(name)
+		}
+	}
+
+	slog.Info("terminated VM cleanup pass completed", "terminated_vms_deleted", deletedCount)
+
+	// Reconcile: remove tracked VMs that no longer exist as live instances.
+	// This prevents ActiveCount() from drifting above reality, which would
+	// cause the scaler to stop creating new VMs.
+	m.reconcileTrackedVMs(ctx)
+
+	// Evict orphans: tear down tracked VMs that are alive in GCP but have
+	// never been dispatched a job. Catches the #11115 wedge where a
+	// runner registers with empty labels and never goes busy, leaving
+	// ActiveCount > 0 forever and blocking drain.
+	m.evictStaleOrphans(ctx)
+}
+
+// reconcileTrackedVMs checks all tracked VMs against actual GCP instance state
+// and removes entries for VMs that are no longer live. Freshly created VMs can
+// remain in PROVISIONING or STAGING long enough for cleanup to run, so those
+// states must stay tracked just like RUNNING instances.
+func (m *Manager) reconcileTrackedVMs(ctx context.Context) {
+	if m.instancesClient == nil && m.listLive == nil {
+		return // No GCP client (test mode), skip reconciliation
+	}
+
+	m.mu.Lock()
+	if len(m.vms) == 0 {
+		m.mu.Unlock()
+		return
+	}
+
+	// Snapshot tracked VMs grouped by zone. Eviction must only consider this
+	// snapshot; new VMs can be added while the GCP list calls are in flight.
+	zoneVMs := make(map[string]struct{})
+	snapshot := make(map[string]vmInfo, len(m.vms))
+	for runnerName, vm := range m.vms {
+		snapshot[runnerName] = *vm
+		zoneVMs[vm.zone] = struct{}{}
+	}
+	m.mu.Unlock()
+
+	// Collect all live VM names across zones.
+	liveVMs := make(map[string]bool)
+	failedZones := make(map[string]bool)
+	for zone := range zoneVMs {
+		listCtx, cancel := context.WithTimeout(ctx, cleanupZoneScanTimeout)
+		names, err := m.listLiveVMNames(listCtx, zone)
+		cancel()
+		if err != nil {
+			slog.Warn("reconcile: failed to list live VMs", "zone", zone, "error", err)
+			failedZones[zone] = true
+			continue
+		}
+		for _, name := range names {
+			liveVMs[name] = true
+		}
+	}
+
+	// Remove tracked entries whose VMs are no longer live.
+	// Skip VMs in zones where the list call failed.
+	m.mu.Lock()
+	evicted := 0
+	for runnerName, snap := range snapshot {
+		current, ok := m.vms[runnerName]
+		if !ok {
+			continue
+		}
+		if current.vmName != snap.vmName || current.zone != snap.zone {
+			continue
+		}
+		if failedZones[snap.zone] {
+			continue
+		}
+		if !liveVMs[snap.vmName] {
+			slog.Info("reconcile: removing stale tracked VM", "runner", runnerName, "vm", snap.vmName, "zone", snap.zone)
+			delete(m.vms, runnerName)
+			evicted++
+		}
+	}
+	m.mu.Unlock()
+
+	if evicted > 0 {
+		slog.Info("reconcile: evicted stale VM entries", "count", evicted, "tracked_after", m.ActiveCount())
+	}
+}
+
+// orphanCandidate describes one tracked VM that the eviction pass has
+// decided to tear down because it has aged past the grace period without
+// ever receiving a job.
+type orphanCandidate struct {
+	runnerName string
+	vmName     string
+	zone       string
+	age        time.Duration
+}
+
+func (m *Manager) orphanCandidateStillIdle(c orphanCandidate) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	vm, ok := m.vms[c.runnerName]
+	return ok && !vm.busy && vm.vmName == c.vmName && vm.zone == c.zone
+}
+
+func (m *Manager) removeOrphanCandidateIfIdle(c orphanCandidate) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if vm, ok := m.vms[c.runnerName]; ok && !vm.busy && vm.vmName == c.vmName && vm.zone == c.zone {
+		delete(m.vms, c.runnerName)
+		return true
+	}
+	return false
+}
+
+// evictStaleOrphans tears down tracked VMs that have been idle (never
+// marked busy by HandleJobStarted) for longer than OrphanGracePeriod.
+//
+// In the healthy path a VM gets a JIT-config token at creation time,
+// boots, registers a runner with the configured labels, GitHub
+// dispatches a queued job to it, and HandleJobStarted flips busy=true.
+// An orphan VM never reaches the dispatch step (because its runner
+// registered with empty labels or got stuck in a "Registration not
+// found" loop), so busy stays false and the scaler's tracking never
+// decrements. Once any orphan exists, the next --session-max-age drain
+// will never observe active_vms == 0 and wedges the entire tier.
+//
+// Grace period must be long enough to cover legitimate VM cold-start
+// plus any quiet period between VM-ready and first-job-dispatch.
+// Operationally that's been <5 min; defaultOrphanGracePeriod=30m gives
+// a wide margin while still catching wedges before --session-max-age=2h
+// fires.
+//
+// Race note: orphanCandidateStillIdle is rechecked under the lock just
+// before each delete, but MarkBusy can still fire while the GCP delete
+// is in flight. In that case removeOrphanCandidateIfIdle preserves
+// tracking (busy stays true) even though the VM is already gone in
+// GCP; reconcileTrackedVMs reaps the now-stale entry on the next pass.
+// For the orphan scenario this targets (runner registered with empty
+// labels, never receives a job, MarkBusy never fires) this race is
+// essentially unreachable.
+func (m *Manager) evictStaleOrphans(ctx context.Context) {
+	grace := m.config.OrphanGracePeriod
+	if grace <= 0 {
+		return
+	}
+
+	now := m.now()
+	m.mu.Lock()
+	candidates := make([]orphanCandidate, 0)
+	for runnerName, vm := range m.vms {
+		if vm.busy {
+			continue
+		}
+		// createdAt is zero for entries created before this field was
+		// introduced or in legacy tests; treat those as not yet eligible.
+		if vm.createdAt.IsZero() {
+			continue
+		}
+		age := now.Sub(vm.createdAt)
+		if age < grace {
+			continue
+		}
+		candidates = append(candidates, orphanCandidate{
+			runnerName: runnerName,
+			vmName:     vm.vmName,
+			zone:       vm.zone,
+			age:        age,
+		})
+	}
+	m.mu.Unlock()
+
+	deleted := 0
+	skipped := 0
+	for _, c := range candidates {
+		if m.beforeOrphanDelete != nil {
+			m.beforeOrphanDelete(c)
+		}
+		if !m.orphanCandidateStillIdle(c) {
+			skipped++
+			slog.Info("skipping orphan VM eviction: tracked VM changed or went busy",
+				"runner", c.runnerName,
+				"vm", c.vmName,
+				"zone", c.zone,
+			)
+			continue
+		}
+
+		slog.Warn("evicting orphan VM: tracked but never went busy",
+			"runner", c.runnerName,
+			"vm", c.vmName,
+			"zone", c.zone,
+			"age", c.age,
+			"grace_period", grace,
+		)
+		deleteCtx, cancelDelete := context.WithTimeout(ctx, cleanupDeleteTimeout)
+		err := m.deleteVMForCleanup(deleteCtx, c.vmName, c.zone)
+		cancelDelete()
+		if err != nil {
+			// Don't drop tracking on delete failure — try again next pass.
+			slog.Warn("failed to delete orphan VM",
+				"vm", c.vmName, "zone", c.zone, "error", err)
+			continue
+		}
+		deleted++
+
+		// Drop the tracked entry. Re-check under the lock in case the entry
+		// changed while the GCP delete was in flight.
+		m.removeOrphanCandidateIfIdle(c)
+	}
+
+	if len(candidates) > 0 {
+		slog.Info("orphan eviction pass completed",
+			"orphan_candidates", len(candidates),
+			"orphans_deleted", deleted,
+			"orphans_skipped", skipped,
+			"tracked_after", m.ActiveCount(),
+		)
+	}
+}

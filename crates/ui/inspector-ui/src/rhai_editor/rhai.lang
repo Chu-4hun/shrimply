@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language id="rhai" name="Rhai" version="2.0" _section="Source">
+  <metadata>
+    <property name="mimetypes">text/x-rhai</property>
+    <property name="globs">*.rhai</property>
+    <property name="line-comment-start">//</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
+  </metadata>
+
+  <styles>
+    <style id="comment" name="Comment" map-to="def:comment"/>
+    <style id="string" name="String" map-to="def:string"/>
+    <style id="keyword" name="Keyword" map-to="def:keyword"/>
+    <style id="function" name="Function" map-to="def:function"/>
+    <style id="variable" name="Variable" map-to="def:identifier"/>
+    <style id="number" name="Number" map-to="def:number"/>
+    <style id="boolean" name="Boolean" map-to="def:boolean"/>
+  </styles>
+
+  <definitions>
+    <context id="line-comment" style-ref="comment" end-at-line-end="true">
+      <start>//</start>
+    </context>
+
+    <context id="block-comment" style-ref="comment">
+      <start>/\*</start>
+      <end>\*/</end>
+    </context>
+
+    <context id="string" style-ref="string" end-at-line-end="true">
+      <start>"</start>
+      <end>"</end>
+      <include>
+        <context ref="escape"/>
+      </include>
+    </context>
+
+    <context id="character" style-ref="string" end-at-line-end="true">
+      <start>'</start>
+      <end>'</end>
+      <include>
+        <context ref="escape"/>
+      </include>
+    </context>
+
+    <context id="interpolated-string" style-ref="string">
+      <start>`</start>
+      <end>`</end>
+      <include>
+        <context ref="escape"/>
+      </include>
+    </context>
+
+    <context id="escape" style-ref="def:special-char">
+      <match>\\.</match>
+    </context>
+
+    <context id="number" style-ref="number">
+      <match extended="true">
+        (?&lt;![A-Za-z0-9_])
+        [0-9]+(\.[0-9]+)?
+        ([eE][+-]?[0-9]+)?
+        (?![A-Za-z0-9_])
+      </match>
+    </context>
+
+    <context id="keywords" style-ref="keyword">
+      <keyword>break</keyword>
+      <keyword>const</keyword>
+      <keyword>continue</keyword>
+      <keyword>else</keyword>
+      <keyword>export</keyword>
+      <keyword>false</keyword>
+      <keyword>fn</keyword>
+      <keyword>for</keyword>
+      <keyword>if</keyword>
+      <keyword>in</keyword>
+      <keyword>let</keyword>
+      <keyword>loop</keyword>
+      <keyword>return</keyword>
+      <keyword>true</keyword>
+      <keyword>while</keyword>
+    </context>
+
+    <context id="booleans" style-ref="boolean">
+      <keyword>true</keyword>
+      <keyword>false</keyword>
+    </context>
+
+    <context id="functions" style-ref="function">
+      <keyword>Fraction</keyword>
+      <keyword>abs</keyword>
+      <keyword>clamp</keyword>
+      <keyword>cos</keyword>
+      <keyword>int</keyword>
+      <keyword>lerp</keyword>
+      <keyword>gray</keyword>
+      <keyword>graya</keyword>
+      <keyword>hsv</keyword>
+      <keyword>hsva</keyword>
+      <keyword>oklab</keyword>
+      <keyword>oklaba</keyword>
+      <keyword>pow</keyword>
+      <keyword>random</keyword>
+      <keyword>rgb</keyword>
+      <keyword>rgba</keyword>
+      <keyword>shake</keyword>
+      <keyword>sin</keyword>
+      <keyword>sqrt</keyword>
+      <keyword>tan</keyword>
+      <keyword>vol</keyword>
+    </context>
+
+    <context id="variables" style-ref="variable">
+      <keyword>canvas_height</keyword>
+      <keyword>canvas_width</keyword>
+      <keyword>duration</keyword>
+      <keyword>fps</keyword>
+      <keyword>local_t</keyword>
+      <keyword>media_height</keyword>
+      <keyword>media_width</keyword>
+      <keyword>seed</keyword>
+      <keyword>source_height</keyword>
+      <keyword>source_width</keyword>
+      <keyword>t</keyword>
+      <keyword>time</keyword>
+      <keyword>value</keyword>
+      <keyword>a</keyword>
+      <keyword>b</keyword>
+      <keyword>g</keyword>
+      <keyword>r</keyword>
+      <keyword>x</keyword>
+      <keyword>y</keyword>
+      <keyword>z</keyword>
+    </context>
+
+    <context id="rhai">
+      <include>
+        <context ref="line-comment"/>
+        <context ref="block-comment"/>
+        <context ref="string"/>
+        <context ref="character"/>
+        <context ref="interpolated-string"/>
+        <context ref="number"/>
+        <context ref="booleans"/>
+        <context ref="keywords"/>
+        <context ref="functions"/>
+        <context ref="variables"/>
+      </include>
+    </context>
+  </definitions>
+</language>

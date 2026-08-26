@@ -1,0 +1,359 @@
+use crate::preferences::{page as preferences_page, store as preferences_store};
+use crate::{export, player_state, project};
+use adw::prelude::*;
+use gtk::gio;
+use std::cell::RefCell;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::rc::Rc;
+
+pub(crate) fn add(
+    header_bar: &adw::HeaderBar,
+    window: &adw::ApplicationWindow,
+    toasts: &adw::ToastOverlay,
+    project: Rc<RefCell<project::Project>>,
+    player_state: player_state::SharedPlayerState,
+    preferences: preferences_store::SharedPreferences,
+) {
+    let menu = gio::Menu::new();
+    let project_menu = gio::Menu::new();
+    project_menu.append(Some("New Project"), Some("win.new-project"));
+    project_menu.append(Some("Open Project…"), Some("win.open-project"));
+    let track_menu = gio::Menu::new();
+    track_menu.append(Some("Caption Track"), Some("win.new-caption-track"));
+    track_menu.append(Some("Video Track"), Some("win.new-video-track"));
+    track_menu.append(Some("Audio Track"), Some("win.new-audio-track"));
+    project_menu.append_submenu(Some("New Track"), &track_menu);
+    project_menu.append(Some("Save"), Some("win.save"));
+    project_menu.append(Some("Save As…"), Some("win.save-as"));
+    menu.append_section(None, &project_menu);
+
+    let history_menu = gio::Menu::new();
+    history_menu.append(Some("Undo"), Some("win.undo"));
+    history_menu.append(Some("Redo"), Some("win.redo"));
+    menu.append_section(None, &history_menu);
+
+    let settings_menu = gio::Menu::new();
+    settings_menu.append(Some("Preferences"), Some("win.preferences"));
+    settings_menu.append(Some("Keyboard Shortcuts"), Some("win.show-shortcuts"));
+    menu.append_section(None, &settings_menu);
+
+    let about_menu = gio::Menu::new();
+    about_menu.append(Some("About Shrimply"), Some("win.about"));
+    menu.append_section(None, &about_menu);
+
+    add_action(window, "new-project", {
+        let window = window.clone();
+        move || {
+            if let Err(error) = launch_sibling("shrimply", None) {
+                show_error_dialog(&window, "Could not create project", &error);
+            }
+        }
+    });
+    add_action(window, "open-project", {
+        let window = window.clone();
+        move || show_open_project_dialog(&window)
+    });
+    for (name, kind) in [
+        ("new-caption-track", NewTrackKind::Caption),
+        ("new-video-track", NewTrackKind::Video),
+        ("new-audio-track", NewTrackKind::Audio),
+    ] {
+        add_action(window, name, {
+            let project = project.clone();
+            let player_state = player_state.clone();
+            move || add_track(&project, &player_state, kind)
+        });
+    }
+    add_action(window, "save-as", {
+        let window = window.clone();
+        let toasts = toasts.clone();
+        let project = project.clone();
+        let player_state = player_state.clone();
+        move || show_save_as_dialog(&window, &toasts, &project, &player_state)
+    });
+    add_action(window, "save", {
+        let window = window.clone();
+        move || {
+            if let Err(error) = project::save() {
+                show_error_dialog(&window, "Could not save project", &error);
+            }
+        }
+    });
+    add_action(window, "undo", {
+        let project = project.clone();
+        let player_state = player_state.clone();
+        move || change_history(&project, &player_state, project::undo)
+    });
+    add_action(window, "redo", {
+        let project = project.clone();
+        let player_state = player_state.clone();
+        move || change_history(&project, &player_state, project::redo)
+    });
+    add_action(window, "show-shortcuts", {
+        let window = window.clone();
+        move || show_shortcuts_dialog(&window)
+    });
+    add_action(window, "preferences", {
+        let window = window.clone();
+        let preferences = preferences.clone();
+        move || preferences_page::show_preferences_dialog(&window, preferences.clone())
+    });
+    add_action(window, "about", {
+        let window = window.clone();
+        move || show_about_dialog(&window)
+    });
+
+    if let Some(app) = window.application() {
+        for (action, accelerators) in [
+            ("win.new-project", &["<Primary>n"][..]),
+            ("win.open-project", &["<Primary>o"][..]),
+            ("win.save", &["<Primary>s"][..]),
+            ("win.save-as", &["<Primary><Shift>s"][..]),
+            ("win.undo", &["<Primary>z"][..]),
+            ("win.redo", &["<Primary><Shift>z", "<Primary>y"][..]),
+            ("win.preferences", &["<Primary>comma"][..]),
+            ("win.show-shortcuts", &["<Primary>question"][..]),
+        ] {
+            app.set_accels_for_action(action, accelerators);
+        }
+    }
+
+    let popover = gtk::PopoverMenu::from_model(Some(&menu));
+    let menu_button = gtk::MenuButton::builder()
+        .icon_name("open-menu-symbolic")
+        .has_frame(false)
+        .popover(&popover)
+        .build();
+    let export_button = export::build_export_button(window, toasts, project, preferences);
+    let header_right = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+    header_right.append(&export_button);
+    header_right.append(&menu_button);
+    header_bar.pack_end(&header_right);
+}
+
+fn add_action<F>(window: &adw::ApplicationWindow, name: &str, activate: F)
+where
+    F: Fn() + 'static,
+{
+    let action = gio::SimpleAction::new(name, None);
+    action.connect_activate(move |_, _| activate());
+    window.add_action(&action);
+}
+
+fn show_shortcuts_dialog(window: &adw::ApplicationWindow) {
+    let shortcuts = adw::ShortcutsDialog::builder()
+        .title("Keyboard Shortcuts")
+        .build();
+    let section = adw::ShortcutsSection::new(Some("General"));
+    section.add(adw::ShortcutsItem::new("New Project", "Ctrl+N"));
+    section.add(adw::ShortcutsItem::new("Open Project", "Ctrl+O"));
+    section.add(adw::ShortcutsItem::new("Save", "Ctrl+S"));
+    section.add(adw::ShortcutsItem::new("Save As", "Ctrl+Shift+S"));
+    section.add(adw::ShortcutsItem::new("Undo", "Ctrl+Z"));
+    section.add(adw::ShortcutsItem::new("Redo", "Ctrl+Shift+Z"));
+    section.add(adw::ShortcutsItem::new("Preferences", "Ctrl+,"));
+    section.add(adw::ShortcutsItem::new("Show Keyboard Shortcuts", "Ctrl+?"));
+    section.add(adw::ShortcutsItem::new("Play / Pause", "Space"));
+    section.add(adw::ShortcutsItem::new("Step playback", "L"));
+    shortcuts.add(section);
+    let timeline = adw::ShortcutsSection::new(Some("Timeline"));
+    timeline.add(adw::ShortcutsItem::new("Split all clips at playhead", "S"));
+    timeline.add(adw::ShortcutsItem::new(
+        "Split all clips and select left",
+        "Shift+S",
+    ));
+    timeline.add(adw::ShortcutsItem::new(
+        "Ripple trim selected clip to playhead",
+        "Q",
+    ));
+    timeline.add(adw::ShortcutsItem::new("Delete selection", "D"));
+    timeline.add(adw::ShortcutsItem::new("Ripple cut", "Shift+D"));
+    timeline.add(adw::ShortcutsItem::new("Cut selection", "Ctrl+X"));
+    timeline.add(adw::ShortcutsItem::new(
+        "Replace selected item properties",
+        "Ctrl+Shift+V",
+    ));
+    timeline.add(adw::ShortcutsItem::new("Toggle timeline zoom", "Z"));
+    shortcuts.add(timeline);
+    shortcuts.present(Some(window));
+}
+
+fn show_open_project_dialog(window: &adw::ApplicationWindow) {
+    let window = window.clone();
+    shrimply_ui_foundation::project_open::open_project(&window.clone(), move |result| {
+        let path = match result {
+            Ok(Some(path)) => path,
+            Ok(None) => return,
+            Err(error) => {
+                show_error_dialog(&window, "Could not open project", &error);
+                return;
+            }
+        };
+        if let Err(error) = launch_sibling("shrimply-editor", Some(&path)) {
+            show_error_dialog(&window, "Could not open project", &error);
+        }
+    });
+}
+
+fn show_save_as_dialog(
+    window: &adw::ApplicationWindow,
+    toasts: &adw::ToastOverlay,
+    current_project: &Rc<RefCell<project::Project>>,
+    player_state: &player_state::SharedPlayerState,
+) {
+    let label = "Save Project As";
+    let filter = shrimply_ui_foundation::project_open::project_file_filter();
+    let filters = gio::ListStore::new::<gtk::FileFilter>();
+    filters.append(&filter);
+    let initial_name = project::active_project_path()
+        .file_stem()
+        .and_then(|name| name.to_str())
+        .map(|name| format!("{name} copy.shrimp"))
+        .unwrap_or_else(|| "project copy.shrimp".to_string());
+    let dialog = gtk::FileDialog::builder()
+        .title(label)
+        .initial_name(initial_name)
+        .filters(&filters)
+        .default_filter(&filter)
+        .build();
+    let window = window.clone();
+    let parent = window.clone();
+    let toasts = toasts.clone();
+    let current_project = current_project.clone();
+    let player_state = player_state.clone();
+    shrimply_ui_foundation::file_picker::save(
+        label,
+        &dialog,
+        Some(parent.upcast_ref::<gtk::Window>()),
+        move |result| {
+            let Ok(file) = result else {
+                return;
+            };
+            let Some(mut path) = file.path() else {
+                show_error_dialog(
+                    &window,
+                    "Could not save project",
+                    "The selected location does not have a local path.",
+                );
+                return;
+            };
+            if !has_shrimp_extension(&path) {
+                path.set_extension("shrimp");
+            }
+            if let Err(error) = project::save_as(&path) {
+                show_error_dialog(&window, "Could not save project", &error);
+                return;
+            }
+            let name = current_project.borrow().name.clone();
+            if let Err(error) = shrimply_support::recent_projects::touch(&path, &name) {
+                tracing::warn!("Could not update recent projects: {error}");
+            }
+            player_state::refresh_project(
+                &player_state,
+                player_state::ProjectChange {
+                    inspector: true,
+                    ..player_state::ProjectChange::default()
+                },
+            );
+            shrimply_ui_foundation::toast::show_confirmation(
+                &toasts,
+                "Project saved to the new location",
+            );
+        },
+    );
+}
+
+fn has_shrimp_extension(path: &Path) -> bool {
+    path.extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("shrimp"))
+}
+
+fn launch_sibling(name: &str, argument: Option<&Path>) -> Result<(), String> {
+    let sibling = std::env::current_exe()
+        .map(|path| path.with_file_name(name))
+        .ok()
+        .filter(|path| path.is_file())
+        .unwrap_or_else(|| PathBuf::from(name));
+    let mut command = Command::new(&sibling);
+    if let Some(argument) = argument {
+        command.arg(argument);
+    }
+    command
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| format!("could not launch {}: {error}", sibling.display()))
+}
+
+fn show_error_dialog(window: &adw::ApplicationWindow, heading: &str, body: &str) {
+    adw::AlertDialog::new(Some(heading), Some(body)).present(Some(window));
+}
+
+fn show_about_dialog(window: &adw::ApplicationWindow) {
+    let dialog = adw::AboutDialog::builder()
+        .application_name("Shrimply")
+        .application_icon("dev.shrimply.Shrimply")
+        .version(env!("CARGO_PKG_VERSION"))
+        .license_type(gtk::License::Gpl30)
+        .title("About Shrimply")
+        .build();
+    dialog.present(Some(window));
+}
+
+#[derive(Clone, Copy)]
+enum NewTrackKind {
+    Caption,
+    Video,
+    Audio,
+}
+
+fn add_track(
+    project: &Rc<RefCell<project::Project>>,
+    player_state: &player_state::SharedPlayerState,
+    kind: NewTrackKind,
+) {
+    {
+        let mut project = project.borrow_mut();
+        match kind {
+            NewTrackKind::Caption => project.caption_tracks.push(Default::default()),
+            NewTrackKind::Video => project.video_tracks.push(Default::default()),
+            NewTrackKind::Audio => project.audio_tracks.push(Default::default()),
+        }
+        project::commit_edit(&project, "create-timeline-track");
+    }
+    player_state::refresh_project(
+        player_state,
+        player_state::ProjectChange {
+            audio: matches!(kind, NewTrackKind::Audio),
+            video: matches!(kind, NewTrackKind::Video),
+            captions: matches!(kind, NewTrackKind::Caption),
+            inspector: true,
+            ..Default::default()
+        },
+    );
+}
+
+fn change_history(
+    project: &Rc<RefCell<project::Project>>,
+    player_state: &player_state::SharedPlayerState,
+    change: fn(&mut project::Project) -> bool,
+) {
+    if !change(&mut project.borrow_mut()) {
+        return;
+    }
+    let duration = project.borrow().duration();
+    player_state::refresh_project(
+        player_state,
+        player_state::ProjectChange {
+            duration: Some(duration),
+            audio: true,
+            audio_beats: true,
+            audio_waveforms: true,
+            video: true,
+            live_preview: false,
+            captions: true,
+            inspector: true,
+        },
+    );
+}

@@ -1,0 +1,9 @@
+[package]
+name = "shrimply_cuda_link"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+
+[dependencies]
+cuda-host = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }

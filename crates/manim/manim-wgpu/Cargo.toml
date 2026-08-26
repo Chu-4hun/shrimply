@@ -1,0 +1,20 @@
+[package]
+name = "shrimply-manim-wgpu"
+version = "0.1.0"
+edition = "2024"
+build = false
+
+[dependencies]
+ash-wgpu = { package = "ash", version = "0.38" }
+hashbrown.workspace = true
+pollster = "1"
+shrimply-manim-ir = { path = "../manim-ir" }
+tracing.workspace = true
+wgpu.workspace = true
+
+[dev-dependencies]
+ffmpeg-next.workspace = true
+shrimply-asset = { path = "../../asset" }
+shrimply-manim-parser = { path = "../manim-parser" }
+shrimply-math-core = { path = "../../math/core" }
+tempfile.workspace = true

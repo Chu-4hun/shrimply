@@ -1,0 +1,17 @@
+[package]
+name = "shrimply-scene-3d"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam = { workspace = true, features = ["serde"] }
+gltf.workspace = true
+rayon.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-asset = { path = "../../asset" }
+shrimply-3d-control = { path = "../3d-control" }
+shrimply-core = { path = "../../core" }
+shrimply-math-color = { path = "../../math/color" }
+strum = { workspace = true, features = ["derive"] }
+shrimply-transform-3d = { path = "../transform-3d" }
+uuid = { workspace = true, features = ["v4", "serde"] }

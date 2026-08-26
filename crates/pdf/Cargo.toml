@@ -1,0 +1,9 @@
+[package]
+name = "shrimply-pdf"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cairo.workspace = true
+glib.workspace = true
+poppler.workspace = true

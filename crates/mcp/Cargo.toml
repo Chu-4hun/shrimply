@@ -1,0 +1,28 @@
+[package]
+name = "shrimply-mcp"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "shrimply_mcp"
+path = "src/lib.rs"
+
+[[bin]]
+name = "shrimply-mcp"
+path = "src/main.rs"
+required-features = ["server"]
+
+[features]
+default = ["server"]
+server = ["dep:rmcp", "dep:tokio"]
+
+[dependencies]
+rmcp = { workspace = true, optional = true }
+schemars.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+shrimply-math-core = { path = "../math/core" }
+shrimply-project = { path = "../project/project" }
+shrimply-timeline = { path = "../timeline/timeline" }
+tokio = { workspace = true, optional = true }
+uuid = { workspace = true, features = ["serde"] }

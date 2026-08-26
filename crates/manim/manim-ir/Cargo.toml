@@ -1,0 +1,13 @@
+[package]
+name = "shrimply-manim-ir"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam = { workspace = true, features = ["serde"] }
+hashbrown.workspace = true
+rmp-serde.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_bytes.workspace = true
+shrimply-math-color = { path = "../../math/color" }
+shrimply-math-core = { path = "../../math/core" }

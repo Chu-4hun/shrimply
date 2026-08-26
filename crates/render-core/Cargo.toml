@@ -1,0 +1,13 @@
+[package]
+name = "shrimply-render-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+autodiff.workspace = true
+glam.workspace = true
+nalgebra.workspace = true
+num-traits.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-math-color = { path = "../math/color" }
+shrimply-math-geometry = { path = "../math/geometry" }

@@ -1,0 +1,18 @@
+[package]
+name = "shrimply-text-3d"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+cairo = { workspace = true, features = ["freetype"] }
+glam.workspace = true
+glib.workspace = true
+lyon_tessellation.workspace = true
+pango = { workspace = true, features = ["v1_56"] }
+pangocairo.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-core = { path = "../../core" }
+shrimply-scene-3d = { path = "../scene-3d" }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4", "serde"] }

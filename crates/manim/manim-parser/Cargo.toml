@@ -1,0 +1,15 @@
+[package]
+name = "shrimply-manim-parser"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+libc.workspace = true
+rmp-serde.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-asset = { path = "../../asset" }
+shrimply-manim-ir = { path = "../manim-ir" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-project = { path = "../../project/project" }
+tracing.workspace = true

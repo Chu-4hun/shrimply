@@ -1,0 +1,59 @@
+[package]
+name = "shrimply-inspector-ui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+adw = { workspace = true, features = ["v1_9"] }
+async-channel.workspace = true
+ffmpeg-next.workspace = true
+glam.workspace = true
+gtk = { workspace = true, features = ["v4_10"] }
+num-traits.workspace = true
+pango = { workspace = true, features = ["v1_56"] }
+reqwest = { workspace = true, features = ["blocking"] }
+rusqlite.workspace = true
+shrimply-audio = { path = "../../audio/audio" }
+shrimply-audio-modifiers = { path = "../../audio/audio-modifiers" }
+shrimply-benchmarking = { path = "../../benchmarking" }
+shrimply-blender = { path = "../../blender/blender-bridge" }
+shrimply-3dgs = { path = "../../3d/3dgs" }
+shrimply-core = { path = "../../core" }
+shrimply-evaluation = { path = "../../evaluation" }
+shrimply-discrete-keyframe-graph-ui = { path = "../../timeline/discrete-keyframe-graph-ui" }
+shrimply-interpolation = { path = "../../interpolation" }
+shrimply-keyframe-graph-ui = { path = "../../timeline/keyframe-graph-ui" }
+shrimply-layered-image = { path = "../../layered-image/layered-image" }
+shrimply-manim-parser = { path = "../../manim/manim-parser" }
+shrimply-property-transfer = { path = "../../property-transfer" }
+shrimply-pdf = { path = "../../pdf" }
+shrimply-project = { path = "../../project/project" }
+shrimply-resource-pipeline = { path = "../../resource-pipeline" }
+shrimply-text-3d = { path = "../../3d/text-3d" }
+shrimply-render-core = { path = "../../render-core" }
+shrimply-scene-3d = { path = "../../3d/scene-3d" }
+shrimply-server-client = { path = "../../server-client" }
+shrimply-shape-3d = { path = "../../3d/shape-3d" }
+shrimply-state = { path = "../../state" }
+shrimply-tts = { path = "../../audio/tts" }
+shrimply-tts-ui = { path = "../../audio/tts-ui" }
+shrimply-support = { path = "../../support" }
+shrimply-timeline = { path = "../../timeline/timeline" }
+shrimply-ui-foundation = { path = "../ui-foundation" }
+shrimply-video-modifiers = { path = "../../video/video-modifiers" }
+shrimply-video-generation = { path = "../../video/video-generation" }
+shrimply-video-generation-ui = { path = "../../video/video-generation-ui" }
+shrimply-video = { path = "../../video/rendering" }
+shrimply-math-color = { path = "../../math/color", features = ["gdk"] }
+shrimply-math-geometry = { path = "../../math/geometry" }
+shrimply-math-core = { path = "../../math/core" }
+skia-safe = { workspace = true, features = ["gl", "textlayout"] }
+shrimply-skia-adw-ui = { path = "../skia-adw-ui" }
+sourceview5.workspace = true
+tempfile.workspace = true
+tracing.workspace = true
+typos.workspace = true
+typos-dict.workspace = true
+unicase.workspace = true
+uuid = { workspace = true, features = ["v4", "serde"] }

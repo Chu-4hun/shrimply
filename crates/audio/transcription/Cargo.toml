@@ -1,0 +1,10 @@
+[package]
+name = "shrimply-transcription"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+shrimply-audio = { path = "../audio" }
+shrimply-project = { path = "../../project/project" }
+shrimply-math-core = { path = "../../math/core" }

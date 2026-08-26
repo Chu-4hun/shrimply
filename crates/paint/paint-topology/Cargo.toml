@@ -1,0 +1,9 @@
+[package]
+name = "shrimply-paint-topology"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam.workspace = true
+rayon.workspace = true
+shrimply-math-geometry = { path = "../../math/geometry" }

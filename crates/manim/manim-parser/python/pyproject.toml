@@ -1,0 +1,16 @@
+[project]
+name = "shrimply-manim-parser-worker"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = ["cyclopts>=4.20", "manimgl", "msgpack", "pywavefront", "trimesh"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+manimgl = { path = "../../../../external/manim", editable = true }
+
+[dependency-groups]
+dev = [
+    "pyrefly>=1.1.1",
+]

@@ -1,0 +1,14 @@
+[submodule "external/rhubarb-lip-sync"]
+	path = external/rhubarb-lip-sync
+	url = https://github.com/DanielSWolf/rhubarb-lip-sync.git
+[submodule "external/slang"]
+	path = external/slang
+	url = https://github.com/shader-slang/slang.git
+	branch = master
+[submodule "external/optix-dev"]
+	path = external/optix-dev
+	url = https://github.com/NVIDIA/optix-dev.git
+	branch = main
+[submodule "external/manim"]
+	path = external/manim
+	url = https://github.com/3b1b/manim.git

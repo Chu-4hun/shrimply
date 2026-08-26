@@ -1,0 +1,40 @@
+[package]
+name = "shrimply-editor-ui"
+version = "0.1.0"
+edition = "2024"
+default-run = "shrimply-editor"
+
+[[bin]]
+name = "shrimply-editor"
+path = "src/main.rs"
+
+[dependencies]
+adw = { workspace = true, features = ["v1_9"] }
+async-channel.workspace = true
+ffmpeg-next.workspace = true
+gtk = { workspace = true, features = ["v4_10"] }
+libc.workspace = true
+num-traits.workspace = true
+pango = { workspace = true, features = ["v1_56"] }
+serde_json.workspace = true
+shrimply-audio = { path = "../../audio/audio" }
+shrimply-blender = { path = "../../blender/blender-bridge" }
+shrimply-asset = { path = "../../asset" }
+shrimply-export-ui = { path = "../../export/export-ui" }
+shrimply-inspector-ui = { path = "../../ui/inspector-ui" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-mcp = { path = "../../mcp", default-features = false }
+shrimply-otio = { path = "../../project/otio" }
+shrimply-kdenlive = { path = "../../project/kdenlive" }
+shrimply-preview-ui = { path = "../../preview/preview-ui" }
+shrimply-playback-performance = { path = "../../preview/playback-performance" }
+shrimply-property-transfer = { path = "../../property-transfer" }
+shrimply-project = { path = "../../project/project" }
+shrimply-server-client = { path = "../../server-client" }
+shrimply-state = { path = "../../state" }
+shrimply-support = { path = "../../support" }
+shrimply-timeline = { path = "../../timeline/timeline" }
+shrimply-timeline-ui = { path = "../../timeline/timeline-ui" }
+shrimply-ui-foundation = { path = "../../ui/ui-foundation" }
+tracing.workspace = true
+uuid.workspace = true

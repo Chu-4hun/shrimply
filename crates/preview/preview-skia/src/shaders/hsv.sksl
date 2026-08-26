@@ -1,0 +1,36 @@
+uniform float hue_turns;
+uniform float saturation_scale;
+uniform float value_scale;
+
+float4 main(float4 color) {
+    if (color.a <= 0.0) {
+        return color;
+    }
+
+    float3 rgb = color.rgb / color.a;
+    float maximum = max(rgb.r, max(rgb.g, rgb.b));
+    float minimum = min(rgb.r, min(rgb.g, rgb.b));
+    float delta = maximum - minimum;
+    float hue = 0.0;
+    if (delta > 0.000001) {
+        if (maximum == rgb.r) {
+            hue = (rgb.g - rgb.b) / delta / 6.0;
+        } else if (maximum == rgb.g) {
+            hue = ((rgb.b - rgb.r) / delta + 2.0) / 6.0;
+        } else {
+            hue = ((rgb.r - rgb.g) / delta + 4.0) / 6.0;
+        }
+    }
+    hue += hue_turns;
+    hue -= floor(hue);
+
+    float source_saturation = maximum <= 0.000001 ? 0.0 : delta / maximum;
+    float saturation = clamp(source_saturation * saturation_scale, 0.0, 1.0);
+    float value = clamp(maximum * value_scale, 0.0, 1.0);
+    float3 hue_shape = clamp(
+        abs(fract(hue + float3(0.0, 0.6666667, 0.3333333)) * 6.0 - 3.0) - 1.0,
+        0.0,
+        1.0
+    );
+    return float4(value * mix(float3(1.0), hue_shape, saturation) * color.a, color.a);
+}

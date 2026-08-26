@@ -1,0 +1,11 @@
+[package]
+name = "shrimply-timeline"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+shrimply-core = { path = "../../core" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-project = { path = "../../project/project" }
+shrimply-support = { path = "../../support" }
+uuid.workspace = true

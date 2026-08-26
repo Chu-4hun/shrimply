@@ -1,0 +1,11 @@
+[package]
+name = "shrimply-anime4k"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+cuda-core.workspace = true
+cuda-device.workspace = true
+cuda-host.workspace = true
+glam.workspace = true

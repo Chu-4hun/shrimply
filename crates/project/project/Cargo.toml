@@ -1,0 +1,40 @@
+[package]
+name = "shrimply-project"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = ["editor"]
+editor = []
+
+[dependencies]
+hashbrown.workspace = true
+glam = { workspace = true, features = ["serde"] }
+glib.workspace = true
+libc.workspace = true
+rmp-serde.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+serde-value.workspace = true
+strum = { workspace = true, features = ["derive"] }
+shrimply-interpolation = { path = "../../interpolation" }
+shrimply-math-media = { path = "../../math/media" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-math-geometry = { path = "../../math/geometry" }
+shrimply-asset = { path = "../../asset" }
+shrimply-paint-model = { path = "../../paint/paint-model" }
+shrimply-paint-edit = { path = "../../paint/paint-edit" }
+shrimply-project-core = { path = "../project-core" }
+shrimply-preview-core = { path = "../../preview/preview-core" }
+shrimply-3dgs = { path = "../../3d/3dgs" }
+shrimply-3d-control = { path = "../../3d/3d-control" }
+shrimply-transform-3d = { path = "../../3d/transform-3d" }
+shrimply-core = { path = "../../core" }
+shrimply-scene-3d = { path = "../../3d/scene-3d" }
+shrimply-audio-modifiers = { path = "../../audio/audio-modifiers" }
+shrimply-tts = { path = "../../audio/tts" }
+shrimply-background = { path = "../../background" }
+shrimply-video-modifiers = { path = "../../video/video-modifiers" }
+shrimply-video-generation = { path = "../../video/video-generation" }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4", "serde"] }

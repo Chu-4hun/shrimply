@@ -1,0 +1,5 @@
+**/*.enums
+**/*.reflection.json
+**/*.spv
+**/slang-reflect
+**/slang_bindings.rs

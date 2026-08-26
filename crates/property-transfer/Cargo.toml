@@ -1,0 +1,11 @@
+[package]
+name = "shrimply-property-transfer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+shrimply-audio-modifiers = { path = "../audio/audio-modifiers" }
+shrimply-project = { path = "../project/project" }
+shrimply-video-modifiers = { path = "../video/video-modifiers" }
+uuid = { workspace = true, features = ["v4"] }

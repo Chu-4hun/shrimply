@@ -1,0 +1,34 @@
+[package]
+name = "shrimply-audio"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown.workspace = true
+cached.workspace = true
+cpal.workspace = true
+deep_filter.workspace = true
+easyfft.workspace = true
+ffmpeg-next.workspace = true
+glam.workspace = true
+fundsp = { workspace = true, features = ["std"] }
+libc.workspace = true
+ndarray.workspace = true
+nnnoiseless.workspace = true
+rayon.workspace = true
+rusqlite = { workspace = true, features = ["bundled"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+shrimply-audio-modifiers = { path = "../audio-modifiers" }
+shrimply-asset = { path = "../../asset" }
+shrimply-benchmarking = { path = "../../benchmarking" }
+shrimply-core = { path = "../../core" }
+shrimply-lip-sync = { path = "../lip-sync" }
+shrimply-math-media = { path = "../../math/media" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-project = { path = "../../project/project" }
+shrimply-resource-pipeline = { path = "../../resource-pipeline" }
+shrimply-server-client = { path = "../../server-client" }
+tempfile.workspace = true
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4", "serde"] }

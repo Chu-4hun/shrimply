@@ -1,0 +1,10 @@
+[package]
+name = "shrimply-project-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glam.workspace = true
+serde = { workspace = true, features = ["derive"] }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-math-geometry = { path = "../../math/geometry" }

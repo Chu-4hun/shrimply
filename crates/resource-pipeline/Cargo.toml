@@ -1,0 +1,5 @@
+[package]
+name = "shrimply-resource-pipeline"
+version = "0.1.0"
+edition = "2024"
+

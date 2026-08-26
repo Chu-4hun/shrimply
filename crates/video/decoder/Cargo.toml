@@ -1,0 +1,22 @@
+[package]
+name = "shrimply-video-decoder"
+version = "0.1.0"
+edition = "2024"
+readme = "README.md"
+
+[dependencies]
+cuda-core.workspace = true
+ffmpeg-next.workspace = true
+libc.workspace = true
+shrimply-asset = { path = "../../asset" }
+shrimply-benchmarking = { path = "../../benchmarking" }
+shrimply-decoder-pool = { path = "../decoder-pool" }
+shrimply-math-core = { path = "../../math/core" }
+shrimply-project = { path = "../../project/project" }
+shrimply-visual-frame = { path = "../visual-frame" }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4"] }
+
+[dev-dependencies]
+shrimply-math-media = { path = "../../math/media" }
+tempfile.workspace = true

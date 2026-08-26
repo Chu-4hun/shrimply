@@ -1,0 +1,24 @@
+[package]
+name = "shrimply-evaluation"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cached.workspace = true
+hashbrown.workspace = true
+glam.workspace = true
+num-traits.workspace = true
+rhai.workspace = true
+shrimply-3dgs = { path = "../3d/3dgs" }
+shrimply-benchmarking = { path = "../benchmarking" }
+shrimply-core = { path = "../core" }
+shrimply-lip-sync = { path = "../audio/lip-sync" }
+shrimply-math-media = { path = "../math/media" }
+shrimply-math-color = { path = "../math/color" }
+shrimply-math-core = { path = "../math/core" }
+shrimply-paint-geometry = { path = "../paint/paint-geometry" }
+shrimply-project = { path = "../project/project" }
+shrimply-scene-3d = { path = "../3d/scene-3d" }
+shrimply-video-modifiers = { path = "../video/video-modifiers" }
+tracing.workspace = true
+uuid = { workspace = true, features = ["v4", "serde"] }
