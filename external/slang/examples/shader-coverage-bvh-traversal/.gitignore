@@ -1,6 +1,0 @@
-# Coverage run artifacts — produced by the demo binary and run_coverage.py.
-*.counters.bin
-*.coverage-manifest.json
-*.lcov
-out/
-*-html/
