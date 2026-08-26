@@ -1,0 +1,13 @@
+[project]
+name = "shrimply-docs"
+version = "0.1.0"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "furo",
+    "sphinx==6.2",
+    "sphinx-tabs",
+    "sphinxext-opengraph",
+]
+
+[tool.uv]
+package = false

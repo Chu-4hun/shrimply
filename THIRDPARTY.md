@@ -55,3 +55,11 @@ SOURCE: https://gitlab.gnome.org/GNOME/gimp/-/blob/master/app/core/gimplineart.c
 PAPER: https://gmic.eu/publications/vmv18.pdf
 LICENSE: GNU General Public License v3 or later
 AUTHORS: Jehan Pages; David Tschumperle; Quentin Fourey; David Revoy; GIMP contributors
+
+---
+
+COMPONENT: GNOME Developer Documentation Sphinx theme
+SOURCE: https://gitlab.gnome.org/Teams/Websites/developer.gnome.org
+VERSION: 315a4ba8eb4990f25e0c1cb39934f9e9b420fa32
+LICENSE: MIT (templates); Creative Commons Attribution-ShareAlike 3.0 (static assets)
+AUTHORS: Pradyun Gedam; Jakub Steiner; GNOME contributors

@@ -92,7 +92,7 @@ FEDORA_PACKAGES := \
 	poppler-glib-devel \
 	freetype-devel
 
-.PHONY: native-deps cuda-target-check cuda-artifacts dev dev-server run build release check server-python-check manim manim-python-check manim-parameter-check cargo-check fmt fmt-check lint test frame-rate-test video-lifecycle-test transparent-fill-frame-range-test transparent-fill-cache-test transparent-fill-decoder-test transparent-fill-kernel-test transparent-fill-compositor-test transparent-fill-playback-test transparent-fill-e2e-fixture transparent-fill-e2e-test decode-ahead-benchmark paint-interpolation-test crash-report oxide-doctor oxide-setup clean-dev clean deps-fedora install install-codex-mcp-dev uninstall
+.PHONY: native-deps cuda-target-check cuda-artifacts dev dev-server docs docs-check run build release check server-python-check manim manim-python-check manim-parameter-check cargo-check fmt fmt-check lint test frame-rate-test video-lifecycle-test transparent-fill-frame-range-test transparent-fill-cache-test transparent-fill-decoder-test transparent-fill-kernel-test transparent-fill-compositor-test transparent-fill-playback-test transparent-fill-e2e-fixture transparent-fill-e2e-test decode-ahead-benchmark paint-interpolation-test crash-report oxide-doctor oxide-setup clean-dev clean deps-fedora install install-codex-mcp-dev uninstall
 
 native-deps:
 	@$(PKG_CONFIG) --exists rubberband || { echo "Missing Rubber Band development files (pkg-config: rubberband)" >&2; exit 1; }
@@ -190,6 +190,12 @@ dev: native-deps cuda-artifacts
 dev-server:
 	uv run --project server --locked server/src/main.py
 
+docs:
+	uv run --project docs --locked sphinx-build docs/source docs/build
+
+docs-check:
+	uv run --project docs --locked sphinx-build -W --keep-going docs/source docs/build
+
 run: dev
 
 build: native-deps cuda-artifacts
@@ -198,7 +204,7 @@ build: native-deps cuda-artifacts
 release: native-deps cuda-artifacts
 	$(BUILD_ENV) $(CARGO) build --release -p $(EDITOR_PACKAGE) -p $(LAUNCHER_PACKAGE) -p $(MCP_PACKAGE) --bins
 
-check: native-deps cuda-artifacts fmt source-size-check cargo-check lint server-python-check manim-python-check
+check: native-deps cuda-artifacts fmt source-size-check cargo-check lint server-python-check manim-python-check docs-check
 
 source-size-check:
 	@oversized="$$(rg --files -g '!external/**' -g '!target/**' | while IFS= read -r source_file; do \
@@ -319,6 +325,7 @@ clean-dev:
 clean:
 	$(CARGO) clean
 	rm -rf .oxide-artifacts
+	rm -rf docs/build
 
 deps-fedora:
 	$(DNF) install $(FEDORA_PACKAGES)

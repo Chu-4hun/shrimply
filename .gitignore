@@ -35,6 +35,8 @@ __pycache__/
 !/crates/cuda/preview/Cargo.lock
 !/crates/cuda/stabilization/Cargo.lock
 !/server/uv.lock
+!/docs/uv.lock
+/docs/build
 *.options
 *.target
 blobs/
