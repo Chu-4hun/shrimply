@@ -65,10 +65,14 @@ between runs.
 Compute features
 ----------------
 
-* :doc:`services` explains transcription, text-to-speech, segmentation, voice
-  conversion, and 3D tracking.
-* :doc:`video-generation` explains the available generation modes, model
-  licenses, and practical resource considerations.
+See :doc:`services` for an overview, or open a feature directly:
+
+* :doc:`transcription`
+* :doc:`text-to-speech`
+* :doc:`video-segmentation`
+* :doc:`voice-conversion`
+* :doc:`camera-tracking`
+* :doc:`video-generation`
 
 Troubleshooting
 ---------------
@@ -83,4 +87,9 @@ downloads; later requests reuse the downloaded files.
    :hidden:
 
    services
+   transcription
+   text-to-speech
+   video-segmentation
+   voice-conversion
+   camera-tracking
    video-generation
