@@ -1,4 +1,6 @@
-![Shrimply logo](assets/icons/dev.shrimply.Shrimply.svg)
+<p align="center">
+  <img src="assets/icons/dev.shrimply.Shrimply.svg" alt="Shrimply logo" width="128">
+</p>
 
 # Shrimply
 
