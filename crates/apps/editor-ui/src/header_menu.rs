@@ -295,7 +295,7 @@ fn show_about_dialog(window: &adw::ApplicationWindow) {
         .application_name("Shrimply")
         .application_icon("dev.shrimply.Shrimply")
         .version(env!("CARGO_PKG_VERSION"))
-        .comments("A non-linear video editor")
+        .comments("A simple video editor")
         .developer_name("Soiri Hiroka")
         .developers(["Soiri Hiroka"])
         .website("https://github.com/soirihiroka/shrimply")

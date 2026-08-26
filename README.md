@@ -1,6 +1,6 @@
 # Shrimply
 
-Shrimply is a video editor for myself.
+Shrimply is a simple video editor.
 
 ## Development
 

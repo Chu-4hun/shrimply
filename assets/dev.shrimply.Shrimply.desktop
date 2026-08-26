@@ -2,7 +2,7 @@
 Type=Application
 Name=Shrimply
 GenericName=Video Editor
-Comment=Edit video and audio on a timeline
+Comment=A simple video editor
 Exec=shrimply %f
 TryExec=shrimply
 Icon=dev.shrimply.Shrimply
