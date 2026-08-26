@@ -179,8 +179,8 @@ impl Inspectable for Project {
             vec![
                 list::InspectorCategory {
                     key: "config",
-                    label: "Config",
-                    icon: "general-properties-symbolic",
+                    label: "Project",
+                    icon: "sliders-horizontal-symbolic",
                     items: vec![flat(config.into_widget())],
                 },
                 list::InspectorCategory {
