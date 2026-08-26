@@ -4,6 +4,7 @@ use std::rc::Rc;
 use gtk::prelude::*;
 use shrimply_evaluation::{FrameAudioAnalysis, TransformExpressionCache, VisualEvaluation};
 use shrimply_project::project::{Project, TextItem, Time, VideoItemContent};
+use shrimply_ui_foundation::ui::MultilineTextInput;
 use uuid::Uuid;
 
 use crate::InspectedItem as SelectedItem;
@@ -11,7 +12,6 @@ use crate::keyframe_editor::{
     self, KeyframeEditorActions, KeyframeGraph, SpeedSegment, TextInterpolationActions,
 };
 use crate::player_state::{self, ProjectChange, SharedPlayerState};
-use crate::text_input::typo_checked_text_input_controlled;
 use crate::{InspectorContext, keyframe_model};
 
 use super::{
@@ -25,8 +25,17 @@ pub(crate) fn text_control(
     context: &InspectorContext,
 ) -> gtk::Widget {
     let Some(key) = context.selected_item.clone() else {
-        let input = typo_checked_text_input_controlled(&value.fallback(), 86, |_| false, || {});
-        return layered::wide_control(label, value, input.widget, Vec::new(), |_| {}, |_| {});
+        let input = MultilineTextInput::builder(value.fallback())
+            .min_content_height(86)
+            .build();
+        return layered::wide_control(
+            label,
+            value,
+            input.widget().clone(),
+            Vec::new(),
+            |_| {},
+            |_| {},
+        );
     };
     let position = player_state::snapshot(&context.player_state).position;
     let time = local_time(&context.project.borrow(), key.clone(), position).unwrap_or(Time::ZERO);
@@ -34,14 +43,13 @@ pub(crate) fn text_control(
     let player = context.player_state.clone();
     let commit_project = context.project.clone();
     let input_key = key.clone();
-    let input = typo_checked_text_input_controlled(
-        &value.value_at(time),
-        86,
-        move |text| update_value(&project, &player, input_key.clone(), text),
-        move || {
+    let input = MultilineTextInput::builder(value.value_at(time))
+        .min_content_height(86)
+        .on_change(move |text| update_value(&project, &player, input_key.clone(), text))
+        .on_commit(move || {
             shrimply_project::project::commit_edit(&commit_project.borrow(), "edit-text-item");
-        },
-    );
+        })
+        .build();
 
     let mut body = Vec::new();
     if matches!(value.base, TimelineBase::Keyframes(_)) {
@@ -72,7 +80,7 @@ pub(crate) fn text_control(
         body.push(expression_editor(context, key.clone()));
     }
 
-    connect_text_refresh(context, key.clone(), input.set_text.clone());
+    connect_text_refresh(context, key.clone(), input.set_text_handler());
 
     let project = context.project.clone();
     let player = context.player_state.clone();
@@ -85,7 +93,7 @@ pub(crate) fn text_control(
     layered::wide_control(
         label,
         value,
-        input.widget,
+        input.widget().clone(),
         body,
         move |enabled| {
             if toggle_keyframes(&project, &player, keyframe_key.clone(), enabled) {

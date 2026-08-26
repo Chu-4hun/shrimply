@@ -1,17 +1,13 @@
 use crate::{
     player_state::{self, ProjectChange},
     time_format,
-    ui::{NumberPicker, dropdown},
+    ui::{NumberPicker, SingleLineTextInput, dropdown},
 };
 use adw::prelude::*;
 use shrimply_project::project::Project;
 
-use super::{
-    Inspectable, InspectorContext, item::flat, list, section::InspectorSection,
-    text_input::typo_checked_text_input,
-};
+use super::{Inspectable, InspectorContext, item::flat, list, section::InspectorSection};
 
-const PROJECT_NAME_EDITOR_HEIGHT: i32 = 64;
 const MIN_CANVAS_DIMENSION: f64 = 1.0;
 const MAX_CANVAS_DIMENSION: f64 = 16_384.0;
 
@@ -28,28 +24,19 @@ impl Inspectable for Project {
         let name_project = context.project.clone();
         let commit_project = context.project.clone();
         let name_player_state = context.player_state.clone();
-        config.add_control_row(
-            "Name",
-            &typo_checked_text_input(
-                &self.name,
-                PROJECT_NAME_EDITOR_HEIGHT,
-                move |next| {
-                    let mut project = name_project.borrow_mut();
-                    if project.name == next {
-                        return false;
-                    }
+        let name = SingleLineTextInput::builder(&self.name)
+            .on_change(move |next| {
+                let mut project = name_project.borrow_mut();
+                if project.name != next {
                     project.name = next;
-                    true
-                },
-                move || {
-                    player_state::refresh_project(&name_player_state, ProjectChange::default());
-                    shrimply_project::project::commit_edit(
-                        &commit_project.borrow(),
-                        "project-name",
-                    );
-                },
-            ),
-        );
+                }
+            })
+            .on_commit(move |_| {
+                player_state::refresh_project(&name_player_state, ProjectChange::default());
+                shrimply_project::project::commit_edit(&commit_project.borrow(), "project-name");
+            })
+            .build();
+        config.add_control_row("Name", &name);
 
         let mut fps_options = shrimply_project::project::COMMON_FRAME_RATES
             .iter()

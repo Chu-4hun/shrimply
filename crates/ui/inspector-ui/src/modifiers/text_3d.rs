@@ -4,6 +4,7 @@ use shrimply_core::{
 };
 use shrimply_project::project::Project;
 use shrimply_scene_3d::{MAX_IOR, MIN_IOR, MIN_ROUGHNESS, NormalMode};
+use shrimply_ui_foundation::ui::MultilineTextInput;
 use shrimply_video_modifiers::{
     ModifierEffect,
     scene_3d::{Scene3dModifierEffect, Text3dModifier},
@@ -15,7 +16,6 @@ use crate::{
     font_selector::font_selector_list,
     player_state::{self, ProjectChange},
     selector::{enum_selector, selector},
-    text_input::typo_checked_text_input_controlled,
     timeline_value::layered,
 };
 
@@ -140,12 +140,13 @@ pub fn add_rows(value: &Text3dModifier, out: &gtk::Box, id: Uuid, context: &Insp
 
 fn text_row(value: &Text3dModifier, id: Uuid, context: &InspectorContext) -> gtk::Widget {
     let Some(key) = context.selected_item.clone() else {
-        let input =
-            typo_checked_text_input_controlled(&value.text.fallback(), 86, |_| false, || {});
+        let input = MultilineTextInput::builder(value.text.fallback())
+            .min_content_height(86)
+            .build();
         return layered::wide_control(
             "Text",
             &value.text,
-            input.widget,
+            input.widget().clone(),
             Vec::new(),
             |_| {},
             |_| {},
@@ -156,14 +157,13 @@ fn text_row(value: &Text3dModifier, id: Uuid, context: &InspectorContext) -> gtk
         .unwrap_or_default();
     let edit_context = context.detached();
     let commit_project = context.project.clone();
-    let input = typo_checked_text_input_controlled(
-        &value.text.value_at(time),
-        86,
-        move |next| update_text_value(&edit_context, id, next),
-        move || {
+    let input = MultilineTextInput::builder(value.text.value_at(time))
+        .min_content_height(86)
+        .on_change(move |next| update_text_value(&edit_context, id, next))
+        .on_commit(move || {
             shrimply_project::project::commit_edit(&commit_project.borrow(), "edit-3d-text");
-        },
-    );
+        })
+        .build();
     let mut body = Vec::new();
     if value
         .text
@@ -186,7 +186,7 @@ fn text_row(value: &Text3dModifier, id: Uuid, context: &InspectorContext) -> gtk
     layered::wide_control(
         "Text",
         &value.text,
-        input.widget,
+        input.widget().clone(),
         body,
         move |enabled| {
             if toggle_text_keyframes(&keyframe_context, id, enabled) {

@@ -154,18 +154,10 @@ fn controls(parameters: &ManimParameters, context: &InspectorContext) -> Vec<gtk
                 ));
             }
             (ManimParameterControl::String, ManimParameterValue::String(value)) => {
-                let control = gtk::Entry::builder().text(value).hexpand(true).build();
-                let update = Rc::new(parameter_update(context, item_key.clone(), parameter));
-                control.connect_activate({
-                    let update = update.clone();
-                    move |control| update(ManimParameterValue::String(control.text().into()))
-                });
-                let focus = gtk::EventControllerFocus::new();
-                focus.connect_leave({
-                    let control = control.clone();
-                    move |_| update(ManimParameterValue::String(control.text().into()))
-                });
-                control.add_controller(focus);
+                let update = parameter_update(context, item_key.clone(), parameter);
+                let control = shrimply_ui_foundation::ui::SingleLineTextInput::builder(value)
+                    .on_commit(move |value| update(ManimParameterValue::String(value)))
+                    .build();
                 section.add_wide_control(&shrimply_ui_foundation::ui::control_row(
                     &parameter.label,
                     &control,

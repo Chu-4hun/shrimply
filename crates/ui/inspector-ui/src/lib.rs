@@ -24,7 +24,6 @@ mod rhai_editor;
 mod scene_3d;
 mod section;
 mod selector;
-mod text_input;
 mod timeline_value;
 mod track;
 mod transform;

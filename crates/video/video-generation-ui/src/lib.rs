@@ -577,57 +577,28 @@ fn text_widget(
         })
         .unwrap_or_default();
     if !multiline {
-        let entry = gtk::Entry::builder()
-            .text(&value)
-            .hexpand(true)
-            .max_length(i32::try_from(max_length).unwrap_or(i32::MAX))
-            .build();
         let key = key.to_string();
         let changed = input.clone();
-        entry.connect_changed(move |entry| {
-            set_input(
-                &changed,
-                &key,
-                VideoGenerationValue::Text {
-                    value: entry.text().to_string(),
-                },
-            );
-        });
-        let focus = gtk::EventControllerFocus::new();
-        focus.connect_leave(move |_| (input.on_commit)());
-        entry.add_controller(focus);
+        let entry = ui::SingleLineTextInput::builder(value)
+            .max_length(max_length)
+            .on_change(move |value| {
+                set_input(&changed, &key, VideoGenerationValue::Text { value });
+            })
+            .on_commit(move |_| (input.on_commit)())
+            .build();
         return ui::control_row(label, &entry);
     }
-    let buffer = gtk::TextBuffer::new(None);
-    buffer.set_text(&value);
-    let view = gtk::TextView::builder()
-        .buffer(&buffer)
-        .wrap_mode(gtk::WrapMode::WordChar)
-        .top_margin(8)
-        .bottom_margin(8)
-        .left_margin(8)
-        .right_margin(8)
-        .build();
-    let scrolled = gtk::ScrolledWindow::builder()
-        .child(&view)
-        .min_content_height(96)
-        .hexpand(true)
-        .build();
     let key = key.to_string();
     let changed = input.clone();
-    buffer.connect_changed(move |buffer| {
-        let (start, end) = buffer.bounds();
-        let value = buffer
-            .text(&start, &end, true)
-            .chars()
-            .take(max_length)
-            .collect();
-        set_input(&changed, &key, VideoGenerationValue::Text { value });
-    });
-    let focus = gtk::EventControllerFocus::new();
-    focus.connect_leave(move |_| (input.on_commit)());
-    view.add_controller(focus);
-    ui::control_row(label, &scrolled)
+    let editor = ui::MultilineTextInput::builder(value)
+        .max_length(max_length)
+        .on_change(move |value| {
+            set_input(&changed, &key, VideoGenerationValue::Text { value });
+            true
+        })
+        .on_commit(move || (input.on_commit)())
+        .build();
+    ui::control_row(label, editor.widget())
 }
 
 fn number_widget(definition: &InputDefinition, input: InputContext) -> gtk::Widget {

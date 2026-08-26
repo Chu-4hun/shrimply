@@ -9,7 +9,7 @@ use shrimply_project::project::{
     CaptionEdgeStyle, CaptionFont, CaptionItem, CaptionWritingDirection, Color, HorizontalAlign,
     Project, VerticalAlign,
 };
-use shrimply_ui_foundation::ui::ColorPicker;
+use shrimply_ui_foundation::ui::{ColorPicker, MultilineTextInput};
 
 use super::{
     Inspectable, InspectorContext,
@@ -17,7 +17,6 @@ use super::{
     list,
     section::InspectorSection,
     selector::selector,
-    text_input::typo_checked_text_input,
 };
 
 impl Inspectable for CaptionItem {
@@ -442,18 +441,16 @@ fn add_text_editor(
     let project = context.project.clone();
     let player_state = context.player_state.clone();
     let commit_project = context.project.clone();
-    let editor = typo_checked_text_input(
-        text,
-        96,
-        move |text| update_caption_text_live(&project, &player_state, key.clone(), text),
-        move || {
+    let editor = MultilineTextInput::builder(text)
+        .on_change(move |text| update_caption_text_live(&project, &player_state, key.clone(), text))
+        .on_commit(move || {
             shrimply_project::project::commit_edit(&commit_project.borrow(), "caption");
-        },
-    );
-    editor.set_tooltip_text(Some(
+        })
+        .build();
+    editor.widget().set_tooltip_text(Some(
         "Markdown: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]",
     ));
-    section.add_control_row("Text", &editor);
+    section.add_control_row("Text", editor.widget());
 }
 
 fn add_enabled_editor(

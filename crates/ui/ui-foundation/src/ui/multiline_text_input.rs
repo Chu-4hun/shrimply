@@ -9,113 +9,185 @@ use sourceview5::prelude::*;
 
 const MAX_TYPO_CORRECTIONS: usize = 6;
 const TEXT_COMMIT_DEBOUNCE: Duration = Duration::from_millis(750);
+const DEFAULT_MIN_CONTENT_HEIGHT: i32 = 96;
+const TEXT_MARGIN: i32 = 8;
 
-pub(crate) fn typo_checked_text_input(
-    value: &str,
-    min_content_height: i32,
-    on_changed: impl Fn(String) -> bool + 'static,
-    on_commit: impl Fn() + 'static,
-) -> gtk::Widget {
-    typo_checked_text_input_controlled(value, min_content_height, on_changed, on_commit).widget
+#[derive(Clone)]
+pub struct MultilineTextInput {
+    widget: gtk::Widget,
+    set_text: Rc<dyn Fn(&str)>,
 }
 
-pub(crate) struct ControlledTextInput {
-    pub(crate) widget: gtk::Widget,
-    pub(crate) set_text: Rc<dyn Fn(&str)>,
+pub struct MultilineTextInputBuilder {
+    value: String,
+    min_content_height: i32,
+    max_length: Option<usize>,
+    on_change: Option<Box<dyn Fn(String) -> bool>>,
+    on_commit: Option<Box<dyn Fn()>>,
 }
 
-pub(crate) fn typo_checked_text_input_controlled(
-    value: &str,
-    min_content_height: i32,
-    on_changed: impl Fn(String) -> bool + 'static,
-    on_commit: impl Fn() + 'static,
-) -> ControlledTextInput {
-    let buffer = sourceview5::Buffer::new(None);
-    set_text_style_scheme(&buffer);
-    buffer.set_text(value);
-    let typo_tag = gtk::TextTag::builder()
-        .name("typo")
-        .underline(gtk::pango::Underline::Error)
-        .underline_rgba(&gtk::gdk::RGBA::new(0.92, 0.18, 0.18, 1.0))
-        .build();
-    buffer.tag_table().add(&typo_tag);
-    let typo_marks = Rc::new(RefCell::new(Vec::new()));
-    let syncing = Rc::new(Cell::new(false));
-    update_typo_marks(&buffer, &typo_tag, &typo_marks);
-
-    let view = sourceview5::View::with_buffer(&buffer);
-    view.set_wrap_mode(gtk::WrapMode::WordChar);
-    view.set_height_request(min_content_height);
-    view.set_hexpand(true);
-    view.set_monospace(false);
-    view.set_show_line_numbers(false);
-    view.set_has_tooltip(true);
-    connect_typo_tooltips(&view, typo_marks.clone());
-    connect_typo_context_menu(&view, &buffer, typo_marks.clone());
-
-    let pending_commit = Rc::new(RefCell::new(PendingCommit::new(value)));
-    let on_commit: Rc<dyn Fn()> = Rc::new(on_commit);
-    let typo_marks = typo_marks.clone();
-    let changed_pending_commit = pending_commit.clone();
-    let changed_on_commit = on_commit.clone();
-    let changed_syncing = syncing.clone();
-    buffer.connect_changed(move |buffer| {
-        update_typo_marks(buffer, &typo_tag, &typo_marks);
-        if changed_syncing.get() {
-            return;
+impl MultilineTextInput {
+    pub fn builder(value: impl Into<String>) -> MultilineTextInputBuilder {
+        MultilineTextInputBuilder {
+            value: value.into(),
+            min_content_height: DEFAULT_MIN_CONTENT_HEIGHT,
+            max_length: None,
+            on_change: None,
+            on_commit: None,
         }
-        let (start, end) = buffer.bounds();
-        let text = buffer.text(&start, &end, true).to_string();
-        if on_changed(text.clone()) {
-            schedule_pending_commit(&changed_pending_commit, changed_on_commit.clone(), text);
-        }
-    });
+    }
 
-    let focus = gtk::EventControllerFocus::new();
-    let focus_pending_commit = pending_commit.clone();
-    let focus_on_commit = on_commit.clone();
-    focus.connect_leave(move |_| {
-        flush_pending_commit(&focus_pending_commit, &focus_on_commit, true);
-    });
-    view.add_controller(focus);
+    pub fn widget(&self) -> &gtk::Widget {
+        &self.widget
+    }
 
-    let scroller = gtk::ScrolledWindow::builder()
-        .child(&view)
-        .min_content_height(min_content_height)
-        .hexpand(true)
-        .build();
-    let destroy_pending_commit = pending_commit.clone();
-    scroller.connect_destroy(move |_| {
-        flush_pending_commit(&destroy_pending_commit, &on_commit, true);
-    });
-    let set_text = {
-        let buffer = buffer.clone();
-        let view = view.clone();
-        let pending_commit = pending_commit.clone();
-        Rc::new(move |text: &str| {
-            if view.has_focus() {
+    pub fn set_text(&self, text: &str) {
+        (self.set_text)(text);
+    }
+
+    pub fn set_text_handler(&self) -> Rc<dyn Fn(&str)> {
+        self.set_text.clone()
+    }
+}
+
+impl MultilineTextInputBuilder {
+    pub fn min_content_height(mut self, min_content_height: i32) -> Self {
+        self.min_content_height = min_content_height;
+        self
+    }
+
+    pub fn max_length(mut self, max_length: usize) -> Self {
+        self.max_length = Some(max_length);
+        self
+    }
+
+    pub fn on_change(mut self, on_change: impl Fn(String) -> bool + 'static) -> Self {
+        self.on_change = Some(Box::new(on_change));
+        self
+    }
+
+    pub fn on_commit(mut self, on_commit: impl Fn() + 'static) -> Self {
+        self.on_commit = Some(Box::new(on_commit));
+        self
+    }
+
+    pub fn build(self) -> MultilineTextInput {
+        let value = limited_text(&self.value, self.max_length);
+        let buffer = sourceview5::Buffer::new(None);
+        set_text_style_scheme(&buffer);
+        buffer.set_text(&value);
+        let typo_tag = gtk::TextTag::builder()
+            .name("typo")
+            .underline(gtk::pango::Underline::Error)
+            .underline_rgba(&gtk::gdk::RGBA::new(0.92, 0.18, 0.18, 1.0))
+            .build();
+        buffer.tag_table().add(&typo_tag);
+        let typo_marks = Rc::new(RefCell::new(Vec::new()));
+        let syncing = Rc::new(Cell::new(false));
+        update_typo_marks(&buffer, &typo_tag, &typo_marks);
+
+        let view = sourceview5::View::with_buffer(&buffer);
+        view.set_wrap_mode(gtk::WrapMode::WordChar);
+        view.set_height_request(self.min_content_height);
+        view.set_hexpand(true);
+        view.set_monospace(false);
+        view.set_show_line_numbers(false);
+        view.set_top_margin(TEXT_MARGIN);
+        view.set_bottom_margin(TEXT_MARGIN);
+        view.set_left_margin(TEXT_MARGIN);
+        view.set_right_margin(TEXT_MARGIN);
+        view.set_has_tooltip(true);
+        connect_typo_tooltips(&view, typo_marks.clone());
+        connect_typo_context_menu(&view, &buffer, typo_marks.clone());
+
+        let pending_commit = Rc::new(RefCell::new(PendingCommit::new(&value)));
+        let on_commit: Rc<dyn Fn()> = match self.on_commit {
+            Some(on_commit) => Rc::from(on_commit),
+            None => Rc::new(|| {}),
+        };
+        let on_change: Rc<dyn Fn(String) -> bool> = match self.on_change {
+            Some(on_change) => Rc::from(on_change),
+            None => Rc::new(|_| false),
+        };
+        let changed_pending_commit = pending_commit.clone();
+        let changed_on_commit = on_commit.clone();
+        let changed_syncing = syncing.clone();
+        let changed_typo_marks = typo_marks.clone();
+        buffer.connect_changed(move |buffer| {
+            if changed_syncing.get() {
+                update_typo_marks(buffer, &typo_tag, &changed_typo_marks);
                 return;
             }
             let (start, end) = buffer.bounds();
-            if buffer.text(&start, &end, true).as_str() == text {
-                return;
+            let entered = buffer.text(&start, &end, true).to_string();
+            let text = limited_text(&entered, self.max_length);
+            if text != entered {
+                changed_syncing.set(true);
+                buffer.set_text(&text);
+                buffer.place_cursor(&buffer.end_iter());
+                changed_syncing.set(false);
             }
-            syncing.set(true);
-            buffer.set_text(text);
-            syncing.set(false);
-            let mut pending = pending_commit.borrow_mut();
-            if let Some(source_id) = pending.source_id.take() {
-                source_id.remove();
+            update_typo_marks(buffer, &typo_tag, &changed_typo_marks);
+            if on_change(text.clone()) {
+                schedule_pending_commit(&changed_pending_commit, changed_on_commit.clone(), text);
             }
-            pending.dirty = false;
-            text.clone_into(&mut pending.latest_text);
-            text.clone_into(&mut pending.committed_text);
-        }) as Rc<dyn Fn(&str)>
-    };
-    ControlledTextInput {
-        widget: scroller.upcast(),
-        set_text,
+        });
+
+        let focus = gtk::EventControllerFocus::new();
+        let focus_pending_commit = pending_commit.clone();
+        let focus_on_commit = on_commit.clone();
+        focus.connect_leave(move |_| {
+            flush_pending_commit(&focus_pending_commit, &focus_on_commit, true);
+        });
+        view.add_controller(focus);
+
+        let scroller = gtk::ScrolledWindow::builder()
+            .child(&view)
+            .min_content_height(self.min_content_height)
+            .hexpand(true)
+            .build();
+        let destroy_pending_commit = pending_commit.clone();
+        scroller.connect_destroy(move |_| {
+            flush_pending_commit(&destroy_pending_commit, &on_commit, true);
+        });
+        let set_text = {
+            let buffer = buffer.clone();
+            let view = view.clone();
+            let pending_commit = pending_commit.clone();
+            let max_length = self.max_length;
+            Rc::new(move |text: &str| {
+                if view.has_focus() {
+                    return;
+                }
+                let text = limited_text(text, max_length);
+                let (start, end) = buffer.bounds();
+                if buffer.text(&start, &end, true).as_str() == text {
+                    return;
+                }
+                syncing.set(true);
+                buffer.set_text(&text);
+                syncing.set(false);
+                let mut pending = pending_commit.borrow_mut();
+                if let Some(source_id) = pending.source_id.take() {
+                    source_id.remove();
+                }
+                pending.dirty = false;
+                text.clone_into(&mut pending.latest_text);
+                text.clone_into(&mut pending.committed_text);
+            }) as Rc<dyn Fn(&str)>
+        };
+        MultilineTextInput {
+            widget: scroller.upcast(),
+            set_text,
+        }
     }
+}
+
+fn limited_text(text: &str, max_length: Option<usize>) -> String {
+    let Some(max_length) = max_length else {
+        return text.to_string();
+    };
+    text.chars().take(max_length).collect()
 }
 
 struct PendingCommit {

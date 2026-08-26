@@ -4973,9 +4973,6 @@ dependencies = [
  "sourceview5",
  "tempfile",
  "tracing",
- "typos",
- "typos-dict",
- "unicase",
  "uuid",
 ]
 
@@ -5761,8 +5758,12 @@ dependencies = [
  "shrimply-project-core",
  "shrimply-resource-pipeline",
  "skia-safe",
+ "sourceview5",
  "strum",
  "tracing",
+ "typos",
+ "typos-dict",
+ "unicase",
  "wayland-client",
  "wayland-protocols",
 ]

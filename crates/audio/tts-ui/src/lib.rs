@@ -733,55 +733,27 @@ fn text_widget(
         })
         .unwrap_or_default();
     if !multiline {
-        let entry = gtk::Entry::builder()
-            .text(&value)
-            .hexpand(true)
-            .max_length(i32::try_from(max_length).unwrap_or(i32::MAX))
-            .build();
         let key = key.to_string();
         let changed = input.clone();
-        entry.connect_changed(move |entry| {
-            set_input(
-                &changed,
-                &key,
-                TtsValue::Text {
-                    value: entry.text().to_string(),
-                },
-            );
-        });
-        let focus = gtk::EventControllerFocus::new();
-        focus.connect_leave(move |_| (input.on_commit)());
-        entry.add_controller(focus);
+        let entry = ui::SingleLineTextInput::builder(value)
+            .max_length(max_length)
+            .on_change(move |value| set_input(&changed, &key, TtsValue::Text { value }))
+            .on_commit(move |_| (input.on_commit)())
+            .build();
         return ui::control_row(label, &entry);
     }
 
-    let buffer = gtk::TextBuffer::new(None);
-    buffer.set_text(&value);
-    let view = gtk::TextView::builder()
-        .buffer(&buffer)
-        .wrap_mode(gtk::WrapMode::WordChar)
-        .top_margin(8)
-        .bottom_margin(8)
-        .left_margin(8)
-        .right_margin(8)
-        .build();
-    let scrolled = gtk::ScrolledWindow::builder()
-        .child(&view)
-        .min_content_height(96)
-        .hexpand(true)
-        .build();
     let key = key.to_string();
     let changed = input.clone();
-    buffer.connect_changed(move |buffer| {
-        let (start, end) = buffer.bounds();
-        let value = buffer.text(&start, &end, true).to_string();
-        let value = value.chars().take(max_length).collect();
-        set_input(&changed, &key, TtsValue::Text { value });
-    });
-    let focus = gtk::EventControllerFocus::new();
-    focus.connect_leave(move |_| (input.on_commit)());
-    view.add_controller(focus);
-    let row = ui::control_row(label, &scrolled);
+    let editor = ui::MultilineTextInput::builder(value)
+        .max_length(max_length)
+        .on_change(move |value| {
+            set_input(&changed, &key, TtsValue::Text { value });
+            true
+        })
+        .on_commit(move || (input.on_commit)())
+        .build();
+    let row = ui::control_row(label, editor.widget());
     row.first_child()
         .expect("text control row has a label")
         .set_valign(gtk::Align::Start);
@@ -1075,30 +1047,26 @@ fn rebuild_table(state: &TableEditor) {
                 .and_then(|row| row.get(&column.key))
                 .cloned()
                 .unwrap_or_default();
-            let entry = gtk::Entry::builder()
-                .placeholder_text(&column.label)
-                .text(&value)
-                .hexpand(true)
-                .max_length(i32::try_from(column.max_length).unwrap_or(i32::MAX))
-                .build();
             let changed = state.clone();
-            let column = column.key.clone();
-            entry.connect_changed(move |entry| {
-                let mut values = changed.input.settings.borrow_mut();
-                let Some(TtsValue::Table { rows }) = values.inputs.get_mut(&changed.key) else {
-                    return;
-                };
-                let Some(row) = rows.get_mut(index) else {
-                    return;
-                };
-                row.insert(column.clone(), entry.text().to_string());
-                drop(values);
-                notify_changed(&changed.input);
-            });
-            let focus = gtk::EventControllerFocus::new();
+            let column_key = column.key.clone();
             let input = state.input.clone();
-            focus.connect_leave(move |_| (input.on_commit)());
-            entry.add_controller(focus);
+            let entry = ui::SingleLineTextInput::builder(value)
+                .placeholder(&column.label)
+                .max_length(column.max_length)
+                .on_change(move |value| {
+                    let mut values = changed.input.settings.borrow_mut();
+                    let Some(TtsValue::Table { rows }) = values.inputs.get_mut(&changed.key) else {
+                        return;
+                    };
+                    let Some(row) = rows.get_mut(index) else {
+                        return;
+                    };
+                    row.insert(column_key.clone(), value);
+                    drop(values);
+                    notify_changed(&changed.input);
+                })
+                .on_commit(move |_| (input.on_commit)())
+                .build();
             row.append(&entry);
         }
         let remove = gtk::Button::builder()
