@@ -4,9 +4,9 @@ Getting Started
 Run Shrimply
 ------------
 
-This repository does not currently publish an end-user installation method.
-From a development checkout, install the Fedora dependencies and prepare CUDA
-Oxide once:
+Shrimply is currently pre-alpha software. To try it, build it from source.
+The development setup currently targets Fedora. From a checkout, install the
+native dependencies and prepare CUDA Oxide once:
 
 .. code-block:: console
 
