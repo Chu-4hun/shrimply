@@ -1,7 +1,7 @@
 use crate::{
     player_state::{self, ProjectChange},
     time_format,
-    ui::{NumberPicker, SingleLineTextInput, dropdown},
+    ui::{Number2Picker, SingleLineTextInput, dropdown},
 };
 use adw::prelude::*;
 use shrimply_project::project::Project;
@@ -72,63 +72,58 @@ impl Inspectable for Project {
 
         let width_project = context.project.clone();
         let width_player_state = context.player_state.clone();
-        config.add_control_row(
-            "Width",
-            &NumberPicker::integer_builder(self.canvas_size.width)
-                .minimum(MIN_CANVAS_DIMENSION)
-                .maximum(MAX_CANVAS_DIMENSION)
-                .on_change_integer(move |next: u32| {
-                    let mut project = width_project.borrow_mut();
-                    if project.canvas_size.width == next {
-                        return;
-                    }
-                    project.canvas_size.width = next;
-                    shrimply_project::project::commit_coalesced_edit(
-                        &project,
-                        "project-canvas-size",
-                    );
-                    drop(project);
-                    player_state::refresh_project(
-                        &width_player_state,
-                        ProjectChange {
-                            video: true,
-                            captions: true,
-                            ..ProjectChange::default()
-                        },
-                    );
-                })
-                .build(),
-        );
-
         let height_project = context.project.clone();
         let height_player_state = context.player_state.clone();
-        config.add_control_row(
-            "Height",
-            &NumberPicker::integer_builder(self.canvas_size.height)
-                .minimum(MIN_CANVAS_DIMENSION)
-                .maximum(MAX_CANVAS_DIMENSION)
-                .on_change_integer(move |next: u32| {
-                    let mut project = height_project.borrow_mut();
-                    if project.canvas_size.height == next {
-                        return;
-                    }
-                    project.canvas_size.height = next;
-                    shrimply_project::project::commit_coalesced_edit(
-                        &project,
-                        "project-canvas-size",
-                    );
-                    drop(project);
-                    player_state::refresh_project(
-                        &height_player_state,
-                        ProjectChange {
-                            video: true,
-                            captions: true,
-                            ..ProjectChange::default()
-                        },
-                    );
-                })
-                .build(),
-        );
+        let resolution = Number2Picker::builder(
+            f64::from(self.canvas_size.width),
+            f64::from(self.canvas_size.height),
+        )
+        .minimum(MIN_CANVAS_DIMENSION)
+        .maximum(MAX_CANVAS_DIMENSION)
+        .drag_step(1.0)
+        .digits(0)
+        .width_chars(7)
+        .first_prefix("W")
+        .second_prefix("H")
+        .enable_lock()
+        .on_first_change(move |next| {
+            let next = next.round() as u32;
+            let mut project = width_project.borrow_mut();
+            if project.canvas_size.width == next {
+                return;
+            }
+            project.canvas_size.width = next;
+            shrimply_project::project::commit_coalesced_edit(&project, "project-canvas-size");
+            drop(project);
+            player_state::refresh_project(
+                &width_player_state,
+                ProjectChange {
+                    video: true,
+                    captions: true,
+                    ..ProjectChange::default()
+                },
+            );
+        })
+        .on_second_change(move |next| {
+            let next = next.round() as u32;
+            let mut project = height_project.borrow_mut();
+            if project.canvas_size.height == next {
+                return;
+            }
+            project.canvas_size.height = next;
+            shrimply_project::project::commit_coalesced_edit(&project, "project-canvas-size");
+            drop(project);
+            player_state::refresh_project(
+                &height_player_state,
+                ProjectChange {
+                    video: true,
+                    captions: true,
+                    ..ProjectChange::default()
+                },
+            );
+        })
+        .build_with_handles();
+        config.add_control_row("Resolution", &resolution.widget);
 
         let info = adw::PreferencesGroup::new();
         info.add(
