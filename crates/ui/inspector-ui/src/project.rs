@@ -73,7 +73,7 @@ impl Inspectable for Project {
         let width_project = context.project.clone();
         let width_player_state = context.player_state.clone();
         config.add_control_row(
-            "Canvas Width",
+            "Width",
             &NumberPicker::integer_builder(self.canvas_size.width)
                 .minimum(MIN_CANVAS_DIMENSION)
                 .maximum(MAX_CANVAS_DIMENSION)
@@ -103,7 +103,7 @@ impl Inspectable for Project {
         let height_project = context.project.clone();
         let height_player_state = context.player_state.clone();
         config.add_control_row(
-            "Canvas Height",
+            "Height",
             &NumberPicker::integer_builder(self.canvas_size.height)
                 .minimum(MIN_CANVAS_DIMENSION)
                 .maximum(MAX_CANVAS_DIMENSION)

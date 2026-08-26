@@ -328,11 +328,13 @@ fn show_create_project(window: &adw::ApplicationWindow, app: &adw::Application) 
     let width = selector.width.clone();
     let height = selector.height.clone();
     let fps = selector.fps.clone();
+    let names = adw::PreferencesGroup::new();
+    names.add(&name);
+    let presets = adw::PreferencesGroup::new();
+    presets.add(&preset);
     let settings = adw::PreferencesGroup::builder()
         .title("Project Settings")
         .build();
-    settings.add(&preset);
-    settings.add(&name);
     settings.add(&width);
     settings.add(&height);
     settings.add(&fps);
@@ -341,6 +343,8 @@ fn show_create_project(window: &adw::ApplicationWindow, app: &adw::Application) 
     let actions = adw::PreferencesGroup::new();
     actions.add(&create);
     let page = adw::PreferencesPage::new();
+    page.add(&names);
+    page.add(&presets);
     page.add(&settings);
     page.add(&actions);
     let dialog = adw::PreferencesDialog::builder()
