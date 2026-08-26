@@ -1,29 +1,46 @@
 # Shrimply
 
-Shrimply is a simple video editor.
+Shrimply is a powerful open-source video editor with a
+[wide array](https://shrimply.pages.dev/guides/media.html) of supported media.
+It provides caption, video, and audio tracks, a native preview compositor, and
+an inspector for editing project and clip properties. Whether you are making a
+quick edit or building a more complex timeline, Shrimply provides the tools to
+import, edit, preview, and export your work.
 
-## Development
+Shrimply is currently pre-alpha software.
 
-Run static checks:
+For more information about Shrimply's features and workflows, visit the
+[documentation website](https://shrimply.pages.dev).
 
-```sh
-make check
-```
+## Contributing
 
-Run the app:
+Contributions to Shrimply are welcome. There are several ways to help beyond
+writing code:
 
-```sh
-make dev
-```
+- Report and investigate [issues](https://github.com/soirihiroka/shrimply/issues)
+- Improve the documentation
+- Test editing workflows and project importers
+- Help other users
 
-## Documentation
+Before submitting a contribution, read the repository's
+[contribution terms](CONTRIBUTING.md).
 
-- Build the documentation site with `make docs`.
-- Open `docs/build/index.html` after the build.
-- The source lives under [`docs/source`](docs/source).
+## Developer Information
 
-MCP setup, tools, resources, and connection behavior are documented in the
-[MCP integration guide](docs/source/integrations/mcp.rst).
+### Technology Stack
+
+Shrimply's main application is written in Rust and uses these technologies:
+
+- **Interface:** GTK 4 and libadwaita
+- **Rendering:** Skia, wgpu, and CUDA
+- **Media:** FFmpeg and PipeWire
+- **Compute server:** Python
+
+### Finding Things to Work On
+
+Browse the [open issues](https://github.com/soirihiroka/shrimply/issues) for
+reported bugs and planned work. Comment on an issue before starting a larger
+change so its scope can be discussed first.
 
 ## License
 
