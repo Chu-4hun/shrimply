@@ -39,7 +39,7 @@ pub(super) fn draw_import_preview(
                 import::VisualMediaKind::Blender => Icon("blender-symbolic"),
                 import::VisualMediaKind::LayeredImage => Icon("image-symbolic"),
                 import::VisualMediaKind::Obj | import::VisualMediaKind::Gaussian => {
-                    Icon("flatpak-symbolic")
+                    Icon("3d-object-symbolic")
                 }
             },
             draw.timeline_x,

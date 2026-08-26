@@ -384,7 +384,11 @@ fn add_video_items_to_menu(
             "preferences-desktop-wallpaper-symbolic",
             GeneratedItemKind::Background,
         ),
-        ("3D Scene", "flatpak-symbolic", GeneratedItemKind::Scene3d),
+        (
+            "3D Scene",
+            "3d-object-symbolic",
+            GeneratedItemKind::Scene3d,
+        ),
     ] {
         append_add_menu_item(menu, popover, label, icon, {
             let context = context.clone();
