@@ -303,6 +303,7 @@ fn show_about_dialog(window: &adw::ApplicationWindow) {
         .license_type(gtk::License::Gpl30)
         .title("About Shrimply")
         .build();
+    dialog.add_credit_section(Some("Built with help from"), &["Codex", "Gemini"]);
     dialog.present(Some(window));
 }
 
