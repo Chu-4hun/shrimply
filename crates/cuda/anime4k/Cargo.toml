@@ -6,7 +6,7 @@ edition = "2024"
 [workspace]
 
 [dependencies]
-cuda-core = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
-cuda-device = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
-cuda-host = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
+cuda-core = { path = "../../../external/cuda-oxide/crates/cuda-core" }
+cuda-device = { path = "../../../external/cuda-oxide/crates/cuda-device" }
+cuda-host = { path = "../../../external/cuda-oxide/crates/cuda-host" }
 shrimply-math-color = { path = "../../math/color" }

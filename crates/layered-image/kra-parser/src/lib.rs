@@ -258,19 +258,18 @@ fn parse_xml(bytes: &[u8]) -> Result<XmlDocument, String> {
     loop {
         match reader.read_event().map_err(|error| error.to_string())? {
             Event::Start(element) => match element.local_name().as_ref() {
-                b"IMAGE" => {
-                    width = Some(parse_attribute(&element, &reader, b"width")?);
-                    height = Some(parse_attribute(&element, &reader, b"height")?);
-                    image_name = Some(required_attribute(&element, &reader, b"name")?);
-                    if let Some(value) = attribute(&element, &reader, b"colorspacename")? {
+                "IMAGE" => {
+                    width = Some(parse_attribute(&element, "width")?);
+                    height = Some(parse_attribute(&element, "height")?);
+                    image_name = Some(required_attribute(&element, "name")?);
+                    if let Some(value) = attribute(&element, "colorspacename")? {
                         document_color_space = value;
                     }
-                    profile_name = attribute(&element, &reader, b"profile")?;
+                    profile_name = attribute(&element, "profile")?;
                 }
-                b"layer" => {
+                "layer" => {
                     let scope = parse_layer(
                         &element,
-                        &reader,
                         &document_color_space,
                         &scopes,
                         &mut layers,
@@ -281,10 +280,9 @@ fn parse_xml(bytes: &[u8]) -> Result<XmlDocument, String> {
                 }
                 _ => {}
             },
-            Event::Empty(element) if element.local_name().as_ref() == b"layer" => {
+            Event::Empty(element) if element.local_name().as_ref() == "layer" => {
                 parse_layer(
                     &element,
-                    &reader,
                     &document_color_space,
                     &scopes,
                     &mut layers,
@@ -292,7 +290,7 @@ fn parse_xml(bytes: &[u8]) -> Result<XmlDocument, String> {
                     &mut nodes,
                 )?;
             }
-            Event::End(element) if element.local_name().as_ref() == b"layer" => {
+            Event::End(element) if element.local_name().as_ref() == "layer" => {
                 scopes.pop();
             }
             Event::Eof => break,
@@ -312,23 +310,22 @@ fn parse_xml(bytes: &[u8]) -> Result<XmlDocument, String> {
 
 fn parse_layer(
     element: &BytesStart<'_>,
-    reader: &Reader<&[u8]>,
     document_color_space: &str,
     scopes: &[Option<u32>],
     layers: &mut Vec<LayerMetadata>,
     groups: &mut Vec<Group>,
     nodes: &mut Vec<Node>,
 ) -> Result<Option<u32>, String> {
-    let node_type = required_attribute(element, reader, b"nodetype")?;
+    let node_type = required_attribute(element, "nodetype")?;
     let parent = scopes.iter().rev().find_map(|scope| *scope);
     if node_type == "grouplayer" {
         let id = groups.len() as u32;
         groups.push(Group {
             id,
-            name: required_attribute(element, reader, b"name")?,
+            name: required_attribute(element, "name")?,
             parent,
-            visible: bool_attribute(element, reader, b"visible", true)?,
-            opacity: u8_attribute(element, reader, b"opacity", u8::MAX)?,
+            visible: bool_attribute(element, "visible", true)?,
+            opacity: u8_attribute(element, "opacity", u8::MAX)?,
         });
         nodes.push(Node::Group(id));
         return Ok(Some(id));
@@ -336,21 +333,20 @@ fn parse_layer(
     if matches!(node_type.as_str(), "paintlayer" | "shapelayer") {
         let index = layers.len();
         layers.push(LayerMetadata {
-            name: required_attribute(element, reader, b"name")?,
-            filename: required_attribute(element, reader, b"filename")?,
+            name: required_attribute(element, "name")?,
+            filename: required_attribute(element, "filename")?,
             vector: node_type == "shapelayer",
-            color_space: attribute(element, reader, b"colorspacename")?
+            color_space: attribute(element, "colorspacename")?
                 .unwrap_or_else(|| document_color_space.to_string()),
-            profile_name: attribute(element, reader, b"profile")?,
+            profile_name: attribute(element, "profile")?,
             position: IVec2::new(
-                parse_attribute_or(element, reader, b"x", 0)?,
-                parse_attribute_or(element, reader, b"y", 0)?,
+                parse_attribute_or(element, "x", 0)?,
+                parse_attribute_or(element, "y", 0)?,
             ),
             parent,
-            visible: bool_attribute(element, reader, b"visible", true)?,
-            opacity: u8_attribute(element, reader, b"opacity", u8::MAX)?,
-            blend_mode: attribute(element, reader, b"compositeop")?
-                .unwrap_or_else(|| "normal".to_string()),
+            visible: bool_attribute(element, "visible", true)?,
+            opacity: u8_attribute(element, "opacity", u8::MAX)?,
+            blend_mode: attribute(element, "compositeop")?.unwrap_or_else(|| "normal".to_string()),
         });
         nodes.push(Node::Layer(index));
     }
@@ -394,16 +390,12 @@ fn render_vector_layer(
     Ok(rgba)
 }
 
-fn attribute(
-    element: &BytesStart<'_>,
-    reader: &Reader<&[u8]>,
-    key: &[u8],
-) -> Result<Option<String>, String> {
+fn attribute(element: &BytesStart<'_>, key: &str) -> Result<Option<String>, String> {
     for attribute in element.attributes().with_checks(false) {
         let attribute = attribute.map_err(|error| error.to_string())?;
         if attribute.key.local_name().as_ref() == key {
             return attribute
-                .decoded_and_normalized_value(XmlVersion::Implicit1_0, reader.decoder())
+                .normalized_value(XmlVersion::Implicit1_0)
                 .map(|value| Some(value.into_owned()))
                 .map_err(|error| error.to_string());
         }
@@ -411,64 +403,45 @@ fn attribute(
     Ok(None)
 }
 
-fn required_attribute(
-    element: &BytesStart<'_>,
-    reader: &Reader<&[u8]>,
-    key: &[u8],
-) -> Result<String, String> {
-    attribute(element, reader, key)?.ok_or_else(|| {
+fn required_attribute(element: &BytesStart<'_>, key: &str) -> Result<String, String> {
+    attribute(element, key)?.ok_or_else(|| {
         format!(
             "Krita XML element {} has no {} attribute",
-            String::from_utf8_lossy(element.local_name().as_ref()),
-            String::from_utf8_lossy(key),
+            element.local_name().as_ref(),
+            key,
         )
     })
 }
 
-fn parse_attribute<T: std::str::FromStr>(
-    element: &BytesStart<'_>,
-    reader: &Reader<&[u8]>,
-    key: &[u8],
-) -> Result<T, String> {
-    required_attribute(element, reader, key)?
+fn parse_attribute<T: std::str::FromStr>(element: &BytesStart<'_>, key: &str) -> Result<T, String> {
+    required_attribute(element, key)?
         .parse()
-        .map_err(|_| format!("invalid {} attribute", String::from_utf8_lossy(key)))
+        .map_err(|_| format!("invalid {key} attribute"))
 }
 
 fn parse_attribute_or<T: std::str::FromStr>(
     element: &BytesStart<'_>,
-    reader: &Reader<&[u8]>,
-    key: &[u8],
+    key: &str,
     default: T,
 ) -> Result<T, String> {
-    attribute(element, reader, key)?.map_or(Ok(default), |value| {
+    attribute(element, key)?.map_or(Ok(default), |value| {
         value
             .parse()
-            .map_err(|_| format!("invalid {} attribute", String::from_utf8_lossy(key)))
+            .map_err(|_| format!("invalid {key} attribute"))
     })
 }
 
-fn bool_attribute(
-    element: &BytesStart<'_>,
-    reader: &Reader<&[u8]>,
-    key: &[u8],
-    default: bool,
-) -> Result<bool, String> {
-    Ok(attribute(element, reader, key)?
+fn bool_attribute(element: &BytesStart<'_>, key: &str, default: bool) -> Result<bool, String> {
+    Ok(attribute(element, key)?
         .map(|value| value != "0" && value != "false")
         .unwrap_or(default))
 }
 
-fn u8_attribute(
-    element: &BytesStart<'_>,
-    reader: &Reader<&[u8]>,
-    key: &[u8],
-    default: u8,
-) -> Result<u8, String> {
-    attribute(element, reader, key)?.map_or(Ok(default), |value| {
+fn u8_attribute(element: &BytesStart<'_>, key: &str, default: u8) -> Result<u8, String> {
+    attribute(element, key)?.map_or(Ok(default), |value| {
         value
             .parse::<u8>()
-            .map_err(|_| format!("invalid {} attribute", String::from_utf8_lossy(key)))
+            .map_err(|_| format!("invalid {key} attribute"))
     })
 }
 

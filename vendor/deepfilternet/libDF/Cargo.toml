@@ -7,7 +7,7 @@ description = "DeepFilterNet Rust inference core vendored for Shrimply"
 repository = "https://github.com/Rikorose/DeepFilterNet"
 license = "MIT OR Apache-2.0"
 readme = "../README.md"
-rust-version = "1.91"
+rust-version = "1.96"
 
 [lib]
 name = "df"

@@ -12,3 +12,9 @@
 [submodule "external/manim"]
 	path = external/manim
 	url = https://github.com/3b1b/manim.git
+[submodule "external/cuda-oxide"]
+	path = external/cuda-oxide
+	url = https://github.com/NVlabs/cuda-oxide.git
+[submodule "external/vtracer"]
+	path = external/vtracer
+	url = https://github.com/visioncortex/vtracer.git

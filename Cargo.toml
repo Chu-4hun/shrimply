@@ -86,24 +86,25 @@ members = [
     "crates/3d/transform-3d",
 ]
 default-members = ["crates/apps/editor-ui", "crates/apps/launcher-ui"]
+exclude = ["external/cuda-oxide", "external/vtracer"]
 
 [workspace.dependencies]
 adw = { package = "libadwaita", version = "0.9" }
 ash = "0.38"
 async-channel = "2"
 autodiff = "0.7"
-cached = { version = "2", default-features = false, features = ["ahash"] }
+cached = { version = "3", default-features = false, features = ["ahash"] }
 cairo = { package = "cairo-rs", version = "0.22" }
 cint = "0.3"
 cpal = "0.18"
-cuda-core = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
-cuda-device = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
-cuda-host = { git = "https://github.com/NVlabs/cuda-oxide.git", rev = "c58c30f2af8bfab0462f6abfc546cbfcc8ad57a0" }
+cuda-core = { path = "external/cuda-oxide/crates/cuda-core" }
+cuda-device = { path = "external/cuda-oxide/crates/cuda-device" }
+cuda-host = { path = "external/cuda-oxide/crates/cuda-host" }
 cc = "1"
 deep_filter = { path = "vendor/deepfilternet/libDF" }
 easyfft = "0.4"
 ffmpeg-next = "9"
-fraction = "0.16"
+fraction = "0.17"
 fundsp = { version = "0.23", default-features = false }
 good_lp = { version = "1", default-features = false, features = ["highs"] }
 glam = "0.33"
@@ -131,7 +132,7 @@ pipewire = { version = "0.10", features = ["v0_3_44"] }
 png = "0.18"
 poppler = { package = "poppler-rs", version = "0.26", features = ["v0_82"] }
 psd = "0.3"
-quick-xml = "0.41"
+quick-xml = "0.42"
 rangemap = "1"
 rayon = "1"
 reqwest = "0.13"
@@ -156,7 +157,7 @@ typos-dict = "0.14"
 unicase = "2"
 unicode-segmentation = "1"
 uuid = "1"
-vtracer = { git = "https://github.com/visioncortex/vtracer.git", rev = "1ddc9ebbf7120af7d2b92518f1b56ddd95430db1" }
+vtracer = { path = "external/vtracer/crates/vtracer" }
 wayland-client = "0.31"
 wayland-protocols = "0.32"
 wgpu = { version = "30", default-features = false, features = ["std", "parking_lot", "vulkan", "wgsl"] }

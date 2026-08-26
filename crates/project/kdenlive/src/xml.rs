@@ -43,9 +43,9 @@ pub fn parse(path: &Path) -> Result<Element, String> {
             .read_event_into(&mut buffer)
             .map_err(|error| format!("could not parse {}: {error}", path.display()))?
         {
-            Event::Start(start) => stack.push(element(&reader, &start)?),
+            Event::Start(start) => stack.push(element(&start)?),
             Event::Empty(start) => {
-                let child = element(&reader, &start)?;
+                let child = element(&start)?;
                 stack
                     .last_mut()
                     .ok_or_else(|| "XML element appears outside the document root".to_string())?
@@ -53,9 +53,9 @@ pub fn parse(path: &Path) -> Result<Element, String> {
                     .push(child);
             }
             Event::Text(value) => {
-                let decoded = value.decode().map_err(|error| error.to_string())?;
+                let content = value.xml_content(quick_xml::XmlVersion::Implicit1_0);
                 let text =
-                    quick_xml::escape::unescape(&decoded).map_err(|error| error.to_string())?;
+                    quick_xml::escape::unescape(&content).map_err(|error| error.to_string())?;
                 stack
                     .last_mut()
                     .ok_or_else(|| "XML text appears outside the document root".to_string())?
@@ -67,7 +67,7 @@ pub fn parse(path: &Path) -> Result<Element, String> {
                     .last_mut()
                     .ok_or_else(|| "XML text appears outside the document root".to_string())?
                     .text
-                    .push_str(&String::from_utf8_lossy(value.as_ref()));
+                    .push_str(&value.xml_content(quick_xml::XmlVersion::Implicit1_0));
             }
             Event::End(_) => {
                 let element = stack
@@ -90,18 +90,15 @@ pub fn parse(path: &Path) -> Result<Element, String> {
     root.ok_or_else(|| "XML document is empty".to_string())
 }
 
-fn element(
-    reader: &Reader<BufReader<File>>,
-    start: &quick_xml::events::BytesStart<'_>,
-) -> Result<Element, String> {
-    let name = String::from_utf8_lossy(start.name().as_ref()).into_owned();
+fn element(start: &quick_xml::events::BytesStart<'_>) -> Result<Element, String> {
+    let name = start.name().as_ref().to_owned();
     let attributes = start
         .attributes()
         .map(|attribute| {
             let attribute = attribute.map_err(|error| error.to_string())?;
-            let name = String::from_utf8_lossy(attribute.key.as_ref()).into_owned();
+            let name = attribute.key.as_ref().to_owned();
             let value = attribute
-                .decoded_and_normalized_value(quick_xml::XmlVersion::Implicit1_0, reader.decoder())
+                .normalized_value(quick_xml::XmlVersion::Implicit1_0)
                 .map_err(|error| error.to_string())?
                 .into_owned();
             Ok((name, value))

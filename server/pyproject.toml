@@ -12,12 +12,12 @@ dependencies = [
     "gradio>=6.20,<7",
     "gtsam-develop",
     "huggingface-hub>=1.5,<2",
-    "librosa>=0.11,<1",
+    "librosa>=1,<2",
     "msgspec>=0.21.1,<1",
     "nemo-text-processing>=1.2,<2",
-    "numpy>=2.4,<2.5",
+    "numpy>=2.5,<2.6",
     "onnx>=1,<2",
-    "opencv-python-headless>=4.13,<5",
+    "opencv-python-headless>=5,<6",
     "pydantic>=2.12,<3",
     "peft>=0.20,<1",
     "pillow>=12,<13",
@@ -39,26 +39,26 @@ dependencies = [
     "termcolor>=3.2,<4",
     "tiktoken>=0.13,<1",
     "tqdm>=4.67,<5",
-    "transformers==5.14.1",
+    "transformers==5.15.1",
     "vggt",
     "vggt-slam",
     "WeTextProcessing",
 ]
 
 [dependency-groups]
-dev = ["pyrefly==1.2.0", "types-tqdm>=4.67"]
+dev = ["pyrefly==1.2.0", "types-tqdm>=4.70"]
 
 [tool.uv]
 exclude-dependencies = ["onnxruntime", "opencv-python", "sox"]
 override-dependencies = [
-    "numpy>=2.4,<2.5",
+    "numpy>=2.5,<2.6",
     "pynini==2.1.7",
-    "transformers==5.14.1",
+    "transformers==5.15.1",
 ]
 environments = ["sys_platform == 'linux'"]
 
 [tool.uv.sources]
-diffusers = { git = "https://github.com/huggingface/diffusers.git", rev = "175fe6b2419a01db9c2ceabd01ec37d2c0305fc2" }
+diffusers = { git = "https://github.com/huggingface/diffusers.git", rev = "d354c13b4844acd8377dcedf31e42ba8b5f5ac64" }
 qwen-tts = { git = "https://github.com/QwenLM/Qwen3-TTS.git", rev = "022e286b98fbec7e1e916cb940cdf532cd9f488e" }
 salad = { git = "https://github.com/Dominic101/salad.git" }
 vggt = { git = "https://github.com/MIT-SPARK/VGGT_SPARK.git" }
