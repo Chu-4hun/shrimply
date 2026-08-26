@@ -42,6 +42,13 @@ pub struct Bridge {
 
 impl Bridge {
     pub fn connect(project_path: &Path) -> Result<Self, BridgeError> {
+        Self::connect_with_cancel(project_path, Arc::new(AtomicBool::new(false)))
+    }
+
+    pub fn connect_with_cancel(
+        project_path: &Path,
+        canceled: Arc<AtomicBool>,
+    ) -> Result<Self, BridgeError> {
         let project_path = shrimply_project::project::normalized_project_path(project_path);
         if project_path.to_str().is_none() {
             return Err(BridgeError::Transport(
@@ -60,8 +67,12 @@ impl Bridge {
             project_path,
             socket_path: socket_path(pid).map_err(BridgeError::Transport)?,
         };
-        bridge.request(BridgeCommand::Handshake)?;
+        bridge.request_with_cancel(BridgeCommand::Handshake, canceled)?;
         Ok(bridge)
+    }
+
+    pub fn project_path(&self) -> &Path {
+        &self.project_path
     }
 
     pub fn request(&self, command: BridgeCommand) -> Result<serde_json::Value, BridgeError> {

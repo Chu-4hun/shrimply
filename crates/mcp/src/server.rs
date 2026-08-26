@@ -4,14 +4,17 @@ use rmcp::{
     model::*, service::RequestContext, tool, tool_handler, tool_router,
 };
 use serde_json::json;
+use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::bridge::{Bridge, BridgeError};
 use crate::protocol::*;
 use crate::query;
 
-const EDIT_API: &str = r#"Shrimply MCP edits operate on the open editor's live in-memory project.
+const EDIT_API: &str = r#"Call connect_project with an absolute project path before using this API.
+Shrimply MCP edits operate on the connected editor's live in-memory project.
 All public times are zero-based integer frames. Clip and track mutations require full concrete
 addresses. Direct edits create one undoable history action. run_edit_script validates its ordered,
 typed operations against a clone and installs them atomically as one history action. File imports
@@ -26,14 +29,22 @@ Example direct move:
 Example script:
 {"frame":120,"operations":[{"type":"move_clip","args":{"address":{"kind":"video","sequence_path":[],"track_id":"…","item_id":"…"},"offset_frames":24,"collision":"reject"}}]}"#;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct ShrimplyServer {
-    bridge: Bridge,
+    bridge: Arc<RwLock<Option<Bridge>>>,
 }
 
 impl ShrimplyServer {
-    pub fn new(bridge: Bridge) -> Self {
-        Self { bridge }
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    fn connected_bridge(&self) -> Result<Bridge, McpError> {
+        self.bridge
+            .read()
+            .expect("Shrimply MCP project connection lock was poisoned")
+            .clone()
+            .ok_or_else(|| mcp_error("no project is connected; call connect_project first"))
     }
 
     async fn request(
@@ -41,7 +52,7 @@ impl ShrimplyServer {
         command: BridgeCommand,
         context: &RequestContext<RoleServer>,
     ) -> Result<serde_json::Value, McpError> {
-        let bridge = self.bridge.clone();
+        let bridge = self.connected_bridge()?;
         let canceled = Arc::new(AtomicBool::new(false));
         let worker_canceled = canceled.clone();
         let mut worker = tokio::task::spawn_blocking(move || {
@@ -84,6 +95,47 @@ impl ShrimplyServer {
 
 #[tool_router]
 impl ShrimplyServer {
+    #[tool(
+        description = "Connect this MCP session to the open Shrimply project at an absolute path. Calling it again switches projects"
+    )]
+    async fn connect_project(
+        &self,
+        Parameters(request): Parameters<ConnectProjectRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<ConnectProjectResponse>, McpError> {
+        let project_path = PathBuf::from(request.project_path);
+        if !project_path.is_absolute() {
+            return Err(mcp_error("project_path must be an absolute path"));
+        }
+
+        let canceled = Arc::new(AtomicBool::new(false));
+        let worker_canceled = canceled.clone();
+        let mut worker = tokio::task::spawn_blocking(move || {
+            Bridge::connect_with_cancel(&project_path, worker_canceled)
+        });
+        let bridge = tokio::select! {
+            result = &mut worker => result
+                .map_err(|error| internal_error(format!("editor bridge task failed: {error}")))?
+                .map_err(bridge_error)?,
+            () = context.ct.cancelled() => {
+                canceled.store(true, Ordering::Release);
+                worker.await
+                    .map_err(|error| internal_error(format!("editor bridge task failed: {error}")))?
+                    .map_err(bridge_error)?
+            }
+        };
+        let project_path = bridge
+            .project_path()
+            .to_str()
+            .expect("project path was validated when the bridge connected")
+            .to_string();
+        *self
+            .bridge
+            .write()
+            .expect("Shrimply MCP project connection lock was poisoned") = Some(bridge);
+        Ok(Json(ConnectProjectResponse { project_path }))
+    }
+
     #[tool(
         description = "Return live project, playhead, selection, active scope, and track state",
         annotations(read_only_hint = true)
@@ -346,8 +398,7 @@ impl ServerHandler for ShrimplyServer {
         )
         .with_server_info(Implementation::from_build_env())
         .with_instructions(
-            "Reads and edits the live in-memory project held by the named Shrimply editor process"
-                .to_string(),
+            "Call connect_project with an absolute project path first. Tools and resources then read and edit that editor's live in-memory project; connect_project can switch the session to another open project".to_string(),
         )
     }
 

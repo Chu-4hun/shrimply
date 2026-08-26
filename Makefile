@@ -341,13 +341,10 @@ install: release
 	@echo "Installed $(APP_NAME) under $(DESTDIR)$(PREFIX)"
 
 install-codex-mcp-dev:
-	@test -n "$(PROJECT)" || { echo "Usage: make install-codex-mcp-dev PROJECT=/absolute/path/to/project.shrimp" >&2; exit 2; }
-	@case "$(PROJECT)" in /*) ;; *) echo "PROJECT must be an absolute path" >&2; exit 2;; esac
-	@test -f "$(PROJECT)" || { echo "Project does not exist: $(PROJECT)" >&2; exit 2; }
 	@test -x "$(CURDIR)/target/debug/$(MCP_BIN_NAME)" || { echo "Run make dev first to build target/debug/$(MCP_BIN_NAME)" >&2; exit 2; }
 	@test -n "$(XDG_RUNTIME_DIR)" || { echo "XDG_RUNTIME_DIR is not set" >&2; exit 2; }
 	@if $(CODEX) mcp get "$(MCP_SERVER_NAME)" >/dev/null 2>&1; then $(CODEX) mcp remove "$(MCP_SERVER_NAME)"; fi
-	$(CODEX) mcp add "$(MCP_SERVER_NAME)" --env XDG_RUNTIME_DIR="$(XDG_RUNTIME_DIR)" -- "$(CURDIR)/target/debug/$(MCP_BIN_NAME)" "$(PROJECT)"
+	$(CODEX) mcp add "$(MCP_SERVER_NAME)" --env XDG_RUNTIME_DIR="$(XDG_RUNTIME_DIR)" -- "$(CURDIR)/target/debug/$(MCP_BIN_NAME)"
 
 uninstall:
 	rm -f "$(DESTDIR)$(BINDIR)/$(BIN_NAME)"

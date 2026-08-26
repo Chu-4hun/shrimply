@@ -116,6 +116,17 @@ pub enum RangeMatch {
     StartsIn,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ConnectProjectRequest {
+    /// Absolute path to an open Shrimply project file.
+    pub project_path: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ConnectProjectResponse {
+    pub project_path: String,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct GetEditorStateRequest {}
 
