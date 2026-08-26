@@ -21,7 +21,6 @@ use uuid::Uuid;
 
 use crate::compositor::{EXPORT_ASSETS_LOADING, VideoExportRenderer};
 
-const CACHE_ROOT: &str = "cache/modifiers";
 const MANIFEST_NAME: &str = "manifest.json";
 const MEDIA_NAME: &str = "visual.mkv";
 const CACHE_VERSION: u32 = 1;
@@ -385,8 +384,8 @@ fn bake_inner(
     if context.is_cancelled() {
         return Err("visual cache bake cancelled".to_string());
     }
-    let root = Path::new(CACHE_ROOT);
-    fs::create_dir_all(root).map_err(|error| format!("could not create cache folder: {error}"))?;
+    let root = cache_root();
+    fs::create_dir_all(&root).map_err(|error| format!("could not create cache folder: {error}"))?;
     let temporary = root.join(format!(
         ".{}-{}",
         modifier_id.simple(),
@@ -525,7 +524,23 @@ fn ready_entry(modifier_id: Uuid) -> Result<ReadyEntry, String> {
 }
 
 fn cache_directory(modifier_id: Uuid) -> PathBuf {
-    Path::new(CACHE_ROOT).join(modifier_id.simple().to_string())
+    cache_root().join(modifier_id.simple().to_string())
+}
+
+fn cache_root() -> PathBuf {
+    let directory = shrimply_project::project::project_directory();
+    let root = if directory
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name == "shrimp")
+    {
+        directory
+            .parent()
+            .expect("shrimp project directory must have a parent")
+    } else {
+        &directory
+    };
+    root.join("media/.cache")
 }
 
 const fn even(value: u32) -> u32 {
