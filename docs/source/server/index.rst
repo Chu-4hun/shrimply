@@ -26,6 +26,18 @@ Models download into their configured caches on first use. Device and memory
 requirements vary substantially by model; consult the model catalog before
 starting a large download.
 
+Connect Shrimply
+----------------
+
+The local server listens at ``http://127.0.0.1:8787`` by default. In Shrimply,
+open :menuselection:`Preferences --> External`. Select the local server under
+:guilabel:`Inference Servers`, then choose one of the compute devices reported
+by that server.
+
+The :guilabel:`Available` row shows the features supplied by the selected
+server. If a feature is missing, it will not appear in the corresponding
+editor controls.
+
 Share access
 ------------
 
@@ -42,22 +54,33 @@ users, and stop the process to remove access.
 Containers
 ----------
 
-The Compose configuration exposes the host network, enables GPU access, and
-persists uv, Hugging Face, model, and Python caches under ``server/.docker``.
+The Compose configuration enables GPU access and preserves downloaded models
+between runs.
 
 .. code-block:: console
 
    $ cd server
    $ docker compose up --build
 
-Reference
----------
+Compute features
+----------------
 
-See :doc:`reference` for the MessagePack protocol, scheduler behavior, model
-catalog, video-generation constraints, cache controls, and validation commands.
+* :doc:`services` explains transcription, text-to-speech, segmentation, voice
+  conversion, and 3D tracking.
+* :doc:`video-generation` explains the available generation modes, model
+  licenses, and practical resource considerations.
+
+Troubleshooting
+---------------
+
+Keep the server process running while Shrimply uses a compute feature. Check
+the selected server in :menuselection:`Preferences --> External` if a model is
+missing or a connection fails. A first request can take longer while its model
+downloads; later requests reuse the downloaded files.
 
 .. toctree::
    :maxdepth: 1
    :hidden:
 
-   reference
+   services
+   video-generation

@@ -18,9 +18,8 @@ using transcription. See :doc:`../server/index`.
 Text-to-speech and voice conversion
 -----------------------------------
 
-Audio tracks can contain generated speech. The compute server advertises the
-available text-to-speech and voice-conversion models and keeps compatible
-workers loaded for reuse.
+Audio tracks can contain generated speech. The compute server determines which
+text-to-speech and voice-conversion models appear in Shrimply.
 
 Lip sync expressions
 --------------------

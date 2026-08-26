@@ -63,3 +63,11 @@ SOURCE: https://gitlab.gnome.org/Teams/Websites/developer.gnome.org
 VERSION: 315a4ba8eb4990f25e0c1cb39934f9e9b420fa32
 LICENSE: MIT (templates); Creative Commons Attribution-ShareAlike 3.0 (static assets)
 AUTHORS: Pradyun Gedam; Jakub Steiner; GNOME contributors
+
+---
+
+COMPONENT: Rhubarb Lip Sync mouth-shape documentation images
+SOURCE: https://github.com/DanielSWolf/rhubarb-lip-sync
+VERSION: 9b9573cd21b253c9ba58739bbd1aa0b50b991bff
+LICENSE: MIT License
+AUTHOR: Daniel Wolf
