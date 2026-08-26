@@ -1,3 +1,5 @@
+![Shrimply logo](assets/icons/dev.shrimply.Shrimply.svg)
+
 # Shrimply
 
 Shrimply is a powerful open-source video editor with a
@@ -31,10 +33,10 @@ Before submitting a contribution, read the repository's
 
 Shrimply's main application is written in Rust and uses these technologies:
 
-- **Interface:** GTK 4 and libadwaita
-- **Rendering:** Skia, wgpu, and CUDA
-- **Media:** FFmpeg and PipeWire
-- **Compute server:** Python
+- **Interface**: GTK 4 and libadwaita
+- **Rendering**: Skia, wgpu, and CUDA
+- **Media**: FFmpeg and PipeWire
+- **Compute server**: Python
 
 ### Finding Things to Work On
 
