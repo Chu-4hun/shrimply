@@ -6,8 +6,8 @@ use shrimply_core::timeline_value::{
 };
 use shrimply_project::project::{
     Background, BackgroundGenerator, BackgroundKind, CenteredLines, Checkerboard, Color,
-    ColorGradient, Grid, PerlinNoise, Project, Rainbow, Time, VideoItemContent, Voronoi,
-    WhiteNoise,
+    ColorGradient, Grid, PerlinNoise, Project, Rainbow, SolidColor, Time, VideoItemContent,
+    Voronoi, WhiteNoise,
 };
 
 use crate::player_state::{self, ProjectChange, SharedPlayerState};
@@ -43,6 +43,7 @@ fn controls(background: &Background, context: &InspectorContext) -> Vec<gtk::Wid
     let section = InspectorSection::controls();
     kind(&section, background.generator.kind(), context);
     match &background.generator {
+        BackgroundGenerator::SolidColor(value) => solid_color(&section, value, context),
         BackgroundGenerator::ColorGradient(value) => gradient(&section, value, context),
         BackgroundGenerator::Grid(value) => grid(&section, value, context),
         BackgroundGenerator::WhiteNoise(value) => noise(&section, value, context),
@@ -54,6 +55,20 @@ fn controls(background: &Background, context: &InspectorContext) -> Vec<gtk::Wid
         BackgroundGenerator::TestPattern => {}
     }
     vec![section.into_widget()]
+}
+
+fn solid_color(section: &InspectorSection, value: &SolidColor, context: &InspectorContext) {
+    color_row(
+        section,
+        "Color",
+        &value.color,
+        context,
+        |generator, value| {
+            if let BackgroundGenerator::SolidColor(config) = generator {
+                config.color = value;
+            }
+        },
+    );
 }
 
 fn kind(section: &InspectorSection, current: BackgroundKind, context: &InspectorContext) {

@@ -7,10 +7,10 @@ use serde_json::{Map, Number, Value, json};
 use shrimply_core::timeline_value::TimelineValue;
 use shrimply_math_core::Fraction;
 use shrimply_project::project::{
-    AudioTransition, Background, BackgroundGenerator, CanvasSize, Color, ColorGradient,
-    PROJECT_FORMAT_VERSION, Time, Transform, TransitionSide, VideoItem, VideoSampleMethod,
-    VisualSource, VisualTransition, default_playback_speed, fraction_denominator,
-    fraction_numerator, native_playback_fps,
+    AudioTransition, Background, BackgroundGenerator, CanvasSize, Color, PROJECT_FORMAT_VERSION,
+    SolidColor, Time, Transform, TransitionSide, VideoItem, VideoSampleMethod, VisualSource,
+    VisualTransition, default_playback_speed, fraction_denominator, fraction_numerator,
+    native_playback_fps,
 };
 
 pub struct ImportResult {
@@ -391,15 +391,12 @@ fn solid_color_item(
         .and_then(Value::as_str)
         .and_then(parse_kdenlive_color)
         .unwrap_or(Color::<u8>::WHITE);
-    let gradient = ColorGradient {
-        color_a: TimelineValue::new_const(color),
-        color_b: TimelineValue::new_const(color),
-        ..Default::default()
-    };
     let mut item = VideoItem::background_item(canvas_size, start, end);
     item.source_duration = end.saturating_sub(start);
     item.content = VisualSource::Background(Box::new(Background {
-        generator: BackgroundGenerator::ColorGradient(Box::new(gradient)),
+        generator: BackgroundGenerator::SolidColor(Box::new(SolidColor {
+            color: TimelineValue::new_const(color),
+        })),
     }));
     serde_json::to_value(item)
         .map(Some)

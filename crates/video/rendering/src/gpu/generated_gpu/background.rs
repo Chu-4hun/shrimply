@@ -5,7 +5,8 @@ use ash::vk;
 use shrimply_background::{
     Background, BackgroundGenerator, CenteredLines, Checkerboard, ColorGradient, Curve,
     GradientMode, Grid, GridLineStyle, NoiseColorMode, NoiseDistribution, PerlinMode, PerlinNoise,
-    Rainbow, RainbowBands, RainbowFill, Voronoi, VoronoiFill, VoronoiMetric, WhiteNoise,
+    Rainbow, RainbowBands, RainbowFill, SolidColor, Voronoi, VoronoiFill, VoronoiMetric,
+    WhiteNoise,
 };
 use shrimply_project::project::Time;
 
@@ -283,6 +284,7 @@ fn uniforms(
     value.common.width = width;
     value.common.height = height;
     match &background.generator {
+        BackgroundGenerator::SolidColor(config) => solid_color(&mut value, config, time),
         BackgroundGenerator::ColorGradient(config) => gradient(&mut value, config, time),
         BackgroundGenerator::Grid(config) => grid(&mut value, config, time),
         BackgroundGenerator::WhiteNoise(config) => noise(&mut value, config, time, seconds),
@@ -294,6 +296,12 @@ fn uniforms(
         BackgroundGenerator::TestPattern => value.common.kind = shader::BackgroundKind::TestPattern,
     }
     value
+}
+
+fn solid_color(value: &mut shader::BackgroundUniforms, config: &SolidColor, time: Time) {
+    value.common.kind = shader::BackgroundKind::ColorGradient;
+    value.gradient.mode = 0;
+    value.gradient.color_a = config.color.value_at(time).to_srgba();
 }
 
 fn curve(value: Curve) -> u32 {

@@ -76,6 +76,10 @@ fn resolved_background(
     }
     match (&source.generator, &mut output.generator) {
         (
+            shrimply_background::BackgroundGenerator::SolidColor(source),
+            shrimply_background::BackgroundGenerator::SolidColor(output),
+        ) => resolve_fields!(source, output; color),
+        (
             shrimply_background::BackgroundGenerator::ColorGradient(source),
             shrimply_background::BackgroundGenerator::ColorGradient(output),
         ) => {

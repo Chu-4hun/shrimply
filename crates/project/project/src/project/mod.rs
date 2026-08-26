@@ -72,8 +72,8 @@ pub use preview::{
 pub use shrimply_background::{
     Background, BackgroundGenerator, BackgroundKind, CenteredLines, Checkerboard, ColorGradient,
     Curve, GradientMode, Grid, GridLineStyle, NoiseColorMode, NoiseDistribution, PerlinMode,
-    PerlinNoise, Rainbow, RainbowBands, RainbowFill, Voronoi, VoronoiFill, VoronoiMetric,
-    WhiteNoise,
+    PerlinNoise, Rainbow, RainbowBands, RainbowFill, SolidColor, Voronoi, VoronoiFill,
+    VoronoiMetric, WhiteNoise,
 };
 pub use shrimply_paint_model::{
     DEFAULT_FILL_CLOSURE_TOLERANCE, DEFAULT_STROKE_WIDTH, DEFAULT_STROKE_WIDTH_SCALE, PaintDrawing,

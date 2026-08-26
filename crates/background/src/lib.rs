@@ -38,9 +38,11 @@ pub struct Background {
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, strum::Display, strum::EnumIter)]
 pub enum BackgroundKind {
+    #[default]
+    #[strum(to_string = "Solid Color")]
+    SolidColor,
     #[strum(to_string = "Color / Gradient")]
     ColorGradient,
-    #[default]
     Grid,
     #[strum(to_string = "White Noise")]
     WhiteNoise,
@@ -58,6 +60,7 @@ pub enum BackgroundKind {
 impl BackgroundKind {
     pub fn generator(self) -> BackgroundGenerator {
         match self {
+            Self::SolidColor => BackgroundGenerator::SolidColor(Box::default()),
             Self::ColorGradient => BackgroundGenerator::ColorGradient(Box::default()),
             Self::Grid => BackgroundGenerator::Grid(Box::default()),
             Self::WhiteNoise => BackgroundGenerator::WhiteNoise(Box::default()),
@@ -74,6 +77,7 @@ impl BackgroundKind {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "kind")]
 pub enum BackgroundGenerator {
+    SolidColor(Box<SolidColor>),
     ColorGradient(Box<ColorGradient>),
     Grid(Box<Grid>),
     WhiteNoise(Box<WhiteNoise>),
@@ -87,13 +91,14 @@ pub enum BackgroundGenerator {
 
 impl Default for BackgroundGenerator {
     fn default() -> Self {
-        Self::Grid(Box::default())
+        Self::SolidColor(Box::default())
     }
 }
 
 impl BackgroundGenerator {
     pub fn kind(&self) -> BackgroundKind {
         match self {
+            Self::SolidColor(_) => BackgroundKind::SolidColor,
             Self::ColorGradient(_) => BackgroundKind::ColorGradient,
             Self::Grid(_) => BackgroundKind::Grid,
             Self::WhiteNoise(_) => BackgroundKind::WhiteNoise,
@@ -108,6 +113,7 @@ impl BackgroundGenerator {
 
     pub fn number(&self, id: uuid::Uuid) -> Option<&TimelineValue<f32>> {
         let values: &[&TimelineValue<f32>] = match self {
+            Self::SolidColor(_) => &[],
             Self::ColorGradient(v) => &[&v.angle_degrees, &v.scale, &v.cycle_position],
             Self::Grid(v) => &[
                 &v.rotation_degrees,
@@ -162,6 +168,7 @@ impl BackgroundGenerator {
 
     pub fn number_mut(&mut self, id: uuid::Uuid) -> Option<&mut TimelineValue<f32>> {
         match self {
+            Self::SolidColor(_) => None,
             Self::ColorGradient(v) => find_timeline_mut(
                 [&mut v.angle_degrees, &mut v.scale, &mut v.cycle_position],
                 id,
@@ -238,6 +245,7 @@ impl BackgroundGenerator {
 
     pub fn number2(&self, id: uuid::Uuid) -> Option<&TimelineValue<Vec2>> {
         let values: &[&TimelineValue<Vec2>] = match self {
+            Self::SolidColor(_) => &[],
             Self::ColorGradient(v) => &[&v.center, &v.position],
             Self::Grid(v) => &[
                 &v.spacing,
@@ -258,6 +266,7 @@ impl BackgroundGenerator {
 
     pub fn number2_mut(&mut self, id: uuid::Uuid) -> Option<&mut TimelineValue<Vec2>> {
         match self {
+            Self::SolidColor(_) => None,
             Self::ColorGradient(v) => find_timeline_mut([&mut v.center, &mut v.position], id),
             Self::Grid(v) => find_timeline_mut(
                 [
@@ -280,6 +289,7 @@ impl BackgroundGenerator {
 
     pub fn color(&self, id: uuid::Uuid) -> Option<&TimelineValue<Color<u8>>> {
         let values: &[&TimelineValue<Color<u8>>] = match self {
+            Self::SolidColor(v) => &[&v.color],
             Self::ColorGradient(v) => &[&v.color_a, &v.color_b],
             Self::Grid(v) => &[&v.background_color, &v.horizontal_color, &v.vertical_color],
             Self::WhiteNoise(v) => &[&v.color_a, &v.color_b],
@@ -294,6 +304,7 @@ impl BackgroundGenerator {
 
     pub fn color_mut(&mut self, id: uuid::Uuid) -> Option<&mut TimelineValue<Color<u8>>> {
         match self {
+            Self::SolidColor(v) => find_timeline_mut([&mut v.color], id),
             Self::ColorGradient(v) => find_timeline_mut([&mut v.color_a, &mut v.color_b], id),
             Self::Grid(v) => find_timeline_mut(
                 [
@@ -324,7 +335,10 @@ impl BackgroundGenerator {
             Self::Rainbow(v) => &[&v.band_count],
             Self::Voronoi(v) => &[&v.seed],
             Self::CenteredLines(v) => &[&v.line_count, &v.seed],
-            Self::ColorGradient(_) | Self::Checkerboard(_) | Self::TestPattern => &[],
+            Self::SolidColor(_)
+            | Self::ColorGradient(_)
+            | Self::Checkerboard(_)
+            | Self::TestPattern => &[],
         };
         values.iter().copied().find(|value| value.id == id)
     }
@@ -337,7 +351,10 @@ impl BackgroundGenerator {
             Self::Rainbow(v) => find_timeline_mut([&mut v.band_count], id),
             Self::Voronoi(v) => find_timeline_mut([&mut v.seed], id),
             Self::CenteredLines(v) => find_timeline_mut([&mut v.line_count, &mut v.seed], id),
-            Self::ColorGradient(_) | Self::Checkerboard(_) | Self::TestPattern => None,
+            Self::SolidColor(_)
+            | Self::ColorGradient(_)
+            | Self::Checkerboard(_)
+            | Self::TestPattern => None,
         }
     }
 
@@ -362,6 +379,7 @@ impl BackgroundGenerator {
             }};
         }
         match self {
+            Self::SolidColor(v) => ensure!(&mut v.color),
             Self::ColorGradient(v) => ensure!(
                 &mut v.mode,
                 &mut v.curve,
@@ -479,6 +497,7 @@ impl BackgroundGenerator {
             ($($value:expr),* $(,)?) => { shrimply_core::modifier_model::combine([$((shrimply_core::modifier_model::timeline_value_span($value))),*]) };
         }
         match self {
+            Self::SolidColor(v) => span!(&v.color),
             Self::ColorGradient(v) => span!(
                 &v.mode,
                 &v.curve,
@@ -588,6 +607,19 @@ impl BackgroundGenerator {
                 &v.seed
             ),
             Self::TestPattern => None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SolidColor {
+    pub color: TimelineValue<Color<u8>>,
+}
+
+impl Default for SolidColor {
+    fn default() -> Self {
+        Self {
+            color: TimelineValue::new_const(Color::<u8>::BLACK),
         }
     }
 }
