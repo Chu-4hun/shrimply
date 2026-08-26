@@ -39,7 +39,6 @@ Start here
    guides/expressions
    guides/audio-captions
    guides/export
-   guides/lip-sync
    server/index
    integrations/mcp
    development

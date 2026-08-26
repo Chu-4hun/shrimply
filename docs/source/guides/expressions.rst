@@ -1,6 +1,11 @@
 Expressions
 ===========
 
+.. toctree::
+   :hidden:
+
+   lip-sync
+
 Expressions calculate a property value with a small `Rhai script
 <https://rhai.rs/book/language/>`__. Use them for motion, repetition,
 audio-reactive effects, and other values that should change automatically.
