@@ -610,6 +610,16 @@ ja = "最終編集: %{date}"
 "zh-TW" = "上次編輯時間：%{date}"
 "ko" = "마지막 편집: %{date}"
 
+["Last Edited"]
+en = "Last Edited"
+es = "Última edición"
+fr = "Dernière modification"
+de = "Zuletzt bearbeitet"
+ja = "最終編集"
+"zh-CN" = "上次编辑时间"
+"zh-TW" = "上次編輯時間"
+"ko" = "마지막 편집"
+
 ["Last edited time unavailable"]
 en = "Last edited time unavailable"
 es = "Hora de la última edición no disponible"

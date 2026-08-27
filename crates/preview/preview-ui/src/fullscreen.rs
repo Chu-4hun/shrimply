@@ -25,7 +25,6 @@ button.preview-control-chip {
 
 struct PreviewFullscreenRestore {
     window: gtk::Window,
-    preview_visible: bool,
     toolbar_view: Option<(adw::ToolbarView, bool)>,
     hidden_widgets: Vec<(gtk::Widget, bool)>,
     side_controls_visible: bool,
@@ -83,7 +82,7 @@ pub(super) fn attach(widgets: Widgets, player_state: SharedPlayerState) {
     let click_state = state.clone();
     widgets.button.connect_clicked(move |_| {
         if click_state.active.get() {
-            leave_preview_fullscreen(&click_widgets, &click_state);
+            restore_preview_fullscreen(&click_widgets, &click_state, true);
         } else {
             enter_preview_fullscreen(&click_widgets, &click_state);
         }
@@ -98,10 +97,6 @@ fn enter_preview_fullscreen(widgets: &Widgets, state: &PreviewFullscreenState) {
     else {
         return;
     };
-
-    let preview_visible = widgets.video_surface.widget().get_visible();
-    // GtkGLArea pools in-flight backing textures, so keep it unmapped while its size changes.
-    widgets.video_surface.widget().set_visible(false);
 
     let mut hidden_widgets = Vec::new();
     let top_paned = widgets
@@ -153,7 +148,6 @@ fn enter_preview_fullscreen(widgets: &Widgets, state: &PreviewFullscreenState) {
 
     *state.restore.borrow_mut() = Some(PreviewFullscreenRestore {
         window: window.clone(),
-        preview_visible,
         toolbar_view,
         hidden_widgets,
         side_controls_visible,
@@ -177,57 +171,21 @@ fn enter_preview_fullscreen(widgets: &Widgets, state: &PreviewFullscreenState) {
     let notify_widgets = widgets.clone();
     let notify_state = state.clone();
     *state.notify_id.borrow_mut() = Some(window.connect_fullscreened_notify(move |window| {
-        if !notify_state.active.get() {
-            return;
-        }
-        if window.is_fullscreen() {
-            let preview_visible = notify_state
-                .restore
-                .borrow()
-                .as_ref()
-                .is_some_and(|restore| restore.preview_visible);
-            notify_widgets
-                .video_surface
-                .widget()
-                .set_visible(preview_visible);
-            if preview_visible {
-                notify_widgets.video_surface.queue_render();
-            }
-        } else {
-            notify_widgets.video_surface.widget().set_visible(false);
-            restore_preview_fullscreen(&notify_widgets, &notify_state);
+        if !window.is_fullscreen() && notify_state.active.get() {
+            restore_preview_fullscreen(&notify_widgets, &notify_state, false);
         }
     }));
 
     window.set_fullscreened(true);
 }
 
-fn leave_preview_fullscreen(widgets: &Widgets, state: &PreviewFullscreenState) {
-    let window = {
-        state
-            .restore
-            .borrow()
-            .as_ref()
-            .map(|restore| restore.window.clone())
-    };
-    let Some(window) = window else {
-        restore_preview_fullscreen(widgets, state);
-        return;
-    };
-
-    // Restore the GL surface only after GTK reports the final windowed allocation.
-    widgets.video_surface.widget().set_visible(false);
-    cancel_fullscreen_controls_hide(state);
-    window.set_fullscreened(false);
-    if !window.is_fullscreen() && state.restore.borrow().is_some() {
-        restore_preview_fullscreen(widgets, state);
-    }
-}
-
-fn restore_preview_fullscreen(widgets: &Widgets, state: &PreviewFullscreenState) {
+fn restore_preview_fullscreen(
+    widgets: &Widgets,
+    state: &PreviewFullscreenState,
+    leave_window_fullscreen: bool,
+) {
     let Some(restore) = state.restore.borrow_mut().take() else {
         state.active.set(false);
-        widgets.video_surface.widget().set_visible(true);
         widgets.video_surface.set_fullscreen(false);
         set_fullscreen_button_mode(&widgets.button, false);
         return;
@@ -260,6 +218,9 @@ fn restore_preview_fullscreen(widgets: &Widgets, state: &PreviewFullscreenState)
     widgets.controls.set_visible(restore.controls_visible);
     widgets.video_surface.set_caption_bottom_inset(0.0);
     widgets.video_surface.set_fullscreen(false);
+    if leave_window_fullscreen {
+        restore.window.set_fullscreened(false);
+    }
 
     state.active.set(false);
     state.controls_pointer_position.set(None);
@@ -267,13 +228,6 @@ fn restore_preview_fullscreen(widgets: &Widgets, state: &PreviewFullscreenState)
     state.controls_hidden_after_idle.set(false);
     cancel_fullscreen_controls_hide(state);
     set_fullscreen_button_mode(&widgets.button, false);
-    widgets
-        .video_surface
-        .widget()
-        .set_visible(restore.preview_visible);
-    if restore.preview_visible {
-        widgets.video_surface.queue_render();
-    }
 }
 
 fn attach_fullscreen_escape_key(widgets: &Widgets, state: &PreviewFullscreenState) {
@@ -288,7 +242,7 @@ fn attach_fullscreen_escape_key(widgets: &Widgets, state: &PreviewFullscreenStat
             return glib::Propagation::Proceed;
         }
 
-        leave_preview_fullscreen(&widgets, &state);
+        restore_preview_fullscreen(&widgets, &state, true);
         glib::Propagation::Stop
     });
     target.add_controller(key);
