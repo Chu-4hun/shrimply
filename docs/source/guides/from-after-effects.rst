@@ -1,11 +1,12 @@
 From After Effects
 ==================
 
-After Effects expressions are JavaScript with Adobe-specific values and
-functions. Shrimply expressions use `Rhai
-<https://rhai.rs/book/language/>`__ instead. The concepts are similar, but an
-After Effects expression must be rewritten rather than pasted directly into
-Shrimply.
+After Effects expressions use JavaScript. After Effects supports a modern
+JavaScript engine and an `older Legacy ExtendScript engine
+<https://helpx.adobe.com/after-effects/desktop/work-with-expressions/expression-basics/legacy-and-extend-script-engine.html>`__.
+Shrimply expressions use `Rhai <https://rhai.rs/book/language/>`__ instead. The
+concepts are similar, but an After Effects expression must be rewritten rather
+than pasted directly into Shrimply.
 
 Both systems provide ``value`` for the property's value before the expression,
 ``time`` for time in seconds, and arrays such as ``[x, y]`` for multi-component
@@ -31,26 +32,53 @@ degrees per second:
 Variable declarations
 ---------------------
 
-After Effects examples often assign a variable without a declaration keyword.
-Rhai requires ``let`` when defining a variable, so add it when rewriting those
-expressions:
+Adobe's `expression-language guide
+<https://helpx.adobe.com/after-effects/desktop/work-with-expressions/expression-basics/expression-language.html>`__
+shows variables assigned without a declaration keyword. After Effects also
+supports ``var`` in both expression engines and ``let`` and ``const`` in the
+modern engine. Translate each form as follows:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 28 24 28 20
+
+   * - After Effects
+     - Expression engines
+     - Shrimply
+     - Meaning
+   * - ``speed = 40``
+     - Modern and Legacy
+     - ``let speed = 40``
+     - First definition
+   * - ``var speed = 40``
+     - Modern and Legacy
+     - ``let speed = 40``
+     - Mutable variable
+   * - ``let speed = 40``
+     - Modern only
+     - ``let speed = 40``
+     - Mutable variable
+   * - ``const speed = 40``
+     - Modern only
+     - ``const speed = 40``
+     - Constant
+
+After a Rhai variable has been declared, assign a new value without repeating
+``let``:
 
 .. tabs::
 
    .. code-tab:: javascript After Effects
 
       speed = 40;
+      speed = 20;
       time * speed
 
    .. code-tab:: rust Shrimply
 
       let speed = 40;
+      speed = 20;
       time * speed
-
-After Effects also accepts declarations with ``var``. Its modern JavaScript
-expression engine accepts ``let`` as well, but the Legacy ExtendScript engine
-does not. In Shrimply, use ``let`` for a variable that can change and ``const``
-for one that cannot.
 
 Wiggle and shake
 ----------------
