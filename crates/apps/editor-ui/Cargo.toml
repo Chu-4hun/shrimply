@@ -12,6 +12,7 @@ path = "src/main.rs"
 adw = { workspace = true, features = ["v1_9"] }
 async-channel.workspace = true
 ffmpeg-next.workspace = true
+gdk-pixbuf.workspace = true
 gtk = { workspace = true, features = ["v4_10"] }
 libc.workspace = true
 num-traits.workspace = true

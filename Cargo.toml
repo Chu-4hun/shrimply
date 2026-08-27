@@ -113,6 +113,7 @@ glam = "0.33"
 gltf = { version = "1", features = ["KHR_texture_transform"] }
 glib = "0.22"
 gdk = { package = "gdk4", version = "0.11" }
+gdk-pixbuf = "0.22"
 glow = "0.18"
 gtk = { package = "gtk4", version = "0.11" }
 half = "2"

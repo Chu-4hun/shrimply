@@ -19,6 +19,8 @@ pub use shrimply_project::project;
 use crate::preferences::store as preferences_store;
 use adw::prelude::*;
 use ffmpeg_next as ffmpeg;
+use gdk_pixbuf::prelude::PixbufAnimationExtManual;
+use gtk::gdk::prelude::GdkCairoContextExt;
 use gtk::{gio, glib};
 use shrimply_math_core::Fraction;
 use std::cell::{Cell, RefCell};
@@ -26,13 +28,17 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::Arc;
 use std::thread;
+use std::time::SystemTime;
 
 const DEFAULT_WINDOW_WIDTH: i32 = 1800;
 const DEFAULT_WINDOW_HEIGHT: i32 = 1100;
 const DEFAULT_INSPECTOR_WIDTH: i32 = inspector::INSPECTOR_MIN_WIDTH;
 const DEFAULT_TOP_PANEL_HEIGHT: i32 = 660;
 const PANEL_ANIMATION_DURATION_MS: u32 = 250;
-const LOADING_SPINNER_SIZE: i32 = 48;
+const LOADING_WINDOW_WIDTH: i32 = 800;
+const LOADING_WINDOW_HEIGHT: i32 = 600;
+const LOADING_SHRIMP_WIDTH: i32 = 160;
+const LOADING_SHRIMP_HEIGHT: i32 = 180;
 
 #[derive(Clone, Copy)]
 enum PanelSide {
@@ -432,8 +438,8 @@ fn begin_project_load(app: &adw::Application, path: PathBuf) {
     let window = adw::ApplicationWindow::builder()
         .application(app)
         .title(tr!("Shrimply").as_ref())
-        .default_width(640)
-        .default_height(360)
+        .default_width(LOADING_WINDOW_WIDTH)
+        .default_height(LOADING_WINDOW_HEIGHT)
         .build();
     window.set_content(Some(&project_loading_view(&path)));
     if has_otio_extension(&path) {
@@ -790,8 +796,33 @@ fn project_loading_view(path: &Path) -> adw::ToolbarView {
 }
 
 fn project_loading_view_with_subtitle(subtitle: &str) -> adw::ToolbarView {
-    let spinner = adw::Spinner::new();
-    spinner.set_size_request(LOADING_SPINNER_SIZE, LOADING_SPINNER_SIZE);
+    let bytes = glib::Bytes::from_static(include_bytes!("../assets/loading-shrimp.gif"));
+    let stream = gio::MemoryInputStream::from_bytes(&bytes);
+    let animation = gdk_pixbuf::PixbufAnimation::from_stream(&stream, None::<&gio::Cancellable>)
+        .expect("bundled loading animation should decode")
+        .iter(Some(SystemTime::now()));
+    let shrimp = gtk::DrawingArea::new();
+    shrimp.set_content_width(LOADING_SHRIMP_WIDTH);
+    shrimp.set_content_height(LOADING_SHRIMP_HEIGHT);
+    shrimp.set_halign(gtk::Align::Center);
+    shrimp.set_valign(gtk::Align::Center);
+    let drawing_animation = animation.clone();
+    shrimp.set_draw_func(move |_, context, width, height| {
+        let frame = drawing_animation.pixbuf();
+        context.scale(
+            f64::from(width) / f64::from(frame.width()),
+            f64::from(height) / f64::from(frame.height()),
+        );
+        context.set_source_pixbuf(&frame, 0.0, 0.0);
+        context.source().set_filter(gtk::cairo::Filter::Nearest);
+        context.paint().expect("loading animation should draw");
+    });
+    shrimp.add_tick_callback(move |area, _| {
+        if animation.advance(SystemTime::now()) {
+            area.queue_draw();
+        }
+        glib::ControlFlow::Continue
+    });
     let status = gtk::Label::builder()
         .label(tr!("Loading project…").as_ref())
         .css_classes(["title-3"])
@@ -807,10 +838,11 @@ fn project_loading_view_with_subtitle(subtitle: &str) -> adw::ToolbarView {
     body.set_valign(gtk::Align::Center);
     body.set_hexpand(true);
     body.set_vexpand(true);
-    body.append(&spinner);
+    body.append(&shrimp);
     body.append(&status);
     body.append(&subtitle);
     let toolbar = adw::ToolbarView::new();
+    toolbar.add_css_class("background");
     toolbar.add_top_bar(
         &adw::HeaderBar::builder()
             .title_widget(&gtk::Box::new(gtk::Orientation::Horizontal, 0))
