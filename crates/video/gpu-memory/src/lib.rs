@@ -434,7 +434,7 @@ impl GpuMemoryManager {
         let pressured = free < reserve.saturating_add(bytes);
         let host_enabled = self.shared.host_budget.load(Ordering::Acquire) != 0;
         if pressured {
-            tracing::warn!(
+            tracing::trace!(
                 allocation_description = description,
                 allocation_class = ?class,
                 requested_bytes = bytes,
@@ -747,7 +747,7 @@ impl GpuMemoryManager {
         let free = memory_info()?.0;
         let recovered = free.saturating_sub(initial_free);
         let telemetry = self.telemetry();
-        tracing::debug!(
+        tracing::trace!(
             requested_bytes = required_bytes,
             free_vram_bytes = free,
             total_vram_bytes = total,
