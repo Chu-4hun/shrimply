@@ -31,7 +31,14 @@ const DEFAULT_WINDOW_WIDTH: i32 = 1800;
 const DEFAULT_WINDOW_HEIGHT: i32 = 1100;
 const DEFAULT_INSPECTOR_WIDTH: i32 = inspector::INSPECTOR_MIN_WIDTH;
 const DEFAULT_TOP_PANEL_HEIGHT: i32 = 660;
+const PANEL_ANIMATION_DURATION_MS: u32 = 250;
 const LOADING_SPINNER_SIZE: i32 = 48;
+
+#[derive(Clone, Copy)]
+enum PanelSide {
+    Start,
+    End,
+}
 
 fn main() -> glib::ExitCode {
     let mut gdk_disabled = std::env::var("GDK_DISABLE").unwrap_or_default();
@@ -237,18 +244,25 @@ fn build_ui(window: &adw::ApplicationWindow, project: project::Project) {
         .icon_name("dock-left-symbolic")
         .tooltip_text(tr!("Toggle Inspector").as_ref())
         .build();
-    let inspector_for_toggle = inspector.clone();
-    inspector_toggle.connect_toggled(move |button| {
-        inspector_for_toggle.set_visible(button.is_active());
-    });
+    connect_panel_toggle(
+        &inspector_toggle,
+        &top,
+        &inspector,
+        PanelSide::Start,
+        DEFAULT_INSPECTOR_WIDTH,
+    );
     let timeline_toggle = gtk::ToggleButton::builder()
         .active(true)
         .icon_name("dock-bottom-symbolic")
         .tooltip_text(tr!("Toggle Timeline").as_ref())
         .build();
-    timeline_toggle.connect_toggled(move |button| {
-        timeline.set_visible(button.is_active());
-    });
+    connect_panel_toggle(
+        &timeline_toggle,
+        &layout,
+        &timeline,
+        PanelSide::End,
+        DEFAULT_WINDOW_HEIGHT - DEFAULT_TOP_PANEL_HEIGHT,
+    );
     let panel_toggles = gtk::Box::new(gtk::Orientation::Horizontal, 6);
     panel_toggles.append(&inspector_toggle);
     panel_toggles.append(&timeline_toggle);
@@ -310,6 +324,80 @@ fn build_ui(window: &adw::ApplicationWindow, project: project::Project) {
     );
     window.present();
     video_player.grab_focus();
+}
+
+fn connect_panel_toggle(
+    button: &gtk::ToggleButton,
+    paned: &gtk::Paned,
+    panel: &impl IsA<gtk::Widget>,
+    side: PanelSide,
+    default_size: i32,
+) {
+    let panel = panel.as_ref().clone();
+    let expanded_size = Rc::new(Cell::new(default_size));
+    let weak_paned = paned.downgrade();
+    let target = adw::CallbackAnimationTarget::new(move |size| {
+        let Some(paned) = weak_paned.upgrade() else {
+            return;
+        };
+        let size = (size.round() as i32).max(0);
+        paned.set_position(match side {
+            PanelSide::Start => size,
+            PanelSide::End => paned.height().saturating_sub(size),
+        });
+    });
+    let animation = adw::TimedAnimation::new(
+        paned,
+        f64::from(default_size),
+        f64::from(default_size),
+        PANEL_ANIMATION_DURATION_MS,
+        target,
+    );
+
+    let weak_button = button.downgrade();
+    let weak_paned = paned.downgrade();
+    let weak_panel = panel.downgrade();
+    animation.connect_done(move |_| {
+        let (Some(button), Some(paned), Some(panel)) = (
+            weak_button.upgrade(),
+            weak_paned.upgrade(),
+            weak_panel.upgrade(),
+        ) else {
+            return;
+        };
+        if !button.is_active() {
+            panel.set_visible(false);
+        }
+        match side {
+            PanelSide::Start => paned.set_shrink_start_child(false),
+            PanelSide::End => paned.set_shrink_end_child(false),
+        }
+    });
+
+    let paned = paned.clone();
+    button.connect_toggled(move |button| {
+        let current_size = match side {
+            PanelSide::Start => paned.position(),
+            PanelSide::End => paned.height().saturating_sub(paned.position()),
+        };
+        if !button.is_active() && animation.state() != adw::AnimationState::Playing {
+            expanded_size.set(current_size);
+        }
+        if button.is_active() {
+            panel.set_visible(true);
+        }
+        match side {
+            PanelSide::Start => paned.set_shrink_start_child(true),
+            PanelSide::End => paned.set_shrink_end_child(true),
+        }
+        animation.set_value_from(f64::from(current_size));
+        animation.set_value_to(f64::from(if button.is_active() {
+            expanded_size.get()
+        } else {
+            0
+        }));
+        animation.play();
+    });
 }
 
 fn update_project_title(
