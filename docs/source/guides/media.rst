@@ -36,7 +36,7 @@ Importing and Creating Media
    :alt: Screen recording
 .. |microphone| image:: ../../../assets/icons/mic-1-symbolic.svg
    :class: action-icon
-   :alt: Microphone recording
+   :alt: Microphone
 
 Import media
 ------------
@@ -135,18 +135,13 @@ Text to Speech and Video Generation are backed by AI models and require the
 Record content
 --------------
 
-.. list-table::
-   :widths: 8 92
-   :header-rows: 1
+* On a video track, click |screen-recording| **Screen Recording**, choose a
+  screen or application in the system capture dialog, and click the same button
+  again to stop. The recording starts at the playhead and stops before the next
+  item on the track.
+* On an audio track, click |microphone| **Microphone** to start recording from
+  the default microphone. Click the same button again to stop.
 
-   * - Icon
-     - Description
-   * - |screen-recording|
-     - Records a screen or application to the video track.
-   * - |microphone|
-     - Records the default microphone to the audio track.
-
-Move the playhead to an empty point on the track, then click its recording
-icon. Screen recording opens the system capture dialog so you can choose a
-screen or application. Click the icon again to stop. The icon is red while
-recording, and the finished item starts at the original playhead position.
+The active recording button turns red. Recording advances playback and places
+the finished item on that track at the original playhead position. Start from
+an empty point so the recording does not overlap an existing item.
