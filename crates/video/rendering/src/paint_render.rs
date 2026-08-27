@@ -6,8 +6,8 @@ use shrimply_evaluation::{
     resolve_paint_stroke_options, resolve_paint_texture_options,
 };
 use shrimply_project::project::{
-    CanvasSize, DrawingFillMode, PaintTextureOptions, ResolvedPaintStrokeOptions, TransitionSide,
-    VideoItem, VideoItemContent, VisualTransitionKind,
+    CanvasSize, DrawingFillMode, PaintTextureOptions, TransitionSide, VideoItem, VideoItemContent,
+    VisualTransitionKind,
 };
 use skia_safe::Canvas;
 use uuid::Uuid;
@@ -117,13 +117,12 @@ impl VisualElement for PaintElement {
             canvas_size.width.max(1) as f32,
             canvas_size.height.max(1) as f32,
         );
-        let (prepared, texture_fingerprints) = {
+        let prepared = {
             let mut cache = self.cache.borrow_mut();
-            let texture_fingerprints = palette
-                .iter()
-                .map(|entry| preflight_texture(&mut cache, entry.texture.as_ref()))
-                .collect::<Result<Vec<_>, _>>()?;
-            let prepared = shrimply_paint_skia::prepare_frame(
+            for entry in &palette {
+                preflight_texture(&mut cache, entry.texture.as_ref())?;
+            }
+            shrimply_paint_skia::prepare_frame(
                 &mut cache,
                 (&drawing, paint.revision),
                 &stroke_options,
@@ -131,47 +130,8 @@ impl VisualElement for PaintElement {
                 &path_offsets,
                 stroke_transform,
                 canvas,
-            );
-            (prepared, texture_fingerprints)
-        };
-        let transition = request.generated_transition.map(|value| {
-            (
-                value.kind,
-                value.side == shrimply_project::project::TransitionSide::Intro,
-                value.progress.to_bits(),
-                value.interpolation,
-                value.ordering,
-                value.drawing_stroke_overlap.to_bits(),
-                value.drawing_stroke_length_weight.to_bits(),
-                value.drawing_fill_mode,
-                value.effect_amount.to_bits(),
-                value.effect_detail.to_bits(),
-                value.effect_angle_degrees.to_bits(),
-                value.effect_fade,
-                value.effect_seed,
             )
-        });
-        let cache_key = serde_json::to_vec(&(
-            request.item.id,
-            paint.revision,
-            prepared.geometry.key.centerlines.content_hash,
-            transform_bits(stroke_transform),
-            stroke_options_bits(stroke_options),
-            fill_options.closure_tolerance.to_bits(),
-            path_offset_bits(&path_offsets),
-            palette.iter().map(|entry| entry.color).collect::<Vec<_>>(),
-            canvas_size,
-            request.render_canvas,
-            palette
-                .iter()
-                .zip(texture_fingerprints)
-                .map(|(entry, fingerprint)| {
-                    resolved_texture_key(entry.texture.as_ref(), fingerprint)
-                })
-                .collect::<Vec<_>>(),
-            transition,
-        ))
-        .map_err(|error| format!("serialize paint raster cache key: {error}"))?;
+        };
 
         let reveal = request
             .generated_transition
@@ -179,7 +139,6 @@ impl VisualElement for PaintElement {
             .map(|transition| drawing_reveal(&prepared, transition));
         Ok(VisualRender::Ready(Visual::Vector(VectorVisual::prepared(
             Box::new(DeferredPaintFrame {
-                cache_key,
                 canvas_size,
                 surface_size: request.render_canvas,
                 cache: Rc::clone(&self.cache),
@@ -195,7 +154,6 @@ impl VisualElement for PaintElement {
 }
 
 struct DeferredPaintFrame {
-    cache_key: Vec<u8>,
     canvas_size: CanvasSize,
     surface_size: CanvasSize,
     cache: Rc<RefCell<shrimply_paint_skia::PaintCache>>,
@@ -374,10 +332,6 @@ fn drawing_reveal(
 }
 
 impl VisualData for DeferredPaintFrame {
-    fn cache_key(&self) -> &[u8] {
-        &self.cache_key
-    }
-
     fn morph_scene(&self) -> Option<crate::vector_morph::MorphScene> {
         self.prepared_morph_scene()
     }
@@ -415,83 +369,16 @@ fn resolve_texture(
     })
 }
 
-type TextureKey = String;
-type StrokeEndKey = (bool, shrimply_project::project::PaintTaper, u32);
-type StrokeOptionsKey = (u32, u32, u32, u32, u32, u32, StrokeEndKey, StrokeEndKey);
-
-fn resolved_texture_key(
-    texture: Option<&shrimply_paint_skia::ResolvedPaintTexture>,
-    fingerprint: Option<TextureKey>,
-) -> Option<(TextureKey, u32, u32)> {
-    texture.zip(fingerprint).map(|(texture, fingerprint)| {
-        (
-            fingerprint,
-            texture.options.repeat_scale.to_bits(),
-            texture.options.rotation_degrees.to_bits(),
-        )
-    })
-}
-
-fn stroke_options_bits(options: ResolvedPaintStrokeOptions) -> StrokeOptionsKey {
-    (
-        options.width.to_bits(),
-        options.thinning.to_bits(),
-        options.smoothing.to_bits(),
-        options.streamline.to_bits(),
-        options.simplification_tolerance.to_bits(),
-        options.maximum_subdivision_spacing.to_bits(),
-        (
-            options.start.cap,
-            options.start.taper,
-            options.start.taper_distance.to_bits(),
-        ),
-        (
-            options.end.cap,
-            options.end.taper,
-            options.end.taper_distance.to_bits(),
-        ),
-    )
-}
-
-fn path_offset_bits(offsets: &[shrimply_paint_skia::ResolvedPathOffset]) -> Vec<[u32; 4]> {
-    offsets
-        .iter()
-        .map(|offset| {
-            [
-                offset.amplitude.to_bits(),
-                offset.spacing.to_bits(),
-                offset.seed.to_bits(),
-                offset.evolution.to_bits(),
-            ]
-        })
-        .collect()
-}
-
 fn preflight_texture(
     cache: &mut shrimply_paint_skia::PaintCache,
     texture: Option<&shrimply_paint_skia::ResolvedPaintTexture>,
-) -> Result<Option<TextureKey>, String> {
+) -> Result<(), String> {
     texture
         .map(|texture| {
             shrimply_paint_skia::prepare_texture(cache, texture)
-                .map(|prepared| fingerprint_key(&prepared.fingerprint))
+                .map(|_| ())
                 .map_err(|error| error.to_string())
         })
         .transpose()
-}
-
-fn fingerprint_key(fingerprint: &shrimply_paint_skia::TextureFingerprint) -> TextureKey {
-    fingerprint.cache_key()
-}
-
-fn transform_bits(
-    transform: shrimply_project::project::ResolvedTransform,
-) -> ([u32; 2], [u32; 2], [u32; 2], [u32; 2], u32) {
-    (
-        transform.position.to_array().map(f32::to_bits),
-        transform.anchor.to_array().map(f32::to_bits),
-        transform.scale.to_array().map(f32::to_bits),
-        transform.shear.to_array().map(f32::to_bits),
-        transform.rotation_degrees.to_bits(),
-    )
+        .map(|_| ())
 }

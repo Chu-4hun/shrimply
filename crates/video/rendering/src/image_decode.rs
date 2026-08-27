@@ -308,7 +308,6 @@ impl ImageDecodeSession {
         };
         let visual = svg_vector_visual(
             SvgVectorVisualParams {
-                cache_key: key.to_vec(),
                 prepared_svg,
                 root_size: shrimply_project::project::CanvasSize {
                     width: image.width,

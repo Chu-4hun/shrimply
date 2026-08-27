@@ -67,8 +67,6 @@ pub enum GpuFrame {
 }
 
 pub(crate) trait VisualData {
-    fn cache_key(&self) -> &[u8];
-
     fn morph_scene(&self) -> Option<crate::vector_morph::MorphScene> {
         None
     }
@@ -109,84 +107,6 @@ pub enum VectorOperation {
         seed: u32,
     },
     TextMask(TextMaskOperation),
-}
-
-#[derive(serde::Serialize)]
-enum VectorOperationKey {
-    Transform([u32; 9]),
-    MotionBlur(Vec<[u32; 9]>),
-    Opacity(u32),
-    Hsv {
-        hue_turns: u32,
-        saturation: u32,
-        value: u32,
-    },
-    Repeat {
-        copies_x: u32,
-        copies_y: u32,
-        step: [u32; 2],
-        row_offset: [u32; 2],
-    },
-    ShakyPath {
-        amplitude: u32,
-        step_size: u32,
-        seed: u32,
-    },
-    TextMask {
-        amount: u32,
-        partial_mode: TextMaskPartialMode,
-        direction: TextMaskDirection,
-    },
-}
-
-fn transform_key(transform: ComposedTransform2D) -> [u32; 9] {
-    transform.matrix.to_cols_array().map(f32::to_bits)
-}
-
-fn vector_operation_key(operation: &VectorOperation) -> VectorOperationKey {
-    match operation {
-        VectorOperation::Transform(transform) => {
-            VectorOperationKey::Transform(transform_key(*transform))
-        }
-        VectorOperation::MotionBlur(transforms) => {
-            VectorOperationKey::MotionBlur(transforms.iter().copied().map(transform_key).collect())
-        }
-        VectorOperation::Opacity(opacity) => VectorOperationKey::Opacity(opacity.to_bits()),
-        VectorOperation::Hsv {
-            hue_turns,
-            saturation,
-            value,
-        } => VectorOperationKey::Hsv {
-            hue_turns: hue_turns.to_bits(),
-            saturation: saturation.to_bits(),
-            value: value.to_bits(),
-        },
-        VectorOperation::Repeat {
-            copies_x,
-            copies_y,
-            step,
-            row_offset,
-        } => VectorOperationKey::Repeat {
-            copies_x: *copies_x,
-            copies_y: *copies_y,
-            step: [step.x.to_bits(), step.y.to_bits()],
-            row_offset: [row_offset.x.to_bits(), row_offset.y.to_bits()],
-        },
-        VectorOperation::ShakyPath {
-            amplitude,
-            step_size,
-            seed,
-        } => VectorOperationKey::ShakyPath {
-            amplitude: amplitude.to_bits(),
-            step_size: step_size.to_bits(),
-            seed: *seed,
-        },
-        VectorOperation::TextMask(mask) => VectorOperationKey::TextMask {
-            amount: mask.amount.to_bits(),
-            partial_mode: mask.partial_mode,
-            direction: mask.direction,
-        },
-    }
 }
 
 #[derive(Clone, Copy)]
@@ -664,8 +584,8 @@ impl ExecutionState {
         self,
         compositor: &mut CudaVideoCompositor,
         _canvas: CanvasSize,
-        cache_scope: (&[Uuid], Uuid, Uuid),
-        cache: &mut VisualSourceCache,
+        _cache_scope: (&[Uuid], Uuid, Uuid),
+        _cache: &mut VisualSourceCache,
     ) -> Result<Self, String> {
         match self {
             Self::Prepared {
@@ -675,44 +595,11 @@ impl ExecutionState {
             } => {
                 let (frame, state) = match source {
                     LazySource::Data(data) => {
-                        let operation_keys = vector_operations
-                            .iter()
-                            .map(vector_operation_key)
-                            .collect::<Vec<_>>();
-                        let cache_key = serde_json::to_vec(&(
-                            data.cache_key(),
-                            state.skia_drawing_strategy,
-                            operation_keys,
-                        ))
-                        .map_err(|error| {
-                            format!("serialize generated preview cache key: {error}")
-                        })?;
-                        let renderer_generation = compositor.generated_renderer_generation();
-                        let layer = if let Some(layer) = cache.vector(
+                        let layer = data.rasterize(
                             compositor,
-                            cache_scope,
-                            &cache_key,
-                            renderer_generation,
-                        )? {
-                            shrimply_benchmarking::increment("Generated preview cache / Hit");
-                            layer
-                        } else {
-                            shrimply_benchmarking::increment("Generated preview cache / Miss");
-                            let layer = data.rasterize(
-                                compositor,
-                                state.skia_drawing_strategy,
-                                &vector_operations,
-                            )?;
-                            let renderer_generation = compositor.generated_renderer_generation();
-                            cache.set_vector(
-                                compositor,
-                                cache_scope,
-                                &cache_key,
-                                renderer_generation,
-                                &layer,
-                            );
-                            layer
-                        };
+                            state.skia_drawing_strategy,
+                            &vector_operations,
+                        )?;
                         (GpuFrame::Rgba(layer), state.baked())
                     }
                     LazySource::Frame(frame) => {

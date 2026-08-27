@@ -116,29 +116,6 @@ impl VisualElement for ShapeElement {
         state.transform = state.transform.compose(source_offset);
         Ok(VisualRender::Ready(Visual::Vector(VectorVisual::prepared(
             Box::new(DeferredShapeFrame {
-                cache_key: serde_json::to_vec(&(
-                    request.item.id,
-                    local_time,
-                    &request.item.content,
-                    &request.item.transform.rotation_degrees,
-                    request.project.canvas_size,
-                    self.canvas_size,
-                    request.generated_transition.map(|value| {
-                        (
-                            value.kind,
-                            value.side == shrimply_project::project::TransitionSide::Intro,
-                            value.progress.to_bits(),
-                            value.interpolation,
-                            value.ordering,
-                            value.effect_amount.to_bits(),
-                            value.effect_detail.to_bits(),
-                            value.effect_angle_degrees.to_bits(),
-                            value.effect_fade,
-                            value.effect_seed,
-                        )
-                    }),
-                ))
-                .map_err(|error| format!("serialize shape raster cache key: {error}"))?,
                 canvas_size: request.project.canvas_size,
                 surface_size: self.canvas_size,
                 content_offset: decoration_offset,
@@ -171,7 +148,6 @@ pub fn decoration_outset(
 }
 
 struct DeferredShapeFrame {
-    cache_key: Vec<u8>,
     canvas_size: CanvasSize,
     surface_size: CanvasSize,
     content_offset: glam::Vec2,
@@ -207,10 +183,6 @@ impl GeneratedVisual for DeferredShapeFrame {
 }
 
 impl VisualData for DeferredShapeFrame {
-    fn cache_key(&self) -> &[u8] {
-        &self.cache_key
-    }
-
     fn morph_scene(&self) -> Option<crate::vector_morph::MorphScene> {
         let mut expressions = TransformExpressionCache::default();
         let shape = resolve_shape_draw(

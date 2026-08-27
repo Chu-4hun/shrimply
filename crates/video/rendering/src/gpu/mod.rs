@@ -301,6 +301,7 @@ impl CudaVideoCompositor {
         layers: &[VideoLayer],
         background_alpha: Option<u8>,
     ) -> Result<CompositedVideoFrame, String> {
+        shrimply_gpu_memory::global().begin_frame();
         self.release_after_reported_gpu_oom()?;
         let requested_bytes = u64::from(canvas_size.width.max(1))
             .checked_mul(u64::from(canvas_size.height.max(1)))
@@ -318,7 +319,7 @@ impl CudaVideoCompositor {
             result => result,
         };
         let frame = result?;
-        self.release_caches_for_display_memory()?;
+        self.spill_stale_frames_for_display_memory()?;
         self.record_gpu_memory_usage();
         Ok(frame)
     }
@@ -335,6 +336,10 @@ impl CudaVideoCompositor {
         let pixel_count = width as usize * height as usize;
         let launch_count = u32::try_from(pixel_count)
             .map_err(|_| "CUDA compositor canvas is too large".to_string())?;
+        let mut prepared = {
+            let _measurement = shrimply_benchmarking::measure("CUDA compositor / Prepare layers");
+            layers::prepare(self.context.cu_ctx(), &self.stream, canvas_size, layers)?
+        };
         let spare_output = if export {
             self.export_output.take()
         } else {
@@ -346,10 +351,6 @@ impl CudaVideoCompositor {
                 Some(buffer) => buffer,
                 None => self.allocate_buffer(pixel_count, "CUDA output frame")?,
             }
-        };
-        let mut prepared = {
-            let _measurement = shrimply_benchmarking::measure("CUDA compositor / Prepare layers");
-            layers::prepare(self.context.cu_ctx(), canvas_size, layers)?
         };
         let _decode_waits = {
             let _measurement =
@@ -713,6 +714,7 @@ impl CudaVideoCompositor {
             &self.context,
             &self.stream,
             requested_bytes,
+            false,
         )?;
         let (free, total) = self.gpu_memory_info()?;
         let reserve = total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR;
@@ -803,11 +805,15 @@ impl CudaVideoCompositor {
         Ok(())
     }
 
-    fn release_caches_for_display_memory(&mut self) -> Result<(), String> {
+    fn spill_stale_frames_for_display_memory(&mut self) -> Result<(), String> {
         let (free, total) = self.gpu_memory_info()?;
-        let reserve = total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR;
-        if free < reserve {
-            self.relieve_gpu_pressure(0, "post-render CUDA reserve")?;
+        if free < total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR {
+            shrimply_gpu_memory::global().relieve_vram_pressure(
+                &self.context,
+                &self.stream,
+                0,
+                true,
+            )?;
         }
         Ok(())
     }
@@ -1407,6 +1413,7 @@ fn render_with_generated_gpu<T>(
                     context,
                     stream,
                     MIGRATE_ALL_REQUIRED_BYTES,
+                    false,
                 )?;
                 let released = renderer
                     .as_mut()

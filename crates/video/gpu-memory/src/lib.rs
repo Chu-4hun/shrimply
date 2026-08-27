@@ -86,6 +86,7 @@ struct Shared {
     last_resort_events: AtomicU64,
     last_resort_bytes: AtomicU64,
     access: AtomicU64,
+    frame_epoch: AtomicU64,
     allocations: Mutex<Vec<Weak<AllocationRecord>>>,
     resources: Mutex<ResourceState>,
 }
@@ -107,6 +108,7 @@ impl Default for Shared {
             last_resort_events: AtomicU64::new(0),
             last_resort_bytes: AtomicU64::new(0),
             access: AtomicU64::new(0),
+            frame_epoch: AtomicU64::new(0),
             allocations: Mutex::new(Vec::new()),
             resources: Mutex::new(ResourceState::default()),
         }
@@ -143,7 +145,7 @@ struct AllocationRecord {
     residency: AtomicU8,
     advice: AtomicU8,
     last_access: AtomicU64,
-    cache_hot: AtomicBool,
+    last_frame_epoch: AtomicU64,
     active: Mutex<bool>,
     counted: AtomicBool,
     _reservation: Option<HostReservation>,
@@ -157,9 +159,10 @@ impl AllocationRecord {
     fn touch(&self) {
         self.last_access
             .store(next_access(&self.shared), Ordering::Release);
-        if self.class == AllocationClass::Cached {
-            self.cache_hot.store(true, Ordering::Release);
-        }
+        self.last_frame_epoch.store(
+            self.shared.frame_epoch.load(Ordering::Acquire),
+            Ordering::Release,
+        );
         if self.managed {
             self.residency.store(RESIDENCY_DEVICE, Ordering::Release);
         }
@@ -376,6 +379,10 @@ impl GpuMemoryManager {
             .host_budget
             .store(host_budget_bytes, Ordering::Release);
         publish_telemetry(&self.shared);
+    }
+
+    pub fn begin_frame(&self) {
+        self.shared.frame_epoch.fetch_add(1, Ordering::AcqRel);
     }
 
     pub fn reserve_host(&self, bytes: u64) -> Result<HostReservation, String> {
@@ -633,7 +640,7 @@ impl GpuMemoryManager {
             residency: AtomicU8::new(RESIDENCY_HOST),
             advice: AtomicU8::new(RESIDENCY_HOST),
             last_access: AtomicU64::new(next_access(&self.shared)),
-            cache_hot: AtomicBool::new(false),
+            last_frame_epoch: AtomicU64::new(self.shared.frame_epoch.load(Ordering::Acquire)),
             active: Mutex::new(false),
             counted: AtomicBool::new(false),
             _reservation: reservation,
@@ -655,15 +662,23 @@ impl GpuMemoryManager {
         context: &Arc<CudaContext>,
         stream: &CudaStream,
         required_bytes: u64,
+        protect_current_frame: bool,
     ) -> Result<u64, String> {
-        if let Err(error) = context.synchronize() {
+        let (initial_free, total) = memory_info()?;
+        let target = total / RESERVE_DIVISOR;
+        let migration_target = target
+            .saturating_add(required_bytes)
+            .saturating_sub(initial_free);
+        if migration_target == 0 {
+            return Ok(0);
+        }
+        if let Err(error) = stream.synchronize() {
             if error.0 != sys::cudaError_enum_CUDA_ERROR_OUT_OF_MEMORY {
                 return Err(format!("synchronize before managed migration: {error}"));
             }
             tracing::warn!(?error, "CUDA reported OOM before managed migration");
         }
-        let (_, total) = memory_info()?;
-        let target = total / RESERVE_DIVISOR;
+        let current_frame_epoch = self.shared.frame_epoch.load(Ordering::Acquire);
         let mut candidates: Vec<_> = self
             .shared
             .allocations
@@ -676,114 +691,77 @@ impl GpuMemoryManager {
                     && record.device_ordinal == context.ordinal()
                     && record.context_handle == context.cu_ctx() as usize
                     && record.residency.load(Ordering::Acquire) == RESIDENCY_DEVICE
+                    && (!protect_current_frame
+                        || record.last_frame_epoch.load(Ordering::Acquire) != current_frame_epoch)
             })
             .collect();
-        candidates.sort_by_key(|record| {
-            (
-                record.class == AllocationClass::Cached && record.cache_hot.load(Ordering::Acquire),
-                record.last_access.load(Ordering::Acquire),
-            )
-        });
+        candidates.sort_by_key(|record| record.last_access.load(Ordering::Acquire));
         let mut migrated = 0_u64;
+        let mut pending = Vec::new();
+        let mut active = Vec::new();
         for record in &candidates {
-            let (free, total) = memory_info()?;
-            if free >= target.saturating_add(required_bytes) {
+            if migrated >= migration_target {
                 break;
             }
-            let active = record.active.lock().expect("GPU allocation mutex poisoned");
-            if !*active {
+            let guard = record.active.lock().expect("GPU allocation mutex poisoned");
+            if !*guard {
                 continue;
             }
             let ptr = record.ptr.load(Ordering::Acquire);
-            let telemetry = self.telemetry();
-            if let Err(error) = unsafe {
-                advise_preferred_location(ptr, record.bytes as usize, ManagedLocation::Host)
-            } {
-                tracing::warn!(
-                    allocation_description = record.description,
-                    requested_bytes = required_bytes,
-                    free_vram_bytes = free,
-                    total_vram_bytes = total,
-                    reserve_bytes = target,
-                    managed_bytes = telemetry.managed_bytes,
-                    host_reserved_bytes = telemetry.host_reserved_bytes,
-                    host_budget_bytes = telemetry.host_budget_bytes,
-                    migrated_bytes = migrated,
-                    ?error,
-                    relief_level = "managed migration unavailable",
-                    "could not advise a managed CUDA range for host migration"
-                );
-                break;
-            }
+            unsafe { advise_preferred_location(ptr, record.bytes as usize, ManagedLocation::Host) }
+                .map_err(|error| {
+                    format!("advise {} for host migration: {error}", record.description)
+                })?;
             record.advice.store(RESIDENCY_HOST, Ordering::Release);
-            if let Err(error) = unsafe {
+            unsafe {
                 prefetch_managed_async(
                     ptr,
                     record.bytes as usize,
                     ManagedLocation::Host,
                     stream.cu_stream(),
                 )
-            } {
-                tracing::warn!(
-                    allocation_description = record.description,
-                    requested_bytes = required_bytes,
-                    free_vram_bytes = free,
-                    total_vram_bytes = total,
-                    reserve_bytes = target,
-                    managed_bytes = telemetry.managed_bytes,
-                    host_reserved_bytes = telemetry.host_reserved_bytes,
-                    host_budget_bytes = telemetry.host_budget_bytes,
-                    migrated_bytes = migrated,
-                    ?error,
-                    relief_level = "managed migration unavailable",
-                    "could not prefetch a managed CUDA range to host memory"
-                );
-                break;
             }
-            if let Err(error) = stream.synchronize() {
-                tracing::warn!(
-                    allocation_description = record.description,
-                    requested_bytes = required_bytes,
-                    free_vram_bytes = free,
-                    total_vram_bytes = total,
-                    reserve_bytes = target,
-                    managed_bytes = telemetry.managed_bytes,
-                    host_reserved_bytes = telemetry.host_reserved_bytes,
-                    host_budget_bytes = telemetry.host_budget_bytes,
-                    migrated_bytes = migrated,
-                    ?error,
-                    relief_level = "managed migration unavailable",
-                    "could not finish a managed CUDA range migration"
-                );
-                break;
-            }
-            record.residency.store(RESIDENCY_HOST, Ordering::Release);
+            .map_err(|error| format!("prefetch {} to host memory: {error}", record.description))?;
             migrated = migrated
                 .checked_add(record.bytes)
                 .ok_or("managed migration byte count overflow")?;
-            self.shared
-                .prefetched_host
-                .fetch_add(record.bytes, Ordering::AcqRel);
-            self.shared.migrations.fetch_add(1, Ordering::AcqRel);
-            tracing::warn!(
-                allocation_description = record.description,
-                allocation_class = ?record.class,
-                requested_bytes = required_bytes,
-                free_vram_bytes = free,
-                total_vram_bytes = total,
-                reserve_bytes = target,
-                managed_bytes = telemetry.managed_bytes,
-                host_reserved_bytes = telemetry.host_reserved_bytes,
-                host_budget_bytes = telemetry.host_budget_bytes,
-                managed_range_bytes = record.bytes,
-                migrated_bytes = migrated,
-                relief_level = "managed migration",
-                "prefetched a managed CUDA range to host memory"
-            );
+            pending.push(record.clone());
+            active.push(guard);
         }
-        for record in candidates {
-            record.cache_hot.store(false, Ordering::Release);
+        if pending.is_empty() {
+            return Ok(0);
         }
+        stream
+            .synchronize()
+            .map_err(|error| format!("finish managed migrations to host memory: {error}"))?;
+        for record in &pending {
+            record.residency.store(RESIDENCY_HOST, Ordering::Release);
+        }
+        drop(active);
+        self.shared
+            .prefetched_host
+            .fetch_add(migrated, Ordering::AcqRel);
+        self.shared
+            .migrations
+            .fetch_add(pending.len() as u64, Ordering::AcqRel);
+        let free = memory_info()?.0;
+        let recovered = free.saturating_sub(initial_free);
+        let telemetry = self.telemetry();
+        tracing::debug!(
+            requested_bytes = required_bytes,
+            free_vram_bytes = free,
+            total_vram_bytes = total,
+            reserve_bytes = target,
+            managed_bytes = telemetry.managed_bytes,
+            host_reserved_bytes = telemetry.host_reserved_bytes,
+            host_budget_bytes = telemetry.host_budget_bytes,
+            migrated_ranges = pending.len(),
+            migrated_bytes = migrated,
+            recovered_bytes = recovered,
+            protect_current_frame,
+            relief_level = "managed LRU migration",
+            "prefetched least-recently-used managed CUDA ranges to host memory"
+        );
         publish_telemetry(&self.shared);
         Ok(migrated)
     }

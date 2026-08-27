@@ -1,4 +1,4 @@
-use cuda_core::sys;
+use cuda_core::{CudaStream, sys};
 
 use crate::layer::VideoLayer;
 use shrimply_project::project::{CanvasSize, VideoSampleMethod};
@@ -20,6 +20,7 @@ pub(super) struct Anime4kRequest {
 
 pub(super) fn prepare(
     context: sys::CUcontext,
+    stream: &CudaStream,
     canvas_size: CanvasSize,
     layers: &[VideoLayer],
 ) -> Result<PreparedLayers, String> {
@@ -64,6 +65,10 @@ pub(super) fn prepare(
         let opacity = compositing.opacity.clamp(0.0, 1.0);
         if opacity <= 0.0 {
             continue;
+        }
+        match layer {
+            VideoLayer::Nv12 { frame, .. } => frame.prefetch_to_device(stream)?,
+            VideoLayer::Rgba { layer, .. } => layer.prefetch_to_device(stream)?,
         }
 
         let motion_transform_offset = motion_transforms.len() as u32;
