@@ -39,7 +39,7 @@ const LOADING_WINDOW_WIDTH: i32 = 800;
 const LOADING_WINDOW_HEIGHT: i32 = 600;
 const LOADING_SHRIMP_WIDTH: i32 = 160;
 const LOADING_SHRIMP_HEIGHT: i32 = 180;
-const KDENLIVE_IMPORT_DOCS: &str = "https://shrimply.pages.dev/guides/kdenlive-import.html";
+const KDENLIVE_IMPORT_DOCS: &str = "https://shrimply.pages.dev/guides/kdenlive-import";
 
 #[derive(Clone, Copy)]
 enum PanelSide {
