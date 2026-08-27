@@ -34,8 +34,6 @@ Start here
    getting-started
    guides/editor
    guides/media
-   guides/kdenlive-import
-   guides/manim
    guides/effects
    guides/expressions
    guides/audio-captions

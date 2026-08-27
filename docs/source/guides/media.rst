@@ -1,6 +1,12 @@
 Importing and Creating Media
 ============================
 
+.. toctree::
+   :hidden:
+
+   kdenlive-import
+   manim
+
 .. |add| image:: ../../../assets/icons/plus-symbolic.svg
    :class: action-icon
    :alt: Add
