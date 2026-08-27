@@ -257,11 +257,18 @@ impl<'a> Converter<'a> {
         let source = self.source(producer)?;
         let start = frame_time(start_frame, self.fps);
         let end = frame_time(start_frame + duration_frames, self.fps);
+        let entry_in = entry_in(entry, self.fps)?;
+        let source_frame = match source.reverse_origin_frame {
+            Some(origin) => origin
+                .checked_sub(entry_in)
+                .ok_or_else(|| invalid("reverse clip source offset overflowed"))?,
+            None => entry_in,
+        };
         let mut item = VideoItem::background_item(self.canvas_size, start, end);
-        item.time_offset = source_time(entry_in(entry, self.fps)?, source.speed, self.fps);
+        item.time_offset = source_time(source_frame, source.speed.abs(), self.fps);
         item.source_duration = source
             .source_duration
-            .unwrap_or_else(|| source_time(duration_frames, source.speed, self.fps));
+            .unwrap_or_else(|| source_time(duration_frames, source.speed.abs(), self.fps));
         item.playback_speed = source.speed;
         item.track_id = source.video_track_id;
         item.file = source.path.into();
@@ -305,19 +312,22 @@ impl<'a> Converter<'a> {
         duration_frames: i64,
     ) -> Result<AudioItem, Box<dyn Error + Send + Sync>> {
         let source = self.source(producer)?;
+        let entry_in = entry_in(entry, self.fps)?;
+        let source_frame = match source.reverse_origin_frame {
+            Some(origin) => origin
+                .checked_sub(entry_in)
+                .ok_or_else(|| invalid("reverse clip source offset overflowed"))?,
+            None => entry_in,
+        };
         let item = AudioItem::builder(
             frame_time(start_frame, self.fps),
             frame_time(start_frame + duration_frames, self.fps),
         )
-        .time_offset(source_time(
-            entry_in(entry, self.fps)?,
-            source.speed,
-            self.fps,
-        ))
+        .time_offset(source_time(source_frame, source.speed.abs(), self.fps))
         .source_duration(
             source
                 .source_duration
-                .unwrap_or_else(|| source_time(duration_frames, source.speed, self.fps)),
+                .unwrap_or_else(|| source_time(duration_frames, source.speed.abs(), self.fps)),
         )
         .playback_speed(source.speed)
         .speed_method(if source.pitch_preserved {
@@ -354,6 +364,7 @@ impl<'a> Converter<'a> {
                 video_track_id: 0,
                 audio_track_id: 0,
                 source_duration: Some(frame_time(sequence_duration(producer, self.fps)?, self.fps)),
+                reverse_origin_frame: None,
                 rotation_degrees: 0.0,
             });
         }
@@ -380,6 +391,7 @@ impl<'a> Converter<'a> {
                 video_track_id: 0,
                 audio_track_id: 0,
                 source_duration: None,
+                reverse_origin_frame: None,
                 rotation_degrees: 0.0,
             });
         }
@@ -429,6 +441,7 @@ impl<'a> Converter<'a> {
                 video_track_id: 0,
                 audio_track_id: 0,
                 source_duration: None,
+                reverse_origin_frame: None,
                 rotation_degrees: 0.0,
             });
         }
@@ -438,18 +451,40 @@ impl<'a> Converter<'a> {
             Fraction::from(1_u64)
         };
         let pitch_preserved = producer.property("warp_pitch") == Some("1");
-        let source_duration = if let Some(length) = producer.property("length") {
-            Some(source_time(
-                math::parse_frame(length, self.fps).map_err(invalid)?,
-                speed,
-                self.fps,
-            ))
-        } else if let Some(out) = producer.attribute("out") {
-            Some(source_time(
-                math::parse_frame(out, self.fps).map_err(invalid)? + 1,
-                speed,
-                self.fps,
-            ))
+        let length = producer
+            .property("length")
+            .map(|value| math::parse_frame(value, self.fps).map_err(invalid))
+            .transpose()?;
+        let producer_out = producer
+            .attribute("out")
+            .map(|value| math::parse_frame(value, self.fps).map_err(invalid))
+            .transpose()?;
+        let source_duration_frames = if let Some(length) = length {
+            Some(length)
+        } else if let Some(out) = producer_out {
+            Some(
+                out.checked_add(1)
+                    .ok_or_else(|| invalid("producer duration overflowed"))?,
+            )
+        } else {
+            None
+        };
+        let source_duration =
+            source_duration_frames.map(|frames| source_time(frames, speed.abs(), self.fps));
+        let reverse_origin_frame = if speed < Fraction::from(0_u64) {
+            let producer_in = producer
+                .attribute("in")
+                .map(|value| math::parse_frame(value, self.fps).map_err(invalid))
+                .transpose()?
+                .unwrap_or(0);
+            let producer_out = producer_out
+                .or_else(|| length.and_then(|length| length.checked_sub(1)))
+                .ok_or_else(|| invalid("reverse timewarp producer has no out or length"))?;
+            Some(
+                producer_in
+                    .checked_add(producer_out)
+                    .ok_or_else(|| invalid("reverse clip origin overflowed"))?,
+            )
         } else {
             None
         };
@@ -524,6 +559,7 @@ impl<'a> Converter<'a> {
                 .and_then(|value| value.parse().ok())
                 .unwrap_or(0),
             source_duration,
+            reverse_origin_frame,
             rotation_degrees,
         })
     }
@@ -614,6 +650,7 @@ struct Source {
     video_track_id: u32,
     audio_track_id: u32,
     source_duration: Option<Time>,
+    reverse_origin_frame: Option<i64>,
     rotation_degrees: f32,
 }
 
@@ -706,19 +743,10 @@ fn source_time(frame: i64, speed: Fraction, fps: Fraction) -> Time {
 }
 
 fn parse_fraction(value: &str) -> Result<Fraction, Box<dyn Error + Send + Sync>> {
-    let value = value.trim();
-    if let Some((whole, fractional)) = value.split_once('.') {
-        let denominator = 10_u64.pow(fractional.len() as u32);
-        let numerator = whole.parse::<u64>()? * denominator + fractional.parse::<u64>()?;
-        Ok(Fraction::new(numerator, denominator))
-    } else if let Some((numerator, denominator)) = value.split_once('/') {
-        Ok(Fraction::new(
-            numerator.parse::<u64>()?,
-            denominator.parse::<u64>()?,
-        ))
-    } else {
-        Ok(Fraction::from(value.parse::<u64>()?))
-    }
+    value
+        .trim()
+        .parse::<Fraction>()
+        .map_err(|error| invalid(error.to_string()))
 }
 
 fn parse_mlt_color(value: &str) -> Result<Color<u8>, Box<dyn Error + Send + Sync>> {

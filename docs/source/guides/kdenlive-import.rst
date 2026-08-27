@@ -105,13 +105,13 @@ Media and generators
    * - Krita and PSD layered images
      - Supported
      - Layer paths are imported and nearest-neighbor sampling is selected.
-   * - Forward speed changes and pitch preservation
+   * - Constant speed changes, reverse playback, and pitch preservation
      - Supported
-     - Positive Kdenlive timewarp speed and ``warp_pitch`` are converted.
-   * - Reverse or negative speed
-     - Import stops
-     - Negative speed cannot be represented by the importer's unsigned
-       fraction parser.
+     - Kdenlive ``warp_speed`` and ``warp_pitch`` are converted, including
+       negative speed and reverse clip trims.
+   * - Variable-speed time remapping
+     - Not imported
+     - Kdenlive ``timeremap`` links are not converted.
    * - Source dimensions, stream selection, and media autorotation
      - Supported
      - Imported when the corresponding producer metadata is present.
