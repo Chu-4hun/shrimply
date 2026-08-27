@@ -312,7 +312,7 @@ fn update_preview(
             video_streams,
             audio_streams,
             start,
-            import::ImportTarget::Timeline(y),
+            super::items::NewItemTarget::AtY(y),
             runtime.drag_collision_mode,
         );
         runtime.import_preview = Some(TimelineImportPreview {
@@ -360,7 +360,7 @@ fn update_preview(
                     info.video_streams,
                     info.audio_streams,
                     start,
-                    import::ImportTarget::Timeline(y),
+                    super::items::NewItemTarget::AtY(y),
                     runtime.drag_collision_mode,
                 );
                 runtime.import_preview = Some(TimelineImportPreview {

@@ -15,8 +15,7 @@ use crate::project::{CaptionItem, Project, Time, VideoItem, VideoItemContent, Vi
 use crate::selection_state::SharedSelectionState;
 
 use super::interaction::{
-    ask_remux_then_import_at, import_path, import_path_at, set_timeline_selection,
-    show_error_dialog,
+    ask_remux_then_import_at, content_y, import_path_at, set_timeline_selection, show_error_dialog,
 };
 use super::items::{self, ItemKey, TrackKind};
 use super::{TimelineRuntime, import, timeline_x, x_to_time};
@@ -347,86 +346,50 @@ fn insert_file(
         }
     }
 
-    match placement {
-        Placement::Timeline { x, y } => match kind {
-            import::FileKind::Mp4
-            | import::FileKind::Mov
-            | import::FileKind::Image
-            | import::FileKind::Gif
-            | import::FileKind::Svg
-            | import::FileKind::Pdf
-            | import::FileKind::Python
-            | import::FileKind::Blender
-            | import::FileKind::LayeredImage
-            | import::FileKind::Obj
-            | import::FileKind::Ply
-            | import::FileKind::Audio => {
-                import_path(
-                    area,
-                    project,
-                    player_state,
-                    selection_state,
-                    runtime,
-                    path,
-                    x,
-                    y,
-                );
-                true
-            }
-            import::FileKind::Mkv | import::FileKind::WebM => {
-                super::interaction::ask_remux_then_import(
-                    area,
-                    project,
-                    player_state,
-                    selection_state,
-                    runtime,
-                    path,
-                    x,
-                    y,
-                );
-                true
-            }
-            _ => false,
-        },
-        Placement::Playhead => {
-            let start = player_state::snapshot(player_state).position;
-            match kind {
-                import::FileKind::Mp4
-                | import::FileKind::Mov
-                | import::FileKind::Image
-                | import::FileKind::Gif
-                | import::FileKind::Svg
-                | import::FileKind::Pdf
-                | import::FileKind::Python
-                | import::FileKind::Blender
-                | import::FileKind::LayeredImage
-                | import::FileKind::Obj
-                | import::FileKind::Ply
-                | import::FileKind::Audio => import_path_at(
-                    area,
-                    project,
-                    player_state,
-                    selection_state,
-                    runtime,
-                    path,
-                    start,
-                    import::ImportTarget::Automatic,
-                ),
-                import::FileKind::Mkv | import::FileKind::WebM => ask_remux_then_import_at(
-                    area,
-                    project,
-                    player_state,
-                    selection_state,
-                    runtime,
-                    path,
-                    start,
-                    import::ImportTarget::Automatic,
-                ),
-                import::FileKind::Vtt => return false,
-            }
-            true
+    let (start, target) = match placement {
+        Placement::Playhead => (
+            player_state::snapshot(player_state).position,
+            items::NewItemTarget::Automatic,
+        ),
+        Placement::Timeline { x, y } => {
+            let runtime = runtime.borrow();
+            let start = Time::from_seconds_f64(x_to_time(
+                x,
+                runtime.view.scroll_seconds,
+                runtime.view.seconds_per_pixel,
+            ));
+            (
+                runtime.snap_repository.snap(start).unwrap_or(start),
+                items::NewItemTarget::AtY(content_y(runtime.view, y)),
+            )
         }
+    };
+    if import::direct_media_kind(kind) {
+        import_path_at(
+            area,
+            project,
+            player_state,
+            selection_state,
+            runtime,
+            path,
+            start,
+            target,
+        );
+    } else if matches!(kind, import::FileKind::Mkv | import::FileKind::WebM) {
+        ask_remux_then_import_at(
+            area,
+            project,
+            player_state,
+            selection_state,
+            runtime,
+            path,
+            start,
+            target,
+        );
+    } else {
+        return false;
     }
+    true
 }
 
 #[allow(clippy::too_many_arguments)]

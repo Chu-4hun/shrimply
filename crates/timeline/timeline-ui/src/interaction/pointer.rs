@@ -23,7 +23,7 @@ pub(super) fn modifiers_from_state(state: gdk::ModifierType) -> TimelineModifier
     }
 }
 
-pub(super) fn content_y(view: TimelineViewState, y: f64) -> f64 {
+pub(crate) fn content_y(view: TimelineViewState, y: f64) -> f64 {
     y.max(RULER_HEIGHT) + view.scroll_y
 }
 

@@ -5,41 +5,6 @@ use shrimply_ui_foundation::ui::I18nAlertDialogExt;
 const MEDIA_INSPECTION_DELIVERY_INTERVAL: Duration = Duration::from_millis(16);
 
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn import_path(
-    area: &gtk::GLArea,
-    project: &Rc<RefCell<Project>>,
-    player_state: &SharedPlayerState,
-    selection_state: &SharedSelectionState,
-    runtime: &Rc<RefCell<TimelineRuntime>>,
-    path: PathBuf,
-    x: f64,
-    y: f64,
-) {
-    let (start, y) = {
-        let runtime = runtime.borrow();
-        let start = Time::from_seconds_f64(x_to_time(
-            x,
-            runtime.view.scroll_seconds,
-            runtime.view.seconds_per_pixel,
-        ));
-        (
-            runtime.snap_repository.snap(start).unwrap_or(start),
-            content_y(runtime.view, y),
-        )
-    };
-    import_path_at(
-        area,
-        project,
-        player_state,
-        selection_state,
-        runtime,
-        path,
-        start,
-        import::ImportTarget::Timeline(y),
-    );
-}
-
-#[allow(clippy::too_many_arguments)]
 pub(crate) fn import_path_at(
     area: &gtk::GLArea,
     project: &Rc<RefCell<Project>>,
@@ -48,7 +13,7 @@ pub(crate) fn import_path_at(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     path: PathBuf,
     start: Time,
-    target: import::ImportTarget,
+    target: NewItemTarget,
 ) {
     let (canvas_size, default_visual_duration) = {
         let project = project.borrow();
@@ -123,7 +88,7 @@ pub(crate) fn import_media_at(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     info: import::MediaInfo,
     start: Time,
-    target: import::ImportTarget,
+    target: NewItemTarget,
 ) {
     let changes = {
         let project = project.borrow();
@@ -173,7 +138,7 @@ fn finish_media_import(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     info: import::MediaInfo,
     start: Time,
-    target: import::ImportTarget,
+    target: NewItemTarget,
     settings: Option<(Option<CanvasSize>, Option<Fraction>)>,
 ) {
     if let Err(error) = info.snapshot.ensure_current() {
@@ -460,41 +425,6 @@ fn finish_track_import(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn ask_remux_then_import(
-    area: &gtk::GLArea,
-    project: &Rc<RefCell<Project>>,
-    player_state: &SharedPlayerState,
-    selection_state: &SharedSelectionState,
-    runtime: &Rc<RefCell<TimelineRuntime>>,
-    path: PathBuf,
-    x: f64,
-    y: f64,
-) {
-    let (start, y) = {
-        let runtime = runtime.borrow();
-        let start = Time::from_seconds_f64(x_to_time(
-            x,
-            runtime.view.scroll_seconds,
-            runtime.view.seconds_per_pixel,
-        ));
-        (
-            runtime.snap_repository.snap(start).unwrap_or(start),
-            content_y(runtime.view, y),
-        )
-    };
-    ask_remux_then_import_at(
-        area,
-        project,
-        player_state,
-        selection_state,
-        runtime,
-        path,
-        start,
-        import::ImportTarget::Timeline(y),
-    );
-}
-
-#[allow(clippy::too_many_arguments)]
 pub(crate) fn ask_remux_then_import_at(
     area: &gtk::GLArea,
     project: &Rc<RefCell<Project>>,
@@ -503,7 +433,7 @@ pub(crate) fn ask_remux_then_import_at(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     path: PathBuf,
     start: Time,
-    target: import::ImportTarget,
+    target: NewItemTarget,
 ) {
     let dialog = adw::AlertDialog::new(
         Some("Remux MKV/WebM to MP4?"),
@@ -555,7 +485,7 @@ fn start_remux(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     path: PathBuf,
     start: Time,
-    target: import::ImportTarget,
+    target: NewItemTarget,
 ) {
     let (tx, rx) = mpsc::channel();
     let original_path = path.clone();

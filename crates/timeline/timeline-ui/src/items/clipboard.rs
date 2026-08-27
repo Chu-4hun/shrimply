@@ -208,25 +208,19 @@ pub(crate) fn paste_caption_items(
         return;
     }
 
-    let target_base = paste_target_base(
-        &items,
+    let (source_base, footprint) = paste_footprint(&items, start);
+    let target_base = choose_track_base(
         project.caption_tracks.len(),
+        &footprint,
+        Some(source_base),
         |track_index, start, end| {
-            project
-                .caption_tracks
-                .get(track_index)
-                .is_some_and(|track| timeline_search::collides(&track.items, start, end))
+            timeline_search::collides(&project.caption_tracks[track_index].items, start, end)
         },
-        start,
+        |_, _, _| false,
     );
-    let source_base = items
-        .iter()
-        .map(|(track_index, _, _, _)| *track_index)
-        .min()
-        .unwrap_or(0);
     ensure_tracks(
         &mut project.caption_tracks,
-        target_base + relative_track_span(&items, source_base),
+        target_base + track_footprint_span(&footprint),
     );
 
     for (source_track, start_offset, duration, mut item) in items {
@@ -311,13 +305,15 @@ fn paste_video_items(
     let Some(tracks) = project.video_tracks_for_path(&sequence_path) else {
         return;
     };
-    let target_base = paste_video_target_base(&items, tracks, start);
-    let source_base = items
-        .iter()
-        .map(|(track_index, _, _, _)| *track_index)
-        .min()
-        .unwrap_or(0);
-    let required_tracks = target_base + relative_track_span(&items, source_base);
+    let (source_base, footprint) = paste_footprint(&items, start);
+    let target_base = choose_track_base(
+        tracks.len(),
+        &footprint,
+        None,
+        |track_index, start, end| timeline_search::collides(&tracks[track_index].items, start, end),
+        |track_index, start, end| visual_track_is_obscured(tracks, track_index, start, end),
+    );
+    let required_tracks = target_base + track_footprint_span(&footprint);
     let Some(tracks) = video_tracks_mut_for_path(project, &sequence_path) else {
         return;
     };
@@ -406,22 +402,15 @@ fn paste_audio_items(
     let Some(tracks) = project.audio_tracks_for_path(&sequence_path) else {
         return;
     };
-    let target_base = paste_target_base(
-        &items,
+    let (source_base, footprint) = paste_footprint(&items, start);
+    let target_base = choose_track_base(
         tracks.len(),
-        |track_index, start, end| {
-            tracks
-                .get(track_index)
-                .is_some_and(|track| timeline_search::collides(&track.items, start, end))
-        },
-        start,
+        &footprint,
+        Some(source_base),
+        |track_index, start, end| timeline_search::collides(&tracks[track_index].items, start, end),
+        |_, _, _| false,
     );
-    let source_base = items
-        .iter()
-        .map(|(track_index, _, _, _)| *track_index)
-        .min()
-        .unwrap_or(0);
-    let required_tracks = target_base + relative_track_span(&items, source_base);
+    let required_tracks = target_base + track_footprint_span(&footprint);
     let Some(tracks) = audio_tracks_mut_for_path(project, &sequence_path) else {
         return;
     };
@@ -483,91 +472,28 @@ fn audio_tracks_mut_for_path<'a>(
     Some(&mut project.folded_sequence_mut(sequence_id)?.audio_tracks)
 }
 
-pub(crate) fn paste_target_base<T: Clone + TimeSlice>(
+fn paste_footprint<T>(
     items: &[(usize, u64, u64, T)],
-    track_count: usize,
-    collides: impl Fn(usize, Time, Time) -> bool,
     start: Time,
-) -> usize {
+) -> (usize, Vec<TrackFootprintItem>) {
     let source_base = items
         .iter()
         .map(|(track_index, _, _, _)| *track_index)
         .min()
         .unwrap_or(0);
-    let span = relative_track_span(items, source_base);
-    let Some(last_base) = track_count.checked_sub(span) else {
-        return track_count;
-    };
-
-    if source_base <= last_base && !paste_collides(items, source_base, &collides, start) {
-        return source_base;
-    }
-
-    (0..=last_base)
-        .find(|base| !paste_collides(items, *base, &collides, start))
-        .unwrap_or(track_count)
-}
-
-pub(crate) fn paste_video_target_base<T>(
-    items: &[(usize, u64, u64, T)],
-    tracks: &[VisualTrack],
-    start: Time,
-) -> usize {
-    let source_base = items
+    let footprint = items
         .iter()
-        .map(|(track_index, _, _, _)| *track_index)
-        .min()
-        .unwrap_or(0);
-    let span = relative_track_span(items, source_base);
-    let Some(last_base) = tracks.len().checked_sub(span) else {
-        return tracks.len();
-    };
-
-    let collides = |track_index: usize, start, end| {
-        timeline_search::collides(&tracks[track_index].items, start, end)
-    };
-    let obscured = |track_index: usize, start, end| {
-        !tracks[track_index].enabled
-            || tracks[track_index + 1..]
-                .iter()
-                .any(|track| track.enabled && timeline_search::collides(&track.items, start, end))
-    };
-    (0..=last_base)
-        .filter(|base| !paste_collides(items, *base, collides, start))
-        .min_by_key(|base| (paste_collides(items, *base, obscured, start), *base))
-        .unwrap_or(tracks.len())
-}
-
-pub(crate) fn paste_collides<T>(
-    items: &[(usize, u64, u64, T)],
-    target_base: usize,
-    collides: impl Fn(usize, Time, Time) -> bool,
-    start: Time,
-) -> bool {
-    let source_base = items
-        .iter()
-        .map(|(track_index, _, _, _)| *track_index)
-        .min()
-        .unwrap_or(0);
-
-    items
-        .iter()
-        .any(|(source_track, start_offset, duration, _)| {
-            let track_index = target_base + source_track - source_base;
+        .map(|(source_track, start_offset, duration, _)| {
             let item_start =
                 Time::from_nanos(start.as_nonnegative_nanos().saturating_add(*start_offset));
-            let item_end =
-                Time::from_nanos(item_start.as_nonnegative_nanos().saturating_add(*duration));
-            collides(track_index, item_start, item_end)
+            TrackFootprintItem {
+                track_offset: source_track - source_base,
+                start: item_start,
+                end: Time::from_nanos(item_start.as_nonnegative_nanos().saturating_add(*duration)),
+            }
         })
-}
-
-pub(crate) fn relative_track_span<T>(items: &[(usize, u64, u64, T)], source_base: usize) -> usize {
-    items
-        .iter()
-        .map(|(track_index, _, _, _)| track_index - source_base + 1)
-        .max()
-        .unwrap_or(0)
+        .collect();
+    (source_base, footprint)
 }
 
 pub(crate) fn ensure_tracks<T: Default>(tracks: &mut Vec<T>, count: usize) {

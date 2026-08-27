@@ -1,10 +1,202 @@
-use crate::project::{Project, Time};
+use crate::project::{Project, Time, VisualTrack};
 use crate::timeline_search::{self, TimeSlice};
 
 use super::{
-    DragIndicator, DraggedGroup, TrackKind, set_track_offset, target_item_times,
-    target_track_index, track_count,
+    DragCollisionMode, DragIndicator, DraggedGroup, TrackKind, set_track_offset, target_item_times,
+    target_track_at_y, target_track_index, track_count,
 };
+
+#[derive(Clone, Copy)]
+pub(crate) enum NewItemTarget {
+    Automatic,
+    AtY(f64),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct TrackFootprintItem {
+    pub(crate) track_offset: usize,
+    pub(crate) start: Time,
+    pub(crate) end: Time,
+}
+
+pub(crate) struct NewItemGroup {
+    pub(crate) kind: TrackKind,
+    pub(crate) footprint: Vec<TrackFootprintItem>,
+}
+
+#[derive(Default)]
+pub(crate) struct NewItemPlacement {
+    pub(crate) base: usize,
+    pub(crate) new_tracks: std::ops::Range<usize>,
+}
+
+pub(crate) fn place_new_items(
+    project: &Project,
+    items: &NewItemGroup,
+    target: NewItemTarget,
+    collision_mode: DragCollisionMode,
+) -> NewItemPlacement {
+    let kind = items.kind;
+    let span = track_footprint_span(&items.footprint);
+    let NewItemTarget::AtY(y) = target else {
+        return place_new_items_automatically(project, items);
+    };
+    if items.footprint.is_empty() {
+        return NewItemPlacement::default();
+    }
+
+    let Some((base, new_track)) = target_track_at_y(project, kind, y) else {
+        return place_new_items_automatically(project, items);
+    };
+    if let Some(new_track) = new_track {
+        return NewItemPlacement {
+            base,
+            new_tracks: new_track..base + span,
+        };
+    }
+
+    if collision_mode == DragCollisionMode::Block && !new_items_fit(project, items, base) {
+        place_new_items_automatically(project, items)
+    } else {
+        place_new_items_at_base(project, items, base, collision_mode)
+    }
+}
+
+pub(crate) fn place_new_items_at_base(
+    project: &Project,
+    items: &NewItemGroup,
+    base: usize,
+    collision_mode: DragCollisionMode,
+) -> NewItemPlacement {
+    if items.footprint.is_empty() {
+        return NewItemPlacement::default();
+    }
+    let track_count = track_count(project, items.kind);
+    let span = track_footprint_span(&items.footprint);
+    let occupied = footprint_collides_at(&items.footprint, base, |track, start, end| {
+        track < track_count && new_item_collides(project, items.kind, track, start, end)
+    });
+    let first_new = if occupied && collision_mode != DragCollisionMode::Overwrite {
+        base.min(track_count)
+    } else {
+        track_count
+    };
+    NewItemPlacement {
+        base,
+        new_tracks: first_new..base + span,
+    }
+}
+
+fn place_new_items_automatically(project: &Project, items: &NewItemGroup) -> NewItemPlacement {
+    let track_count = track_count(project, items.kind);
+    let base = choose_track_base(
+        track_count,
+        &items.footprint,
+        None,
+        |track, start, end| new_item_collides(project, items.kind, track, start, end),
+        |track, start, end| {
+            items.kind == TrackKind::Video
+                && visual_track_is_obscured(&project.video_tracks, track, start, end)
+        },
+    );
+    NewItemPlacement {
+        base,
+        new_tracks: track_count..base + track_footprint_span(&items.footprint),
+    }
+}
+
+fn new_items_fit(project: &Project, items: &NewItemGroup, base: usize) -> bool {
+    base + track_footprint_span(&items.footprint) <= track_count(project, items.kind)
+        && !footprint_collides_at(&items.footprint, base, |track, start, end| {
+            new_item_collides(project, items.kind, track, start, end)
+        })
+}
+
+fn new_item_collides(
+    project: &Project,
+    kind: TrackKind,
+    track: usize,
+    start: Time,
+    end: Time,
+) -> bool {
+    match kind {
+        TrackKind::Caption => true,
+        TrackKind::Video => project
+            .video_tracks
+            .get(track)
+            .is_none_or(|track| timeline_search::collides(&track.items, start, end)),
+        TrackKind::Audio => project
+            .audio_tracks
+            .get(track)
+            .is_none_or(|track| timeline_search::collides(&track.items, start, end)),
+    }
+}
+
+pub(crate) fn choose_track_base(
+    track_count: usize,
+    footprint: &[TrackFootprintItem],
+    preferred_base: Option<usize>,
+    collides: impl Fn(usize, Time, Time) -> bool,
+    obscures: impl Fn(usize, Time, Time) -> bool,
+) -> usize {
+    let span = track_footprint_span(footprint);
+    let fits = |base| {
+        base + span <= track_count
+            && !footprint_collides_at(footprint, base, |track, start, end| {
+                collides(track, start, end)
+            })
+    };
+    if let Some(base) = preferred_base
+        && fits(base)
+    {
+        return base;
+    }
+    track_count
+        .checked_sub(span)
+        .and_then(|last_base| {
+            (0..=last_base)
+                .filter(|base| fits(*base))
+                .min_by_key(|base| {
+                    (
+                        footprint_collides_at(footprint, *base, |track, start, end| {
+                            obscures(track, start, end)
+                        }),
+                        *base,
+                    )
+                })
+        })
+        .unwrap_or(track_count)
+}
+
+pub(crate) fn track_footprint_span(footprint: &[TrackFootprintItem]) -> usize {
+    footprint
+        .iter()
+        .map(|item| item.track_offset + 1)
+        .max()
+        .unwrap_or(0)
+}
+
+fn footprint_collides_at(
+    footprint: &[TrackFootprintItem],
+    base: usize,
+    collides: impl Fn(usize, Time, Time) -> bool,
+) -> bool {
+    footprint
+        .iter()
+        .any(|item| collides(base + item.track_offset, item.start, item.end))
+}
+
+pub(crate) fn visual_track_is_obscured(
+    tracks: &[VisualTrack],
+    track_index: usize,
+    start: Time,
+    end: Time,
+) -> bool {
+    !tracks[track_index].enabled
+        || tracks[track_index + 1..]
+            .iter()
+            .any(|track| track.enabled && timeline_search::collides(&track.items, start, end))
+}
 
 #[derive(Clone, Copy)]
 pub(crate) struct ItemPlacement {

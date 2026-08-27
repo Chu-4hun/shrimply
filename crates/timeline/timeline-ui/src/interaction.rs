@@ -37,14 +37,13 @@ use context_actions::{
     show_timeline_item_context_menu,
 };
 pub(super) use media_import::{
-    ask_remux_then_import, ask_remux_then_import_at, import_path, import_path_at,
-    open_track_import_dialog, show_error_dialog,
+    ask_remux_then_import_at, import_path_at, open_track_import_dialog, show_error_dialog,
 };
+pub(super) use pointer::{content_y, handle_timeline_input, set_timeline_selection};
 use pointer::{
-    content_y, insert_caption_on_double_click, modifiers_from_state, push_modifiers,
-    select_item_in_context, select_track,
+    insert_caption_on_double_click, modifiers_from_state, push_modifiers, select_item_in_context,
+    select_track,
 };
-pub(super) use pointer::{handle_timeline_input, set_timeline_selection};
 use transcription::{
     add_caption_item_context_actions, selected_audio_project, show_transcribe_dialog,
 };
@@ -52,13 +51,13 @@ use transcription::{
 use super::caption_tts;
 use super::context_menu;
 use super::items::{
-    ClipTransitionHitAction, ItemEdge, ItemKey, TimelineClipboard, TrackKind, TransitionHitAction,
-    apply_resize_drag, copy_items, cut_time_for_address, delete_track_gap, dragged_group_for_hit,
-    expand_grouped_selection, fold_items, group_item_addresses, hit_clip_transition_at, hit_gap_at,
-    hit_item_at, hit_resize_handle_at, hit_transition_at, item_group_id, item_identity,
-    item_key_for_identity, move_dragged_group, paste_items, resize_drag_for_hit,
-    selected_item_addresses, split_item_addresses, transition_durations, ungroup_item_addresses,
-    update_dragged_group, update_resize_drag,
+    ClipTransitionHitAction, ItemEdge, ItemKey, NewItemTarget, TimelineClipboard, TrackKind,
+    TransitionHitAction, apply_resize_drag, copy_items, cut_time_for_address, delete_track_gap,
+    dragged_group_for_hit, expand_grouped_selection, fold_items, group_item_addresses,
+    hit_clip_transition_at, hit_gap_at, hit_item_at, hit_resize_handle_at, hit_transition_at,
+    item_group_id, item_identity, item_key_for_identity, move_dragged_group, paste_items,
+    resize_drag_for_hit, selected_item_addresses, split_item_addresses, transition_durations,
+    ungroup_item_addresses, update_dragged_group, update_resize_drag,
 };
 use super::renderer::{Vec2, vec2};
 use super::silence;

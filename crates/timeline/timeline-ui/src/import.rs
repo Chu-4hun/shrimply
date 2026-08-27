@@ -143,12 +143,6 @@ pub struct ImportResult {
     pub(super) captions: bool,
 }
 
-#[derive(Clone, Copy)]
-pub(crate) enum ImportTarget {
-    Automatic,
-    Timeline(f64),
-}
-
 pub(super) fn request_inspection(
     path: PathBuf,
     canvas_size: CanvasSize,
@@ -605,7 +599,7 @@ pub(super) fn preview(
     video_streams: usize,
     audio_streams: usize,
     start: Time,
-    target: ImportTarget,
+    target: items::NewItemTarget,
     collision_mode: items::DragCollisionMode,
 ) -> ImportPreview {
     let end = Time::from_nanos(
@@ -613,52 +607,34 @@ pub(super) fn preview(
             .as_nonnegative_nanos()
             .saturating_add(duration.as_nonnegative_nanos().max(1)),
     );
-    let video = match target {
-        ImportTarget::Automatic => automatic_video_placement(project, video_streams, start, end),
-        ImportTarget::Timeline(y) => placement(
-            project,
-            TrackKind::Video,
-            video_streams,
-            start,
-            end,
-            y,
-            collision_mode,
-        ),
+    let collision_mode = match target {
+        items::NewItemTarget::Automatic => items::DragCollisionMode::NewTrack,
+        items::NewItemTarget::AtY(_) => collision_mode,
     };
-    let audio = if video_streams > 0 && audio_streams > 0 {
-        placement_at_base(
-            project,
-            TrackKind::Audio,
-            audio_streams,
-            start,
-            end,
-            video.base,
-            if matches!(target, ImportTarget::Automatic) {
-                items::DragCollisionMode::NewTrack
-            } else {
-                collision_mode
-            },
-        )
-    } else {
-        match target {
-            ImportTarget::Automatic => {
-                automatic_audio_placement(project, audio_streams, start, end)
-            }
-            ImportTarget::Timeline(y) => placement(
-                project,
-                TrackKind::Audio,
-                audio_streams,
+    let group = |kind, stream_count| items::NewItemGroup {
+        kind,
+        footprint: (0..stream_count)
+            .map(|track_offset| items::TrackFootprintItem {
+                track_offset,
                 start,
                 end,
-                y,
-                collision_mode,
-            ),
-        }
+            })
+            .collect(),
     };
-    let mut virtual_tracks = video.virtual_tracks;
-    virtual_tracks.extend(audio.virtual_tracks);
-    virtual_tracks.sort_by_key(|(kind, index)| (kind_order(*kind), *index));
-    virtual_tracks.dedup();
+    let place = |items| items::place_new_items(project, items, target, collision_mode);
+    let video_items = group(TrackKind::Video, video_streams);
+    let audio_items = group(TrackKind::Audio, audio_streams);
+    let video = place(&video_items);
+    let audio = if video_streams > 0 && audio_streams > 0 {
+        items::place_new_items_at_base(project, &audio_items, video.base, collision_mode)
+    } else {
+        place(&audio_items)
+    };
+    let mut virtual_tracks: Vec<_> = video
+        .new_tracks
+        .map(|index| (TrackKind::Video, index))
+        .collect();
+    virtual_tracks.extend(audio.new_tracks.map(|index| (TrackKind::Audio, index)));
 
     ImportPreview {
         start,
@@ -668,11 +644,7 @@ pub(super) fn preview(
         video_base: video.base,
         audio_base: audio.base,
         virtual_tracks,
-        collision_mode: if matches!(target, ImportTarget::Automatic) {
-            items::DragCollisionMode::NewTrack
-        } else {
-            collision_mode
-        },
+        collision_mode,
     }
 }
 
@@ -1230,239 +1202,6 @@ fn parse_vtt_timestamp(value: &str) -> Option<Time> {
     ))
 }
 
-struct Placement {
-    base: usize,
-    virtual_tracks: Vec<(TrackKind, usize)>,
-}
-
-fn automatic_video_placement(
-    project: &Project,
-    stream_count: usize,
-    start: Time,
-    end: Time,
-) -> Placement {
-    if stream_count == 0 {
-        return Placement {
-            base: 0,
-            virtual_tracks: Vec::new(),
-        };
-    }
-    let duration = end.saturating_sub(start).as_nonnegative_nanos();
-    let copied: Vec<_> = (0..stream_count)
-        .map(|track_index| (track_index, 0, duration, ()))
-        .collect();
-    let base = items::paste_video_target_base(&copied, &project.video_tracks, start);
-    Placement {
-        base,
-        virtual_tracks: virtual_tracks(
-            TrackKind::Video,
-            base,
-            stream_count,
-            project.video_tracks.len(),
-            (base + stream_count > project.video_tracks.len())
-                .then_some(project.video_tracks.len()),
-        ),
-    }
-}
-
-fn automatic_audio_placement(
-    project: &Project,
-    stream_count: usize,
-    start: Time,
-    end: Time,
-) -> Placement {
-    let track_count = project.audio_tracks.len();
-    let base = track_count
-        .checked_sub(stream_count)
-        .and_then(|last_base| {
-            (0..=last_base)
-                .find(|base| can_place(project, TrackKind::Audio, *base, stream_count, start, end))
-        })
-        .unwrap_or(track_count);
-    Placement {
-        base,
-        virtual_tracks: virtual_tracks(
-            TrackKind::Audio,
-            base,
-            stream_count,
-            track_count,
-            (base + stream_count > track_count).then_some(track_count),
-        ),
-    }
-}
-
-fn placement(
-    project: &Project,
-    kind: TrackKind,
-    stream_count: usize,
-    start: Time,
-    end: Time,
-    y: f64,
-    collision_mode: items::DragCollisionMode,
-) -> Placement {
-    if stream_count == 0 {
-        return Placement {
-            base: 0,
-            virtual_tracks: Vec::new(),
-        };
-    }
-
-    let track_count = items::track_count(project, kind);
-    if let Some((base, new_track_index)) = items::target_track_at_y(project, kind, y) {
-        if let Some(new_track_index) = new_track_index {
-            return Placement {
-                base,
-                virtual_tracks: virtual_tracks(
-                    kind,
-                    base,
-                    stream_count,
-                    track_count,
-                    Some(new_track_index),
-                ),
-            };
-        }
-        let target = placement_at_base(
-            project,
-            kind,
-            stream_count,
-            start,
-            end,
-            base,
-            collision_mode,
-        );
-        if target.virtual_tracks.is_empty()
-            || collision_mode != items::DragCollisionMode::Block
-            || can_place(project, kind, base, stream_count, start, end)
-        {
-            return target;
-        }
-    }
-
-    let available_base = track_count.checked_sub(stream_count).and_then(|last_base| {
-        (0..=last_base).find(|base| can_place(project, kind, *base, stream_count, start, end))
-    });
-    if let Some(base) = available_base {
-        Placement {
-            base,
-            virtual_tracks: Vec::new(),
-        }
-    } else if let Some((base, Some(new_track_index))) = items::target_track_at_y(project, kind, y) {
-        Placement {
-            base,
-            virtual_tracks: virtual_tracks(
-                kind,
-                base,
-                stream_count,
-                track_count,
-                Some(new_track_index),
-            ),
-        }
-    } else {
-        Placement {
-            base: track_count,
-            virtual_tracks: virtual_tracks(
-                kind,
-                track_count,
-                stream_count,
-                track_count,
-                Some(track_count),
-            ),
-        }
-    }
-}
-
-fn placement_at_base(
-    project: &Project,
-    kind: TrackKind,
-    stream_count: usize,
-    start: Time,
-    end: Time,
-    base: usize,
-    collision_mode: items::DragCollisionMode,
-) -> Placement {
-    let track_count = items::track_count(project, kind);
-    let fits = can_place_existing(project, kind, base, stream_count, start, end);
-    if fits || collision_mode == items::DragCollisionMode::Overwrite {
-        let first_new = (base + stream_count > track_count).then_some(track_count);
-        return Placement {
-            base,
-            virtual_tracks: virtual_tracks(kind, base, stream_count, track_count, first_new),
-        };
-    }
-    Placement {
-        base,
-        virtual_tracks: virtual_tracks(
-            kind,
-            base,
-            stream_count,
-            track_count,
-            Some(base.min(track_count)),
-        ),
-    }
-}
-
-fn can_place(
-    project: &Project,
-    kind: TrackKind,
-    base: usize,
-    stream_count: usize,
-    start: Time,
-    end: Time,
-) -> bool {
-    if base + stream_count > items::track_count(project, kind) {
-        return false;
-    }
-
-    (0..stream_count).all(|offset| match kind {
-        TrackKind::Caption => false,
-        TrackKind::Video => project
-            .video_tracks
-            .get(base + offset)
-            .is_some_and(|track| !timeline_search::collides(&track.items, start, end)),
-        TrackKind::Audio => project
-            .audio_tracks
-            .get(base + offset)
-            .is_some_and(|track| !timeline_search::collides(&track.items, start, end)),
-    })
-}
-
-fn can_place_existing(
-    project: &Project,
-    kind: TrackKind,
-    base: usize,
-    stream_count: usize,
-    start: Time,
-    end: Time,
-) -> bool {
-    let track_count = items::track_count(project, kind);
-    (0..stream_count)
-        .filter(|offset| base + offset < track_count)
-        .all(|offset| match kind {
-            TrackKind::Caption => false,
-            TrackKind::Video => project
-                .video_tracks
-                .get(base + offset)
-                .is_some_and(|track| !timeline_search::collides(&track.items, start, end)),
-            TrackKind::Audio => project
-                .audio_tracks
-                .get(base + offset)
-                .is_some_and(|track| !timeline_search::collides(&track.items, start, end)),
-        })
-}
-
-fn virtual_tracks(
-    kind: TrackKind,
-    base: usize,
-    stream_count: usize,
-    track_count: usize,
-    new_track_index: Option<usize>,
-) -> Vec<(TrackKind, usize)> {
-    let first_new = new_track_index.unwrap_or(track_count);
-    (first_new..base + stream_count)
-        .map(|index| (kind, index))
-        .collect()
-}
-
 fn remux(input: &Path, output: &Path) -> Result<(), String> {
     let mut input_context = format::input(input)
         .map_err(|error| format!("could not open {}: {error}", input.display()))?;
@@ -1547,14 +1286,6 @@ fn rational_as_f64(value: Rational) -> f64 {
         0.0
     } else {
         value.numerator() as f64 / value.denominator() as f64
-    }
-}
-
-fn kind_order(kind: TrackKind) -> usize {
-    match kind {
-        TrackKind::Caption => 0,
-        TrackKind::Video => 1,
-        TrackKind::Audio => 2,
     }
 }
 

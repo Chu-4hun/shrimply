@@ -40,6 +40,10 @@ use placement::{
     placements_collide, placements_collide_with_project, target_existing_track_index,
     time_ranges_collide,
 };
+pub(super) use placement::{
+    NewItemGroup, NewItemTarget, TrackFootprintItem, choose_track_base, place_new_items,
+    place_new_items_at_base, track_footprint_span, visual_track_is_obscured,
+};
 pub(super) use resize::*;
 pub(super) use ripple::*;
 use tracks::active_new_track_at_y;
