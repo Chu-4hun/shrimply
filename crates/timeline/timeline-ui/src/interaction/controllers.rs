@@ -64,8 +64,6 @@ pub(crate) fn add_input_controllers(
                         .then_some("crosshair")
                 },
             );
-        } else if !cursor_grabbed && matches!(runtime.view.drag_mode, DragMode::MiddlePan) {
-            motion_area.set_cursor_from_name(Some("grabbing"));
         } else if !cursor_grabbed && matches!(runtime.view.drag_mode, DragMode::None) {
             let resize_cursor = {
                 let project = motion_project.borrow();
