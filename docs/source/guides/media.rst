@@ -1,5 +1,5 @@
-Importing and Creating Media
-============================
+Media
+=====
 
 .. toctree::
    :hidden:
