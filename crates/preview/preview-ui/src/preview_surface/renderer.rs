@@ -210,17 +210,26 @@ impl VideoRenderer {
         unsafe {
             self.gl
                 .bind_texture(glow::TEXTURE_2D, Some(self.rgba_texture));
-            self.gl.tex_image_2d(
+            // CUDA requires the OpenGL texture storage to remain stable after registration.
+            let mipmap_levels = frame.width.max(frame.height).ilog2() + 1;
+            self.gl.tex_parameter_i32(
                 glow::TEXTURE_2D,
-                0,
-                glow::RGBA8 as i32,
-                frame.width as i32,
-                frame.height as i32,
-                0,
-                glow::RGBA,
-                glow::UNSIGNED_BYTE,
-                glow::PixelUnpackData::Slice(None),
+                glow::TEXTURE_MAX_LEVEL,
+                mipmap_levels as i32 - 1,
             );
+            for level in 0..mipmap_levels {
+                self.gl.tex_image_2d(
+                    glow::TEXTURE_2D,
+                    level as i32,
+                    glow::RGBA8 as i32,
+                    (frame.width >> level).max(1) as i32,
+                    (frame.height >> level).max(1) as i32,
+                    0,
+                    glow::RGBA,
+                    glow::UNSIGNED_BYTE,
+                    glow::PixelUnpackData::Slice(None),
+                );
+            }
         }
         self.rgba_cuda = Some(CudaTexture::register(
             self.rgba_texture.0.get(),
