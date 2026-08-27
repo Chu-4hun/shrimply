@@ -107,7 +107,9 @@ Adobe-specific features
 
 Shrimply does not provide After Effects objects such as ``thisComp``,
 ``thisLayer``, or property links. It also does not expose keyframes to
-expressions, so functions such as ``loopIn()``, ``loopOut()``, and
-``valueAtTime()`` have no direct equivalent. Use Shrimply's keyframe graphs for
-keyframe loops and rewrite expressions using only the values and functions in
+expressions, so ``loopIn()``, ``loopOut()``, and ``valueAtTime()`` have no
+direct equivalent. To loop an item's playback, open
+:menuselection:`Playback --> Repeat` in the inspector and set
+:guilabel:`Strategy` to :guilabel:`Repeat` or :guilabel:`Ping Pong`. Rewrite
+other expressions using only the values and functions in
 :doc:`expression-basics`.
