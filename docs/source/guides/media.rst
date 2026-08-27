@@ -83,8 +83,7 @@ Shrimply recognizes these source types:
    * - 3D content
      - OBJ, GLB, and PLY
    * - Application sources
-     - :doc:`Blender <blender>` ``.blend`` files and :doc:`Python Manim
-       scenes <manim>`
+     - :doc:`Blender files <blender>` and :doc:`Manim scenes <manim>`
 
 Project opening additionally accepts native Shrimply projects, Shrimply JSON,
 OpenTimelineIO, and :doc:`Kdenlive projects <kdenlive-import>`.
