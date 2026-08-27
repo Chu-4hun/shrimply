@@ -1,13 +1,10 @@
 Shrimply Documentation
 ======================
 
-Shrimply is a video editor with caption, video, and audio tracks, a native
-preview compositor, and an inspector for editing project and clip properties.
+Shrimply brings your ideas to life.
 
-Create a project with the canvas size and frame rate you need, import media
-onto the timeline, edit and preview the result, then export a video, GIF,
-captions, or project data. Shrimply also includes an optional compute server
-and an MCP adapter for working with the project currently open in the editor.
+Shrimply is a free and open-source video editor for creating videos from start
+to finish, whether you are making a quick edit or something fancy.
 
 .. image:: img/editor-overview.png
    :alt: Shrimply editor showing the inspector, video preview, and multitrack timeline

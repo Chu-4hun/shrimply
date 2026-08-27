@@ -4,12 +4,10 @@
 
 # Shrimply
 
-Shrimply is a powerful open-source video editor with a
-[wide array](https://shrimply.pages.dev/guides/media.html) of supported media.
-It provides caption, video, and audio tracks, a native preview compositor, and
-an inspector for editing project and clip properties. Whether you are making a
-quick edit or building a more complex timeline, Shrimply provides the tools to
-import, edit, preview, and export your work.
+Shrimply brings your ideas to life.
+
+Shrimply is a free and open-source video editor for creating videos from start
+to finish, whether you are making a quick edit or something fancy.
 
 Shrimply is currently pre-alpha software.
 
