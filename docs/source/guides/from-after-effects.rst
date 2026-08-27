@@ -80,7 +80,7 @@ After a Rhai variable has been declared, assign a new value without repeating
 
       let speed = 40;
       speed = 20;
-      time * speed
+      t * speed
 
 Wiggle and shake
 ----------------
@@ -97,7 +97,7 @@ frequency, multiply the noise by the amount, and add it to the original value:
 
    .. code-tab:: rust Shrimply
 
-      value + shake(time * 5) * 20
+      value + shake(t * 5) * 20
 
 For a 2D property, build the result from ``x`` and ``y``. Give each ``shake``
 call a different seed so the axes move independently:
@@ -105,8 +105,8 @@ call a different seed so the axes move independently:
 .. code-block:: rust
 
    [
-     x + shake(time * 5, 0) * 20,
-     y + shake(time * 5, 1) * 20
+     x + shake(t * 5, 0) * 20,
+     y + shake(t * 5, 1) * 20
    ]
 
 Oscillation
@@ -123,7 +123,7 @@ Shrimply provides math functions directly instead of through JavaScript's
 
    .. code-tab:: rust Shrimply
 
-      value + sin(time * 4) * 20
+      value + sin(t * 4) * 20
 
 Remapping values
 ----------------
@@ -139,7 +139,7 @@ Use ``lerp`` with a clamped progress value in place of After Effects'
 
    .. code-tab:: rust Shrimply
 
-      lerp(0, 100, clamp(time / 2, 0, 1))
+      lerp(0, 100, clamp(t / 2, 0, 1))
 
 Conditions
 ----------
@@ -154,7 +154,7 @@ Rhai uses ``if`` blocks instead of JavaScript's ``? :`` conditional operator:
 
    .. code-tab:: rust Shrimply
 
-      if time < 1 { 0 } else { 100 }
+      if t < 1 { 0 } else { 100 }
 
 Adobe-specific features
 -----------------------
