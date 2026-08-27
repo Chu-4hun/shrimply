@@ -60,7 +60,6 @@ pub(super) fn render_project_frame(
         .video_tracks
         .iter()
         .enumerate()
-        .rev()
         .filter(|(_, track)| track.enabled)
     {
         active_items.extend(active_video_items(
@@ -466,7 +465,6 @@ impl FrameItemRenderer<'_> {
                 .video_tracks
                 .iter()
                 .enumerate()
-                .rev()
                 .filter(|(_, track)| track.enabled)
                 .flat_map(|(track_index, track)| {
                     active_video_items(track_index, track.id, &track.items, position, None)

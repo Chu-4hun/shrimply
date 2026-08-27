@@ -489,7 +489,6 @@ impl FrameItemRenderer<'_> {
             .video_tracks
             .iter()
             .enumerate()
-            .rev()
             .filter(|(_, track)| track.enabled)
             .flat_map(|(track_index, track)| {
                 active_video_items(track_index, track.id, &track.items, position, None)

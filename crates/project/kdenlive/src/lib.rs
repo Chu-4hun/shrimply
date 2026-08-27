@@ -197,8 +197,6 @@ impl<'a> Converter<'a> {
             }
         }
 
-        video_tracks.reverse();
-
         Ok(ConvertedSequence {
             video_tracks,
             audio_tracks,

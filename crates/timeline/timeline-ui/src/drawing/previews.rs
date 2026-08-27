@@ -620,20 +620,7 @@ pub(super) fn visual_row_for_track(
     track_index: usize,
     virtual_tracks: &[(TrackKind, usize)],
 ) -> Option<usize> {
-    let row = row_for_track(project, kind, track_index)?;
-    let prior_kinds = match kind {
-        TrackKind::Caption => 0,
-        TrackKind::Video => virtual_track_count(virtual_tracks, TrackKind::Caption),
-        TrackKind::Audio => {
-            virtual_track_count(virtual_tracks, TrackKind::Caption)
-                + virtual_track_count(virtual_tracks, TrackKind::Video)
-        }
-    };
-    let same_kind = virtual_tracks
-        .iter()
-        .filter(|(virtual_kind, index)| *virtual_kind == kind && *index <= track_index)
-        .count();
-    Some(row + prior_kinds + same_kind)
+    crate::items::projected_row_for_track(project, kind, track_index, virtual_tracks)
 }
 
 pub(super) fn visual_row_for_virtual_track(
@@ -641,35 +628,7 @@ pub(super) fn visual_row_for_virtual_track(
     virtual_tracks: &[(TrackKind, usize)],
     virtual_track: (TrackKind, usize),
 ) -> Option<usize> {
-    virtual_tracks.contains(&virtual_track).then_some(
-        visual_base_row_for_kind(project, virtual_tracks, virtual_track.0) + virtual_track.1,
-    )
-}
-
-pub(super) fn visual_base_row_for_kind(
-    project: &Project,
-    virtual_tracks: &[(TrackKind, usize)],
-    kind: TrackKind,
-) -> usize {
-    match kind {
-        TrackKind::Caption => 0,
-        TrackKind::Video => {
-            project.caption_tracks.len() + virtual_track_count(virtual_tracks, TrackKind::Caption)
-        }
-        TrackKind::Audio => {
-            project.caption_tracks.len()
-                + virtual_track_count(virtual_tracks, TrackKind::Caption)
-                + project.video_tracks.len()
-                + virtual_track_count(virtual_tracks, TrackKind::Video)
-        }
-    }
-}
-
-pub(super) fn virtual_track_count(virtual_tracks: &[(TrackKind, usize)], kind: TrackKind) -> usize {
-    virtual_tracks
-        .iter()
-        .filter(|(track_kind, _)| *track_kind == kind)
-        .count()
+    crate::items::projected_row_for_virtual_track(project, virtual_tracks, virtual_track)
 }
 
 pub(super) fn kind_order(kind: TrackKind) -> usize {

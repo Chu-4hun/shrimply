@@ -1067,6 +1067,10 @@ fn show_new_track_context_menu(
         ("add-video-track", TrackKind::Video),
         ("add-audio-track", TrackKind::Audio),
     ] {
+        let index = match (kind, at_top) {
+            (TrackKind::Caption | TrackKind::Video, true) | (TrackKind::Audio, false) => None,
+            (TrackKind::Caption | TrackKind::Video, false) | (TrackKind::Audio, true) => Some(0),
+        };
         add_create_track_action(
             &actions,
             name,
@@ -1075,7 +1079,7 @@ fn show_new_track_context_menu(
             player_state,
             selection_state,
             kind,
-            at_top.then_some(0),
+            index,
         );
     }
     popup_timeline_context_menu(area, runtime, &menu, &actions, None, x, y);

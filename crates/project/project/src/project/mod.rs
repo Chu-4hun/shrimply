@@ -88,7 +88,7 @@ pub use shrimply_project_core::{
 };
 pub use timing::*;
 
-pub const PROJECT_FORMAT_VERSION: u32 = 31;
+pub const PROJECT_FORMAT_VERSION: u32 = 32;
 pub const DEFAULT_MOTION_BLUR_SHUTTER_ANGLE_DEGREES: u32 = 180;
 pub const DEFAULT_MOTION_BLUR_SHUTTER_PHASE_DEGREES: i32 = -90;
 pub const DEFAULT_MOTION_BLUR_SAMPLES: u32 = 8;

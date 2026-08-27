@@ -77,15 +77,9 @@ pub(crate) fn update_dragged_group(
         return;
     };
 
-    let source_row = row_for_track(project, group.grabbed.kind, group.grabbed.track_index)
-        .unwrap_or(target_track_index) as isize;
-    let target_row = if new_track_index.is_some() {
-        ((y - RULER_HEIGHT) / TRACK_HEIGHT).floor() as isize
-    } else {
-        row_for_track(project, group.grabbed.kind, target_track_index).unwrap_or(target_track_index)
-            as isize
-    };
-    set_visual_track_offsets(project, group, target_row - source_row);
+    let target_track_index = target_track_index as isize - isize::from(new_track_index == Some(0));
+    let offset = target_track_index - group.grabbed.track_index as isize;
+    set_track_offsets(project, group, offset);
 
     resolve_dragged_group(project, group, previous_position);
 }
@@ -369,11 +363,7 @@ pub(crate) fn set_track_offset(group: &mut DraggedGroup, kind: TrackKind, offset
     }
 }
 
-pub(crate) fn set_visual_track_offsets(
-    project: &Project,
-    group: &mut DraggedGroup,
-    visual_offset: isize,
-) {
+pub(crate) fn set_track_offsets(project: &Project, group: &mut DraggedGroup, track_offset: isize) {
     group.track_offsets.clear();
     group.new_tracks.clear();
     let mut kinds = Vec::new();
@@ -383,26 +373,19 @@ pub(crate) fn set_visual_track_offsets(
         }
         kinds.push(item.key.kind);
     }
-    let mixed_with_audio = kinds.contains(&TrackKind::Audio)
-        && kinds
-            .iter()
-            .any(|kind| matches!(kind, TrackKind::Caption | TrackKind::Video));
     for kind in kinds {
-        let kind_visual_offset =
-            visual_offset_for_kind(group.grabbed.kind, kind, visual_offset, mixed_with_audio);
         let Some((source_min, source_max)) = group_track_bounds(group, kind) else {
             continue;
         };
         let existing_track_count = track_count(project, kind) as isize;
         let span = (source_max - source_min + 1) as usize;
-        let needed_before = (-(source_min + kind_visual_offset)).max(0) as usize;
-        let needed_after =
-            (source_max + kind_visual_offset + 1 - existing_track_count).max(0) as usize;
+        let needed_before = (-(source_min + track_offset)).max(0) as usize;
+        let needed_after = (source_max + track_offset + 1 - existing_track_count).max(0) as usize;
         let new_before = needed_before.min(span);
         let new_after = needed_after.min(span);
         let min_offset = -source_min;
         let max_offset = existing_track_count + new_after as isize - 1 - source_max;
-        let offset = (kind_visual_offset + new_before as isize).clamp(min_offset, max_offset);
+        let offset = (track_offset + new_before as isize).clamp(min_offset, max_offset);
         set_track_offset(group, kind, offset);
         group
             .new_tracks
@@ -411,22 +394,6 @@ pub(crate) fn set_visual_track_offsets(
         group
             .new_tracks
             .extend((0..new_after).map(|index| (kind, existing_track_count + index)));
-    }
-}
-
-pub(crate) fn visual_offset_for_kind(
-    grabbed_kind: TrackKind,
-    kind: TrackKind,
-    visual_offset: isize,
-    mixed_with_audio: bool,
-) -> isize {
-    if !mixed_with_audio {
-        return visual_offset;
-    }
-    match (grabbed_kind, kind) {
-        (TrackKind::Audio, TrackKind::Caption | TrackKind::Video) => -visual_offset,
-        (TrackKind::Caption | TrackKind::Video, TrackKind::Audio) => -visual_offset,
-        _ => visual_offset,
     }
 }
 

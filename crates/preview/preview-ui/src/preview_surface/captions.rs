@@ -145,6 +145,7 @@ pub(super) fn draw_captions(
     let mut active = project
         .caption_tracks
         .iter()
+        .rev()
         .filter(|track| track.enabled)
         .flat_map(|track| &track.items)
         .filter(|item| position >= item.start && position < item.end)

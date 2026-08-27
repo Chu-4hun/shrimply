@@ -784,11 +784,7 @@ impl Project {
                     track_id: track.id,
                     item_id: track.items[0].id,
                 };
-                if top {
-                    self.caption_tracks.insert(0, track);
-                } else {
-                    self.caption_tracks.push(track);
-                }
+                self.caption_tracks.push(track);
                 Some(address)
             }
             ProjectItem::Video(item) => {
@@ -806,11 +802,7 @@ impl Project {
                     Some(sequence_id) => &mut self.folded_sequence_mut(sequence_id)?.video_tracks,
                     None => &mut self.video_tracks,
                 };
-                if top {
-                    tracks.insert(0, track);
-                } else {
-                    tracks.push(track);
-                }
+                tracks.push(track);
                 Some(address)
             }
             ProjectItem::Audio(item) => {

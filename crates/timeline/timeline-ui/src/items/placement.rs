@@ -265,7 +265,9 @@ pub(super) fn add_collision_tracks(project: &Project, group: &mut DraggedGroup) 
         }
 
         let new_track_base = match kind {
-            TrackKind::Caption | TrackKind::Video => target_base.min(track_count(project, kind)),
+            TrackKind::Caption | TrackKind::Video => target_base
+                .saturating_add(span)
+                .min(track_count(project, kind)),
             TrackKind::Audio => track_count(project, kind),
         };
         set_track_offset(group, kind, new_track_base as isize - source_base as isize);
@@ -319,14 +321,8 @@ fn closest_empty_track(
     }
 
     let (source_base, _) = group_track_span(group, kind)?;
-    let candidates: Vec<usize> = match kind {
-        TrackKind::Caption | TrackKind::Video => (0..target_base.min(track_count)).rev().collect(),
-        TrackKind::Audio => {
-            let start = target_base.saturating_add(1);
-            (start..=track_count - span).collect()
-        }
-    };
-    candidates.into_iter().find(|base| {
+    let start = target_base.saturating_add(1);
+    (start..=track_count - span).find(|base| {
         base + span <= track_count && {
             set_track_offset(group, kind, *base as isize - source_base as isize);
             can_place_dragged_kind(project, group, kind)

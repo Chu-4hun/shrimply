@@ -72,9 +72,9 @@ pub(super) fn create_folded_track(
         match kind {
             TrackKind::Video => {
                 let index = if at_top {
-                    0
-                } else {
                     sequence.video_tracks.len()
+                } else {
+                    0
                 };
                 sequence.video_tracks.insert(index, Default::default());
             }

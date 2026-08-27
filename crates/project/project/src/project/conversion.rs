@@ -19,6 +19,7 @@ mod v27_to_v28;
 mod v28_to_v29;
 mod v29_to_v30;
 mod v30_to_v31;
+mod v31_to_v32;
 
 use std::collections::BTreeMap;
 
@@ -55,7 +56,8 @@ static V27_TO_V28: v27_to_v28::Converter = v27_to_v28::Converter;
 static V28_TO_V29: v28_to_v29::Converter = v28_to_v29::Converter;
 static V29_TO_V30: v29_to_v30::Converter = v29_to_v30::Converter;
 static V30_TO_V31: v30_to_v31::Converter = v30_to_v31::Converter;
-static CONVERTERS: [&dyn ProjectVersionConverter; 21] = [
+static V31_TO_V32: v31_to_v32::Converter = v31_to_v32::Converter;
+static CONVERTERS: [&dyn ProjectVersionConverter; 22] = [
     &V10_TO_V11,
     &V11_TO_V12,
     &V12_TO_V13,
@@ -77,6 +79,7 @@ static CONVERTERS: [&dyn ProjectVersionConverter; 21] = [
     &V28_TO_V29,
     &V29_TO_V30,
     &V30_TO_V31,
+    &V31_TO_V32,
 ];
 
 pub(super) fn from_json(contents: &str) -> Result<Project, String> {

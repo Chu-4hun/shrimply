@@ -17,6 +17,7 @@ pub(crate) fn rows(project: &Project) -> Vec<TrackRow> {
         .caption_tracks
         .iter()
         .enumerate()
+        .rev()
         .map(|(track_index, track)| {
             let root_key = TrackKey {
                 kind: TrackKind::Caption,
@@ -29,7 +30,7 @@ pub(crate) fn rows(project: &Project) -> Vec<TrackRow> {
             }
         })
         .collect::<Vec<_>>();
-    for (track_index, track) in project.video_tracks.iter().enumerate() {
+    for (track_index, track) in project.video_tracks.iter().enumerate().rev() {
         let root_key = TrackKey {
             kind: TrackKind::Video,
             track_index,
@@ -93,7 +94,7 @@ fn append_video_rows(
         return;
     };
     stack.push(reference.sequence_id);
-    for track in &sequence.video_tracks {
+    for track in sequence.video_tracks.iter().rev() {
         rows.push(TrackRow {
             address: TrackAddress::Video {
                 sequence_path: path.to_vec(),
@@ -188,35 +189,14 @@ pub(crate) fn target_track_at_y(
     {
         return Some((track_index, None));
     }
-    let start_row = row_for_track(project, kind, 0).unwrap_or_else(|| match kind {
-        TrackKind::Caption => 0,
-        TrackKind::Video => project.caption_tracks.len(),
-        TrackKind::Audio => {
-            project.caption_tracks.len()
-                + project.video_tracks.len()
-                + expanded_rows_before(project, TrackKind::Video, project.video_tracks.len())
-        }
-    });
+    let (start_row, end_row) = track_block_rows(project, kind);
     if row.checked_add(1) == Some(start_row) {
-        return Some((0, Some(0)));
+        let index = if reversed(kind) { count } else { 0 };
+        return Some((index, Some(index)));
     }
-    let end_row = match kind {
-        TrackKind::Caption => project.caption_tracks.len(),
-        TrackKind::Video => {
-            project.caption_tracks.len()
-                + project.video_tracks.len()
-                + expanded_rows_before(project, TrackKind::Video, project.video_tracks.len())
-        }
-        TrackKind::Audio => {
-            project.caption_tracks.len()
-                + project.video_tracks.len()
-                + expanded_rows_before(project, TrackKind::Video, project.video_tracks.len())
-                + project.audio_tracks.len()
-                + expanded_rows_before(project, TrackKind::Audio, project.audio_tracks.len())
-        }
-    };
     if row == end_row {
-        return Some((count, Some(count)));
+        let index = if reversed(kind) { 0 } else { count };
+        return Some((index, Some(index)));
     }
     None
 }
@@ -245,12 +225,9 @@ pub(super) fn active_new_track_at_y(
         .copied()
         .filter(|(track_kind, index)| *track_kind == kind && *index <= track_count(project, kind))
         .find_map(|(_, index)| {
-            (row == base_row_for_track(project, kind, index)).then_some((index, Some(index)))
+            (row == projected_row_for_virtual_track(project, new_tracks, (kind, index))?)
+                .then_some((index, Some(index)))
         })
-}
-
-fn base_row_for_track(project: &Project, kind: TrackKind, track_index: usize) -> usize {
-    row_for_track(project, kind, track_index).unwrap_or(track_index)
 }
 
 pub(crate) fn row_for_track(
@@ -265,6 +242,123 @@ pub(crate) fn row_for_track(
 
 pub(crate) fn row_for_address(project: &Project, address: &TrackAddress) -> Option<usize> {
     rows(project).iter().position(|row| &row.address == address)
+}
+
+pub(crate) fn projected_row_for_track(
+    project: &Project,
+    kind: TrackKind,
+    track_index: usize,
+    virtual_tracks: &[(TrackKind, usize)],
+) -> Option<usize> {
+    let row = row_for_track(project, kind, track_index)?;
+    let new_indices = virtual_indices(virtual_tracks, kind);
+    let final_index = final_track_index(track_index, &new_indices);
+    let prior_kinds = virtual_tracks
+        .iter()
+        .filter(|(virtual_kind, _)| kind_order(*virtual_kind) < kind_order(kind))
+        .count();
+    let same_kind = new_indices
+        .iter()
+        .filter(|index| displayed_before(kind, **index, final_index))
+        .count();
+    Some(row + prior_kinds + same_kind)
+}
+
+pub(crate) fn projected_row_for_virtual_track(
+    project: &Project,
+    virtual_tracks: &[(TrackKind, usize)],
+    virtual_track: (TrackKind, usize),
+) -> Option<usize> {
+    if !virtual_tracks.contains(&virtual_track) {
+        return None;
+    }
+    let (kind, virtual_index) = virtual_track;
+    let new_indices = virtual_indices(virtual_tracks, kind);
+    let prior_kinds = virtual_tracks
+        .iter()
+        .filter(|(virtual_kind, _)| kind_order(*virtual_kind) < kind_order(kind))
+        .count();
+    let prior_virtual = new_indices
+        .iter()
+        .filter(|index| displayed_before(kind, **index, virtual_index))
+        .count();
+    let prior_real = (0..track_count(project, kind))
+        .filter(|track_index| {
+            displayed_before(
+                kind,
+                final_track_index(*track_index, &new_indices),
+                virtual_index,
+            )
+        })
+        .map(|track_index| root_track_row_span(project, kind, track_index))
+        .sum::<usize>();
+    Some(track_block_rows(project, kind).0 + prior_kinds + prior_virtual + prior_real)
+}
+
+fn virtual_indices(virtual_tracks: &[(TrackKind, usize)], kind: TrackKind) -> Vec<usize> {
+    let mut indices = virtual_tracks
+        .iter()
+        .filter_map(|(track_kind, index)| (*track_kind == kind).then_some(*index))
+        .collect::<Vec<_>>();
+    indices.sort_unstable();
+    indices.dedup();
+    indices
+}
+
+fn final_track_index(track_index: usize, new_indices: &[usize]) -> usize {
+    new_indices.iter().fold(track_index, |index, insertion| {
+        index + usize::from(*insertion <= index)
+    })
+}
+
+fn displayed_before(kind: TrackKind, candidate: usize, target: usize) -> bool {
+    if reversed(kind) {
+        candidate > target
+    } else {
+        candidate < target
+    }
+}
+
+fn reversed(kind: TrackKind) -> bool {
+    matches!(kind, TrackKind::Caption | TrackKind::Video)
+}
+
+fn kind_order(kind: TrackKind) -> usize {
+    match kind {
+        TrackKind::Caption => 0,
+        TrackKind::Video => 1,
+        TrackKind::Audio => 2,
+    }
+}
+
+fn root_track_row_span(project: &Project, kind: TrackKind, track_index: usize) -> usize {
+    let Some(row) = row_for_track(project, kind, track_index) else {
+        return 0;
+    };
+    let next_index = if reversed(kind) {
+        track_index.checked_sub(1)
+    } else {
+        track_index.checked_add(1)
+    };
+    next_index
+        .and_then(|index| row_for_track(project, kind, index))
+        .unwrap_or_else(|| track_block_rows(project, kind).1)
+        .saturating_sub(row)
+}
+
+fn track_block_rows(project: &Project, kind: TrackKind) -> (usize, usize) {
+    let caption_end = project.caption_tracks.len();
+    let video_end = caption_end
+        + project.video_tracks.len()
+        + expanded_rows_before(project, TrackKind::Video, project.video_tracks.len());
+    let audio_end = video_end
+        + project.audio_tracks.len()
+        + expanded_rows_before(project, TrackKind::Audio, project.audio_tracks.len());
+    match kind {
+        TrackKind::Caption => (0, caption_end),
+        TrackKind::Video => (caption_end, video_end),
+        TrackKind::Audio => (video_end, audio_end),
+    }
 }
 
 pub(crate) fn expanded_rows_before(project: &Project, kind: TrackKind, end: usize) -> usize {

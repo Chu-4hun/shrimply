@@ -44,8 +44,8 @@ pub(super) use resize::*;
 pub(super) use ripple::*;
 use tracks::active_new_track_at_y;
 pub(super) use tracks::{
-    TrackRow, color as track_color, row_for_address, row_for_track, rows as track_rows,
-    target_track_at_y, track_count,
+    TrackRow, color as track_color, projected_row_for_track, projected_row_for_virtual_track,
+    row_for_address, row_for_track, rows as track_rows, target_track_at_y, track_count,
 };
 
 pub(super) fn track_at_y(project: &Project, y: f64) -> Option<(TrackKind, usize, usize)> {

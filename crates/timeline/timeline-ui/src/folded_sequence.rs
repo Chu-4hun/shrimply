@@ -243,16 +243,7 @@ impl FoldedDrag {
         else {
             return false;
         };
-        let visual_offset = target_index as isize - source_index as isize;
-        let grabbed_kind = track_kind(&self.key);
-        let mixed_with_audio = self
-            .items
-            .iter()
-            .any(|item| item.key.kind() == ItemKind::Audio)
-            && self
-                .items
-                .iter()
-                .any(|item| item.key.kind() == ItemKind::Video);
+        let track_offset = target_index as isize - source_index as isize;
         for item in &mut self.items {
             let source_kind_tracks =
                 concrete_tracks(project, item.key.kind(), item.key.sequence_path());
@@ -272,13 +263,7 @@ impl FoldedDrag {
             };
             let destination_kind_tracks =
                 concrete_tracks(project, item.key.kind(), &destination_path);
-            let offset = crate::items::visual_offset_for_kind(
-                grabbed_kind,
-                track_kind(&item.key),
-                visual_offset,
-                mixed_with_audio,
-            );
-            let target_index = index as isize + offset;
+            let target_index = index as isize + track_offset;
             if target_index < 0 || target_index as usize >= destination_kind_tracks.len() {
                 return false;
             }
@@ -1003,7 +988,7 @@ fn project_video_sequence(
         return;
     };
     stack.push(reference.sequence_id);
-    for track in &sequence.video_tracks {
+    for track in sequence.video_tracks.iter().rev() {
         let items = track
             .items
             .iter()

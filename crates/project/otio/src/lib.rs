@@ -72,8 +72,7 @@ pub fn from_value(
         }
     }
 
-    // OTIO paints bottom-to-top; Shrimply visual track zero is topmost.
-    video_tracks.reverse();
+    // OTIO and Shrimply both store visual tracks bottom-to-top.
     let name = document
         .get("name")
         .and_then(Value::as_str)
