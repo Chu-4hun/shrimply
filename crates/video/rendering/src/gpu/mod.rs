@@ -25,6 +25,8 @@ pub(crate) mod modifiers;
 
 pub use frame::{CompositedFrameStorageKey, CompositedVideoFrame};
 
+const DISPLAY_GPU_MEMORY_RESERVE_DIVISOR: u64 = 16;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ExportPixelFormat {
     Nv12,
@@ -315,8 +317,10 @@ impl CudaVideoCompositor {
             }
             result => result,
         };
+        let frame = result?;
+        self.release_caches_for_display_memory()?;
         self.record_gpu_memory_usage();
-        result
+        Ok(frame)
     }
 
     fn render_frame_once(
@@ -712,6 +716,15 @@ impl CudaVideoCompositor {
         }
         self.observed_gpu_oom_generation = generation;
         self.relieve_gpu_pressure(0)?;
+        Ok(())
+    }
+
+    fn release_caches_for_display_memory(&mut self) -> Result<(), String> {
+        let (free, total) = self.gpu_memory_info()?;
+        let reserve = total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR;
+        if free < reserve {
+            self.relieve_gpu_pressure(reserve - free)?;
+        }
         Ok(())
     }
 
