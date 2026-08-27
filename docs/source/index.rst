@@ -18,6 +18,8 @@ Start here
 * :doc:`Editor <guides/editor>` describes the main workspaces and shortcuts.
 * :doc:`Importing and creating media <guides/media>` lists accepted sources
   and the content Shrimply can generate.
+* :doc:`Manim <guides/manim>` explains how to use Python animation scenes and
+  expose their values in the inspector.
 * :doc:`Expressions <guides/expressions>` covers values and functions for
   procedural and audio-reactive properties.
 * :doc:`Compute server <server/index>` covers optional AI and compute features.
@@ -32,6 +34,7 @@ Start here
    getting-started
    guides/editor
    guides/media
+   guides/manim
    guides/effects
    guides/expressions
    guides/audio-captions
