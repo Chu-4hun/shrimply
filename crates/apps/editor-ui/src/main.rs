@@ -41,15 +41,6 @@ enum PanelSide {
 }
 
 fn main() -> glib::ExitCode {
-    let mut gdk_disabled = std::env::var("GDK_DISABLE").unwrap_or_default();
-    if !gdk_disabled.split(',').any(|feature| feature == "dmabuf") {
-        if !gdk_disabled.is_empty() {
-            gdk_disabled.push(',');
-        }
-        gdk_disabled.push_str("dmabuf");
-        // SAFETY: This is the first operation in main, before GTK or any threads start.
-        unsafe { std::env::set_var("GDK_DISABLE", gdk_disabled) };
-    }
     crash::install();
     shrimply_support::diagnostics::init();
     shrimply_ui_foundation::i18n::init_system_locale();
