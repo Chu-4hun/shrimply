@@ -1,8 +1,60 @@
 Importing and Creating Media
 ============================
 
-Import formats
---------------
+.. |add| image:: ../../../assets/icons/plus-symbolic.svg
+   :class: action-icon
+   :alt: Add
+.. |import| image:: ../../../assets/icons/document-open-symbolic.svg
+   :class: action-icon
+   :alt: Import
+.. |text| image:: ../../../assets/icons/draw-text-symbolic.svg
+   :class: action-icon
+   :alt: Text
+.. |shape| image:: ../../../assets/icons/shapes-large-symbolic.svg
+   :class: action-icon
+   :alt: Shape
+.. |paint| image:: ../../../assets/icons/applications-graphics-symbolic.svg
+   :class: action-icon
+   :alt: Paint
+.. |background| image:: ../../../assets/icons/preferences-desktop-wallpaper-symbolic.svg
+   :class: action-icon
+   :alt: Background
+.. |scene-3d| image:: ../../../assets/icons/3d-object-symbolic.svg
+   :class: action-icon
+   :alt: 3D Scene
+.. |video-generation| image:: ../../../assets/icons/video-generation-symbolic.svg
+   :class: action-icon
+   :alt: Video Generation
+.. |text-to-speech| image:: ../../../assets/icons/font-x-generic-symbolic.svg
+   :class: action-icon
+   :alt: Text to Speech
+.. |audio-generator| image:: ../../../assets/icons/sound-symbolic.svg
+   :class: action-icon
+   :alt: Audio Generator
+.. |screen-recording| image:: ../../../assets/icons/screencast-recorded-symbolic.svg
+   :class: action-icon
+   :alt: Screen recording
+.. |microphone| image:: ../../../assets/icons/mic-1-symbolic.svg
+   :class: action-icon
+   :alt: Microphone recording
+
+Import media
+------------
+
+Move the playhead to the desired start time, then select the destination track.
+Click |add| **Add** (``plus-symbolic``) in that track's controls and choose
+|import| **Import Media…** or **Import Captions…**
+(``document-open-symbolic``). The file is inserted at the playhead on the track
+whose menu you opened. If that track is part of a multi-track selection, the
+import targets all selected tracks of the same type.
+
+Video and audio files can only be imported to video or audio tracks. WebVTT
+files can only be imported to caption tracks. MKV and WebM files dropped onto
+the timeline can be losslessly remuxed to MP4 first; they cannot be imported
+directly from a track's add menu.
+
+Supported formats
+~~~~~~~~~~~~~~~~~
 
 Shrimply recognizes these source types:
 
@@ -30,19 +82,77 @@ Shrimply recognizes these source types:
 Project opening additionally accepts native Shrimply projects, Shrimply JSON,
 OpenTimelineIO, and Kdenlive projects.
 
-Add generated content
----------------------
+Create media
+------------
 
-The add menu on a video track can create text, shapes, paint, backgrounds, 3D
-scenes, and video-generation items. Available shapes include rectangles,
-ellipses, triangles, stars, arrows, diamonds, polygons, hearts, and crosses.
+Move the playhead to an empty point on the destination track and click |add|
+**Add** (``plus-symbolic``). The new item starts at the playhead, uses the
+default visual duration, and ends early rather than overlapping the next item.
+Nothing is created if the playhead is already inside an item on that track.
 
-The add menu on an audio track can create text-to-speech and audio-generator
-items. Features backed by AI models require the :doc:`../server/index`.
+On a video track, the menu provides:
+
+.. list-table::
+   :widths: 8 25 67
+   :header-rows: 1
+
+   * - Icon
+     - Action
+     - Creates
+   * - |text|
+     - **Text** (``draw-text-symbolic``)
+     - A text layer using the default font.
+   * - |shape|
+     - **Shape** (``shapes-large-symbolic``)
+     - A vector shape. Rectangle, ellipse, triangle, star, arrow, diamond,
+       polygon, heart, and cross shapes are available in the inspector.
+   * - |paint|
+     - **Paint** (``applications-graphics-symbolic``)
+     - A layer for drawing strokes directly on the canvas.
+   * - |background|
+     - **Background** (``preferences-desktop-wallpaper-symbolic``)
+     - A full-canvas background layer.
+   * - |scene-3d|
+     - **3D Scene** (``3d-object-symbolic``)
+     - A 3D scene that can contain shapes, text, models, lights, and a ground
+       plane.
+   * - |video-generation|
+     - **Video Generation** (``video-generation-symbolic``)
+     - An AI video-generation item. This requires the
+       :doc:`Shrimply server <../server/index>`.
+
+On an audio track, the menu provides:
+
+.. list-table::
+   :widths: 8 25 67
+   :header-rows: 1
+
+   * - Icon
+     - Action
+     - Creates
+   * - |text-to-speech|
+     - **Text to Speech** (``font-x-generic-symbolic``)
+     - An item that generates speech from text using the Shrimply server.
+   * - |audio-generator|
+     - **Audio Generator** (``sound-symbolic``)
+     - A procedural audio item configured in the inspector.
+
+Text to Speech and Video Generation are backed by AI models and require the
+:doc:`Shrimply server <../server/index>`.
 
 Record content
 --------------
 
-Shrimply can record audio and the screen into the timeline. Choose the
-appropriate recording action from the track controls, then stop the recording
-when the desired range is complete.
+Recording actions are separate buttons in each track's controls:
+
+* On a video track, click |screen-recording| **Record Screen or Application**
+  (``screencast-recorded-symbolic``), choose a screen or application in the
+  system capture dialog, and click the same button again to stop. The recording
+  starts at the playhead and stops before the next item on the track.
+* On an audio track, click |microphone| **Record Microphone**
+  (``mic-1-symbolic``) to start recording from the default microphone. Click the
+  same button again to stop.
+
+The active recording button turns red. Recording advances playback and places
+the finished item on that track at the original playhead position. Start from
+an empty point so the recording does not overlap an existing item.

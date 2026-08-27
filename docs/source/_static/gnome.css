@@ -516,3 +516,21 @@ body[data-theme="dark"] .sphinx-tabs-tab[aria-selected="true"] {
   margin: -1px;
   background-color: rgb(50, 50, 50);
 }
+
+/* Inline action icons in user instructions. */
+
+.action-icon {
+  height: 1em;
+  width: 1em;
+  vertical-align: -0.125em;
+}
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) .action-icon {
+    filter: invert(1);
+  }
+}
+
+body[data-theme="dark"] .action-icon {
+  filter: invert(1);
+}
