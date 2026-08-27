@@ -158,11 +158,11 @@ impl VisualSourceCache {
     pub(crate) fn layered_image(&mut self, file: &Asset) -> &mut LayeredImageAsset {
         match self.layered_image_files.entry(file.clone()) {
             Entry::Occupied(entry) => {
-                shrimply_benchmarking::increment("Layered image file cache / Hit");
+                shrimply_benchmarking::increment("Layered image source residency / Session hit");
                 entry.into_mut()
             }
             Entry::Vacant(entry) => {
-                shrimply_benchmarking::increment("Layered image file cache / Miss");
+                shrimply_benchmarking::increment("Layered image source residency / Session miss");
                 entry.insert(LayeredImageAsset::new(file.clone()))
             }
         }

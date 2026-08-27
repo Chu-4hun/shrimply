@@ -6,13 +6,14 @@ use good_lp::{
 use std::path::Path;
 use std::sync::Arc;
 
-use cuda_core::{CudaContext, CudaStream, DeviceBuffer};
+use cuda_core::{CudaContext, CudaStream};
 use opencv::core::{
     self, Mat, MatTraitConst, Point2f, Size, TermCriteria, TermCriteria_Type, Vector,
 };
 use opencv::prelude::MatTraitConstManual;
 use opencv::prelude::*;
 use opencv::{calib3d, imgproc, video, videoio};
+use shrimply_gpu_memory::GpuBuffer as DeviceBuffer;
 use shrimply_math_core::{Time, fraction_as_u32_ratio, frame_rate_from_f64};
 use shrimply_nvidia_optical_flow::{
     FlowField, FlowVector, OpticalFlow, OutputGrid, Quality, Settings as OpticalFlowSettings,

@@ -1,8 +1,9 @@
 use std::rc::Rc;
+use std::sync::Mutex;
 
 use shrimply_asset::{Asset, AssetSnapshot};
-use shrimply_gpu_memory::HostReservation;
-use skia_safe::{Canvas, FontMgr, svg::Dom};
+use shrimply_gpu_memory::{ResidentResource, ResourceKey, global as gpu_memory};
+use skia_safe::{Canvas, ConditionallySend, FontMgr, Sendable, svg::Dom};
 use uuid::Uuid;
 
 use crate::gpu::CudaVideoCompositor;
@@ -16,19 +17,16 @@ use shrimply_project::project::{CanvasSize, VideoItem};
 pub struct SvgRenderSession {
     file: Asset,
     snapshot: AssetSnapshot,
-    svg: String,
-    dom: Rc<Dom>,
+    source_key: ResourceKey,
     root_width: u32,
     root_height: u32,
     surface_width: u32,
     surface_height: u32,
     color_overrides: Vec<shrimply_project::project::SvgColorOverride>,
-    _host_reservation: Option<HostReservation>,
 }
 
 struct DeferredSvgFrame {
-    svg: String,
-    dom: Option<Rc<Dom>>,
+    prepared_svg: ResidentResource<PreparedSvg>,
     root_width: u32,
     root_height: u32,
     surface_width: u32,
@@ -39,8 +37,7 @@ struct DeferredSvgFrame {
 }
 
 pub(crate) struct SvgVectorVisualParams {
-    pub svg: String,
-    pub dom: Option<Rc<Dom>>,
+    pub prepared_svg: ResidentResource<PreparedSvg>,
     pub root_size: CanvasSize,
     pub surface_size: CanvasSize,
     pub canvas_size: CanvasSize,
@@ -53,8 +50,7 @@ pub(crate) fn svg_vector_visual(
     state: VisualState,
 ) -> Result<Visual, String> {
     let SvgVectorVisualParams {
-        svg,
-        dom,
+        prepared_svg,
         root_size,
         surface_size,
         canvas_size,
@@ -62,8 +58,7 @@ pub(crate) fn svg_vector_visual(
         transition,
     } = params;
     let frame = Box::new(DeferredSvgFrame {
-        svg,
-        dom,
+        prepared_svg,
         root_width: root_size.width,
         root_height: root_size.height,
         surface_width: surface_size.width,
@@ -75,6 +70,39 @@ pub(crate) fn svg_vector_visual(
     Ok(Visual::Vector(VectorVisual::prepared(frame, state)))
 }
 
+pub(crate) struct PreparedSvg {
+    _source: String,
+    dom: Mutex<Option<Sendable<Dom>>>,
+}
+
+impl PreparedSvg {
+    pub(crate) fn new(source: String) -> Result<Self, String> {
+        let dom = Dom::from_str(&source, FontMgr::new())
+            .map_err(|error| format!("could not parse SVG: {error}"))?;
+        let dom = dom
+            .wrap_send()
+            .map_err(|_| "parsed SVG was not uniquely owned".to_string())?;
+        Ok(Self {
+            _source: source,
+            dom: Mutex::new(Some(dom)),
+        })
+    }
+
+    fn with_dom<T>(&self, operation: impl FnOnce(&Dom) -> T) -> T {
+        let mut stored = self.dom.lock().expect("parsed SVG mutex poisoned");
+        let dom = stored
+            .take()
+            .expect("parsed SVG disappeared from its residency entry")
+            .into_inner();
+        let result = operation(&dom);
+        *stored = Some(
+            dom.wrap_send()
+                .unwrap_or_else(|_| panic!("parsed SVG escaped while rendering")),
+        );
+        result
+    }
+}
+
 impl GeneratedVisual for DeferredSvgFrame {
     fn draw(
         &self,
@@ -83,58 +111,54 @@ impl GeneratedVisual for DeferredSvgFrame {
         _expressions: &mut shrimply_evaluation::TransformExpressionCache,
         path_effect: Option<&skia_safe::PathEffect>,
     ) {
-        let dom = self.dom.clone().unwrap_or_else(|| {
-            Rc::new(
-                Dom::from_str(&self.svg, FontMgr::new())
-                    .expect("validated SVG should remain parseable while rendering"),
-            )
-        });
-        let mut root = dom.root();
-        root.set_width(skia_safe::svg::Length::new(
-            self.root_width as f32,
-            skia_safe::svg::LengthUnit::PX,
-        ));
-        root.set_height(skia_safe::svg::Length::new(
-            self.root_height as f32,
-            skia_safe::svg::LengthUnit::PX,
-        ));
+        self.prepared_svg.with_dom(|dom| {
+            let mut root = dom.root();
+            root.set_width(skia_safe::svg::Length::new(
+                self.root_width as f32,
+                skia_safe::svg::LengthUnit::PX,
+            ));
+            root.set_height(skia_safe::svg::Length::new(
+                self.root_height as f32,
+                skia_safe::svg::LengthUnit::PX,
+            ));
 
-        let Some(transition) = self.transition else {
-            if let Some(path_effect) = path_effect
-                && crate::svg_transition::draw_shaky(
-                    &dom,
-                    &root,
-                    canvas,
-                    path_effect,
-                    self.root_width as f32,
-                    self.root_height as f32,
-                )
+            let Some(transition) = self.transition else {
+                if let Some(path_effect) = path_effect
+                    && crate::svg_transition::draw_shaky(
+                        dom,
+                        &root,
+                        canvas,
+                        path_effect,
+                        self.root_width as f32,
+                        self.root_height as f32,
+                    )
+                {
+                    return;
+                }
+                dom.render(canvas);
+                return;
+            };
+            if path_effect.is_none()
+                && ((transition.side == shrimply_project::project::TransitionSide::Intro
+                    && transition.progress >= 1.0)
+                    || (transition.side == shrimply_project::project::TransitionSide::Outro
+                        && transition.progress <= 0.0))
             {
+                dom.render(canvas);
                 return;
             }
-            dom.render(canvas);
-            return;
-        };
-        if path_effect.is_none()
-            && ((transition.side == shrimply_project::project::TransitionSide::Intro
-                && transition.progress >= 1.0)
-                || (transition.side == shrimply_project::project::TransitionSide::Outro
-                    && transition.progress <= 0.0))
-        {
-            dom.render(canvas);
-            return;
-        }
-        if !crate::svg_transition::draw(
-            &dom,
-            &root,
-            canvas,
-            transition,
-            self.root_width as f32,
-            self.root_height as f32,
-            path_effect,
-        ) {
-            dom.render(canvas);
-        }
+            if !crate::svg_transition::draw(
+                dom,
+                &root,
+                canvas,
+                transition,
+                self.root_width as f32,
+                self.root_height as f32,
+                path_effect,
+            ) {
+                dom.render(canvas);
+            }
+        });
     }
 }
 
@@ -144,26 +168,43 @@ impl SvgRenderSession {
         let source = snapshot.read_to_string()?;
         let color_overrides = item.svg_color_overrides.clone();
         let svg = svg_color::apply_overrides(&source, &color_overrides);
-        let dom = Dom::from_str(&svg, FontMgr::new())
-            .map_err(|error| format!("could not parse SVG {}: {error}", item.file.display()))?;
         let source_bytes = u64::try_from(svg.len())
             .map_err(|_| format!("SVG {} source size exceeds u64", item.file.display()))?;
-        let memory = shrimply_gpu_memory::global();
-        let host_reservation = (memory.telemetry().host_budget_bytes != 0)
-            .then(|| memory.reserve_host(source_bytes))
-            .transpose()?;
+        let source_key = svg_source_key(&snapshot, &color_overrides)?;
+        gpu_memory().insert_resource(
+            source_key.clone(),
+            source_bytes,
+            PreparedSvg::new(svg).map_err(|error| format!("{} {}", item.file.display(), error))?,
+        )?;
         Ok(Self {
             file: item.file.clone(),
             snapshot,
-            svg,
-            dom: Rc::new(dom),
+            source_key,
             root_width: item.source_width.max(1),
             root_height: item.source_height.max(1),
             surface_width: canvas_size.width.max(1),
             surface_height: canvas_size.height.max(1),
             color_overrides,
-            _host_reservation: host_reservation,
         })
+    }
+
+    fn source(&mut self) -> Result<ResidentResource<PreparedSvg>, String> {
+        if let Some(source) = gpu_memory().get_resource(&self.source_key)? {
+            return Ok(source);
+        }
+        let source = self.snapshot.read_to_string()?;
+        self.snapshot.verify_current()?;
+        let svg = svg_color::apply_overrides(&source, &self.color_overrides);
+        let source_bytes = u64::try_from(svg.len())
+            .map_err(|_| format!("SVG {} source size exceeds u64", self.file.display()))?;
+        gpu_memory().insert_resource(
+            self.source_key.clone(),
+            source_bytes,
+            PreparedSvg::new(svg).map_err(|error| format!("{} {}", self.file.display(), error))?,
+        )?;
+        gpu_memory()
+            .get_resource(&self.source_key)?
+            .ok_or_else(|| "reconstructed SVG source disappeared".to_string())
     }
 
     fn matches_item(&self, item: &VideoItem, canvas_size: CanvasSize) -> bool {
@@ -179,59 +220,57 @@ impl SvgRenderSession {
 
 impl VisualData for DeferredSvgFrame {
     fn morph_scene(&self) -> Option<crate::vector_morph::MorphScene> {
-        let dom = self
-            .dom
-            .clone()
-            .or_else(|| Dom::from_str(&self.svg, FontMgr::new()).ok().map(Rc::new))?;
-        let mut root = dom.root();
-        root.set_width(skia_safe::svg::Length::new(
-            self.root_width as f32,
-            skia_safe::svg::LengthUnit::PX,
-        ));
-        root.set_height(skia_safe::svg::Length::new(
-            self.root_height as f32,
-            skia_safe::svg::LengthUnit::PX,
-        ));
-        let objects = crate::svg_transition::svg_paths(
-            &root,
-            self.root_width as f32,
-            self.root_height as f32,
-        )
-        .into_iter()
-        .map(|path| {
-            let mut appearance = Vec::new();
-            if path.fill {
-                let mut paint = skia_safe::Paint::default();
-                paint.set_anti_alias(true);
-                paint.set_color(path.fill_color);
-                paint.set_alpha_f(paint.alpha_f() * path.fill_opacity);
-                appearance.push(crate::vector_morph::MorphPaintLayer {
-                    paint,
-                    offset: glam::Vec2::ZERO,
-                });
-            }
-            if path.stroke_width > 0.0 {
-                let mut paint = skia_safe::Paint::default();
-                paint.set_anti_alias(true);
-                paint.set_style(skia_safe::PaintStyle::Stroke);
-                paint.set_stroke_width(path.stroke_width);
-                paint.set_color(path.stroke_color);
-                paint.set_alpha_f(paint.alpha_f() * path.stroke_opacity);
-                appearance.push(crate::vector_morph::MorphPaintLayer {
-                    paint,
-                    offset: glam::Vec2::ZERO,
-                });
-            }
-            crate::vector_morph::MorphObject {
-                path: crate::vector_morph::skia_path_to_morph(&path.path),
-                appearance,
-            }
-        })
-        .collect();
-        Some(crate::vector_morph::MorphScene {
-            objects,
-            evaluation: self.evaluation.clone(),
-            canvas_size: self.canvas_size,
+        self.prepared_svg.with_dom(|dom| {
+            let mut root = dom.root();
+            root.set_width(skia_safe::svg::Length::new(
+                self.root_width as f32,
+                skia_safe::svg::LengthUnit::PX,
+            ));
+            root.set_height(skia_safe::svg::Length::new(
+                self.root_height as f32,
+                skia_safe::svg::LengthUnit::PX,
+            ));
+            let objects = crate::svg_transition::svg_paths(
+                &root,
+                self.root_width as f32,
+                self.root_height as f32,
+            )
+            .into_iter()
+            .map(|path| {
+                let mut appearance = Vec::new();
+                if path.fill {
+                    let mut paint = skia_safe::Paint::default();
+                    paint.set_anti_alias(true);
+                    paint.set_color(path.fill_color);
+                    paint.set_alpha_f(paint.alpha_f() * path.fill_opacity);
+                    appearance.push(crate::vector_morph::MorphPaintLayer {
+                        paint,
+                        offset: glam::Vec2::ZERO,
+                    });
+                }
+                if path.stroke_width > 0.0 {
+                    let mut paint = skia_safe::Paint::default();
+                    paint.set_anti_alias(true);
+                    paint.set_style(skia_safe::PaintStyle::Stroke);
+                    paint.set_stroke_width(path.stroke_width);
+                    paint.set_color(path.stroke_color);
+                    paint.set_alpha_f(paint.alpha_f() * path.stroke_opacity);
+                    appearance.push(crate::vector_morph::MorphPaintLayer {
+                        paint,
+                        offset: glam::Vec2::ZERO,
+                    });
+                }
+                crate::vector_morph::MorphObject {
+                    path: crate::vector_morph::skia_path_to_morph(&path.path),
+                    appearance,
+                }
+            })
+            .collect();
+            Some(crate::vector_morph::MorphScene {
+                objects,
+                evaluation: self.evaluation.clone(),
+                canvas_size: self.canvas_size,
+            })
         })
     }
 
@@ -268,6 +307,7 @@ impl VisualElement for SvgRenderSession {
         _track_id: Uuid,
         _cache: &mut VisualSourceCache,
     ) -> Result<VisualRender, String> {
+        let source = self.source()?;
         let evaluation = shrimply_evaluation::VisualEvaluation::for_item_with_audio(
             request.project,
             request.item,
@@ -276,8 +316,7 @@ impl VisualElement for SvgRenderSession {
         );
         svg_vector_visual(
             SvgVectorVisualParams {
-                svg: self.svg.clone(),
-                dom: Some(self.dom.clone()),
+                prepared_svg: source,
                 root_size: CanvasSize {
                     width: self.root_width,
                     height: self.root_height,
@@ -294,4 +333,20 @@ impl VisualElement for SvgRenderSession {
         )
         .map(VisualRender::Ready)
     }
+}
+
+fn svg_source_key(
+    snapshot: &AssetSnapshot,
+    color_overrides: &[shrimply_project::project::SvgColorOverride],
+) -> Result<ResourceKey, String> {
+    let mut discriminator = b"svg-source\0".to_vec();
+    discriminator.extend_from_slice(snapshot.cache_key().as_bytes());
+    discriminator.extend_from_slice(
+        &serde_json::to_vec(color_overrides)
+            .map_err(|error| format!("serialize SVG color overrides: {error}"))?,
+    );
+    Ok(ResourceKey::new(
+        snapshot.path().to_path_buf(),
+        discriminator,
+    ))
 }

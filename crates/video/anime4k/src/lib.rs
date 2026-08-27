@@ -1,9 +1,13 @@
 use hashbrown::HashMap;
 use std::sync::Arc;
 
-use cuda_core::{CudaContext, CudaModule, CudaStream, DeviceBuffer, DriverError, LaunchConfig};
+use cuda_core::{
+    CudaContext, CudaModule, CudaStream, DeviceBuffer as CudaDeviceBuffer, DriverError,
+    LaunchConfig,
+};
 use cuda_device::{DisjointSlice, kernel};
 use cuda_host::cuda_launch;
+use shrimply_gpu_memory::GpuBuffer;
 
 mod types;
 use types::{AlphaParams, ConvolutionParams, ConvolutionTerm, ImageDescriptor, MAX_STAGE_INPUTS};
@@ -59,7 +63,7 @@ impl Source {
 }
 
 pub struct UpscaledFrame {
-    pub pixels: DeviceBuffer<u32>,
+    pub pixels: GpuBuffer<u32>,
     pub width: u32,
     pub height: u32,
 }
@@ -345,7 +349,7 @@ impl Workspace {
 }
 
 struct Image {
-    pixels: DeviceBuffer<[f32; 4]>,
+    pixels: GpuBuffer<[f32; 4]>,
     width: u32,
     height: u32,
 }
@@ -398,7 +402,7 @@ struct Stage {
     width_multiplier: u32,
     height_source: String,
     height_multiplier: u32,
-    terms: DeviceBuffer<ConvolutionTerm>,
+    terms: GpuBuffer<ConvolutionTerm>,
     bias: [f32; 4],
     residual: Option<String>,
     result_scale: f32,
@@ -624,7 +628,7 @@ impl Workspace {
         stream: &Arc<CudaStream>,
         config: LaunchConfig,
         args: (*const u8, usize, u32),
-        mut output: &mut DeviceBuffer<[f32; 4]>,
+        mut output: &mut CudaDeviceBuffer<[f32; 4]>,
     ) -> Result<(), DriverError> {
         let (source, pitch, width) = args;
         unsafe {
@@ -643,7 +647,7 @@ impl Workspace {
         stream: &Arc<CudaStream>,
         config: LaunchConfig,
         args: (*const u8, *const u8, usize, usize, u32, u32),
-        mut output: &mut DeviceBuffer<[f32; 4]>,
+        mut output: &mut CudaDeviceBuffer<[f32; 4]>,
     ) -> Result<(), DriverError> {
         let (y, uv, y_pitch, uv_pitch, width, height) = args;
         unsafe {
@@ -662,8 +666,8 @@ impl Workspace {
         stream: &Arc<CudaStream>,
         config: LaunchConfig,
         params: ConvolutionParams,
-        terms: &DeviceBuffer<ConvolutionTerm>,
-        mut output: &mut DeviceBuffer<[f32; 4]>,
+        terms: &CudaDeviceBuffer<ConvolutionTerm>,
+        mut output: &mut CudaDeviceBuffer<[f32; 4]>,
     ) -> Result<(), DriverError> {
         unsafe {
             cuda_launch! {
@@ -683,7 +687,7 @@ impl Workspace {
         convolution_image: ImageDescriptor,
         residual: ImageDescriptor,
         width: u32,
-        mut output: &mut DeviceBuffer<[f32; 4]>,
+        mut output: &mut CudaDeviceBuffer<[f32; 4]>,
     ) -> Result<(), DriverError> {
         unsafe {
             cuda_launch! {
@@ -701,7 +705,7 @@ impl Workspace {
         stream: &Arc<CudaStream>,
         config: LaunchConfig,
         source: *const [f32; 4],
-        mut output: &mut DeviceBuffer<u32>,
+        mut output: &mut CudaDeviceBuffer<u32>,
     ) -> Result<(), DriverError> {
         unsafe {
             cuda_launch! {
@@ -719,7 +723,7 @@ impl Workspace {
         stream: &Arc<CudaStream>,
         config: LaunchConfig,
         args: (*const [f32; 4], *const u8, usize, u32, u32, u32, u32),
-        mut output: &mut DeviceBuffer<u32>,
+        mut output: &mut CudaDeviceBuffer<u32>,
     ) -> Result<(), DriverError> {
         let (source, alpha_source, alpha_pitch, alpha_width, alpha_height, width, height) = args;
         let params = AlphaParams {

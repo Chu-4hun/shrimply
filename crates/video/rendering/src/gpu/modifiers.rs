@@ -4,7 +4,8 @@ use std::{
 };
 
 use cached::{Cached, UnboundCache};
-use cuda_core::{CudaContext, CudaStream, DeviceBuffer, DeviceCopy, memory};
+use cuda_core::{CudaContext, CudaStream, DeviceCopy, memory};
+use shrimply_gpu_memory::GpuBuffer as DeviceBuffer;
 
 use super::{CompositedVideoFrame, VisualFrame};
 

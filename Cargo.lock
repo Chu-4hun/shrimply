@@ -5589,6 +5589,7 @@ dependencies = [
  "shrimply-benchmarking",
  "shrimply-core",
  "shrimply-evaluation",
+ "shrimply-gpu-memory",
  "shrimply-math-color",
  "shrimply-math-core",
  "shrimply-paint-edit",

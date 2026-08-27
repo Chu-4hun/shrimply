@@ -15,6 +15,7 @@ shrimply-benchmarking = { path = "../../benchmarking" }
 shrimply-core = { path = "../../core" }
 shrimply-math-core = { path = "../../math/core" }
 shrimply-evaluation = { path = "../../evaluation" }
+shrimply-gpu-memory = { path = "../../video/gpu-memory" }
 shrimply-paint-edit = { path = "../../paint/paint-edit" }
 shrimply-project = { path = "../../project/project" }
 shrimply-preview-core = { path = "../preview-core" }

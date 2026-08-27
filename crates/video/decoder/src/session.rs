@@ -163,7 +163,7 @@ impl VideoDecoderSession {
             return Ok(DecodeOutcome::Superseded(cached));
         }
         if let Some(frame) = cached_frame(cached.as_ref(), position, self.frame_duration) {
-            shrimply_benchmarking::increment("Video frame cache / Decoder hit");
+            shrimply_benchmarking::increment("Video decoder retained state / Hit");
             return Ok(DecodeOutcome::Frame(Some(frame)));
         }
         if self.decoder_eof && self.position_at_or_after_decoded_end(position) {
@@ -240,7 +240,7 @@ impl VideoDecoderSession {
             return Ok(DecodeOutcome::Superseded(cached));
         }
         if let Some(frame) = cached.as_ref().filter(|frame| frame.0 == position).cloned() {
-            shrimply_benchmarking::increment("Video frame cache / Decoder exact hit");
+            shrimply_benchmarking::increment("Video decoder retained state / Exact hit");
             self.finish_exact(position);
             return Ok(DecodeOutcome::Frame(Some(frame)));
         }

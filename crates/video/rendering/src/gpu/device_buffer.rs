@@ -1,6 +1,7 @@
 use std::mem;
 
-use cuda_core::{CudaContext, CudaStream, DeviceBuffer, memory};
+use cuda_core::{CudaContext, CudaStream, memory};
+use shrimply_gpu_memory::GpuBuffer as DeviceBuffer;
 
 pub(super) fn copy<T>(
     context: &CudaContext,
@@ -9,12 +10,6 @@ pub(super) fn copy<T>(
     spare: Option<DeviceBuffer<T>>,
 ) -> Result<DeviceBuffer<T>, String> {
     let byte_len = mem::size_of_val(data);
-    if byte_len == 0 {
-        return Ok(unsafe {
-            DeviceBuffer::from_raw_parts(0, data.len(), stream.context().clone())
-        });
-    }
-
     context
         .bind_to_thread()
         .map_err(|error| format!("bind CUDA context for params upload: {error:?}"))?;

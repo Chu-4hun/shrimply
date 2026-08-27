@@ -1,4 +1,7 @@
 use cairo::{Context, Format, ImageSurface};
+use std::sync::Mutex;
+use std::sync::mpsc::{Receiver, Sender, sync_channel};
+use std::thread::JoinHandle;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PageSize {
@@ -9,6 +12,61 @@ pub struct PageSize {
 pub struct RenderedPage {
     pub size: PageSize,
     pub rgba: Vec<u8>,
+}
+
+pub struct PreparedDocument {
+    commands: Sender<Command>,
+    worker: Mutex<Option<JoinHandle<()>>>,
+}
+
+enum Command {
+    RenderPage(
+        u32,
+        std::sync::mpsc::SyncSender<Result<RenderedPage, String>>,
+    ),
+    Shutdown,
+}
+
+impl PreparedDocument {
+    pub fn new(bytes: Vec<u8>) -> Result<Self, String> {
+        let (commands, receiver) = std::sync::mpsc::channel();
+        let (initialized, initialization) = sync_channel(1);
+        let worker = std::thread::Builder::new()
+            .name("shrimply-pdf-document".to_string())
+            .spawn(move || document_worker(bytes, receiver, initialized))
+            .map_err(|error| format!("start PDF document worker: {error}"))?;
+        initialization
+            .recv()
+            .map_err(|_| "PDF document worker stopped during initialization".to_string())??;
+        Ok(Self {
+            commands,
+            worker: Mutex::new(Some(worker)),
+        })
+    }
+
+    pub fn render_page(&self, page_index: u32) -> Result<RenderedPage, String> {
+        let (sender, result) = sync_channel(1);
+        self.commands
+            .send(Command::RenderPage(page_index, sender))
+            .map_err(|_| "PDF document worker stopped before rendering".to_string())?;
+        result
+            .recv()
+            .map_err(|_| "PDF document worker stopped while rendering".to_string())?
+    }
+}
+
+impl Drop for PreparedDocument {
+    fn drop(&mut self) {
+        let _ = self.commands.send(Command::Shutdown);
+        if let Some(worker) = self
+            .worker
+            .lock()
+            .expect("PDF document worker mutex poisoned")
+            .take()
+        {
+            let _ = worker.join();
+        }
+    }
 }
 
 pub fn page_sizes(bytes: Vec<u8>) -> Result<Vec<PageSize>, String> {
@@ -30,6 +88,13 @@ pub fn page_sizes(bytes: Vec<u8>) -> Result<Vec<PageSize>, String> {
 
 pub fn render_page(bytes: Vec<u8>, page_index: u32) -> Result<RenderedPage, String> {
     let document = document(bytes)?;
+    render_document_page(&document, page_index)
+}
+
+fn render_document_page(
+    document: &poppler::Document,
+    page_index: u32,
+) -> Result<RenderedPage, String> {
     let page = document
         .page(i32::try_from(page_index).map_err(|_| "PDF page index is too large")?)
         .ok_or_else(|| format!("PDF page {} does not exist", page_index.saturating_add(1)))?;
@@ -71,6 +136,33 @@ pub fn render_page(bytes: Vec<u8>, page_index: u32) -> Result<RenderedPage, Stri
         }
     }
     Ok(RenderedPage { size, rgba })
+}
+
+fn document_worker(
+    bytes: Vec<u8>,
+    commands: Receiver<Command>,
+    initialized: std::sync::mpsc::SyncSender<Result<(), String>>,
+) {
+    let document = match document(bytes) {
+        Ok(document) => {
+            if initialized.send(Ok(())).is_err() {
+                return;
+            }
+            document
+        }
+        Err(error) => {
+            let _ = initialized.send(Err(error));
+            return;
+        }
+    };
+    while let Ok(command) = commands.recv() {
+        match command {
+            Command::RenderPage(page, result) => {
+                let _ = result.send(render_document_page(&document, page));
+            }
+            Command::Shutdown => break,
+        }
+    }
 }
 
 fn document(bytes: Vec<u8>) -> Result<poppler::Document, String> {

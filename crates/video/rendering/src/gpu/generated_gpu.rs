@@ -364,7 +364,9 @@ fn copy_manim_source(
         dstXInBytes: 0,
         dstY: 0,
         dstMemoryType: match destination_memory {
-            Some(cuda_core::MemoryKind::Managed) => sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED,
+            Some(shrimply_gpu_memory::MemoryKind::Managed) => {
+                sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED
+            }
             _ => sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
         },
         dstHost: ptr::null_mut(),

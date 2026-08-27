@@ -4,7 +4,7 @@ use std::sync::mpsc::{Receiver, TryRecvError, sync_channel};
 use std::time::{Duration, Instant};
 
 use crate::gpu::{CudaVideoCompositor, VisualFrame};
-use crate::svg_render::{SvgVectorVisualParams, svg_vector_visual};
+use crate::svg_render::{PreparedSvg, SvgVectorVisualParams, svg_vector_visual};
 use crate::visual_source::VisualSourceCache;
 use crate::visual_source::{
     VisualElement, VisualPrepareRequest, VisualRender, VisualRenderRequest,
@@ -56,10 +56,17 @@ struct VectorizeRequest {
 
 struct VectorizePending {
     key: Vec<u8>,
-    result: Receiver<Result<VectorizedImage, String>>,
+    result: Receiver<Result<VectorizedOutput, String>>,
 }
 
 struct VectorizedImage {
+    key: Vec<u8>,
+    source_key: ResourceKey,
+    width: u32,
+    height: u32,
+}
+
+struct VectorizedOutput {
     key: Vec<u8>,
     svg: String,
     width: u32,
@@ -90,6 +97,12 @@ impl ImageDecodeSession {
         discriminator.extend_from_slice(b"rgba");
         discriminator.push(0);
         discriminator.extend_from_slice(self.snapshot.cache_key().as_bytes());
+        ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
+    }
+
+    fn vectorized_key(&self, key: &[u8]) -> ResourceKey {
+        let mut discriminator = b"vectorized-svg\0".to_vec();
+        discriminator.extend_from_slice(key);
         ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
     }
 
@@ -144,6 +157,11 @@ impl ImageDecodeSession {
             });
         }
         self.poll_vectorization();
+        if self.vectorized.as_ref().is_some_and(|image| {
+            image.key == key && !gpu_memory().contains_resource(&image.source_key)
+        }) {
+            self.vectorized = None;
+        }
         let already_resolved = self
             .vectorized
             .as_ref()
@@ -203,10 +221,34 @@ impl ImageDecodeSession {
             return;
         }
         match result {
-            Ok(image) => {
-                self.width = image.width;
-                self.height = image.height;
-                self.vectorized = Some(image);
+            Ok(output) => {
+                let source_key = self.vectorized_key(&output.key);
+                let source_bytes = u64::try_from(output.svg.len())
+                    .map_err(|_| "vectorized SVG source size exceeds u64".to_string());
+                let prepared = source_bytes.and_then(|bytes| {
+                    PreparedSvg::new(output.svg).map(|prepared| (bytes, prepared))
+                });
+                let (source_bytes, prepared) = match prepared {
+                    Ok(prepared) => prepared,
+                    Err(error) => {
+                        self.vectorize_error = Some((pending.key, error));
+                        return;
+                    }
+                };
+                if let Err(error) =
+                    gpu_memory().insert_resource(source_key.clone(), source_bytes, prepared)
+                {
+                    self.vectorize_error = Some((pending.key, error));
+                    return;
+                }
+                self.width = output.width;
+                self.height = output.height;
+                self.vectorized = Some(VectorizedImage {
+                    key: output.key,
+                    source_key,
+                    width: output.width,
+                    height: output.height,
+                });
                 self.vectorize_error = None;
             }
             Err(error) => self.vectorize_error = Some((pending.key, error)),
@@ -233,10 +275,17 @@ impl ImageDecodeSession {
                 },
             ));
         };
+        let Some(prepared_svg) = gpu_memory().get_resource(&image.source_key)? else {
+            return Ok(VisualRender::Loading(
+                shrimply_project::project::CanvasSize {
+                    width: self.width,
+                    height: self.height,
+                },
+            ));
+        };
         let visual = svg_vector_visual(
             SvgVectorVisualParams {
-                svg: image.svg.clone(),
-                dom: None,
+                prepared_svg,
                 root_size: shrimply_project::project::CanvasSize {
                     width: image.width,
                     height: image.height,
@@ -615,7 +664,7 @@ fn vectorize_image(
     file: &Path,
     modifier: &VectorizeModifier,
     key: Vec<u8>,
-) -> Result<VectorizedImage, String> {
+) -> Result<VectorizedOutput, String> {
     let mut decoded = decode_still_rgba(file)?;
     if modifier.color_mode == VectorizeColorMode::BlackAndWhite {
         for pixel in decoded.pixels.chunks_exact_mut(4) {
@@ -668,7 +717,7 @@ fn vectorize_image(
         .build()
         .and_then(|pipeline| pipeline.to_svg(&image))
         .map_err(|error| format!("could not vectorize {}: {error}", file.display()))?;
-    Ok(VectorizedImage {
+    Ok(VectorizedOutput {
         key,
         svg,
         width: decoded.width,

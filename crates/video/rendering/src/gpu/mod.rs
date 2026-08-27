@@ -6,8 +6,9 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use crate::layer::VideoLayer;
-use cuda_core::{CudaContext, CudaEvent, CudaStream, DeviceBuffer, DeviceCopy, LaunchConfig, sys};
+use cuda_core::{CudaContext, CudaEvent, CudaStream, DeviceCopy, LaunchConfig, sys};
 use ffmpeg_next::{frame as ffmpeg_frame, sys as ffmpeg_sys};
+use shrimply_gpu_memory::GpuBuffer as DeviceBuffer;
 use shrimply_project::project::{CanvasSize, Color};
 use shrimply_render_core::{LayerCompositeParams, math};
 pub use shrimply_visual_frame::VisualFrame;
@@ -26,6 +27,7 @@ pub(crate) mod modifiers;
 pub use frame::{CompositedFrameStorageKey, CompositedVideoFrame};
 
 const DISPLAY_GPU_MEMORY_RESERVE_DIVISOR: u64 = 16;
+const MIGRATE_ALL_REQUIRED_BYTES: u64 = u64::MAX;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ExportPixelFormat {
@@ -811,14 +813,7 @@ impl CudaVideoCompositor {
     }
 
     fn gpu_memory_info(&self) -> Result<(u64, u64), String> {
-        bind_context(&self.context, "bind CUDA context for memory query")?;
-        let mut free = 0;
-        let mut total = 0;
-        cuda_check(
-            unsafe { sys::cuMemGetInfo_v2(&mut free, &mut total) },
-            "cuMemGetInfo",
-        )?;
-        Ok((free as u64, total as u64))
+        gpu_memory_info(&self.context)
     }
 
     fn record_gpu_memory_usage(&self) {
@@ -924,7 +919,7 @@ impl CudaVideoCompositor {
             dstXInBytes: 0,
             dstY: 0,
             dstMemoryType: match destination_memory {
-                Some(cuda_core::MemoryKind::Managed) => {
+                Some(shrimply_gpu_memory::MemoryKind::Managed) => {
                     sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED
                 }
                 _ => sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
@@ -1323,30 +1318,69 @@ fn render_with_generated_gpu<T>(
         ) {
             Ok(output) => return Ok(output),
             Err(error) if is_gpu_oom(&error) && relief_level == 0 => {
-                shrimply_gpu_memory::global().relieve_vram_pressure(context, stream, 0)?;
-                renderer
+                let before = gpu_memory_info(context).ok();
+                let migrated_bytes = shrimply_gpu_memory::global().relieve_vram_pressure(
+                    context,
+                    stream,
+                    MIGRATE_ALL_REQUIRED_BYTES,
+                )?;
+                let released = renderer
                     .as_mut()
                     .expect("generated GPU renderer was initialized")
                     .release_render_surfaces(0)?;
+                let after = gpu_memory_info(context).ok();
+                let recovered_bytes = before
+                    .zip(after)
+                    .map_or(0, |((before, _), (after, _))| after.saturating_sub(before));
+                let telemetry = shrimply_gpu_memory::global().telemetry();
+                let (free, total) = after.unwrap_or_default();
                 relief_level = 1;
                 tracing::warn!(
-                    operation,
+                    allocation_description = operation,
                     %error,
+                    requested_bytes = 0_u64,
+                    allocation_size_known = false,
+                    free_vram_bytes = free,
+                    total_vram_bytes = total,
+                    reserve_bytes = total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR,
+                    managed_bytes = telemetry.managed_bytes,
+                    host_reserved_bytes = telemetry.host_reserved_bytes,
+                    host_budget_bytes = telemetry.host_budget_bytes,
+                    migrated_bytes,
+                    recovered_bytes,
+                    released,
                     relief_level = "managed migration and render surfaces",
                     "retrying generated GPU operation after pressure relief"
                 );
             }
             Err(error) if is_gpu_oom(&error) && relief_level == 1 => {
+                let before = gpu_memory_info(context).ok();
                 let renderer = renderer
                     .as_mut()
                     .expect("generated GPU renderer was initialized");
                 let released_animation = renderer.release_gpu_animation_resources();
                 let released_external = renderer.release_external_gpu_resources();
-                shrimply_gpu_memory::global().note_last_resort_cleanup(0);
+                let after = gpu_memory_info(context).ok();
+                let recovered_bytes = before
+                    .zip(after)
+                    .map_or(0, |((before, _), (after, _))| after.saturating_sub(before));
+                shrimply_gpu_memory::global().note_last_resort_cleanup(recovered_bytes);
+                let telemetry = shrimply_gpu_memory::global().telemetry();
+                let (free, total) = after.unwrap_or_default();
                 relief_level = 2;
                 tracing::warn!(
-                    operation,
+                    allocation_description = operation,
                     %error,
+                    requested_bytes = 0_u64,
+                    allocation_size_known = false,
+                    free_vram_bytes = free,
+                    total_vram_bytes = total,
+                    reserve_bytes = total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR,
+                    managed_bytes = telemetry.managed_bytes,
+                    host_reserved_bytes = telemetry.host_reserved_bytes,
+                    host_budget_bytes = telemetry.host_budget_bytes,
+                    migrated_bytes = 0_u64,
+                    recovered_bytes,
                     released_animation,
                     released_external,
                     relief_level = "GPU animation and external resources",
@@ -1371,6 +1405,17 @@ fn render_with_generated_gpu<T>(
             .expect("generated GPU renderer was reinitialized"),
     )
     .map_err(|retry| format!("{operation} failed after Vulkan reinitialization: {retry}"))
+}
+
+fn gpu_memory_info(context: &Arc<CudaContext>) -> Result<(u64, u64), String> {
+    bind_context(context, "bind CUDA context for memory query")?;
+    let mut free = 0;
+    let mut total = 0;
+    cuda_check(
+        unsafe { sys::cuMemGetInfo_v2(&mut free, &mut total) },
+        "cuMemGetInfo",
+    )?;
+    Ok((free as u64, total as u64))
 }
 
 fn is_gpu_oom(error: &str) -> bool {

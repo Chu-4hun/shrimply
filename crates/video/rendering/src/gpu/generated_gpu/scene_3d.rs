@@ -84,7 +84,7 @@ impl GeneratedGpuRenderer {
             )?;
             let mut copy: sys::CUDA_MEMCPY2D = unsafe { std::mem::zeroed() };
             copy.srcMemoryType = match source.memory_kind(0) {
-                Some(cuda_core::MemoryKind::Managed) => {
+                Some(shrimply_gpu_memory::MemoryKind::Managed) => {
                     sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED
                 }
                 _ => sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
@@ -211,6 +211,9 @@ impl GeneratedGpuRenderer {
                 stream
                     .synchronize()
                     .map_err(|error| format!("synchronize OptiX output: {error:?}"))?;
+                let output = output
+                    .cast_chunks::<u8>()
+                    .map_err(|_| "3D output buffer cannot be viewed as bytes".to_string())?;
                 let plane = VisualPlane {
                     device_ptr: output.cu_deviceptr(),
                     pitch_bytes: width as usize * size_of::<u32>(),
@@ -218,13 +221,13 @@ impl GeneratedGpuRenderer {
                     height: height as usize,
                 };
                 return unsafe {
-                    VisualFrame::from_external_gpu(
+                    VisualFrame::from_owned_gpu_buffers(
                         context,
                         VisualFormat::Rgba8,
                         width,
                         height,
                         &[plane],
-                        Box::new(output),
+                        vec![output],
                     )
                 };
             }

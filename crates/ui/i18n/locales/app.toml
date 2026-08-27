@@ -520,15 +520,15 @@ ja = "履歴"
 "zh-TW" = "紀錄"
 "ko" = "기록"
 
-["Image Pool CPU Budget"]
-en = "Image Pool CPU Budget"
-es = "Presupuesto de CPU para el grupo de imágenes"
-fr = "Budget CPU du cache d’images"
-de = "CPU-Budget des Bildpools"
-ja = "画像プールの CPU 予算"
-"zh-CN" = "图像池 CPU 预算"
-"zh-TW" = "影像池 CPU 預算"
-"ko" = "이미지 풀 CPU 예산"
+["GPU Host Memory Budget"]
+en = "GPU Host Memory Budget"
+es = "Presupuesto de memoria del sistema para la GPU"
+fr = "Budget de mémoire système pour le GPU"
+de = "GPU-Hostspeicherbudget"
+ja = "GPU ホストメモリ予算"
+"zh-CN" = "GPU 主机内存预算"
+"zh-TW" = "GPU 主機記憶體預算"
+"ko" = "GPU 호스트 메모리 예산"
 
 ["Import Kdenlive as Shrimply Project"]
 en = "Import Kdenlive as Shrimply Project"
@@ -1260,15 +1260,15 @@ ja = "再生ヘッド位置ですべてのクリップを分割"
 "zh-TW" = "在播放磁頭處分割所有剪輯"
 "ko" = "재생헤드에서 모든 클립 분할"
 
-["Static image cache in system RAM (GiB)"]
-en = "Static image cache in system RAM (GiB)"
-es = "Caché de imágenes estáticas en la RAM del sistema (GiB)"
-fr = "Cache d’images statiques dans la RAM système (GiB)"
-de = "Cache für statische Bilder im System-RAM (GiB)"
-ja = "システム RAM 内の静止画キャッシュ（GiB）"
-"zh-CN" = "系统 RAM 中的静态图像缓存 (GiB)"
-"zh-TW" = "系統 RAM 中的靜態影像快取 (GiB)"
-"ko" = "시스템 RAM(GiB)의 정적 이미지 캐시"
+["Maximum system RAM available for CUDA spill and reconstructible GPU resources"]
+en = "Maximum system RAM available for CUDA spill and reconstructible GPU resources"
+es = "RAM máxima del sistema disponible para desbordamiento de CUDA y recursos de GPU reconstruibles"
+fr = "RAM système maximale disponible pour le débordement CUDA et les ressources GPU reconstructibles"
+de = "Maximaler System-RAM für CUDA-Auslagerung und rekonstruierbare GPU-Ressourcen"
+ja = "CUDA の退避と再構築可能な GPU リソースに使用できるシステム RAM の上限"
+"zh-CN" = "可用于 CUDA 溢出和可重建 GPU 资源的最大系统内存"
+"zh-TW" = "可用於 CUDA 溢出和可重建 GPU 資源的最大系統記憶體"
+"ko" = "CUDA 스필 및 재구성 가능한 GPU 리소스에 사용할 최대 시스템 RAM"
 
 ["Step playback"]
 en = "Step playback"

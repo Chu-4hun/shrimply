@@ -1,12 +1,11 @@
 use std::any::Any;
 use std::hash::{Hash, Hasher};
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, OnceLock, Weak};
 
-use cuda_core::memory::ManagedLocation;
-use cuda_core::{AllocationTracker, CudaContext, CudaStream, DeviceBuffer, DeviceCopy, sys};
+use cuda_core::{CudaContext, CudaStream, DeviceBuffer, DeviceCopy, sys};
 use hashbrown::{HashMap, HashSet};
 
 const RESERVE_DIVISOR: u64 = 16;
@@ -18,6 +17,18 @@ pub enum AllocationClass {
     Persistent,
     Transient,
     External,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum MemoryKind {
+    Device,
+    Managed,
+}
+
+#[derive(Clone, Copy)]
+enum ManagedLocation {
+    Host,
+    Device(i32),
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -136,7 +147,11 @@ struct AllocationRecord {
     _reservation: Option<HostReservation>,
 }
 
-impl AllocationTracker for AllocationRecord {
+impl AllocationRecord {
+    fn activate(&self) {
+        *self.active.lock().expect("GPU allocation mutex poisoned") = true;
+    }
+
     fn touch(&self) {
         self.last_access
             .store(next_access(&self.shared), Ordering::Release);
@@ -165,8 +180,100 @@ impl Drop for AllocationRecord {
     }
 }
 
+pub struct GpuBuffer<T> {
+    buffer: Option<DeviceBuffer<T>>,
+    record: Arc<AllocationRecord>,
+    memory_kind: MemoryKind,
+}
+
+impl<T> GpuBuffer<T> {
+    fn new(
+        buffer: DeviceBuffer<T>,
+        record: Arc<AllocationRecord>,
+        memory_kind: MemoryKind,
+    ) -> Self {
+        record.activate();
+        Self {
+            buffer: Some(buffer),
+            record,
+            memory_kind,
+        }
+    }
+
+    pub fn cu_deviceptr(&self) -> sys::CUdeviceptr {
+        self.record.touch();
+        self.buffer
+            .as_ref()
+            .expect("GPU buffer ownership was transferred")
+            .cu_deviceptr()
+    }
+
+    pub fn memory_kind(&self) -> MemoryKind {
+        self.memory_kind
+    }
+
+    pub fn cast_elem<A>(mut self) -> GpuBuffer<A> {
+        self.record.deactivate();
+        let buffer = self
+            .buffer
+            .take()
+            .expect("GPU buffer ownership was transferred")
+            .cast_elem();
+        GpuBuffer::new(buffer, self.record.clone(), self.memory_kind)
+    }
+
+    pub fn cast_chunks<A>(mut self) -> Result<GpuBuffer<A>, Self> {
+        self.record.deactivate();
+        let buffer = self
+            .buffer
+            .take()
+            .expect("GPU buffer ownership was transferred");
+        match buffer.cast_chunks() {
+            Ok(buffer) => Ok(GpuBuffer::new(
+                buffer,
+                self.record.clone(),
+                self.memory_kind,
+            )),
+            Err(buffer) => {
+                self.buffer = Some(buffer);
+                self.record.activate();
+                Err(self)
+            }
+        }
+    }
+}
+
+impl<T> Deref for GpuBuffer<T> {
+    type Target = DeviceBuffer<T>;
+
+    fn deref(&self) -> &Self::Target {
+        self.record.touch();
+        self.buffer
+            .as_ref()
+            .expect("GPU buffer ownership was transferred")
+    }
+}
+
+impl<T> DerefMut for GpuBuffer<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.record.touch();
+        self.buffer
+            .as_mut()
+            .expect("GPU buffer ownership was transferred")
+    }
+}
+
+impl<T> Drop for GpuBuffer<T> {
+    fn drop(&mut self) {
+        if self.buffer.is_some() {
+            self.record.deactivate();
+        }
+    }
+}
+
 struct ResourceEntry {
     value: Box<dyn Any + Send + Sync>,
+    lease: Weak<()>,
     last_access: u64,
     retained: bool,
 }
@@ -178,12 +285,14 @@ struct ResourceValue<T> {
 
 pub struct ResidentResource<T> {
     value: Arc<ResourceValue<T>>,
+    lease: Arc<()>,
 }
 
 impl<T> Clone for ResidentResource<T> {
     fn clone(&self) -> Self {
         Self {
             value: self.value.clone(),
+            lease: self.lease.clone(),
         }
     }
 }
@@ -244,7 +353,7 @@ impl GpuMemoryManager {
         length: usize,
         class: AllocationClass,
         description: impl Into<String>,
-    ) -> Result<DeviceBuffer<T>, String> {
+    ) -> Result<GpuBuffer<T>, String> {
         let description = description.into();
         stream
             .context()
@@ -255,8 +364,11 @@ impl GpuMemoryManager {
             .and_then(|bytes| u64::try_from(bytes).ok())
             .ok_or_else(|| format!("{description}: allocation byte size overflow"))?;
         if bytes == 0 {
-            return DeviceBuffer::zeroed(stream, length)
-                .map_err(|error| format!("{description}: {error}"));
+            let buffer = DeviceBuffer::zeroed(stream, length)
+                .map_err(|error| format!("{description}: {error}"))?;
+            let record = self.record(stream, class, &description, 0, false, None);
+            *record.active.lock().expect("GPU allocation mutex poisoned") = true;
+            return Ok(GpuBuffer::new(buffer, record, MemoryKind::Device));
         }
         let (free, total) = memory_info()?;
         let reserve = total / RESERVE_DIVISOR;
@@ -362,18 +474,17 @@ impl GpuMemoryManager {
         class: AllocationClass,
         description: &str,
         bytes: u64,
-    ) -> Result<DeviceBuffer<T>, String> {
+    ) -> Result<GpuBuffer<T>, String> {
         let record = self.record(stream, class, description, bytes, false, None);
-        let tracker: Arc<dyn AllocationTracker> = record.clone();
-        let buffer = DeviceBuffer::zeroed_tracked(stream, length, tracker)
+        let buffer = DeviceBuffer::zeroed(stream, length)
             .map_err(|error| format!("allocate {description} in device memory: {error}"))?;
         record.ptr.store(buffer.cu_deviceptr(), Ordering::Release);
         record.counted.store(true, Ordering::Release);
         *record.active.lock().expect("GPU allocation mutex poisoned") = true;
         self.shared.device_local.fetch_add(bytes, Ordering::AcqRel);
-        self.register(record);
+        self.register(&record);
         publish_telemetry(&self.shared);
-        Ok(buffer)
+        Ok(GpuBuffer::new(buffer, record, MemoryKind::Device))
     }
 
     fn allocate_managed<T: DeviceCopy>(
@@ -384,12 +495,25 @@ impl GpuMemoryManager {
         description: &str,
         bytes: u64,
         prefer_host: bool,
-    ) -> Result<DeviceBuffer<T>, String> {
+    ) -> Result<GpuBuffer<T>, String> {
         let reservation = self.reserve_host(bytes)?;
         let record = self.record(stream, class, description, bytes, true, Some(reservation));
-        let tracker: Arc<dyn AllocationTracker> = record.clone();
-        let buffer = DeviceBuffer::zeroed_managed(stream, length, tracker)
-            .map_err(|error| format!("allocate {description} as managed memory: {error}"))?;
+        let mut ptr = 0;
+        let result = unsafe {
+            sys::cuMemAllocManaged(
+                &mut ptr,
+                usize::try_from(bytes)
+                    .map_err(|_| format!("{description}: managed allocation exceeds usize"))?,
+                sys::CUmemAttach_flags_enum_CU_MEM_ATTACH_GLOBAL,
+            )
+        };
+        if result != sys::cudaError_enum_CUDA_SUCCESS {
+            return Err(format!(
+                "allocate {description} as managed memory: {result:?}"
+            ));
+        }
+        let buffer = unsafe { DeviceBuffer::from_raw_parts(ptr, length, stream.context().clone()) };
+        unsafe { std::ptr::write_bytes(ptr as *mut u8, 0, bytes as usize) };
         let ptr = buffer.cu_deviceptr();
         let location = if prefer_host {
             ManagedLocation::Host
@@ -399,18 +523,11 @@ impl GpuMemoryManager {
                     .map_err(|_| "CUDA device ordinal exceeds i32".to_string())?,
             )
         };
-        unsafe { cuda_core::memory::advise_preferred_location(ptr, bytes as usize, location) }
+        unsafe { advise_preferred_location(ptr, bytes as usize, location) }
             .map_err(|error| format!("advise {description} managed location: {error}"))?;
         if !prefer_host {
-            unsafe {
-                cuda_core::memory::prefetch_managed_async(
-                    ptr,
-                    bytes as usize,
-                    location,
-                    stream.cu_stream(),
-                )
-            }
-            .map_err(|error| format!("prefetch {description} to GPU: {error}"))?;
+            unsafe { prefetch_managed_async(ptr, bytes as usize, location, stream.cu_stream()) }
+                .map_err(|error| format!("prefetch {description} to GPU: {error}"))?;
             self.shared
                 .prefetched_gpu
                 .fetch_add(bytes, Ordering::AcqRel);
@@ -438,9 +555,9 @@ impl GpuMemoryManager {
         self.shared
             .managed_allocations
             .fetch_add(1, Ordering::AcqRel);
-        self.register(record);
+        self.register(&record);
         publish_telemetry(&self.shared);
-        Ok(buffer)
+        Ok(GpuBuffer::new(buffer, record, MemoryKind::Managed))
     }
 
     fn record(
@@ -470,14 +587,14 @@ impl GpuMemoryManager {
         })
     }
 
-    fn register(&self, record: Arc<AllocationRecord>) {
+    fn register(&self, record: &Arc<AllocationRecord>) {
         let mut allocations = self
             .shared
             .allocations
             .lock()
             .expect("GPU allocation registry mutex poisoned");
         allocations.retain(|allocation| allocation.strong_count() != 0);
-        allocations.push(Arc::downgrade(&record));
+        allocations.push(Arc::downgrade(record));
     }
 
     pub fn relieve_vram_pressure(
@@ -503,7 +620,6 @@ impl GpuMemoryManager {
             .filter_map(Weak::upgrade)
             .filter(|record| {
                 record.managed
-                    && record.class == AllocationClass::Persistent
                     && record.device_ordinal == context.ordinal()
                     && record.context_handle == context.cu_ctx() as usize
                     && record.residency.load(Ordering::Acquire) == RESIDENCY_DEVICE
@@ -512,7 +628,7 @@ impl GpuMemoryManager {
         candidates.sort_by_key(|record| record.last_access.load(Ordering::Acquire));
         let mut migrated = 0_u64;
         for record in candidates {
-            let (free, _) = memory_info()?;
+            let (free, total) = memory_info()?;
             if free >= target.saturating_add(required_bytes) {
                 break;
             }
@@ -521,15 +637,20 @@ impl GpuMemoryManager {
                 continue;
             }
             let ptr = record.ptr.load(Ordering::Acquire);
+            let telemetry = self.telemetry();
             if let Err(error) = unsafe {
-                cuda_core::memory::advise_preferred_location(
-                    ptr,
-                    record.bytes as usize,
-                    ManagedLocation::Host,
-                )
+                advise_preferred_location(ptr, record.bytes as usize, ManagedLocation::Host)
             } {
                 tracing::warn!(
                     allocation_description = record.description,
+                    requested_bytes = required_bytes,
+                    free_vram_bytes = free,
+                    total_vram_bytes = total,
+                    reserve_bytes = target,
+                    managed_bytes = telemetry.managed_bytes,
+                    host_reserved_bytes = telemetry.host_reserved_bytes,
+                    host_budget_bytes = telemetry.host_budget_bytes,
+                    migrated_bytes = migrated,
                     ?error,
                     relief_level = "managed migration unavailable",
                     "could not advise a managed CUDA range for host migration"
@@ -538,7 +659,7 @@ impl GpuMemoryManager {
             }
             record.advice.store(RESIDENCY_HOST, Ordering::Release);
             if let Err(error) = unsafe {
-                cuda_core::memory::prefetch_managed_async(
+                prefetch_managed_async(
                     ptr,
                     record.bytes as usize,
                     ManagedLocation::Host,
@@ -547,6 +668,14 @@ impl GpuMemoryManager {
             } {
                 tracing::warn!(
                     allocation_description = record.description,
+                    requested_bytes = required_bytes,
+                    free_vram_bytes = free,
+                    total_vram_bytes = total,
+                    reserve_bytes = target,
+                    managed_bytes = telemetry.managed_bytes,
+                    host_reserved_bytes = telemetry.host_reserved_bytes,
+                    host_budget_bytes = telemetry.host_budget_bytes,
+                    migrated_bytes = migrated,
                     ?error,
                     relief_level = "managed migration unavailable",
                     "could not prefetch a managed CUDA range to host memory"
@@ -556,6 +685,14 @@ impl GpuMemoryManager {
             if let Err(error) = stream.synchronize() {
                 tracing::warn!(
                     allocation_description = record.description,
+                    requested_bytes = required_bytes,
+                    free_vram_bytes = free,
+                    total_vram_bytes = total,
+                    reserve_bytes = target,
+                    managed_bytes = telemetry.managed_bytes,
+                    host_reserved_bytes = telemetry.host_reserved_bytes,
+                    host_budget_bytes = telemetry.host_budget_bytes,
+                    migrated_bytes = migrated,
                     ?error,
                     relief_level = "managed migration unavailable",
                     "could not finish a managed CUDA range migration"
@@ -574,6 +711,12 @@ impl GpuMemoryManager {
                 allocation_description = record.description,
                 allocation_class = ?record.class,
                 requested_bytes = required_bytes,
+                free_vram_bytes = free,
+                total_vram_bytes = total,
+                reserve_bytes = target,
+                managed_bytes = telemetry.managed_bytes,
+                host_reserved_bytes = telemetry.host_reserved_bytes,
+                host_budget_bytes = telemetry.host_budget_bytes,
                 managed_range_bytes = record.bytes,
                 migrated_bytes = migrated,
                 relief_level = "managed migration",
@@ -727,11 +870,13 @@ impl GpuMemoryManager {
     ) -> Result<(), String> {
         let reservation = self.reserve_host(bytes).ok();
         let retained = reservation.is_some();
+        let lease = Arc::new(());
         let value = ResidentResource {
             value: Arc::new(ResourceValue {
                 value,
                 _reservation: reservation,
             }),
+            lease: lease.clone(),
         };
         let mut state = self
             .shared
@@ -744,6 +889,7 @@ impl GpuMemoryManager {
             key,
             ResourceEntry {
                 value: Box::new(value),
+                lease: Arc::downgrade(&lease),
                 last_access: next_access(&self.shared),
                 retained,
             },
@@ -768,6 +914,7 @@ impl GpuMemoryManager {
         let Some(key) = state
             .entries
             .iter()
+            .filter(|(_, entry)| entry.retained && entry.lease.strong_count() == 1)
             .min_by_key(|(_, entry)| entry.last_access)
             .map(|(key, _)| key.clone())
         else {
@@ -841,6 +988,83 @@ fn memory_info() -> Result<(u64, u64), String> {
         return Err(format!("query CUDA memory availability: {result:?}"));
     }
     Ok((free as u64, total as u64))
+}
+
+unsafe fn advise_preferred_location(
+    pointer: sys::CUdeviceptr,
+    bytes: usize,
+    location: ManagedLocation,
+) -> Result<(), String> {
+    #[cfg(cuda_uses_mem_location)]
+    let result = unsafe {
+        sys::cuMemAdvise_v2(
+            pointer,
+            bytes,
+            sys::CUmem_advise_enum_CU_MEM_ADVISE_SET_PREFERRED_LOCATION,
+            managed_location(location),
+        )
+    };
+    #[cfg(not(cuda_uses_mem_location))]
+    let result = unsafe {
+        sys::cuMemAdvise(
+            pointer,
+            bytes,
+            sys::CUmem_advise_enum_CU_MEM_ADVISE_SET_PREFERRED_LOCATION,
+            match location {
+                ManagedLocation::Host => -1,
+                ManagedLocation::Device(device) => device,
+            },
+        )
+    };
+    if result == sys::cudaError_enum_CUDA_SUCCESS {
+        Ok(())
+    } else {
+        Err(format!("{result:?}"))
+    }
+}
+
+unsafe fn prefetch_managed_async(
+    pointer: sys::CUdeviceptr,
+    bytes: usize,
+    location: ManagedLocation,
+    stream: sys::CUstream,
+) -> Result<(), String> {
+    #[cfg(cuda_uses_mem_location)]
+    let result = unsafe {
+        sys::cuMemPrefetchAsync_v2(pointer, bytes, managed_location(location), 0, stream)
+    };
+    #[cfg(not(cuda_uses_mem_location))]
+    let result = unsafe {
+        sys::cuMemPrefetchAsync(
+            pointer,
+            bytes,
+            match location {
+                ManagedLocation::Host => -1,
+                ManagedLocation::Device(device) => device,
+            },
+            stream,
+        )
+    };
+    if result == sys::cudaError_enum_CUDA_SUCCESS {
+        Ok(())
+    } else {
+        Err(format!("{result:?}"))
+    }
+}
+
+#[cfg(cuda_uses_mem_location)]
+fn managed_location(location: ManagedLocation) -> sys::CUmemLocation {
+    let (type_, id) = match location {
+        ManagedLocation::Host => (sys::CUmemLocationType_enum_CU_MEM_LOCATION_TYPE_HOST, 0),
+        ManagedLocation::Device(device) => (
+            sys::CUmemLocationType_enum_CU_MEM_LOCATION_TYPE_DEVICE,
+            device,
+        ),
+    };
+    sys::CUmemLocation {
+        type_,
+        __bindgen_anon_1: sys::CUmemLocation_st__bindgen_ty_1 { id },
+    }
 }
 
 fn next_access(shared: &Shared) -> u64 {

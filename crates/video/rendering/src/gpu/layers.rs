@@ -205,7 +205,7 @@ pub(super) fn apply_anime4k(
     prepared: &mut PreparedLayers,
     workspace: &mut shrimply_anime4k::Workspace,
     stream: &std::sync::Arc<cuda_core::CudaStream>,
-) -> Result<Vec<cuda_core::DeviceBuffer<u32>>, String> {
+) -> Result<Vec<shrimply_gpu_memory::GpuBuffer<u32>>, String> {
     let mut buffers = Vec::with_capacity(prepared.anime4k.len());
     for request in &prepared.anime4k {
         let params = &mut prepared.params[request.param_index];

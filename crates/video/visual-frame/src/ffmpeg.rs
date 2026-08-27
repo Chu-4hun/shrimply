@@ -61,8 +61,12 @@ impl TryFrom<&ffmpeg_next::frame::Video> for VisualFrame {
                 .memory_kind(index)
                 .expect("video VisualFrame lost allocation metadata")
             {
-                cuda_core::MemoryKind::Device => cuda_sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
-                cuda_core::MemoryKind::Managed => cuda_sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED,
+                shrimply_gpu_memory::MemoryKind::Device => {
+                    cuda_sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE
+                }
+                shrimply_gpu_memory::MemoryKind::Managed => {
+                    cuda_sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED
+                }
             };
             let destination = frame
                 .plane(index)
@@ -136,11 +140,11 @@ fn cuda_plane_layout(
     let bytes_per_sample = match format {
         sys::AVPixelFormat::AV_PIX_FMT_NV12 => 1,
         sys::AVPixelFormat::AV_PIX_FMT_P010LE => 2,
-        _ => return Err(format!("unsupported cached CUDA frame format {format:?}")),
+        _ => return Err(format!("unsupported retained CUDA frame format {format:?}")),
     };
     let row_bytes = (width as usize)
         .checked_mul(bytes_per_sample)
-        .ok_or("cached frame row size overflow")?;
+        .ok_or("retained frame row size overflow")?;
     Ok((
         [row_bytes, row_bytes],
         [height as usize, height.div_ceil(2) as usize],
@@ -151,7 +155,7 @@ fn visual_format(format: sys::AVPixelFormat) -> Result<VisualFormat, String> {
     match format {
         sys::AVPixelFormat::AV_PIX_FMT_NV12 => Ok(VisualFormat::Nv12),
         sys::AVPixelFormat::AV_PIX_FMT_P010LE => Ok(VisualFormat::P010),
-        _ => Err(format!("unsupported cached CUDA frame format {format:?}")),
+        _ => Err(format!("unsupported retained CUDA frame format {format:?}")),
     }
 }
 

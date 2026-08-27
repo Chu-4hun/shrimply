@@ -2,8 +2,10 @@ use std::any::Any;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use cuda_core::{CudaContext, DeviceBuffer, MemoryKind, sys};
+use cuda_core::{CudaContext, sys};
 use shrimply_gpu_memory::AllocationClass;
+use shrimply_gpu_memory::GpuBuffer;
+pub use shrimply_gpu_memory::MemoryKind;
 
 mod ffmpeg;
 
@@ -59,7 +61,7 @@ struct GpuStorage {
 }
 
 enum GpuOwner {
-    Oxide { buffers: Vec<DeviceBuffer<u8>> },
+    Oxide { buffers: Vec<GpuBuffer<u8>> },
     External { _owner: Box<dyn Any + Send + Sync> },
 }
 
@@ -315,7 +317,7 @@ impl VisualFrame {
         width: u32,
         height: u32,
         planes: &[VisualPlane],
-        buffers: Vec<DeviceBuffer<u8>>,
+        buffers: Vec<GpuBuffer<u8>>,
     ) -> Result<Self, String> {
         if buffers.len() != planes.len()
             || buffers.iter().zip(planes).any(|(buffer, plane)| {
@@ -330,7 +332,7 @@ impl VisualFrame {
         }
         let memory_kinds = buffers
             .iter()
-            .map(DeviceBuffer::memory_kind)
+            .map(GpuBuffer::memory_kind)
             .collect::<Vec<_>>();
         Self::from_gpu_planes(
             context,

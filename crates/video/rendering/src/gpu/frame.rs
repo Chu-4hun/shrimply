@@ -1,4 +1,5 @@
-use cuda_core::{DeviceBuffer, sys};
+use cuda_core::sys;
+use shrimply_gpu_memory::GpuBuffer as DeviceBuffer;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct CompositedFrameStorageKey {

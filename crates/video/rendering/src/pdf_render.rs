@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::sync::mpsc::{Receiver, TryRecvError, sync_channel};
 
 use shrimply_asset::{Asset, AssetSnapshot};
 use shrimply_gpu_memory::{ResourceKey, global as gpu_memory};
@@ -17,6 +18,7 @@ pub struct PdfRenderSession {
     page: u32,
     width: u32,
     height: u32,
+    page_pending: Option<Receiver<Result<VisualFrame, String>>>,
 }
 
 impl PdfRenderSession {
@@ -30,43 +32,82 @@ impl PdfRenderSession {
             page: pdf.page,
             width: item.source_width.max(1),
             height: item.source_height.max(1),
+            page_pending: None,
         })
     }
 
-    fn image_key(&self) -> ResourceKey {
+    fn document_key(&self) -> ResourceKey {
         let mut discriminator = Vec::new();
-        discriminator.extend_from_slice(b"pdf-rgba\0");
+        discriminator.extend_from_slice(b"pdf-document\0");
         discriminator.extend_from_slice(self.snapshot.cache_key().as_bytes());
-        discriminator.extend_from_slice(&self.page.to_le_bytes());
-        discriminator.extend_from_slice(&self.width.to_le_bytes());
-        discriminator.extend_from_slice(&self.height.to_le_bytes());
         ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
     }
 
-    fn request_page(&self) {
-        let key = self.image_key();
+    fn request_document(&self) {
+        let key = self.document_key();
         if !gpu_memory().begin_resource_load(key.clone()) {
             return;
         }
         let file = self.file.clone();
         let snapshot = self.snapshot.clone();
-        let page = self.page;
         rayon::spawn(move || {
             let result = snapshot.read().and_then(|bytes| {
-                let rendered = shrimply_pdf::render_page(bytes, page)?;
+                let source_bytes = u64::try_from(bytes.len())
+                    .map_err(|_| "PDF source size exceeds u64".to_string())?;
+                let document = shrimply_pdf::PreparedDocument::new(bytes)?;
                 snapshot.ensure_current()?;
+                Ok((source_bytes, document))
+            });
+            let (bytes, result) = match result {
+                Ok((bytes, document)) => (bytes, Ok(document)),
+                Err(error) => (0, Err(error)),
+            };
+            if let Err(error) = gpu_memory().finish_resource_load(key, bytes, result) {
+                tracing::error!(file = %file.display(), %error, "could not finish preparing PDF source");
+            }
+        });
+        shrimply_benchmarking::increment("PDF source residency / Miss");
+    }
+
+    fn request_page(&mut self) -> Result<(), String> {
+        if self.page_pending.is_some() {
+            return Ok(());
+        }
+        let Some(document) =
+            gpu_memory().get_resource::<shrimply_pdf::PreparedDocument>(&self.document_key())?
+        else {
+            self.request_document();
+            return Ok(());
+        };
+        let page = self.page;
+        let (sender, result) = sync_channel(1);
+        self.page_pending = Some(result);
+        rayon::spawn(move || {
+            let result = document.render_page(page).and_then(|rendered| {
                 VisualFrame::from_rgba_bytes(
                     rendered.size.width,
                     rendered.size.height,
                     rendered.rgba,
                 )
             });
-            let bytes = result.as_ref().map_or(0, VisualFrame::bytes);
-            if let Err(error) = gpu_memory().finish_resource_load(key, bytes, result) {
-                tracing::error!(file = %file.display(), %error, "could not finish loading PDF page");
-            }
+            let _ = sender.send(result);
         });
-        shrimply_benchmarking::increment("PDF raster cache / Miss");
+        Ok(())
+    }
+
+    fn rendered_page(&mut self) -> Result<Option<VisualFrame>, String> {
+        let Some(pending) = &self.page_pending else {
+            return Ok(None);
+        };
+        let result = match pending.try_recv() {
+            Ok(result) => result,
+            Err(TryRecvError::Empty) => return Ok(None),
+            Err(TryRecvError::Disconnected) => {
+                Err("PDF page renderer stopped unexpectedly".to_string())
+            }
+        };
+        self.page_pending = None;
+        result.map(Some)
     }
 }
 
@@ -88,8 +129,7 @@ impl VisualElement for PdfRenderSession {
         _track_id: Uuid,
         _cache: &mut VisualSourceCache,
     ) -> Result<(), String> {
-        self.request_page();
-        Ok(())
+        self.request_page()
     }
 
     fn draw(
@@ -99,14 +139,14 @@ impl VisualElement for PdfRenderSession {
         _track_id: Uuid,
         _cache: &mut VisualSourceCache,
     ) -> Result<VisualRender, String> {
-        if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.image_key())? {
-            shrimply_benchmarking::increment("PDF raster cache / Hit");
+        if let Some(frame) = self.rendered_page()? {
+            shrimply_benchmarking::increment("PDF source residency / Hit");
             let frame = Rc::new(compositor.upload_frame(&frame)?);
             return Ok(VisualRender::Ready(Visual::Raster(
                 RasterVisual::materialized(GpuFrame::Rgba(frame), request.state),
             )));
         }
-        self.request_page();
+        self.request_page()?;
         Ok(VisualRender::Loading(CanvasSize {
             width: self.width,
             height: self.height,

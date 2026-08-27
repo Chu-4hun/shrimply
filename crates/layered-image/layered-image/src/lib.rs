@@ -1,13 +1,9 @@
 use hashbrown::HashMap;
-use std::sync::{Arc, Mutex, OnceLock};
+use std::sync::Arc;
 
-use shrimply_asset::{Asset, AssetSnapshot};
+use shrimply_asset::Asset;
 
 pub use shrimply_render_core::LayerBlendMode as BlendMode;
-
-const MEBIBYTE: usize = 1024 * 1024;
-const DECODED_IMAGE_CACHE_BYTE_LIMIT: usize = 1024 * MEBIBYTE;
-const DECODED_IMAGE_CACHE_MAX_ENTRIES: usize = 64;
 
 pub struct LayeredImage {
     pub width: u32,
@@ -45,71 +41,9 @@ pub struct LayerEntry {
     pub group: bool,
 }
 
-struct CachedImage {
-    image: Arc<LayeredImage>,
-    bytes: usize,
-    last_used: u64,
-}
-
-#[derive(Default)]
-struct ImageCache {
-    images: HashMap<AssetSnapshot, CachedImage>,
-    bytes: usize,
-    clock: u64,
-}
-
-impl ImageCache {
-    fn get(&mut self, snapshot: &AssetSnapshot) -> Option<Arc<LayeredImage>> {
-        self.clock = self.clock.wrapping_add(1);
-        let cached = self.images.get_mut(snapshot)?;
-        cached.last_used = self.clock;
-        Some(cached.image.clone())
-    }
-
-    fn insert(&mut self, snapshot: AssetSnapshot, image: Arc<LayeredImage>) {
-        if let Some(previous) = self.images.remove(&snapshot) {
-            self.bytes = self.bytes.saturating_sub(previous.bytes);
-        }
-        self.clock = self.clock.wrapping_add(1);
-        let bytes = decoded_bytes(&image);
-        self.bytes = self.bytes.saturating_add(bytes);
-        self.images.insert(
-            snapshot,
-            CachedImage {
-                image,
-                bytes,
-                last_used: self.clock,
-            },
-        );
-        while self.images.len() > 1
-            && (self.images.len() > DECODED_IMAGE_CACHE_MAX_ENTRIES
-                || self.bytes > DECODED_IMAGE_CACHE_BYTE_LIMIT)
-        {
-            let oldest = self
-                .images
-                .iter()
-                .min_by_key(|(_, cached)| cached.last_used)
-                .map(|(path, _)| path.clone())
-                .expect("decoded image cache was not empty");
-            let evicted = self.images.remove(&oldest).expect("oldest image existed");
-            self.bytes = self.bytes.saturating_sub(evicted.bytes);
-        }
-    }
-}
-
-static IMAGE_CACHE: OnceLock<Mutex<ImageCache>> = OnceLock::new();
-
 pub fn load(source: impl Into<Asset>) -> Result<Arc<LayeredImage>, String> {
     let asset = source.into();
     let snapshot = asset.snapshot()?;
-    if let Some(image) = IMAGE_CACHE
-        .get_or_init(Default::default)
-        .lock()
-        .expect("layered image cache mutex poisoned")
-        .get(&snapshot)
-    {
-        return Ok(image);
-    }
     let bytes = snapshot.read()?;
     let extension = asset
         .extension()
@@ -126,21 +60,8 @@ pub fn load(source: impl Into<Asset>) -> Result<Arc<LayeredImage>, String> {
     } else {
         Err(format!("unsupported layered image extension {extension:?}",))
     }?;
-    let image = Arc::new(image);
-    IMAGE_CACHE
-        .get_or_init(Default::default)
-        .lock()
-        .expect("layered image cache mutex poisoned")
-        .insert(snapshot, image.clone());
-    Ok(image)
-}
-
-fn decoded_bytes(image: &LayeredImage) -> usize {
-    image
-        .layers
-        .iter()
-        .map(|layer| layer.rgba.len())
-        .fold(0, usize::saturating_add)
+    snapshot.verify_current()?;
+    Ok(Arc::new(image))
 }
 
 fn from_psd(document: psd_parser::Document) -> Result<LayeredImage, String> {
