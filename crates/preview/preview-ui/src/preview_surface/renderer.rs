@@ -4,6 +4,7 @@ use shrimply_math_color::Color;
 
 use crate::cuda_gl::CudaTexture;
 use crate::gl_loader;
+use crate::preferences::store::{PreviewDownsampleMethod, PreviewUpsampleMethod};
 use crate::timeline::renderer::{Rect, TimelinePainter, TimelineRenderer};
 use crate::video::gpu::{CompositedFrameStorageKey, CompositedVideoFrame};
 
@@ -12,6 +13,8 @@ pub(super) struct Appearance {
     pub content_rect: Rect,
     pub shadow_size_px: u32,
     pub background_color: Color,
+    pub upsample_method: PreviewUpsampleMethod,
+    pub downsample_method: PreviewDownsampleMethod,
 }
 
 pub(super) struct VideoRenderer {
@@ -24,6 +27,7 @@ pub(super) struct VideoRenderer {
     texture_width: u32,
     texture_height: u32,
     last_frame_key: Option<CompositedFrameStorageKey>,
+    mipmapped_frame_key: Option<CompositedFrameStorageKey>,
     has_frame_uniform: Option<glow::NativeUniformLocation>,
     surface_size_uniform: Option<glow::NativeUniformLocation>,
     content_rect_uniform: Option<glow::NativeUniformLocation>,
@@ -60,6 +64,7 @@ impl VideoRenderer {
                 texture_width: 0,
                 texture_height: 0,
                 last_frame_key: None,
+                mipmapped_frame_key: None,
                 has_frame_uniform,
                 surface_size_uniform,
                 content_rect_uniform,
@@ -117,6 +122,7 @@ impl VideoRenderer {
             if let Some(frame) = frame {
                 self.upload_frame(frame)?;
             }
+            self.set_sampling(appearance.upsample_method, appearance.downsample_method);
             self.gl.disable(glow::BLEND);
             self.gl
                 .uniform_1_i32(self.has_frame_uniform.as_ref(), i32::from(frame.is_some()));
@@ -158,6 +164,39 @@ impl VideoRenderer {
         Ok(())
     }
 
+    fn set_sampling(
+        &mut self,
+        upsample_method: PreviewUpsampleMethod,
+        downsample_method: PreviewDownsampleMethod,
+    ) {
+        unsafe {
+            self.gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MAG_FILTER,
+                match upsample_method {
+                    PreviewUpsampleMethod::Nearest => glow::NEAREST,
+                    PreviewUpsampleMethod::Bilinear => glow::LINEAR,
+                } as i32,
+            );
+            self.gl.tex_parameter_i32(
+                glow::TEXTURE_2D,
+                glow::TEXTURE_MIN_FILTER,
+                match downsample_method {
+                    PreviewDownsampleMethod::Nearest => glow::NEAREST,
+                    PreviewDownsampleMethod::Bilinear => glow::LINEAR,
+                    PreviewDownsampleMethod::Trilinear => glow::LINEAR_MIPMAP_LINEAR,
+                } as i32,
+            );
+            if matches!(downsample_method, PreviewDownsampleMethod::Trilinear)
+                && self.last_frame_key.is_some()
+                && self.mipmapped_frame_key != self.last_frame_key
+            {
+                self.gl.generate_mipmap(glow::TEXTURE_2D);
+                self.mipmapped_frame_key = self.last_frame_key;
+            }
+        }
+    }
+
     fn ensure_texture(&mut self, frame: &CompositedVideoFrame) -> Result<(), String> {
         let cuda_context = frame.buffer.context().cu_ctx();
         if self.texture_width == frame.width
@@ -192,6 +231,7 @@ impl VideoRenderer {
         self.texture_width = frame.width;
         self.texture_height = frame.height;
         self.last_frame_key = None;
+        self.mipmapped_frame_key = None;
         Ok(())
     }
 

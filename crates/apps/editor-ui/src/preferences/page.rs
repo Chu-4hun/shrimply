@@ -82,10 +82,45 @@ pub fn show_preferences_dialog(
     preview_shadow_size.set_value(f64::from(snapshot.preview_shadow_size_px));
     preview_shadow_size.set_digits(0);
 
+    let preview_upsample_method = adw::ComboRow::new();
+    preview_upsample_method.set_title(tr!("Preview Upsample Method").as_ref());
+    preview_upsample_method
+        .set_subtitle(tr!("Filter used when the preview is larger than the video").as_ref());
+    let upsample_labels = [tr!("Nearest"), tr!("Bilinear")];
+    preview_upsample_method.set_model(Some(&gtk::StringList::new(
+        &upsample_labels
+            .iter()
+            .map(AsRef::as_ref)
+            .collect::<Vec<_>>(),
+    )));
+    preview_upsample_method.set_selected(match snapshot.preview_upsample_method {
+        preferences_store::PreviewUpsampleMethod::Nearest => 0,
+        preferences_store::PreviewUpsampleMethod::Bilinear => 1,
+    });
+
+    let preview_downsample_method = adw::ComboRow::new();
+    preview_downsample_method.set_title(tr!("Preview Downsample Method").as_ref());
+    preview_downsample_method
+        .set_subtitle(tr!("Filter used when the preview is smaller than the video").as_ref());
+    let downsample_labels = [tr!("Nearest"), tr!("Bilinear"), tr!("Trilinear")];
+    preview_downsample_method.set_model(Some(&gtk::StringList::new(
+        &downsample_labels
+            .iter()
+            .map(AsRef::as_ref)
+            .collect::<Vec<_>>(),
+    )));
+    preview_downsample_method.set_selected(match snapshot.preview_downsample_method {
+        preferences_store::PreviewDownsampleMethod::Nearest => 0,
+        preferences_store::PreviewDownsampleMethod::Bilinear => 1,
+        preferences_store::PreviewDownsampleMethod::Trilinear => 2,
+    });
+
     let preview_group = adw::PreferencesGroup::new();
     preview_group.set_title(tr!("Preview").as_ref());
     preview_group.add(&preview_padding);
     preview_group.add(&preview_shadow_size);
+    preview_group.add(&preview_upsample_method);
+    preview_group.add(&preview_downsample_method);
 
     let temporal_decoder_pool_size = adw::SpinRow::with_range(
         f64::from(preferences_store::MIN_TEMPORAL_DECODER_POOL_SIZE),
@@ -207,6 +242,27 @@ pub fn show_preferences_dialog(
             &preview_shadow_store,
             row.value().round() as u32,
         );
+    });
+
+    let preview_upsample_store = preferences.clone();
+    preview_upsample_method.connect_selected_notify(move |row| {
+        let method = match row.selected() {
+            0 => preferences_store::PreviewUpsampleMethod::Nearest,
+            1 => preferences_store::PreviewUpsampleMethod::Bilinear,
+            _ => unreachable!("preview upsample method must be a listed option"),
+        };
+        preferences_store::set_preview_upsample_method(&preview_upsample_store, method);
+    });
+
+    let preview_downsample_store = preferences.clone();
+    preview_downsample_method.connect_selected_notify(move |row| {
+        let method = match row.selected() {
+            0 => preferences_store::PreviewDownsampleMethod::Nearest,
+            1 => preferences_store::PreviewDownsampleMethod::Bilinear,
+            2 => preferences_store::PreviewDownsampleMethod::Trilinear,
+            _ => unreachable!("preview downsample method must be a listed option"),
+        };
+        preferences_store::set_preview_downsample_method(&preview_downsample_store, method);
     });
 
     let temporal_decoder_pool_store = preferences.clone();

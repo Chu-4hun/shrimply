@@ -1679,3 +1679,73 @@ ja = "—"
 "zh-CN" = "—"
 "zh-TW" = "—"
 "ko" = "—"
+
+["Bilinear"]
+en = "Bilinear"
+es = "Bilineal"
+fr = "Bilinéaire"
+de = "Bilinear"
+ja = "バイリニア"
+"zh-CN" = "双线性"
+"zh-TW" = "雙線性"
+"ko" = "이중 선형"
+
+["Filter used when the preview is larger than the video"]
+en = "Filter used when the preview is larger than the video"
+es = "Filtro usado cuando la vista previa es más grande que el vídeo"
+fr = "Filtre utilisé lorsque l’aperçu est plus grand que la vidéo"
+de = "Filter für eine Vorschau, die größer als das Video ist"
+ja = "プレビューが動画より大きい場合に使用するフィルター"
+"zh-CN" = "预览大于视频时使用的滤镜"
+"zh-TW" = "預覽大於影片時使用的濾鏡"
+"ko" = "미리보기가 비디오보다 클 때 사용하는 필터"
+
+["Filter used when the preview is smaller than the video"]
+en = "Filter used when the preview is smaller than the video"
+es = "Filtro usado cuando la vista previa es más pequeña que el vídeo"
+fr = "Filtre utilisé lorsque l’aperçu est plus petit que la vidéo"
+de = "Filter für eine Vorschau, die kleiner als das Video ist"
+ja = "プレビューが動画より小さい場合に使用するフィルター"
+"zh-CN" = "预览小于视频时使用的滤镜"
+"zh-TW" = "預覽小於影片時使用的濾鏡"
+"ko" = "미리보기가 비디오보다 작을 때 사용하는 필터"
+
+["Nearest"]
+en = "Nearest"
+es = "Más cercano"
+fr = "Plus proche"
+de = "Nächster Nachbar"
+ja = "最近傍"
+"zh-CN" = "最近邻"
+"zh-TW" = "最近鄰"
+"ko" = "최근접"
+
+["Preview Downsample Method"]
+en = "Preview Downsample Method"
+es = "Método de reducción de la vista previa"
+fr = "Méthode de réduction de l’aperçu"
+de = "Vorschau-Verkleinerungsmethode"
+ja = "プレビューのダウンサンプリング方式"
+"zh-CN" = "预览下采样方法"
+"zh-TW" = "預覽降採樣方法"
+"ko" = "미리보기 다운샘플링 방식"
+
+["Preview Upsample Method"]
+en = "Preview Upsample Method"
+es = "Método de ampliación de la vista previa"
+fr = "Méthode d’agrandissement de l’aperçu"
+de = "Vorschau-Vergrößerungsmethode"
+ja = "プレビューのアップサンプリング方式"
+"zh-CN" = "预览上采样方法"
+"zh-TW" = "預覽升採樣方法"
+"ko" = "미리보기 업샘플링 방식"
+
+["Trilinear"]
+en = "Trilinear"
+es = "Trilineal"
+fr = "Trilinéaire"
+de = "Trilinear"
+ja = "トライリニア"
+"zh-CN" = "三线性"
+"zh-TW" = "三線性"
+"ko" = "삼중 선형"

@@ -26,6 +26,8 @@ const KEY_LAST_TTS_MODEL: &str = "last_tts_model";
 const KEY_PREVIEW_IMAGE_FOLDER: &str = "preview_image_folder";
 const KEY_PREVIEW_PADDING_PX: &str = "preview_padding_px";
 const KEY_PREVIEW_SHADOW_SIZE_PX: &str = "preview_shadow_size_px";
+const KEY_PREVIEW_UPSAMPLE_METHOD: &str = "preview_upsample_method";
+const KEY_PREVIEW_DOWNSAMPLE_METHOD: &str = "preview_downsample_method";
 const KEY_PREVIEW_GUIDES_VISIBLE: &str = "preview_guides_visible";
 const KEY_TEMPORAL_DECODER_POOL_SIZE: &str = "temporal_decoder_pool_size";
 const KEY_IMAGE_POOL_CPU_GIB: &str = "image_pool_cpu_gib";
@@ -39,6 +41,9 @@ pub const MIN_TIMELINE_SNAP_RADIUS_PX: u32 = 1;
 pub const MAX_TIMELINE_SNAP_RADIUS_PX: u32 = 50;
 const DEFAULT_PREVIEW_PADDING_PX: u32 = 20;
 const DEFAULT_PREVIEW_SHADOW_SIZE_PX: u32 = 20;
+const DEFAULT_PREVIEW_UPSAMPLE_METHOD: PreviewUpsampleMethod = PreviewUpsampleMethod::Bilinear;
+const DEFAULT_PREVIEW_DOWNSAMPLE_METHOD: PreviewDownsampleMethod =
+    PreviewDownsampleMethod::Trilinear;
 const DEFAULT_PREVIEW_GUIDES_VISIBLE: bool = false;
 const DEFAULT_TEMPORAL_DECODER_POOL_SIZE: u32 = 16;
 const DEFAULT_IMAGE_POOL_CPU_GIB: u32 = 4;
@@ -61,6 +66,56 @@ const MIN_VISUAL_DURATION: Time = Time {
 const MAX_VISUAL_DURATION: Time = Time {
     seconds: Fraction::new_raw(3600, 1),
 };
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PreviewUpsampleMethod {
+    Nearest,
+    Bilinear,
+}
+
+impl PreviewUpsampleMethod {
+    const fn key(self) -> &'static str {
+        match self {
+            Self::Nearest => "nearest",
+            Self::Bilinear => "bilinear",
+        }
+    }
+
+    fn from_key(value: &str) -> Option<Self> {
+        match value {
+            "nearest" => Some(Self::Nearest),
+            "bilinear" => Some(Self::Bilinear),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PreviewDownsampleMethod {
+    Nearest,
+    Bilinear,
+    Trilinear,
+}
+
+impl PreviewDownsampleMethod {
+    const fn key(self) -> &'static str {
+        match self {
+            Self::Nearest => "nearest",
+            Self::Bilinear => "bilinear",
+            Self::Trilinear => "trilinear",
+        }
+    }
+
+    fn from_key(value: &str) -> Option<Self> {
+        match value {
+            "nearest" => Some(Self::Nearest),
+            "bilinear" => Some(Self::Bilinear),
+            "trilinear" => Some(Self::Trilinear),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct PreferencesSnapshot {
     pub caption_font_size: f32,
@@ -78,6 +133,8 @@ pub struct PreferencesSnapshot {
     pub last_tts_model: String,
     pub preview_padding_px: u32,
     pub preview_shadow_size_px: u32,
+    pub preview_upsample_method: PreviewUpsampleMethod,
+    pub preview_downsample_method: PreviewDownsampleMethod,
     pub preview_guides_visible: bool,
     pub temporal_decoder_pool_size: u32,
     pub image_pool_cpu_gib: Fraction,
@@ -108,6 +165,8 @@ pub struct PreferencesStore {
     last_tts_model: String,
     preview_padding_px: u32,
     preview_shadow_size_px: u32,
+    preview_upsample_method: PreviewUpsampleMethod,
+    preview_downsample_method: PreviewDownsampleMethod,
     preview_guides_visible: bool,
     temporal_decoder_pool_size: u32,
     image_pool_cpu_gib: Fraction,
@@ -267,6 +326,28 @@ impl PreferencesStore {
                     MAX_PREVIEW_SHADOW_SIZE_PX,
                 )
             });
+        let preview_upsample_method =
+            conn.as_ref()
+                .map_or(DEFAULT_PREVIEW_UPSAMPLE_METHOD, |conn| {
+                    PreviewUpsampleMethod::from_key(&read_string_or_default(
+                        conn,
+                        KEY_PREVIEW_UPSAMPLE_METHOD,
+                        DEFAULT_PREVIEW_UPSAMPLE_METHOD.key(),
+                        |value| PreviewUpsampleMethod::from_key(value).is_some(),
+                    ))
+                    .expect("validated preview upsample method preference")
+                });
+        let preview_downsample_method =
+            conn.as_ref()
+                .map_or(DEFAULT_PREVIEW_DOWNSAMPLE_METHOD, |conn| {
+                    PreviewDownsampleMethod::from_key(&read_string_or_default(
+                        conn,
+                        KEY_PREVIEW_DOWNSAMPLE_METHOD,
+                        DEFAULT_PREVIEW_DOWNSAMPLE_METHOD.key(),
+                        |value| PreviewDownsampleMethod::from_key(value).is_some(),
+                    ))
+                    .expect("validated preview downsample method preference")
+                });
         let preview_guides_visible = conn.as_ref().is_some_and(|conn| {
             read_string_or_default(
                 conn,
@@ -314,6 +395,8 @@ impl PreferencesStore {
             last_tts_model,
             preview_padding_px,
             preview_shadow_size_px,
+            preview_upsample_method,
+            preview_downsample_method,
             preview_guides_visible,
             temporal_decoder_pool_size,
             image_pool_cpu_gib,
@@ -446,6 +529,42 @@ pub fn set_preview_shadow_size_px(store: &SharedPreferences, shadow_size_px: u32
     {
         tracing::warn!("Could not write preview shadow size preference: {error}");
         state.preview_shadow_size_px = previous;
+        return;
+    }
+    notify_listeners(state);
+}
+
+pub fn set_preview_upsample_method(store: &SharedPreferences, method: PreviewUpsampleMethod) {
+    let mut state = store.borrow_mut();
+    if state.preview_upsample_method == method {
+        return;
+    }
+
+    let previous = state.preview_upsample_method;
+    state.preview_upsample_method = method;
+    if let Some(conn) = &state.conn
+        && let Err(error) = write_string(conn, KEY_PREVIEW_UPSAMPLE_METHOD, method.key())
+    {
+        tracing::warn!("Could not write preview upsample method preference: {error}");
+        state.preview_upsample_method = previous;
+        return;
+    }
+    notify_listeners(state);
+}
+
+pub fn set_preview_downsample_method(store: &SharedPreferences, method: PreviewDownsampleMethod) {
+    let mut state = store.borrow_mut();
+    if state.preview_downsample_method == method {
+        return;
+    }
+
+    let previous = state.preview_downsample_method;
+    state.preview_downsample_method = method;
+    if let Some(conn) = &state.conn
+        && let Err(error) = write_string(conn, KEY_PREVIEW_DOWNSAMPLE_METHOD, method.key())
+    {
+        tracing::warn!("Could not write preview downsample method preference: {error}");
+        state.preview_downsample_method = previous;
         return;
     }
     notify_listeners(state);
@@ -822,6 +941,8 @@ fn snapshot_from_state(state: &PreferencesStore) -> PreferencesSnapshot {
         last_tts_model: state.last_tts_model.clone(),
         preview_padding_px: state.preview_padding_px,
         preview_shadow_size_px: state.preview_shadow_size_px,
+        preview_upsample_method: state.preview_upsample_method,
+        preview_downsample_method: state.preview_downsample_method,
         preview_guides_visible: state.preview_guides_visible,
         temporal_decoder_pool_size: state.temporal_decoder_pool_size,
         image_pool_cpu_gib: state.image_pool_cpu_gib,

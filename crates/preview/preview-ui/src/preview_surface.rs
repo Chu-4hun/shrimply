@@ -6,7 +6,6 @@ use std::{
 };
 
 use glam::{IVec2, Vec2 as GlamVec2};
-use glib::translate::{ToGlibPtrMut, from_glib};
 use gtk::prelude::*;
 use gtk::{gdk, glib};
 use shrimply_preview_core::{
@@ -90,6 +89,8 @@ struct VideoSurfaceState {
     caption_font_size: f32,
     preview_padding_px: u32,
     preview_shadow_size_px: u32,
+    preview_upsample_method: preferences_store::PreviewUpsampleMethod,
+    preview_downsample_method: preferences_store::PreviewDownsampleMethod,
     fullscreen: bool,
 }
 
@@ -185,6 +186,8 @@ impl PreviewController {
             caption_font_size: preference.caption_font_size,
             preview_padding_px: preference.preview_padding_px,
             preview_shadow_size_px: preference.preview_shadow_size_px,
+            preview_upsample_method: preference.preview_upsample_method,
+            preview_downsample_method: preference.preview_downsample_method,
             fullscreen: false,
         }));
         let controller = Rc::new(RefCell::new(PreviewControllerState {
@@ -268,6 +271,8 @@ impl PreviewController {
             state.caption_font_size = preference.caption_font_size;
             state.preview_padding_px = preference.preview_padding_px;
             state.preview_shadow_size_px = preference.preview_shadow_size_px;
+            state.preview_upsample_method = preference.preview_upsample_method;
+            state.preview_downsample_method = preference.preview_downsample_method;
             state.guides_visible = preference.preview_guides_visible;
             state.snap_enabled = preference.timeline_magnet == "true";
             state.snap_radius_px = preference.timeline_snap_radius_px;
@@ -987,7 +992,7 @@ fn attach_render(
         let background_color = if state.fullscreen {
             FULLSCREEN_BACKGROUND_COLOR
         } else {
-            theme_window_color(area)
+            geometry::theme_window_color(area)
         };
         let selection_color = Color::BLUE5;
         let guides = state
@@ -996,6 +1001,8 @@ fn attach_render(
         let caption_bottom_inset = state.caption_bottom_inset;
         let caption_font_size = state.caption_font_size;
         let shadow_size_px = state.preview_shadow_size_px;
+        let upsample_method = state.preview_upsample_method;
+        let downsample_method = state.preview_downsample_method;
         let snap_enabled = state.snap_enabled;
         let snap_radius_px = state.snap_radius_px as f32;
         let VideoSurfaceState {
@@ -1022,6 +1029,8 @@ fn attach_render(
                     content_rect,
                     shadow_size_px,
                     background_color,
+                    upsample_method,
+                    downsample_method,
                 },
                 |timeline_painter| {
                     let surface_rect = Rect::from_min_size(
@@ -1975,19 +1984,4 @@ fn preview_modifiers(modifiers: gdk::ModifierType) -> Modifiers {
         result |= Modifiers::META;
     }
     result
-}
-
-fn theme_window_color(area: &gtk::GLArea) -> Color {
-    unsafe {
-        let context =
-            gtk::ffi::gtk_widget_get_style_context(area.as_ptr() as *mut gtk::ffi::GtkWidget);
-        let mut color = gdk::RGBA::TRANSPARENT;
-        let found: bool = from_glib(gtk::ffi::gtk_style_context_lookup_color(
-            context,
-            c"window_bg_color".as_ptr(),
-            color.to_glib_none_mut().0,
-        ));
-        assert!(found, "Adwaita theme does not define window_bg_color");
-        color.into()
-    }
 }
