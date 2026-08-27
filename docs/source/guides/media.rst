@@ -79,7 +79,7 @@ Shrimply recognizes these source types:
      - Blender ``.blend`` files and :doc:`Python Manim scenes <manim>`
 
 Project opening additionally accepts native Shrimply projects, Shrimply JSON,
-OpenTimelineIO, and Kdenlive projects.
+OpenTimelineIO, and :doc:`Kdenlive projects <kdenlive-import>`.
 
 Create media
 ------------

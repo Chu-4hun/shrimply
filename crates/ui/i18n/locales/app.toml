@@ -200,6 +200,16 @@ ja = "クリックして入力、または横にドラッグして調整"
 "zh-TW" = "按一下以輸入，水平拖曳以調整"
 "ko" = "클릭하여 입력하고 가로로 드래그하여 조정"
 
+["Compatibility Notice"]
+en = "Compatibility Notice"
+es = "Aviso de compatibilidad"
+fr = "Avis de compatibilité"
+de = "Kompatibilitätshinweis"
+ja = "互換性に関するお知らせ"
+"zh-CN" = "兼容性提示"
+"zh-TW" = "相容性提示"
+"ko" = "호환성 안내"
+
 ["Compute"]
 en = "Compute"
 es = "Cómputo"
@@ -580,16 +590,6 @@ ja = "ジョブ"
 "zh-TW" = "工作"
 "ko" = "작업"
 
-["Kdenlive project imported with limitations"]
-en = "Kdenlive project imported with limitations"
-es = "Proyecto de Kdenlive importado con limitaciones"
-fr = "Projet Kdenlive importé avec des limitations"
-de = "Kdenlive-Projekt mit Einschränkungen importiert"
-ja = "Kdenlive プロジェクトは一部制限付きで読み込まれました"
-"zh-CN" = "Kdenlive 项目已导入，但存在限制"
-"zh-TW" = "Kdenlive 專案已匯入，但有部分限制"
-"ko" = "Kdenlive 프로젝트를 일부 제한과 함께 가져왔습니다"
-
 ["Keyboard Shortcuts"]
 en = "Keyboard Shortcuts"
 es = "Atajos de teclado"
@@ -629,6 +629,16 @@ ja = "最終編集日時を取得できません"
 "zh-CN" = "最后编辑时间不可用"
 "zh-TW" = "最後編輯時間不可用"
 "ko" = "마지막으로 수정한 시간을 확인할 수 없습니다."
+
+["Learn more"]
+en = "Learn more"
+es = "Más información"
+fr = "En savoir plus"
+de = "Mehr erfahren"
+ja = "詳細を見る"
+"zh-CN" = "了解更多"
+"zh-TW" = "瞭解更多"
+"ko" = "자세히 알아보기"
 
 ["Light Blue"]
 en = "Light Blue"
@@ -1219,6 +1229,16 @@ ja = "Shrimply プロジェクト"
 "zh-CN" = "Shrimply 项目"
 "zh-TW" = "Shrimply 專案"
 "ko" = "Shrimply 프로젝트"
+
+["Shrimply supports only some Kdenlive features. Unsupported content may be changed or omitted."]
+en = "Shrimply supports only some Kdenlive features. Unsupported content may be changed or omitted."
+es = "Shrimply solo admite algunas funciones de Kdenlive. El contenido no compatible puede cambiarse u omitirse."
+fr = "Shrimply ne prend en charge que certaines fonctionnalités de Kdenlive. Le contenu non pris en charge peut être modifié ou omis."
+de = "Shrimply unterstützt nur einige Kdenlive-Funktionen. Nicht unterstützte Inhalte können geändert oder ausgelassen werden."
+ja = "Shrimply は Kdenlive の一部の機能のみ対応しています。未対応の内容は変更または省略される場合があります。"
+"zh-CN" = "Shrimply 仅支持部分 Kdenlive 功能。不支持的内容可能会被更改或省略。"
+"zh-TW" = "Shrimply 僅支援部分 Kdenlive 功能。不支援的內容可能會被變更或省略。"
+"ko" = "Shrimply는 일부 Kdenlive 기능만 지원합니다. 지원되지 않는 콘텐츠는 변경되거나 생략될 수 있습니다."
 
 ["Snap Attraction Radius"]
 en = "Snap Attraction Radius"

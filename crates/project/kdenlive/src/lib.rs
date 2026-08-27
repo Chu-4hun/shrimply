@@ -13,9 +13,10 @@ use serde_json::Value;
 use shrimply_core::timeline_value::TimelineValue;
 use shrimply_math_core::Fraction;
 use shrimply_project::{
-    AudioItem, AudioSource, AudioSpeedMethod, AudioTrack, CanvasSize, CaptionTrack, FoldedSequence,
+    AudioGenerator, AudioItem, AudioSource, AudioSpeedMethod, AudioTrack, AudioWaveform,
+    Background, BackgroundGenerator, CanvasSize, CaptionTrack, Color, FoldedSequence,
     LayerVisibility, LayeredImageItem, PROJECT_FORMAT_VERSION, PreviewGuides, Project,
-    SequenceReference, Time, VideoItem, VideoItemContent, VisualTrack,
+    SequenceReference, SolidColor, Time, VideoItem, VideoItemContent, VisualTrack, WhiteNoise,
 };
 use uuid::Uuid;
 
@@ -358,10 +359,19 @@ impl<'a> Converter<'a> {
         }
 
         let service = producer.property("mlt_service").unwrap_or_default();
-        if service == "color" {
+        if matches!(service, "color" | "colour") {
+            let color = parse_mlt_color(
+                producer
+                    .property("resource")
+                    .ok_or_else(|| invalid("color producer has no color"))?,
+            )?;
             return Ok(Source {
                 path: PathBuf::new(),
-                visual: VideoItemContent::Background(Box::default()),
+                visual: VideoItemContent::Background(Box::new(Background {
+                    generator: BackgroundGenerator::SolidColor(Box::new(SolidColor {
+                        color: TimelineValue::new_const(color),
+                    })),
+                })),
                 audio: AudioSource::Media,
                 width: self.canvas_size.width,
                 height: self.canvas_size.height,
@@ -380,6 +390,48 @@ impl<'a> Converter<'a> {
             .or_else(|| producer.property("resource"))
             .ok_or_else(|| invalid("media producer has no resource"))?;
         let path = resolve_path(&self.root_dir, resource);
+        let generator_path = resolve_path(
+            &self.root_dir,
+            resource
+                .strip_prefix("xml:")
+                .or_else(|| resource.strip_prefix("consumer:"))
+                .unwrap_or(resource),
+        );
+        if let Some(generator) = generator_source(service, &generator_path)? {
+            let (visual, audio, warning) = match generator {
+                GeneratorSource::ColorBars => (
+                    VideoItemContent::Background(Box::new(Background {
+                        generator: BackgroundGenerator::TestPattern,
+                    })),
+                    AudioSource::Media,
+                    "Kdenlive Color Bars were approximated with the Shrimply test pattern.",
+                ),
+                GeneratorSource::WhiteNoise => (
+                    VideoItemContent::Background(Box::new(Background {
+                        generator: BackgroundGenerator::WhiteNoise(Box::<WhiteNoise>::default()),
+                    })),
+                    AudioSource::Generator(Box::new(AudioGenerator {
+                        waveform: AudioWaveform::WhiteNoise,
+                        ..AudioGenerator::default()
+                    })),
+                    "Kdenlive White Noise was approximated with Shrimply video and audio generators.",
+                ),
+            };
+            self.warnings.insert(warning.to_owned());
+            return Ok(Source {
+                path: PathBuf::new(),
+                visual,
+                audio,
+                width: self.canvas_size.width,
+                height: self.canvas_size.height,
+                speed: Fraction::from(1_u64),
+                pitch_preserved: true,
+                video_track_id: 0,
+                audio_track_id: 0,
+                source_duration: None,
+                rotation_degrees: 0.0,
+            });
+        }
         let speed = if service == "timewarp" {
             parse_fraction(producer.property("warp_speed").unwrap_or("1"))?
         } else {
@@ -565,6 +617,48 @@ struct Source {
     rotation_degrees: f32,
 }
 
+#[derive(Clone, Copy)]
+enum GeneratorSource {
+    ColorBars,
+    WhiteNoise,
+}
+
+fn generator_source(
+    service: &str,
+    path: &Path,
+) -> Result<Option<GeneratorSource>, Box<dyn Error + Send + Sync>> {
+    let service = if matches!(service, "xml" | "consumer")
+        && path
+            .extension()
+            .and_then(|value| value.to_str())
+            .is_some_and(|value| value.eq_ignore_ascii_case("mlt"))
+    {
+        let root = xml::parse(path).map_err(invalid)?;
+        let mut services = root
+            .children
+            .iter()
+            .filter(|node| matches!(node.name.as_str(), "producer" | "chain"))
+            .filter_map(|node| {
+                node.property("mlt_service")
+                    .or_else(|| node.attribute("mlt_service"))
+            });
+        let Some(service) = services.next() else {
+            return Ok(None);
+        };
+        if services.next().is_some() {
+            return Ok(None);
+        }
+        service.to_owned()
+    } else {
+        service.to_owned()
+    };
+    Ok(match service.as_str() {
+        "frei0r.test_pat_B" => Some(GeneratorSource::ColorBars),
+        "noise" => Some(GeneratorSource::WhiteNoise),
+        _ => None,
+    })
+}
+
 fn sequence_by_uuid(root: &Element, uuid: Uuid) -> Option<&Element> {
     root.children_named("tractor").find(|tractor| {
         tractor
@@ -625,6 +719,22 @@ fn parse_fraction(value: &str) -> Result<Fraction, Box<dyn Error + Send + Sync>>
     } else {
         Ok(Fraction::from(value.parse::<u64>()?))
     }
+}
+
+fn parse_mlt_color(value: &str) -> Result<Color<u8>, Box<dyn Error + Send + Sync>> {
+    let hex = value
+        .trim()
+        .trim_start_matches("0x")
+        .trim_start_matches('#');
+    if hex.len() != 8 {
+        return Err(invalid("MLT color must contain RGBA bytes"));
+    }
+    Ok(Color::<u8>::from_rgba(
+        u8::from_str_radix(&hex[0..2], 16)?,
+        u8::from_str_radix(&hex[2..4], 16)?,
+        u8::from_str_radix(&hex[4..6], 16)?,
+        u8::from_str_radix(&hex[6..8], 16)?,
+    ))
 }
 
 fn parse_uuid(value: &str) -> Result<Uuid, Box<dyn Error + Send + Sync>> {

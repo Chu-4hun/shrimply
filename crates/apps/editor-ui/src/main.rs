@@ -39,6 +39,7 @@ const LOADING_WINDOW_WIDTH: i32 = 800;
 const LOADING_WINDOW_HEIGHT: i32 = 600;
 const LOADING_SHRIMP_WIDTH: i32 = 160;
 const LOADING_SHRIMP_HEIGHT: i32 = 180;
+const KDENLIVE_IMPORT_DOCS: &str = "https://shrimply.pages.dev/guides/kdenlive-import.html";
 
 #[derive(Clone, Copy)]
 enum PanelSide {
@@ -560,11 +561,11 @@ fn start_kdenlive_import(
                 }
                 KdenliveImportMessage::Finished(result) => {
                     match result {
-                        Ok((path, warnings)) if warnings.is_empty() => {
-                            load_project(&app, &window, path)
-                        }
                         Ok((path, warnings)) => {
-                            show_kdenlive_warnings(&app, &window, path, warnings)
+                            for warning in warnings {
+                                tracing::warn!(limitation = %warning, "Kdenlive import limitation");
+                            }
+                            show_kdenlive_limitations(&app, &window, path)
                         }
                         Err(error) => show_project_load_error(
                             &app,
@@ -586,17 +587,30 @@ fn start_kdenlive_import(
     });
 }
 
-fn show_kdenlive_warnings(
+fn show_kdenlive_limitations(
     app: &adw::Application,
     window: &adw::ApplicationWindow,
     path: PathBuf,
-    warnings: Vec<String>,
 ) {
-    let dialog = adw::AlertDialog::new(
-        Some("Kdenlive project imported with limitations"),
-        Some(&warnings.join("\n")),
-    );
-    dialog.add_response("open", "Open Project");
+    let message = gtk::Label::new(Some(
+        tr!("Shrimply supports only some Kdenlive features. Unsupported content may be changed or omitted.")
+            .as_ref(),
+    ));
+    message.set_justify(gtk::Justification::Center);
+    message.set_wrap(true);
+    let details = gtk::LinkButton::builder()
+        .label(tr!("Learn more").as_ref())
+        .uri(KDENLIVE_IMPORT_DOCS)
+        .halign(gtk::Align::Center)
+        .build();
+    let content = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    content.append(&message);
+    content.append(&details);
+    let dialog = adw::AlertDialog::builder()
+        .heading(tr!("Compatibility Notice").as_ref())
+        .extra_child(&content)
+        .build();
+    dialog.add_responses_i18n(&[("open", "Open Project")]);
     dialog.set_default_response(Some("open"));
     dialog.set_close_response("open");
     let app = app.clone();

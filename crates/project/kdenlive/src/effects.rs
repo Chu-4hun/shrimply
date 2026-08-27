@@ -5,8 +5,8 @@ use shrimply_audio_modifiers::{AudioModifier, AudioModifierEffect, GainModifier}
 use shrimply_core::timeline_value::{TimelineBase, TimelineCurveKeyframe, TimelineValue};
 use shrimply_math_core::Fraction;
 use shrimply_project::{
-    AlphaMaskShape, AudioItem, AudioTransition, Color, LayerBlendMode, Time, TransitionSide,
-    VideoItem, VisualAlphaMask, VisualModifier, VisualTransition,
+    AlphaMaskShape, AudioItem, AudioTransition, LayerBlendMode, Time, TransitionSide, VideoItem,
+    VisualAlphaMask, VisualModifier, VisualTransition,
 };
 use shrimply_video_modifiers::{
     ModifierEffect, RasterModifierEffect,
@@ -17,7 +17,7 @@ use shrimply_video_modifiers::{
 };
 use uuid::Uuid;
 
-use super::{Converter, entry_in, frame_time, invalid, math, xml::Element};
+use super::{Converter, entry_in, frame_time, invalid, math, parse_mlt_color, xml::Element};
 
 const ALPHA_SPOT_SHAPE_COUNT: u32 = 4;
 const ALPHA_SPOT_RECTANGLE: u32 = 0;
@@ -1149,20 +1149,4 @@ fn filter_duration(filter: &Element, start: Time, end: Time, fps: Fraction) -> T
             seconds: end.seconds - start.seconds,
         },
     }
-}
-
-fn parse_mlt_color(value: &str) -> Result<Color<u8>, Box<dyn Error + Send + Sync>> {
-    let hex = value
-        .trim()
-        .trim_start_matches("0x")
-        .trim_start_matches('#');
-    if hex.len() != 8 {
-        return Err(invalid("MLT color must contain RGBA bytes"));
-    }
-    Ok(Color::<u8>::from_rgba(
-        u8::from_str_radix(&hex[0..2], 16)?,
-        u8::from_str_radix(&hex[2..4], 16)?,
-        u8::from_str_radix(&hex[4..6], 16)?,
-        u8::from_str_radix(&hex[6..8], 16)?,
-    ))
 }
