@@ -13,6 +13,8 @@ use std::time::{Duration, UNIX_EPOCH};
 const DEFAULT_WIDTH: i32 = 760;
 const DEFAULT_HEIGHT: i32 = 560;
 const RECENT_ROW_HEIGHT: i32 = 64;
+const PROJECT_INFO_WIDTH: i32 = 500;
+const PROJECT_PATH_LINES: i32 = 3;
 
 fn main() -> glib::ExitCode {
     shrimply_support::diagnostics::init();
@@ -227,9 +229,18 @@ fn refresh_recents(
 
     for recent in projects {
         let last_edited = last_edited(&recent.path);
+        let last_edited_subtitle = last_edited
+            .as_ref()
+            .map(|date| {
+                shrimply_ui_foundation::i18n::text_args(
+                    "Last edited %{date}",
+                    &[("date", date.clone())],
+                )
+            })
+            .unwrap_or_else(|| tr!("Last edited time unavailable").into_owned());
         let row = adw::ActionRow::builder()
             .title(&recent.name)
-            .subtitle(&last_edited)
+            .subtitle(&last_edited_subtitle)
             .activatable(true)
             .height_request(RECENT_ROW_HEIGHT)
             .build();
@@ -243,9 +254,12 @@ fn refresh_recents(
         let options = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let info = gtk::Button::with_label(tr!("Info").as_ref());
         info.set_has_frame(false);
+        let show_in_files = gtk::Button::with_label(tr!("Show in Files").as_ref());
+        show_in_files.set_has_frame(false);
         let delete = gtk::Button::with_label(tr!("Delete").as_ref());
         delete.set_has_frame(false);
         options.append(&info);
+        options.append(&show_in_files);
         options.append(&delete);
         popover.set_child(Some(&options));
         menu.set_popover(Some(&popover));
@@ -263,7 +277,21 @@ fn refresh_recents(
             let popover = popover.clone();
             move |_| {
                 popover.popdown();
-                show_project_info(&window, &name, &path, &last_edited);
+                show_project_info(&window, &name, &path, last_edited.as_deref());
+            }
+        });
+        show_in_files.connect_clicked({
+            let path = recent.path.clone();
+            let window = window.clone();
+            let popover = popover.clone();
+            move |_| {
+                popover.popdown();
+                if let Err(error) = shrimply_ui_foundation::desktop_open::show_path_in_folder(
+                    window.upcast_ref(),
+                    path.clone(),
+                ) {
+                    show_error(&window, "Could not show project file", &error);
+                }
             }
         });
         delete.connect_clicked({
@@ -287,7 +315,7 @@ fn refresh_recents(
     }
 }
 
-fn last_edited(path: &Path) -> String {
+fn last_edited(path: &Path) -> Option<String> {
     path.metadata()
         .and_then(|metadata| metadata.modified())
         .ok()
@@ -295,21 +323,60 @@ fn last_edited(path: &Path) -> String {
         .and_then(|modified| i64::try_from(modified.as_secs()).ok())
         .and_then(|seconds| glib::DateTime::from_unix_local(seconds).ok())
         .and_then(|date| date.format("%x %X").ok())
-        .map(|date| {
-            shrimply_ui_foundation::i18n::text_args(
-                "Last edited %{date}",
-                &[("date", date.to_string())],
-            )
-        })
-        .unwrap_or_else(|| tr!("Last edited time unavailable").into_owned())
+        .map(|date| date.to_string())
 }
 
-fn show_project_info(window: &adw::ApplicationWindow, name: &str, path: &Path, last_edited: &str) {
-    let body = format!("{last_edited}\n{}", path.display());
-    let dialog = adw::AlertDialog::new(Some(name), Some(&body));
-    dialog.add_response("close", tr!("Close").as_ref());
-    dialog.set_close_response("close");
-    dialog.present(Some(window));
+fn show_project_info(
+    window: &adw::ApplicationWindow,
+    name: &str,
+    path: &Path,
+    last_edited: Option<&str>,
+) {
+    let unavailable = tr!("Unavailable");
+    let details = adw::PreferencesGroup::new();
+    details.add(
+        &adw::ActionRow::builder()
+            .title(tr!("Last Edited").as_ref())
+            .subtitle(last_edited.unwrap_or(unavailable.as_ref()))
+            .build(),
+    );
+
+    let location = adw::ActionRow::builder()
+        .title(tr!("File Location").as_ref())
+        .subtitle(path.to_string_lossy())
+        .subtitle_lines(PROJECT_PATH_LINES)
+        .build();
+    let show_in_files = gtk::Button::builder()
+        .icon_name("folder-open-symbolic")
+        .tooltip_text(tr!("Show in Files").as_ref())
+        .valign(gtk::Align::Center)
+        .css_classes(["flat"])
+        .build();
+    show_in_files.connect_clicked({
+        let path = path.to_path_buf();
+        let window = window.clone();
+        move |button| {
+            if let Err(error) = shrimply_ui_foundation::desktop_open::show_path_in_folder(
+                button.upcast_ref(),
+                path.clone(),
+            ) {
+                show_error(&window, "Could not show project file", &error);
+            }
+        }
+    });
+    location.add_suffix(&show_in_files);
+    location.set_activatable_widget(Some(&show_in_files));
+    details.add(&location);
+
+    let page = adw::PreferencesPage::new();
+    page.add(&details);
+    let dialog = adw::PreferencesDialog::builder()
+        .title(name)
+        .search_enabled(false)
+        .content_width(PROJECT_INFO_WIDTH)
+        .build();
+    dialog.add(&page);
+    dialog.present(Some(window.upcast_ref::<gtk::Widget>()));
 }
 
 fn show_open_project(window: &adw::ApplicationWindow, app: &adw::Application) {
