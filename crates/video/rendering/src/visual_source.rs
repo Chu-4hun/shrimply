@@ -1,8 +1,9 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use hashbrown::{HashMap, hash_map::Entry};
 use shrimply_asset::Asset;
+use shrimply_gpu_memory::{ResourceKey, global as gpu_memory};
 use uuid::Uuid;
 
 use crate::background_render::BackgroundElement;
@@ -155,6 +156,51 @@ impl Default for VisualSourceCache {
 }
 
 impl VisualSourceCache {
+    pub fn vector(
+        &mut self,
+        compositor: &mut CudaVideoCompositor,
+        scope: (&[Uuid], Uuid, Uuid),
+        key: &[u8],
+        renderer_generation: u64,
+    ) -> Result<Option<Rc<VisualFrame>>, String> {
+        let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&vector_frame_key(
+            scope,
+            key,
+            renderer_generation,
+        ))?
+        else {
+            return Ok(None);
+        };
+        compositor.prepare_host_backed_frame(&frame, "cached generated preview")?;
+        Ok(Some(Rc::new((*frame).clone())))
+    }
+
+    pub fn set_vector(
+        &mut self,
+        compositor: &mut CudaVideoCompositor,
+        scope: (&[Uuid], Uuid, Uuid),
+        key: &[u8],
+        renderer_generation: u64,
+        layer: &VisualFrame,
+    ) {
+        let retained = compositor
+            .retain_host_backed_frame(layer, "generated preview cache")
+            .and_then(|frame| {
+                frame
+                    .map(|frame| {
+                        gpu_memory().insert_resource(
+                            vector_frame_key(scope, key, renderer_generation),
+                            0,
+                            frame,
+                        )
+                    })
+                    .transpose()
+            });
+        if let Err(error) = retained {
+            tracing::warn!(%error, "could not retain a generated preview frame");
+        }
+    }
+
     pub(crate) fn layered_image(&mut self, file: &Asset) -> &mut LayeredImageAsset {
         match self.layered_image_files.entry(file.clone()) {
             Entry::Occupied(entry) => {
@@ -181,6 +227,25 @@ impl VisualSourceCache {
     pub fn clear(&mut self) {
         self.layered_image_files.clear();
     }
+}
+
+fn vector_frame_key(
+    scope: (&[Uuid], Uuid, Uuid),
+    content: &[u8],
+    renderer_generation: u64,
+) -> ResourceKey {
+    let (sequence_path, track_id, item_id) = scope;
+    let mut discriminator = Vec::new();
+    discriminator.extend_from_slice(b"generated-preview\0");
+    discriminator.extend_from_slice(&sequence_path.len().to_le_bytes());
+    for id in sequence_path {
+        discriminator.extend_from_slice(id.as_bytes());
+    }
+    discriminator.extend_from_slice(track_id.as_bytes());
+    discriminator.extend_from_slice(item_id.as_bytes());
+    discriminator.extend_from_slice(&renderer_generation.to_le_bytes());
+    discriminator.extend_from_slice(content);
+    ResourceKey::new(PathBuf::new(), discriminator)
 }
 
 /// A stateful renderer for one visual source. Source selection belongs exclusively to

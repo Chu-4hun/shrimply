@@ -2,7 +2,7 @@ use std::any::Any;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use cuda_core::{CudaContext, sys};
+use cuda_core::{CudaContext, CudaStream, sys};
 use shrimply_gpu_memory::AllocationClass;
 use shrimply_gpu_memory::GpuBuffer;
 pub use shrimply_gpu_memory::MemoryKind;
@@ -173,6 +173,24 @@ impl VisualFrame {
             width,
             height,
             AllocationClass::Persistent,
+            description,
+        )
+    }
+
+    pub fn allocate_cached(
+        context: Arc<CudaContext>,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+        description: &str,
+    ) -> Result<Self, String> {
+        Self::allocate_on_with_description(
+            context,
+            0,
+            format,
+            width,
+            height,
+            AllocationClass::Cached,
             description,
         )
     }
@@ -459,6 +477,43 @@ impl VisualFrame {
         storage.planes.get(index).map(|plane| plane.memory_kind)
     }
 
+    pub fn is_managed(&self) -> bool {
+        let FrameStorage::Gpu(storage) = &*self.inner else {
+            return false;
+        };
+        !storage.planes.is_empty()
+            && storage
+                .planes
+                .iter()
+                .all(|plane| plane.memory_kind == MemoryKind::Managed)
+    }
+
+    pub fn is_cached(&self) -> bool {
+        let FrameStorage::Gpu(storage) = &*self.inner else {
+            return false;
+        };
+        let GpuOwner::Oxide { buffers } = &storage._owner else {
+            return false;
+        };
+        !buffers.is_empty()
+            && buffers
+                .iter()
+                .all(|buffer| buffer.allocation_class() == AllocationClass::Cached)
+    }
+
+    pub fn prefetch_to_device(&self, stream: &CudaStream) -> Result<(), String> {
+        let FrameStorage::Gpu(storage) = &*self.inner else {
+            return Ok(());
+        };
+        let GpuOwner::Oxide { buffers } = &storage._owner else {
+            return Ok(());
+        };
+        for buffer in buffers {
+            buffer.prefetch_to_device(stream)?;
+        }
+        Ok(())
+    }
+
     pub fn plane_count(&self) -> usize {
         match &*self.inner {
             FrameStorage::Gpu(storage) => storage.planes.len(),
@@ -498,6 +553,53 @@ impl VisualFrame {
                 }
             }
         }
+    }
+
+    pub fn copy_to_cached(
+        &self,
+        context: Arc<CudaContext>,
+        stream: &CudaStream,
+        description: &str,
+    ) -> Result<Self, String> {
+        let FrameStorage::Gpu(storage) = &*self.inner else {
+            return Err("copy a CPU visual frame to cached GPU storage".to_string());
+        };
+        if storage.device_index != context.ordinal() {
+            return Err("copy a visual frame between different CUDA devices".to_string());
+        }
+        let frame = Self::allocate_cached(
+            context.clone(),
+            self.format,
+            self.width,
+            self.height,
+            description,
+        )?;
+        context
+            .bind_to_thread()
+            .map_err(|error| format!("bind CUDA context for cached frame copy: {error}"))?;
+        for (index, source) in storage.planes.iter().enumerate() {
+            let destination = frame
+                .plane(index)
+                .expect("cached visual frame lost a format plane");
+            let mut copy: sys::CUDA_MEMCPY2D = unsafe { std::mem::zeroed() };
+            copy.srcMemoryType = memory_type(source.memory_kind);
+            copy.srcDevice = source.device_ptr;
+            copy.srcPitch = source.pitch_bytes;
+            copy.dstMemoryType = memory_type(
+                frame
+                    .memory_kind(index)
+                    .expect("cached visual frame lost allocation metadata"),
+            );
+            copy.dstDevice = destination.device_ptr;
+            copy.dstPitch = destination.pitch_bytes;
+            copy.WidthInBytes = source.width_bytes;
+            copy.Height = source.height;
+            let result = unsafe { sys::cuMemcpy2DAsync_v2(&copy, stream.cu_stream()) };
+            if result != sys::cudaError_enum_CUDA_SUCCESS {
+                return Err(format!("copy cached visual frame plane: {result:?}"));
+            }
+        }
+        Ok(frame)
     }
 
     pub fn copy_plane_to_vec(&self, index: usize) -> Result<Vec<u8>, String> {

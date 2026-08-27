@@ -201,15 +201,42 @@ impl LayeredImageAsset {
                 })
                 .collect::<Vec<_>>()
         };
-        let source_layers = document
-            .layers
-            .iter()
-            .map(|source| {
-                compositor
-                    .upload_rgba_layer(document.width.max(1), document.height.max(1), &source.rgba)
-                    .map(Rc::new)
-            })
-            .collect::<Result<Vec<_>, String>>()?;
+        let snapshot = self
+            .snapshot
+            .as_ref()
+            .expect("layered image snapshot was loaded");
+        let composite_key = layered_frame_key(snapshot, LayeredFrame::Composite(&visible));
+        if let Some(layer) = gpu_memory().get_resource::<VisualFrame>(&composite_key)? {
+            shrimply_benchmarking::increment("Layered image GPU cache / Composite hit");
+            compositor.prepare_host_backed_frame(&layer, "cached layered image composite")?;
+            return Ok((Some(Rc::new((*layer).clone())), refreshing));
+        }
+        shrimply_benchmarking::increment("Layered image GPU cache / Composite miss");
+
+        let mut source_layers = Vec::with_capacity(document.layers.len());
+        for (index, source) in document.layers.iter().enumerate() {
+            let key = layered_frame_key(snapshot, LayeredFrame::Source(index));
+            if let Some(layer) = gpu_memory().get_resource::<VisualFrame>(&key)? {
+                shrimply_benchmarking::increment("Layered image GPU cache / Source hit");
+                compositor.prepare_host_backed_frame(&layer, "cached layered image source")?;
+                source_layers.push(Rc::new((*layer).clone()));
+                continue;
+            }
+            shrimply_benchmarking::increment("Layered image GPU cache / Source miss");
+            let mut layer = compositor.upload_rgba_layer(
+                document.width.max(1),
+                document.height.max(1),
+                &source.rgba,
+            )?;
+            if let Some(retained) =
+                compositor.retain_host_backed_frame(&layer, "layered image source cache")?
+            {
+                gpu_memory().insert_resource(key, 0, retained.clone())?;
+                layer = retained;
+            }
+            compositor.prepare_host_backed_frame(&layer, "layered image source")?;
+            source_layers.push(Rc::new(layer));
+        }
         let mut gpu_layers = Vec::new();
         let mut clipping_base = None::<(Option<u32>, usize, f32)>;
         for (layer_index, layer) in document.layers.iter().enumerate().rev() {
@@ -240,7 +267,7 @@ impl LayeredImageAsset {
                 noise_seed: (layer_index as u32).wrapping_mul(0x85eb_ca6b),
             });
         }
-        let layer = {
+        let mut layer = {
             let _measurement =
                 shrimply_benchmarking::measure("Layered image / Composite submission");
             Rc::new(compositor.composite_layered_image_layers(
@@ -249,6 +276,13 @@ impl LayeredImageAsset {
                 &gpu_layers,
             )?)
         };
+        if let Some(retained) =
+            compositor.retain_host_backed_frame(&layer, "layered image composite cache")?
+        {
+            gpu_memory().insert_resource(composite_key, 0, retained.clone())?;
+            layer = Rc::new(retained);
+        }
+        compositor.prepare_host_backed_frame(&layer, "layered image composite")?;
         Ok((Some(layer), refreshing))
     }
 }
@@ -295,6 +329,28 @@ fn layered_document_key(snapshot: &AssetSnapshot) -> ResourceKey {
     let mut discriminator = Vec::new();
     discriminator.extend_from_slice(b"layered-document");
     discriminator.extend_from_slice(snapshot.cache_key().as_bytes());
+    ResourceKey::new(snapshot.path().to_path_buf(), discriminator)
+}
+
+enum LayeredFrame<'a> {
+    Source(usize),
+    Composite(&'a [bool]),
+}
+
+fn layered_frame_key(snapshot: &AssetSnapshot, frame: LayeredFrame<'_>) -> ResourceKey {
+    let mut discriminator = Vec::new();
+    discriminator.extend_from_slice(b"layered-gpu\0");
+    discriminator.extend_from_slice(snapshot.cache_key().as_bytes());
+    match frame {
+        LayeredFrame::Source(index) => {
+            discriminator.push(0);
+            discriminator.extend_from_slice(&index.to_le_bytes());
+        }
+        LayeredFrame::Composite(visible) => {
+            discriminator.push(1);
+            discriminator.extend(visible.iter().map(|visible| u8::from(*visible)));
+        }
+    }
     ResourceKey::new(snapshot.path().to_path_buf(), discriminator)
 }
 

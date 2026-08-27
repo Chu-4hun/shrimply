@@ -92,9 +92,11 @@ impl BlenderElement {
         state: crate::layer::VisualState,
     ) -> Result<VisualRender, String> {
         if self.frame.is_none() {
-            let frame = Rc::new(
-                compositor.allocate_rgba_layer(self.canvas_size.width, self.canvas_size.height)?,
-            );
+            let frame = Rc::new(compositor.allocate_cached_rgba_layer(
+                self.canvas_size.width,
+                self.canvas_size.height,
+                "persistent Blender preview",
+            )?);
             let pixels = shrimply_loading_screen::render(
                 self.canvas_size.width,
                 self.canvas_size.height,
@@ -105,6 +107,12 @@ impl BlenderElement {
             compositor.upload_rgba_layer_into(&frame, &pixels)?;
             self.frame = Some(frame);
         }
+        compositor.prepare_host_backed_frame(
+            self.frame
+                .as_ref()
+                .expect("Blender loading screen was initialized"),
+            "persistent Blender preview",
+        )?;
         Ok(VisualRender::LoadingPlaceholder(Visual::Raster(
             RasterVisual::materialized(
                 GpuFrame::Rgba(
@@ -246,6 +254,7 @@ impl VisualElement for BlenderElement {
         if self.rendered == Some((source_time.seconds, method, render_size))
             && let Some(frame) = &self.frame
         {
+            compositor.prepare_host_backed_frame(frame, "persistent Blender preview")?;
             return Ok(VisualRender::Ready(Visual::Raster(
                 RasterVisual::materialized(GpuFrame::Rgba(frame.clone()), state),
             )));
@@ -270,17 +279,18 @@ impl VisualElement for BlenderElement {
         if self.frame.as_ref().is_none_or(|frame| {
             frame.width() != render_size.width || frame.height() != render_size.height
         }) {
-            self.frame = Some(Rc::new(
-                compositor.allocate_rgba_layer(render_size.width, render_size.height)?,
-            ));
+            self.frame = Some(Rc::new(compositor.allocate_cached_rgba_layer(
+                render_size.width,
+                render_size.height,
+                "persistent Blender preview",
+            )?));
         }
         if rendered.width != render_size.width || rendered.height != render_size.height {
             return Err("Blender returned a frame with the wrong dimensions".into());
         }
-        compositor.upload_blender_frame(
-            self.frame.as_ref().expect("Blender frame was allocated"),
-            &rendered.pixels,
-        )?;
+        let frame = self.frame.as_ref().expect("Blender frame was allocated");
+        compositor.prepare_host_backed_frame(frame, "persistent Blender preview")?;
+        compositor.upload_blender_frame(frame, &rendered.pixels)?;
         self.rendered = Some((source_time.seconds, method, render_size));
         Ok(VisualRender::Ready(Visual::Raster(
             RasterVisual::materialized(

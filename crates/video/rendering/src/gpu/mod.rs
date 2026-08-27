@@ -888,6 +888,90 @@ impl CudaVideoCompositor {
         })
     }
 
+    pub(crate) fn allocate_cached_rgba_layer(
+        &mut self,
+        width: u32,
+        height: u32,
+        description: &str,
+    ) -> Result<VisualFrame, String> {
+        self.release_after_reported_gpu_oom()?;
+        let context = self.context.clone();
+        let allocate = || {
+            VisualFrame::allocate_cached(
+                context.clone(),
+                shrimply_visual_frame::VisualFormat::Rgba8,
+                width,
+                height,
+                description,
+            )
+        };
+        let error = match allocate() {
+            Ok(frame) => return Ok(frame),
+            Err(error) if is_gpu_oom(&error) => error,
+            Err(error) => return Err(error),
+        };
+        self.observed_gpu_oom_generation = gpu_oom_generation();
+        let requested_bytes = u64::from(width)
+            .checked_mul(u64::from(height))
+            .and_then(|pixels| pixels.checked_mul(size_of::<u32>() as u64))
+            .ok_or_else(|| "cached RGBA layer size overflow".to_string())?;
+        self.relieve_gpu_pressure(requested_bytes, description)?;
+        allocate().map_err(|retry| {
+            format!(
+                "allocate {description} after GPU pressure relief: {retry}; initial error: {error}"
+            )
+        })
+    }
+
+    pub(crate) fn retain_host_backed_frame(
+        &mut self,
+        frame: &VisualFrame,
+        description: &str,
+    ) -> Result<Option<VisualFrame>, String> {
+        if shrimply_gpu_memory::global().telemetry().host_budget_bytes == 0 {
+            return Ok(None);
+        }
+        if frame.is_cached() {
+            return Ok(Some(frame.clone()));
+        }
+        self.release_after_reported_gpu_oom()?;
+        let context = self.context.clone();
+        let stream = self.stream.clone();
+        let copy = || frame.copy_to_cached(context.clone(), stream.as_ref(), description);
+        let error = match copy() {
+            Ok(frame) => return Ok(frame.is_managed().then_some(frame)),
+            Err(error) if is_gpu_oom(&error) => error,
+            Err(error) => return Err(error),
+        };
+        self.observed_gpu_oom_generation = gpu_oom_generation();
+        self.relieve_gpu_pressure(frame.bytes(), description)?;
+        copy().map(|frame| frame.is_managed().then_some(frame))
+            .map_err(|retry| {
+                format!(
+                    "retain {description} after GPU pressure relief: {retry}; initial error: {error}"
+                )
+            })
+    }
+
+    pub(crate) fn prepare_host_backed_frame(
+        &mut self,
+        frame: &VisualFrame,
+        description: &str,
+    ) -> Result<(), String> {
+        if !frame.is_managed() {
+            return Ok(());
+        }
+        if let Err(error) = frame.prefetch_to_device(&self.stream) {
+            self.relieve_gpu_pressure(frame.bytes(), description)?;
+            frame.prefetch_to_device(&self.stream).map_err(|retry| {
+                format!(
+                    "prefetch {description} after GPU pressure relief: {retry}; initial error: {error}"
+                )
+            })?;
+        }
+        Ok(())
+    }
+
     pub fn upload_rgba_layer_into(
         &self,
         destination: &VisualFrame,

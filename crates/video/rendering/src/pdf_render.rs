@@ -43,6 +43,14 @@ impl PdfRenderSession {
         ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
     }
 
+    fn page_key(&self) -> ResourceKey {
+        let mut discriminator = Vec::new();
+        discriminator.extend_from_slice(b"pdf-page-gpu\0");
+        discriminator.extend_from_slice(self.snapshot.cache_key().as_bytes());
+        discriminator.extend_from_slice(&self.page.to_le_bytes());
+        ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
+    }
+
     fn request_document(&self) {
         let key = self.document_key();
         if !gpu_memory().begin_resource_load(key.clone()) {
@@ -70,7 +78,7 @@ impl PdfRenderSession {
     }
 
     fn request_page(&mut self) -> Result<(), String> {
-        if self.page_pending.is_some() {
+        if self.page_pending.is_some() || gpu_memory().contains_resource(&self.page_key()) {
             return Ok(());
         }
         let Some(document) =
@@ -139,13 +147,31 @@ impl VisualElement for PdfRenderSession {
         _track_id: Uuid,
         _cache: &mut VisualSourceCache,
     ) -> Result<VisualRender, String> {
-        if let Some(frame) = self.rendered_page()? {
-            shrimply_benchmarking::increment("PDF source residency / Hit");
-            let frame = Rc::new(compositor.upload_frame(&frame)?);
+        if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.page_key())? {
+            shrimply_benchmarking::increment("PDF GPU residency / Hit");
+            compositor.prepare_host_backed_frame(&frame, "cached PDF page preview")?;
             return Ok(VisualRender::Ready(Visual::Raster(
-                RasterVisual::materialized(GpuFrame::Rgba(frame), request.state),
+                RasterVisual::materialized(
+                    GpuFrame::Rgba(Rc::new((*frame).clone())),
+                    request.state,
+                ),
             )));
         }
+        if let Some(frame) = self.rendered_page()? {
+            shrimply_benchmarking::increment("PDF GPU residency / Miss");
+            let mut frame = compositor.upload_frame(&frame)?;
+            if let Some(retained) =
+                compositor.retain_host_backed_frame(&frame, "PDF page preview cache")?
+            {
+                gpu_memory().insert_resource(self.page_key(), 0, retained.clone())?;
+                frame = retained;
+            }
+            compositor.prepare_host_backed_frame(&frame, "PDF page preview")?;
+            return Ok(VisualRender::Ready(Visual::Raster(
+                RasterVisual::materialized(GpuFrame::Rgba(Rc::new(frame)), request.state),
+            )));
+        }
+        shrimply_benchmarking::increment("PDF GPU residency / Miss");
         self.request_page()?;
         Ok(VisualRender::Loading(CanvasSize {
             width: self.width,

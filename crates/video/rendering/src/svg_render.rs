@@ -26,6 +26,7 @@ pub struct SvgRenderSession {
 }
 
 struct DeferredSvgFrame {
+    cache_key: Vec<u8>,
     prepared_svg: ResidentResource<PreparedSvg>,
     root_width: u32,
     root_height: u32,
@@ -37,6 +38,7 @@ struct DeferredSvgFrame {
 }
 
 pub(crate) struct SvgVectorVisualParams {
+    pub cache_key: Vec<u8>,
     pub prepared_svg: ResidentResource<PreparedSvg>,
     pub root_size: CanvasSize,
     pub surface_size: CanvasSize,
@@ -50,6 +52,7 @@ pub(crate) fn svg_vector_visual(
     state: VisualState,
 ) -> Result<Visual, String> {
     let SvgVectorVisualParams {
+        cache_key,
         prepared_svg,
         root_size,
         surface_size,
@@ -57,7 +60,35 @@ pub(crate) fn svg_vector_visual(
         evaluation,
         transition,
     } = params;
+    let cache_key = serde_json::to_vec(&(
+        cache_key,
+        root_size.width,
+        root_size.height,
+        surface_size.width,
+        surface_size.height,
+        canvas_size,
+        transition.map(|value| {
+            (
+                value.kind,
+                value.side == shrimply_project::project::TransitionSide::Intro,
+                value.progress.to_bits(),
+                value.interpolation,
+                value.ordering,
+                value.drawing_stroke_overlap.to_bits(),
+                value.drawing_stroke_length_weight.to_bits(),
+                value.drawing_fill_mode,
+                value.morph_unit,
+                value.effect_amount.to_bits(),
+                value.effect_detail.to_bits(),
+                value.effect_angle_degrees.to_bits(),
+                value.effect_fade,
+                value.effect_seed,
+            )
+        }),
+    ))
+    .map_err(|error| format!("serialize SVG raster cache key: {error}"))?;
     let frame = Box::new(DeferredSvgFrame {
+        cache_key,
         prepared_svg,
         root_width: root_size.width,
         root_height: root_size.height,
@@ -219,6 +250,10 @@ impl SvgRenderSession {
 }
 
 impl VisualData for DeferredSvgFrame {
+    fn cache_key(&self) -> &[u8] {
+        &self.cache_key
+    }
+
     fn morph_scene(&self) -> Option<crate::vector_morph::MorphScene> {
         self.prepared_svg.with_dom(|dom| {
             let mut root = dom.root();
@@ -316,6 +351,8 @@ impl VisualElement for SvgRenderSession {
         );
         svg_vector_visual(
             SvgVectorVisualParams {
+                cache_key: serde_json::to_vec(&(self.snapshot.cache_key(), &self.color_overrides))
+                    .map_err(|error| format!("serialize SVG source cache key: {error}"))?,
                 prepared_svg: source,
                 root_size: CanvasSize {
                     width: self.root_width,

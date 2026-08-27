@@ -100,6 +100,29 @@ impl ImageDecodeSession {
         ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
     }
 
+    fn gpu_image_key(&self) -> ResourceKey {
+        let mut discriminator = Vec::new();
+        discriminator.extend_from_slice(b"rgba-gpu\0");
+        discriminator.extend_from_slice(self.snapshot.cache_key().as_bytes());
+        ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
+    }
+
+    fn upload_still_frame(
+        &self,
+        source: &VisualFrame,
+        compositor: &mut CudaVideoCompositor,
+    ) -> Result<Rc<VisualFrame>, String> {
+        let mut frame = compositor.upload_frame(source)?;
+        if let Some(retained) =
+            compositor.retain_host_backed_frame(&frame, "still image preview cache")?
+        {
+            gpu_memory().insert_resource(self.gpu_image_key(), 0, retained.clone())?;
+            frame = retained;
+        }
+        compositor.prepare_host_backed_frame(&frame, "still image preview")?;
+        Ok(Rc::new(frame))
+    }
+
     fn vectorized_key(&self, key: &[u8]) -> ResourceKey {
         let mut discriminator = b"vectorized-svg\0".to_vec();
         discriminator.extend_from_slice(key);
@@ -285,6 +308,7 @@ impl ImageDecodeSession {
         };
         let visual = svg_vector_visual(
             SvgVectorVisualParams {
+                cache_key: key.to_vec(),
                 prepared_svg,
                 root_size: shrimply_project::project::CanvasSize {
                     width: image.width,
@@ -326,8 +350,14 @@ impl ImageDecodeSession {
         compositor: &mut CudaVideoCompositor,
     ) -> Result<Option<Rc<VisualFrame>>, String> {
         if self.kind == ImageDecodeKind::Image {
+            if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.gpu_image_key())? {
+                shrimply_benchmarking::increment("Image GPU residency / Hit");
+                compositor.prepare_host_backed_frame(&frame, "cached still image preview")?;
+                return Ok(Some(Rc::new((*frame).clone())));
+            }
+            shrimply_benchmarking::increment("Image GPU residency / Miss");
             if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.image_key())? {
-                return compositor.upload_frame(&frame).map(Rc::new).map(Some);
+                return self.upload_still_frame(&frame, compositor).map(Some);
             }
             if gpu_memory().contains_resource(&self.image_key()) {
                 return Ok(None);
@@ -353,7 +383,7 @@ impl ImageDecodeSession {
                     let frame = gpu_memory()
                         .get_resource::<VisualFrame>(&self.image_key())?
                         .ok_or_else(|| "decoded image source disappeared".to_string())?;
-                    return compositor.upload_frame(&frame).map(Rc::new).map(Some);
+                    return self.upload_still_frame(&frame, compositor).map(Some);
                 }
                 return Ok(self.frame_at_or_before(target));
             }

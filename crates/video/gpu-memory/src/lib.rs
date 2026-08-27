@@ -15,6 +15,7 @@ const RESIDENCY_DEVICE: u8 = 1;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AllocationClass {
     Persistent,
+    Cached,
     Transient,
     External,
 }
@@ -142,6 +143,7 @@ struct AllocationRecord {
     residency: AtomicU8,
     advice: AtomicU8,
     last_access: AtomicU64,
+    cache_hot: AtomicBool,
     active: Mutex<bool>,
     counted: AtomicBool,
     _reservation: Option<HostReservation>,
@@ -155,6 +157,9 @@ impl AllocationRecord {
     fn touch(&self) {
         self.last_access
             .store(next_access(&self.shared), Ordering::Release);
+        if self.class == AllocationClass::Cached {
+            self.cache_hot.store(true, Ordering::Release);
+        }
         if self.managed {
             self.residency.store(RESIDENCY_DEVICE, Ordering::Release);
         }
@@ -210,6 +215,53 @@ impl<T> GpuBuffer<T> {
 
     pub fn memory_kind(&self) -> MemoryKind {
         self.memory_kind
+    }
+
+    pub fn allocation_class(&self) -> AllocationClass {
+        self.record.class
+    }
+
+    pub fn prefetch_to_device(&self, stream: &CudaStream) -> Result<(), String> {
+        if !self.record.managed {
+            self.record.touch();
+            return Ok(());
+        }
+        if self.record.advice.load(Ordering::Acquire) == RESIDENCY_DEVICE
+            && self.record.residency.load(Ordering::Acquire) == RESIDENCY_DEVICE
+        {
+            self.record.touch();
+            return Ok(());
+        }
+        if self.record.device_ordinal != stream.context().ordinal()
+            || self.record.context_handle != stream.context().cu_ctx() as usize
+        {
+            return Err("prefetch managed buffer with a different CUDA context".to_string());
+        }
+        stream
+            .context()
+            .bind_to_thread()
+            .map_err(|error| format!("bind CUDA context for managed prefetch: {error}"))?;
+        let pointer = self.record.ptr.load(Ordering::Acquire);
+        let bytes = usize::try_from(self.record.bytes)
+            .map_err(|_| "managed prefetch size exceeds usize".to_string())?;
+        let location = ManagedLocation::Device(
+            i32::try_from(self.record.device_ordinal)
+                .map_err(|_| "CUDA device ordinal exceeds i32".to_string())?,
+        );
+        unsafe { advise_preferred_location(pointer, bytes, location) }
+            .map_err(|error| format!("advise managed buffer for GPU reuse: {error}"))?;
+        unsafe { prefetch_managed_async(pointer, bytes, location, stream.cu_stream()) }
+            .map_err(|error| format!("prefetch managed buffer for GPU reuse: {error}"))?;
+        self.record
+            .advice
+            .store(RESIDENCY_DEVICE, Ordering::Release);
+        self.record.touch();
+        self.record
+            .shared
+            .prefetched_gpu
+            .fetch_add(self.record.bytes, Ordering::AcqRel);
+        publish_telemetry(&self.record.shared);
+        Ok(())
     }
 
     pub fn cast_elem<A>(mut self) -> GpuBuffer<A> {
@@ -391,7 +443,7 @@ impl GpuMemoryManager {
             );
         }
 
-        if class == AllocationClass::Persistent && host_enabled {
+        if matches!(class, AllocationClass::Persistent | AllocationClass::Cached) && host_enabled {
             match self.allocate_managed(stream, length, class, &description, bytes, pressured) {
                 Ok(buffer) => return Ok(buffer),
                 Err(managed_error) => {
@@ -581,6 +633,7 @@ impl GpuMemoryManager {
             residency: AtomicU8::new(RESIDENCY_HOST),
             advice: AtomicU8::new(RESIDENCY_HOST),
             last_access: AtomicU64::new(next_access(&self.shared)),
+            cache_hot: AtomicBool::new(false),
             active: Mutex::new(false),
             counted: AtomicBool::new(false),
             _reservation: reservation,
@@ -625,9 +678,14 @@ impl GpuMemoryManager {
                     && record.residency.load(Ordering::Acquire) == RESIDENCY_DEVICE
             })
             .collect();
-        candidates.sort_by_key(|record| record.last_access.load(Ordering::Acquire));
+        candidates.sort_by_key(|record| {
+            (
+                record.class == AllocationClass::Cached && record.cache_hot.load(Ordering::Acquire),
+                record.last_access.load(Ordering::Acquire),
+            )
+        });
         let mut migrated = 0_u64;
-        for record in candidates {
+        for record in &candidates {
             let (free, total) = memory_info()?;
             if free >= target.saturating_add(required_bytes) {
                 break;
@@ -722,6 +780,9 @@ impl GpuMemoryManager {
                 relief_level = "managed migration",
                 "prefetched a managed CUDA range to host memory"
             );
+        }
+        for record in candidates {
+            record.cache_hot.store(false, Ordering::Release);
         }
         publish_telemetry(&self.shared);
         Ok(migrated)

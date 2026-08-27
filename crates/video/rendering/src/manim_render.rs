@@ -19,7 +19,7 @@ use shrimply_project::project::{
 };
 use uuid::Uuid;
 
-use crate::gpu::CudaVideoCompositor;
+use crate::gpu::{CudaVideoCompositor, VisualFrame};
 use crate::layer::{GpuFrame, RasterVisual, Visual};
 use crate::visual_source::{VisualElement, VisualRender, VisualRenderRequest, VisualSourceCache};
 
@@ -34,6 +34,9 @@ pub struct ManimElement {
     canvas_size: CanvasSize,
     compiled_fps: Option<Fraction>,
     render_slot: Arc<()>,
+    frame: Option<Rc<VisualFrame>>,
+    rendered_frame: Option<usize>,
+    placeholder_progress: Option<Progress>,
     duration_reported: bool,
     parameters_reported: bool,
     first_frame_reported: bool,
@@ -86,6 +89,9 @@ impl ManimElement {
             canvas_size,
             compiled_fps: None,
             render_slot: Arc::new(()),
+            frame: None,
+            rendered_frame: None,
+            placeholder_progress: None,
             duration_reported: false,
             parameters_reported: false,
             first_frame_reported: false,
@@ -125,6 +131,25 @@ impl ManimElement {
             CompileState::Loading { progress, .. } => *progress,
             _ => None,
         };
+        let refresh = self.frame.is_none() || self.placeholder_progress != progress;
+        if self.frame.is_none() {
+            self.frame = Some(Rc::new(compositor.allocate_cached_rgba_layer(
+                self.canvas_size.width,
+                self.canvas_size.height,
+                "persistent Manim output",
+            )?));
+        }
+        let frame = self
+            .frame
+            .as_ref()
+            .expect("Manim preview image was allocated")
+            .clone();
+        compositor.prepare_host_backed_frame(&frame, "persistent Manim output")?;
+        if !refresh {
+            return Ok(VisualRender::LoadingPlaceholder(Visual::Raster(
+                RasterVisual::materialized(GpuFrame::Rgba(frame), state),
+            )));
+        }
         let counter = match progress {
             Some(Progress {
                 stage: ProgressStage::StreamingFrames,
@@ -158,10 +183,9 @@ impl ManimElement {
             LOADING_COLOR,
             LOADING_PROGRESS_COLOR,
         )?;
-        let frame = Rc::new(
-            compositor.allocate_rgba_layer(self.canvas_size.width, self.canvas_size.height)?,
-        );
         compositor.upload_rgba_layer_into(&frame, &pixels)?;
+        self.rendered_frame = None;
+        self.placeholder_progress = progress;
         Ok(VisualRender::LoadingPlaceholder(Visual::Raster(
             RasterVisual::materialized(GpuFrame::Rgba(frame), state),
         )))
@@ -219,6 +243,8 @@ impl VisualElement for ManimElement {
             self.snapshot = request.item.file.snapshot()?;
             self.scene.clone_from(&manim.scene);
             self.parameters.clone_from(&manim.parameters);
+            self.placeholder_progress = None;
+            self.rendered_frame = None;
             self.duration_reported = false;
             self.parameters_reported = false;
             self.first_frame_reported = false;
@@ -237,6 +263,8 @@ impl VisualElement for ManimElement {
         if self.compiled_fps != Some(fps) {
             self.cancel_compile();
             self.compiled_fps = Some(fps);
+            self.placeholder_progress = None;
+            self.rendered_frame = None;
             self.duration_reported = false;
             self.parameters_reported = false;
             self.first_frame_reported = false;
@@ -338,6 +366,7 @@ impl VisualElement for ManimElement {
             {
                 worker.join().expect("Manim compiler thread panicked");
             }
+            self.placeholder_progress = None;
             self.state = match finished {
                 Ok(CompiledManim::Current {
                     animation,
@@ -376,11 +405,16 @@ impl VisualElement for ManimElement {
         let render_started = std::time::Instant::now();
         let layer = {
             let _measurement = shrimply_benchmarking::measure("Manim / WGPU");
-            let frame = Rc::new(
-                compositor.allocate_rgba_layer(self.canvas_size.width, self.canvas_size.height)?,
-            );
-            compositor.render_manim(&self.render_slot, prepared, frame_index, &frame)?;
-            frame
+            let frame = self
+                .frame
+                .as_ref()
+                .expect("Manim preview image was allocated while loading");
+            compositor.prepare_host_backed_frame(frame, "persistent Manim output")?;
+            if self.rendered_frame != Some(frame_index) {
+                compositor.render_manim(&self.render_slot, prepared, frame_index, frame)?;
+                self.rendered_frame = Some(frame_index);
+            }
+            frame.clone()
         };
         if !self.first_frame_reported {
             tracing::info!(
