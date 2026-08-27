@@ -35,6 +35,14 @@ use shrimply_project::project::{
 use shrimply_project::timeline_search;
 use uuid::Uuid;
 
+macro_rules! abort_render_if_superseded {
+    ($control:expr, $action:expr) => {
+        if $control.is_some_and(DecodeControl::superseded) {
+            $action
+        }
+    };
+}
+
 mod preload;
 mod render;
 mod sam2;

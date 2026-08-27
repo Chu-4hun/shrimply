@@ -15,6 +15,7 @@ pub(super) fn render_project_frame(
     decode_control: Option<&DecodeControl>,
 ) -> RenderedFrame {
     let _measurement = shrimply_benchmarking::measure("Video / Render frame");
+    compositor.set_render_control(None);
     if decode_control.is_some_and(DecodeControl::superseded) {
         return RenderedFrame {
             frame: None,
@@ -105,6 +106,7 @@ pub(super) fn render_project_frame(
         };
     }
 
+    compositor.set_render_control(decode_control.cloned());
     let mut renderer = FrameItemRenderer {
         project,
         position,
@@ -132,19 +134,19 @@ pub(super) fn render_project_frame(
         renderer.preload_active_sources(&active_items);
     }
     if preload_during_playback {
-        preload::upcoming_videos(project, renderer.sessions, position, mode.accuracy());
+        abort_render_if_superseded!(renderer.decode_control, renderer.superseded = true);
+        if !renderer.superseded {
+            preload::upcoming_videos(project, renderer.sessions, position, mode.accuracy());
+        }
     }
     let mut layers = Vec::with_capacity(active_items.len());
     let mut selected_layers = Vec::new();
     let mut morphed_items = HashSet::new();
     for (active_index, active) in active_items.iter().enumerate() {
-        if renderer
-            .decode_control
-            .is_some_and(DecodeControl::superseded)
-        {
+        abort_render_if_superseded!(renderer.decode_control, {
             renderer.superseded = true;
             break;
-        }
+        });
         if morphed_items.contains(&active.item.id) {
             continue;
         }
@@ -179,10 +181,16 @@ pub(super) fn render_project_frame(
                     }
                     layers.extend(morph_layers);
                 }
-                Err(error) => errors.push(format!(
-                    "Could not render Morph transition from {} to {}: {error}",
-                    active.item.id, incoming.item.id
-                )),
+                Err(error) => {
+                    abort_render_if_superseded!(renderer.decode_control, {
+                        renderer.superseded = true;
+                        break;
+                    });
+                    errors.push(format!(
+                        "Could not render Morph transition from {} to {}: {error}",
+                        active.item.id, incoming.item.id
+                    ));
+                }
             }
             for item in [active.item, incoming.item] {
                 if matches!(
@@ -244,6 +252,10 @@ pub(super) fn render_project_frame(
         let transmission_background = match renderer.render_scene_background(item, &layers) {
             Ok(background) => background,
             Err(error) => {
+                abort_render_if_superseded!(renderer.decode_control, {
+                    renderer.superseded = true;
+                    break;
+                });
                 errors.push(format!(
                     "Could not render visual item {} transmission background: {error}",
                     item.id
@@ -294,7 +306,13 @@ pub(super) fn render_project_frame(
                             }
                             layers.push(layer);
                         }
-                        Err(error) => errors.push(error),
+                        Err(error) => {
+                            abort_render_if_superseded!(renderer.decode_control, {
+                                renderer.superseded = true;
+                                break;
+                            });
+                            errors.push(error);
+                        }
                     }
                 }
             }
@@ -304,6 +322,10 @@ pub(super) fn render_project_frame(
                 }
             }
             Err(error) => {
+                abort_render_if_superseded!(renderer.decode_control, {
+                    renderer.superseded = true;
+                    break;
+                });
                 let error = format!("Could not render visual item {}: {error}", item.id);
                 if let Some(source_revision) = source_revision {
                     manim_statuses.push((active.item.id, source_revision, Some(error.clone())));
@@ -314,9 +336,10 @@ pub(super) fn render_project_frame(
         if renderer.loading {
             break;
         }
-        if renderer.superseded {
+        abort_render_if_superseded!(renderer.decode_control, {
+            renderer.superseded = true;
             break;
-        }
+        });
     }
 
     let mut loading = renderer.loading;
@@ -334,12 +357,7 @@ pub(super) fn render_project_frame(
     } else {
         &layers
     };
-    if renderer
-        .decode_control
-        .is_some_and(DecodeControl::superseded)
-    {
-        renderer.superseded = true;
-    }
+    abort_render_if_superseded!(renderer.decode_control, renderer.superseded = true);
     let frame = if renderer.superseded
         || (loading && !renderer.loading_placeholder)
         || output_layers.is_empty()
@@ -364,7 +382,10 @@ pub(super) fn render_project_frame(
         match result {
             Ok(frame) => Some(frame),
             Err(error) => {
-                errors.push(error);
+                abort_render_if_superseded!(renderer.decode_control, renderer.superseded = true);
+                if !renderer.superseded {
+                    errors.push(error);
+                }
                 None
             }
         }
@@ -379,6 +400,8 @@ pub(super) fn render_project_frame(
         && !renderer.superseded
         && errors.is_empty()
         && output_layers.is_empty();
+    let superseded = renderer.superseded;
+    renderer.compositor.set_render_control(None);
     RenderedFrame {
         frame,
         audio_analysis: audio_analysis.clone(),
@@ -389,7 +412,7 @@ pub(super) fn render_project_frame(
         manim_durations: renderer.manim_durations,
         manim_parameters: renderer.manim_parameters,
         manim_statuses,
-        superseded: renderer.superseded,
+        superseded,
     }
 }
 
@@ -429,6 +452,7 @@ impl FrameItemRenderer<'_> {
         item: &VideoItem,
         layers: &[crate::layer::VideoLayer],
     ) -> Result<Option<Rc<crate::gpu::VisualFrame>>, String> {
+        abort_render_if_superseded!(self.decode_control, return Ok(None));
         if !matches!(
             item.content,
             shrimply_project::project::VideoItemContent::Obj(_)
@@ -503,6 +527,7 @@ impl FrameItemRenderer<'_> {
         for (active_index, (track_index, track_id, child, transition, previous)) in
             active.iter().enumerate()
         {
+            abort_render_if_superseded!(self.decode_control, break);
             if morphed_items.contains(&child.id) {
                 continue;
             }
@@ -638,6 +663,7 @@ impl FrameItemRenderer<'_> {
         ignore_visibility: bool,
         transmission_background: Option<&crate::gpu::VisualFrame>,
     ) -> Result<Option<crate::layer::VideoLayer>, String> {
+        abort_render_if_superseded!(self.decode_control, return Ok(None));
         let Some((visual, render_canvas)) = self.render_item_visual(
             track_index,
             track_id,
@@ -669,6 +695,7 @@ impl FrameItemRenderer<'_> {
         ignore_visibility: bool,
         transmission_background: Option<&crate::gpu::VisualFrame>,
     ) -> Result<Option<(Visual, shrimply_project::project::CanvasSize)>, String> {
+        abort_render_if_superseded!(self.decode_control, return Ok(None));
         if self.render_stack.contains(&item.id) {
             return Err(format!("cyclic mask reference involving item {}", item.id));
         }
@@ -880,6 +907,7 @@ impl FrameItemRenderer<'_> {
                 element.take_manim_parameters(),
             )
         };
+        abort_render_if_superseded!(self.decode_control, return Ok(None));
         if let (Some(duration), shrimply_project::project::VideoItemContent::Manim(_)) =
             (source_duration, &item.content)
         {
@@ -952,6 +980,7 @@ impl FrameItemRenderer<'_> {
         }
 
         for (modifier_index, modifier) in item.modifiers.iter().enumerate() {
+            abort_render_if_superseded!(self.decode_control, return Ok(None));
             if !modifier.enabled {
                 continue;
             }
@@ -1044,6 +1073,7 @@ impl FrameItemRenderer<'_> {
         progress: f32,
         lower_layers: &[VideoLayer],
     ) -> Result<Vec<VideoLayer>, String> {
+        abort_render_if_superseded!(self.decode_control, return Ok(Vec::new()));
         let content = serde_json::to_vec(&(outgoing, incoming))
             .map_err(|error| format!("serialize Morph transition endpoints: {error}"))?;
         let mut hasher = DefaultHasher::new();
@@ -1090,6 +1120,7 @@ impl FrameItemRenderer<'_> {
                     false,
                     source_background.as_deref(),
                 )?;
+                abort_render_if_superseded!(self.decode_control, return Ok(None));
                 self.position = target_position;
                 self.audio_analysis = FrameAudioAnalysis {
                     volume: self.sessions.volume.sample(
@@ -1112,6 +1143,7 @@ impl FrameItemRenderer<'_> {
                     false,
                     target_background.as_deref(),
                 )?;
+                abort_render_if_superseded!(self.decode_control, return Ok(None));
                 let (Some((source, source_canvas)), Some((target, target_canvas))) =
                     (source, target)
                 else {
@@ -1356,6 +1388,7 @@ impl FrameItemRenderer<'_> {
         media_track_id: u32,
         routes: VideoDecodeRoutes,
     ) -> Result<Option<Rc<crate::gpu::VisualFrame>>, String> {
+        abort_render_if_superseded!(self.decode_control, return Ok(None));
         let cache_key = (self.sequence_path.clone(), item.id, media_track_id);
         if let Some(layer) = self.alpha_mask_layers.get(&cache_key) {
             return Ok(Some(layer.clone()));
@@ -1506,6 +1539,7 @@ impl FrameItemRenderer<'_> {
         &mut self,
         item_id: Option<Uuid>,
     ) -> Result<Option<Rc<crate::gpu::VisualFrame>>, String> {
+        abort_render_if_superseded!(self.decode_control, return Ok(None));
         let Some(item_id) = item_id else {
             return Ok(None);
         };

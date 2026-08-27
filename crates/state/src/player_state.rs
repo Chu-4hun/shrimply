@@ -150,7 +150,7 @@ pub fn set_playing(state: &SharedPlayerState, playing: bool) {
         if state.playing == playing {
             return false;
         }
-        tracing::info!(
+        tracing::trace!(
             "Player playing changed: {} -> {} at {}",
             state.playing,
             playing,

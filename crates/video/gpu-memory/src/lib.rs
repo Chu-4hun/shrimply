@@ -663,7 +663,19 @@ impl GpuMemoryManager {
         stream: &CudaStream,
         required_bytes: u64,
         protect_current_frame: bool,
+        generation_check: Option<(&AtomicU64, u64)>,
     ) -> Result<u64, String> {
+        macro_rules! abort_if_superseded {
+            ($action:expr) => {
+                if generation_check
+                    .is_some_and(|(latest, expected)| latest.load(Ordering::Acquire) != expected)
+                {
+                    $action
+                }
+            };
+        }
+
+        abort_if_superseded!(return Ok(0));
         let (initial_free, total) = memory_info()?;
         let target = total / RESERVE_DIVISOR;
         let migration_target = target
@@ -678,6 +690,7 @@ impl GpuMemoryManager {
             }
             tracing::warn!(?error, "CUDA reported OOM before managed migration");
         }
+        abort_if_superseded!(return Ok(0));
         let current_frame_epoch = self.shared.frame_epoch.load(Ordering::Acquire);
         let mut candidates: Vec<_> = self
             .shared
@@ -703,6 +716,7 @@ impl GpuMemoryManager {
             if migrated >= migration_target {
                 break;
             }
+            abort_if_superseded!(break);
             let guard = record.active.lock().expect("GPU allocation mutex poisoned");
             if !*guard {
                 continue;

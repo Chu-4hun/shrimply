@@ -5,6 +5,7 @@ use std::ptr;
 use std::rc::Rc;
 use std::sync::Arc;
 
+use crate::decode::DecodeControl;
 use crate::layer::VideoLayer;
 use cuda_core::{CudaContext, CudaEvent, CudaStream, DeviceCopy, LaunchConfig, sys};
 use ffmpeg_next::{frame as ffmpeg_frame, sys as ffmpeg_sys};
@@ -28,6 +29,7 @@ pub use frame::{CompositedFrameStorageKey, CompositedVideoFrame};
 
 const DISPLAY_GPU_MEMORY_RESERVE_DIVISOR: u64 = 16;
 const MIGRATE_ALL_REQUIRED_BYTES: u64 = u64::MAX;
+const RENDER_SUPERSEDED: &str = "video render superseded";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ExportPixelFormat {
@@ -57,6 +59,7 @@ pub struct CudaVideoCompositor {
     stream: Arc<CudaStream>,
     context: Arc<CudaContext>,
     next_serial: u64,
+    render_control: Option<DecodeControl>,
     observed_gpu_oom_generation: u64,
     export_layer_params: Option<DeviceBuffer<kernels::Nv12LayerParams>>,
     export_motion_transforms: Option<DeviceBuffer<glam::Mat3>>,
@@ -89,6 +92,7 @@ impl CudaVideoCompositor {
             generated_renderer: None,
             generated_renderer_generation: 0,
             next_serial: 1,
+            render_control: None,
             observed_gpu_oom_generation: gpu_oom_generation(),
             export_layer_params: None,
             export_motion_transforms: None,
@@ -103,6 +107,22 @@ impl CudaVideoCompositor {
         };
         compositor.record_gpu_memory_usage();
         Ok(compositor)
+    }
+
+    pub(crate) fn set_render_control(&mut self, control: Option<DecodeControl>) {
+        self.render_control = control;
+    }
+
+    fn fail_if_superseded(&self) -> Result<(), String> {
+        if self
+            .render_control
+            .as_ref()
+            .is_some_and(DecodeControl::superseded)
+        {
+            Err(RENDER_SUPERSEDED.to_string())
+        } else {
+            Ok(())
+        }
     }
 
     pub(crate) fn estimate_optical_flow(
@@ -301,6 +321,7 @@ impl CudaVideoCompositor {
         layers: &[VideoLayer],
         background_alpha: Option<u8>,
     ) -> Result<CompositedVideoFrame, String> {
+        self.fail_if_superseded()?;
         shrimply_gpu_memory::global().begin_frame();
         self.release_after_reported_gpu_oom()?;
         let requested_bytes = u64::from(canvas_size.width.max(1))
@@ -319,6 +340,7 @@ impl CudaVideoCompositor {
             result => result,
         };
         let frame = result?;
+        self.fail_if_superseded()?;
         self.spill_stale_frames_for_display_memory()?;
         self.record_gpu_memory_usage();
         Ok(frame)
@@ -338,7 +360,13 @@ impl CudaVideoCompositor {
             .map_err(|_| "CUDA compositor canvas is too large".to_string())?;
         let mut prepared = {
             let _measurement = shrimply_benchmarking::measure("CUDA compositor / Prepare layers");
-            layers::prepare(self.context.cu_ctx(), &self.stream, canvas_size, layers)?
+            layers::prepare(
+                self.context.cu_ctx(),
+                &self.stream,
+                canvas_size,
+                layers,
+                self.render_control.as_ref(),
+            )?
         };
         let spare_output = if export {
             self.export_output.take()
@@ -505,6 +533,7 @@ impl CudaVideoCompositor {
             &mut self.generated_renderer_generation,
             &context,
             &stream,
+            self.render_control.as_ref(),
             "generated visual render",
             |renderer| {
                 renderer.render_visual(
@@ -535,6 +564,7 @@ impl CudaVideoCompositor {
             &mut self.generated_renderer_generation,
             &context,
             stream,
+            self.render_control.as_ref(),
             "3D scene render",
             |renderer| {
                 renderer.render_scene_3d(
@@ -565,6 +595,7 @@ impl CudaVideoCompositor {
             &mut self.generated_renderer_generation,
             &context,
             &stream,
+            self.render_control.as_ref(),
             "3DGS render",
             |renderer| renderer.render_gaussian_3d(context.clone(), session, width, height, params),
         )
@@ -584,6 +615,7 @@ impl CudaVideoCompositor {
             &mut self.generated_renderer_generation,
             &context,
             &stream,
+            self.render_control.as_ref(),
             "background Slang/Vulkan render",
             |renderer| {
                 renderer.render_background(
@@ -612,6 +644,7 @@ impl CudaVideoCompositor {
             &mut self.generated_renderer_generation,
             &context,
             &stream,
+            self.render_control.as_ref(),
             "Manim WGPU render",
             |renderer| {
                 renderer.render_manim(
@@ -640,6 +673,7 @@ impl CudaVideoCompositor {
             &mut self.generated_renderer_generation,
             &context,
             &stream,
+            self.render_control.as_ref(),
             "MeshFlow Slang/Vulkan warp",
             |renderer| {
                 renderer.render_mesh_flow(
@@ -697,6 +731,7 @@ impl CudaVideoCompositor {
         requested_bytes: u64,
         allocation_description: &str,
     ) -> Result<(), String> {
+        self.fail_if_superseded()?;
         self.context
             .bind_to_thread()
             .map_err(|error| format!("bind CUDA context for GPU pressure relief: {error:?}"))?;
@@ -709,13 +744,18 @@ impl CudaVideoCompositor {
                 "CUDA stream reported OOM while preparing pressure relief"
             );
         }
+        self.fail_if_superseded()?;
         let before = self.gpu_memory_info().ok();
         let migrated_bytes = shrimply_gpu_memory::global().relieve_vram_pressure(
             &self.context,
             &self.stream,
             requested_bytes,
             false,
+            self.render_control
+                .as_ref()
+                .map(DecodeControl::generation_check),
         )?;
+        self.fail_if_superseded()?;
         let (free, total) = self.gpu_memory_info()?;
         let reserve = total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR;
         if free >= reserve.saturating_add(requested_bytes) {
@@ -796,6 +836,7 @@ impl CudaVideoCompositor {
     }
 
     fn release_after_reported_gpu_oom(&mut self) -> Result<(), String> {
+        self.fail_if_superseded()?;
         let generation = gpu_oom_generation();
         if generation == self.observed_gpu_oom_generation {
             return Ok(());
@@ -806,6 +847,7 @@ impl CudaVideoCompositor {
     }
 
     fn spill_stale_frames_for_display_memory(&mut self) -> Result<(), String> {
+        self.fail_if_superseded()?;
         let (free, total) = self.gpu_memory_info()?;
         if free < total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR {
             shrimply_gpu_memory::global().relieve_vram_pressure(
@@ -813,6 +855,9 @@ impl CudaVideoCompositor {
                 &self.stream,
                 0,
                 true,
+                self.render_control
+                    .as_ref()
+                    .map(DecodeControl::generation_check),
             )?;
         }
         Ok(())
@@ -934,6 +979,7 @@ impl CudaVideoCompositor {
         frame: &VisualFrame,
         description: &str,
     ) -> Result<Option<VisualFrame>, String> {
+        self.fail_if_superseded()?;
         if shrimply_gpu_memory::global().telemetry().host_budget_bytes == 0 {
             return Ok(None);
         }
@@ -964,6 +1010,7 @@ impl CudaVideoCompositor {
         frame: &VisualFrame,
         description: &str,
     ) -> Result<(), String> {
+        self.fail_if_superseded()?;
         if !frame.is_managed() {
             return Ok(());
         }
@@ -975,6 +1022,7 @@ impl CudaVideoCompositor {
                 )
             })?;
         }
+        self.fail_if_superseded()?;
         Ok(())
     }
 
@@ -1044,6 +1092,7 @@ impl CudaVideoCompositor {
         height: u32,
         layers: &[layered_image::LayeredImageGpuLayer<'_>],
     ) -> Result<VisualFrame, String> {
+        self.fail_if_superseded()?;
         let width = width.max(1);
         let height = height.max(1);
         let pixel_count = width as usize * height as usize;
@@ -1067,6 +1116,7 @@ impl CudaVideoCompositor {
         }
         let mut output = self.allocate_buffer(pixel_count, "CUDA layered image composite")?;
         for layer in layers {
+            self.fail_if_superseded()?;
             let source = layer.source.plane(0).expect("RGBA layer has no plane");
             let clipping_base = layer
                 .clipping_base
@@ -1393,9 +1443,13 @@ fn render_with_generated_gpu<T>(
     generation: &mut u64,
     context: &Arc<CudaContext>,
     stream: &CudaStream,
+    render_control: Option<&DecodeControl>,
     operation: &str,
     mut render: impl FnMut(&mut generated_gpu::GeneratedGpuRenderer) -> Result<T, String>,
 ) -> Result<T, String> {
+    if render_control.is_some_and(DecodeControl::superseded) {
+        return Err(RENDER_SUPERSEDED.to_string());
+    }
     if renderer.is_none() {
         *renderer = Some(generated_gpu::GeneratedGpuRenderer::new()?);
     }
@@ -1408,13 +1462,20 @@ fn render_with_generated_gpu<T>(
         ) {
             Ok(output) => return Ok(output),
             Err(error) if is_gpu_oom(&error) && relief_level == 0 => {
+                if render_control.is_some_and(DecodeControl::superseded) {
+                    return Err(RENDER_SUPERSEDED.to_string());
+                }
                 let before = gpu_memory_info(context).ok();
                 let migrated_bytes = shrimply_gpu_memory::global().relieve_vram_pressure(
                     context,
                     stream,
                     MIGRATE_ALL_REQUIRED_BYTES,
                     false,
+                    render_control.map(DecodeControl::generation_check),
                 )?;
+                if render_control.is_some_and(DecodeControl::superseded) {
+                    return Err(RENDER_SUPERSEDED.to_string());
+                }
                 let released = renderer
                     .as_mut()
                     .expect("generated GPU renderer was initialized")

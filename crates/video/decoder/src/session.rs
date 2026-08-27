@@ -34,6 +34,10 @@ impl DecodeControl {
     pub fn generation(&self) -> u64 {
         self.generation
     }
+
+    pub fn generation_check(&self) -> (&AtomicU64, u64) {
+        (self.latest_generation.as_ref(), self.generation)
+    }
 }
 
 pub type DecodedVisual = (Time, VisualFrame);

@@ -1,5 +1,6 @@
 use cuda_core::{CudaStream, sys};
 
+use crate::decode::DecodeControl;
 use crate::layer::VideoLayer;
 use shrimply_project::project::{CanvasSize, VideoSampleMethod};
 
@@ -23,6 +24,7 @@ pub(super) fn prepare(
     stream: &CudaStream,
     canvas_size: CanvasSize,
     layers: &[VideoLayer],
+    render_control: Option<&DecodeControl>,
 ) -> Result<PreparedLayers, String> {
     let mut params = Vec::with_capacity(layers.len());
     let mut motion_transforms = Vec::new();
@@ -31,6 +33,9 @@ pub(super) fn prepare(
     let canvas_width = canvas_size.width.max(1);
 
     for layer in layers {
+        if render_control.is_some_and(DecodeControl::superseded) {
+            return Err(super::RENDER_SUPERSEDED.to_string());
+        }
         let (transform, motion_blur, sample_method, compositing, crop, padding, address_mode) =
             match layer {
                 VideoLayer::Nv12 {
@@ -69,6 +74,9 @@ pub(super) fn prepare(
         match layer {
             VideoLayer::Nv12 { frame, .. } => frame.prefetch_to_device(stream)?,
             VideoLayer::Rgba { layer, .. } => layer.prefetch_to_device(stream)?,
+        }
+        if render_control.is_some_and(DecodeControl::superseded) {
+            return Err(super::RENDER_SUPERSEDED.to_string());
         }
 
         let motion_transform_offset = motion_transforms.len() as u32;

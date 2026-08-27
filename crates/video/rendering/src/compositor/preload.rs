@@ -395,6 +395,7 @@ impl FrameItemRenderer<'_> {
     pub(super) fn preload_active_sources(&mut self, active_items: &[ActiveVideoItem<'_>]) {
         let outer_clip_transition = self.clip_transition;
         for active in active_items {
+            abort_render_if_superseded!(self.decode_control, break);
             self.clip_transition = active.clip_transition;
             let morph_position = active.clip_transition.and_then(|transition| {
                 (transition.definition.kind == VisualClipTransitionKind::Morph).then_some(
@@ -447,6 +448,7 @@ impl FrameItemRenderer<'_> {
         item: &VideoItem,
         routes: VideoDecodeRoutes,
     ) {
+        abort_render_if_superseded!(self.decode_control, return);
         if let VideoItemContent::FoldedSequence(reference) = &item.content {
             self.prepare_folded_item(item, *reference);
             return;
@@ -476,6 +478,7 @@ impl FrameItemRenderer<'_> {
     }
 
     fn prepare_folded_item(&mut self, item: &VideoItem, reference: SequenceReference) {
+        abort_render_if_superseded!(self.decode_control, return);
         let Some(position) = video_source_time_at(item, self.position) else {
             return;
         };
@@ -509,6 +512,7 @@ impl FrameItemRenderer<'_> {
         let outer_clip_transition = self.clip_transition;
         self.position = position;
         for (track_id, mut child, transition, previous) in active {
+            abort_render_if_superseded!(self.decode_control, break);
             self.clip_transition = transition;
             if let Some(transition) = transition
                 && transition.definition.kind == VisualClipTransitionKind::Morph
