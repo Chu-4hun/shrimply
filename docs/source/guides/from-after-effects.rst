@@ -28,6 +28,30 @@ degrees per second:
 
       time * 40
 
+Variable declarations
+---------------------
+
+After Effects examples often assign a variable without a declaration keyword.
+Rhai requires ``let`` when defining a variable, so add it when rewriting those
+expressions:
+
+.. tabs::
+
+   .. code-tab:: javascript After Effects
+
+      speed = 40;
+      time * speed
+
+   .. code-tab:: rust Shrimply
+
+      let speed = 40;
+      time * speed
+
+After Effects also accepts declarations with ``var``. Its modern JavaScript
+expression engine accepts ``let`` as well, but the Legacy ExtendScript engine
+does not. In Shrimply, use ``let`` for a variable that can change and ``const``
+for one that cannot.
+
 Wiggle and shake
 ----------------
 
