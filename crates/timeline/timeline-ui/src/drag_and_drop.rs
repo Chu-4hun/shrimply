@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::time::Duration;
 
 use adw::prelude::*;
 use gtk::{gdk, gio, glib};
@@ -12,6 +13,8 @@ use uuid::Uuid;
 
 use super::external_content::{self, Content, Origin, Placement};
 use super::{RULER_HEIGHT, TimelineImportPreview, TimelineRuntime, import, x_to_time};
+
+const IMPORT_INSPECTION_DELIVERY_INTERVAL: Duration = Duration::from_millis(16);
 
 pub(super) fn setup(
     area: &gtk::GLArea,
@@ -77,6 +80,7 @@ pub(super) fn setup(
     let enter_runtime = runtime.clone();
     drop.connect_enter(move |target, x, y| {
         update_preview(
+            &enter_area,
             target.value().as_ref(),
             &enter_project,
             &enter_runtime,
@@ -91,6 +95,7 @@ pub(super) fn setup(
     let motion_runtime = runtime.clone();
     drop.connect_motion(move |target, x, y| {
         update_preview(
+            &motion_area,
             target.value().as_ref(),
             &motion_project,
             &motion_runtime,
@@ -214,6 +219,7 @@ fn assign_mask_source(
 }
 
 fn update_preview(
+    area: &gtk::GLArea,
     value: Option<&glib::Value>,
     project: &Rc<RefCell<Project>>,
     runtime: &Rc<RefCell<TimelineRuntime>>,
@@ -266,31 +272,114 @@ fn update_preview(
         }
     };
 
-    let project = project.borrow();
-    let mut runtime = runtime.borrow_mut();
-    let source = if let Some(preview) = &runtime.import_preview
-        && preview.source.path() == path
-    {
-        preview.source.clone()
-    } else {
-        crate::project::Asset::new(path)
+    let (canvas_size, default_visual_duration, new_source) = {
+        let project = project.borrow();
+        let mut runtime = runtime.borrow_mut();
+        let new_source = runtime
+            .import_preview
+            .as_ref()
+            .is_none_or(|preview| preview.source.path() != path);
+        let (source, duration, visual_kind, video_streams, audio_streams) = runtime
+            .import_preview
+            .as_ref()
+            .filter(|preview| preview.source.path() == path)
+            .map(|preview| {
+                (
+                    preview.source.clone(),
+                    preview.duration,
+                    preview.visual_kind,
+                    preview.preview.video_streams,
+                    preview.preview.audio_streams,
+                )
+            })
+            .unwrap_or_else(|| {
+                (
+                    crate::project::Asset::new(path.clone()),
+                    runtime.default_visual_duration,
+                    visual_kind,
+                    video_streams,
+                    audio_streams,
+                )
+            });
+        let view = runtime.view;
+        let start =
+            Time::from_seconds_f64(x_to_time(x, view.scroll_seconds, view.seconds_per_pixel));
+        let start = runtime.snap_repository.snap(start).unwrap_or(start);
+        let y = y.max(RULER_HEIGHT) + view.scroll_y;
+        let preview = import::preview(
+            &project,
+            duration,
+            video_streams,
+            audio_streams,
+            start,
+            y,
+            runtime.drag_collision_mode,
+        );
+        runtime.import_preview = Some(TimelineImportPreview {
+            source,
+            duration,
+            visual_kind,
+            preview,
+            y,
+        });
+        (
+            project.canvas_size,
+            runtime.default_visual_duration,
+            new_source,
+        )
     };
-    let duration = runtime.default_visual_duration;
-    let view = runtime.view;
-    let start = Time::from_seconds_f64(x_to_time(x, view.scroll_seconds, view.seconds_per_pixel));
-    let start = runtime.snap_repository.snap(start).unwrap_or(start);
-    let preview = import::preview(
-        &project,
-        duration,
-        video_streams,
-        audio_streams,
-        start,
-        y.max(RULER_HEIGHT) + view.scroll_y,
+
+    if !new_source || file_kind == import::FileKind::Python {
+        return;
+    }
+
+    let subscription =
+        import::request_inspection(path.clone(), canvas_size, default_visual_duration);
+    let project = project.clone();
+    let runtime_for_result = runtime.clone();
+    let handle = shrimply_ui_foundation::resource_pipeline::deliver(
+        area.downgrade(),
+        subscription,
+        IMPORT_INSPECTION_DELIVERY_INTERVAL,
+        move |area, event| match event {
+            shrimply_resource_pipeline::Event::Finished(info) => {
+                let project = project.borrow();
+                let mut runtime = runtime_for_result.borrow_mut();
+                let Some(current) = runtime
+                    .import_preview
+                    .as_ref()
+                    .filter(|preview| preview.source.path() == path)
+                else {
+                    return;
+                };
+                let start = current.preview.start;
+                let y = current.y;
+                let preview = import::preview(
+                    &project,
+                    info.duration,
+                    info.video_streams,
+                    info.audio_streams,
+                    start,
+                    y,
+                    runtime.drag_collision_mode,
+                );
+                runtime.import_preview = Some(TimelineImportPreview {
+                    source: info.source.clone(),
+                    duration: info.duration,
+                    visual_kind: info.visual_kind,
+                    preview,
+                    y,
+                });
+                area.queue_render();
+            }
+            shrimply_resource_pipeline::Event::Failed(error) => {
+                tracing::warn!("Could not inspect dropped media: {error}");
+            }
+            shrimply_resource_pipeline::Event::Progress(_)
+            | shrimply_resource_pipeline::Event::Cancelled => {}
+        },
     );
-    runtime.import_preview = Some(TimelineImportPreview {
-        source,
-        duration,
-        visual_kind,
-        preview,
-    });
+    let mut runtime = runtime.borrow_mut();
+    runtime.resource_jobs.retain(|job| job.is_active());
+    runtime.resource_jobs.push(handle);
 }

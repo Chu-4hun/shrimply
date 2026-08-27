@@ -94,6 +94,7 @@ adw = { package = "libadwaita", version = "0.9" }
 ash = "0.38"
 async-channel = "2"
 autodiff = "0.7"
+blend = "0.9"
 cached = { version = "3", default-features = false, features = ["ahash"] }
 cairo = { package = "cairo-rs", version = "0.22" }
 cint = "0.3"

@@ -24,6 +24,7 @@ type VideoSizes = Vec<UVec2>;
 type VideoSizeCache = Mutex<HashMap<AssetSnapshot, VideoSizes>>;
 
 static VIDEO_SIZE_CACHE: OnceLock<VideoSizeCache> = OnceLock::new();
+static INSPECTION_CACHE: OnceLock<Mutex<HashMap<InspectionKey, MediaInfo>>> = OnceLock::new();
 static INSPECTIONS: OnceLock<Pipeline<InspectionKey, MediaInspector>> = OnceLock::new();
 static INSPECTION_WORKERS: OnceLock<std::sync::mpsc::SyncSender<shrimply_resource_pipeline::Job>> =
     OnceLock::new();
@@ -50,14 +51,30 @@ impl Processor<InspectionKey> for MediaInspector {
         key: InspectionKey,
         _context: &JobContext<Self::Progress>,
     ) -> Result<Self::Output, String> {
-        inspect(
-            key.path,
+        if let Some(info) = INSPECTION_CACHE
+            .get_or_init(Mutex::default)
+            .lock()
+            .expect("media inspection cache lock poisoned")
+            .get(&key)
+            .filter(|info| info.snapshot.ensure_current().is_ok())
+            .cloned()
+        {
+            return Ok(info);
+        }
+        let info = inspect(
+            key.path.clone(),
             CanvasSize {
                 width: key.canvas_width,
                 height: key.canvas_height,
             },
             Time::from_nanos_i128(key.default_visual_duration_nanos),
-        )
+        )?;
+        INSPECTION_CACHE
+            .get_or_init(Mutex::default)
+            .lock()
+            .expect("media inspection cache lock poisoned")
+            .insert(key, info.clone());
+        Ok(info)
     }
 }
 
@@ -116,6 +133,7 @@ pub struct ImportPreview {
     pub(super) video_base: usize,
     pub(super) audio_base: usize,
     pub(super) virtual_tracks: Vec<(TrackKind, usize)>,
+    pub(super) collision_mode: items::DragCollisionMode,
 }
 
 pub struct ImportResult {
@@ -243,10 +261,17 @@ pub fn inspect(
     let path = snapshot.path();
     let file_kind = file_kind(path).ok_or_else(|| "unsupported file type".to_string())?;
     if matches!(file_kind, FileKind::Python | FileKind::Blender) {
+        let duration = if file_kind == FileKind::Blender {
+            Time {
+                seconds: shrimply_blender::file_duration(path)?,
+            }
+        } else {
+            default_visual_duration
+        };
         return Ok(MediaInfo {
             source,
             snapshot,
-            duration: default_visual_duration,
+            duration,
             visual_kind: Some(if file_kind == FileKind::Python {
                 VisualMediaKind::Manim
             } else {
@@ -568,21 +593,50 @@ fn size_px(value: f32) -> Option<u32> {
     (value.is_finite() && value > 0.0).then(|| value.ceil() as u32)
 }
 
-pub fn preview(
+pub(super) fn preview(
     project: &Project,
     duration: Time,
     video_streams: usize,
     audio_streams: usize,
     start: Time,
     y: f64,
+    collision_mode: items::DragCollisionMode,
 ) -> ImportPreview {
     let end = Time::from_nanos(
         start
             .as_nonnegative_nanos()
             .saturating_add(duration.as_nonnegative_nanos().max(1)),
     );
-    let video = placement(project, TrackKind::Video, video_streams, start, end, y);
-    let audio = placement(project, TrackKind::Audio, audio_streams, start, end, y);
+    let video = placement(
+        project,
+        TrackKind::Video,
+        video_streams,
+        start,
+        end,
+        y,
+        collision_mode,
+    );
+    let audio = if video_streams > 0 && audio_streams > 0 {
+        placement_at_base(
+            project,
+            TrackKind::Audio,
+            audio_streams,
+            start,
+            end,
+            video.base,
+            collision_mode,
+        )
+    } else {
+        placement(
+            project,
+            TrackKind::Audio,
+            audio_streams,
+            start,
+            end,
+            y,
+            collision_mode,
+        )
+    };
     let mut virtual_tracks = video.virtual_tracks;
     virtual_tracks.extend(audio.virtual_tracks);
     virtual_tracks.sort_by_key(|(kind, index)| (kind_order(*kind), *index));
@@ -596,6 +650,7 @@ pub fn preview(
         video_base: video.base,
         audio_base: audio.base,
         virtual_tracks,
+        collision_mode,
     }
 }
 
@@ -688,6 +743,9 @@ pub fn apply(project: &mut Project, info: &MediaInfo, preview: &ImportPreview) -
         let Some(track) = project.video_tracks.get_mut(track_index) else {
             continue;
         };
+        if preview.collision_mode == items::DragCollisionMode::Overwrite {
+            items::overwrite_items(&mut track.items, preview.start, preview.end);
+        }
         let item_index = items::insert_sorted(&mut track.items, item);
         selection.push(ItemKey {
             kind: TrackKind::Video,
@@ -708,6 +766,9 @@ pub fn apply(project: &mut Project, info: &MediaInfo, preview: &ImportPreview) -
         let Some(track) = project.audio_tracks.get_mut(track_index) else {
             continue;
         };
+        if preview.collision_mode == items::DragCollisionMode::Overwrite {
+            items::overwrite_items(&mut track.items, preview.start, preview.end);
+        }
         let item_index = items::insert_sorted(&mut track.items, item);
         selection.push(ItemKey {
             kind: TrackKind::Audio,
@@ -1159,6 +1220,7 @@ fn placement(
     start: Time,
     end: Time,
     y: f64,
+    collision_mode: items::DragCollisionMode,
 ) -> Placement {
     if stream_count == 0 {
         return Placement {
@@ -1168,14 +1230,34 @@ fn placement(
     }
 
     let track_count = items::track_count(project, kind);
-    if let Some((base, new_track_index)) = items::target_track_at_y(project, kind, y)
-        && new_track_index.is_none()
-        && can_place_existing(project, kind, base, stream_count, start, end)
-    {
-        return Placement {
+    if let Some((base, new_track_index)) = items::target_track_at_y(project, kind, y) {
+        if let Some(new_track_index) = new_track_index {
+            return Placement {
+                base,
+                virtual_tracks: virtual_tracks(
+                    kind,
+                    base,
+                    stream_count,
+                    track_count,
+                    Some(new_track_index),
+                ),
+            };
+        }
+        let target = placement_at_base(
+            project,
+            kind,
+            stream_count,
+            start,
+            end,
             base,
-            virtual_tracks: virtual_tracks(kind, base, stream_count, track_count, new_track_index),
-        };
+            collision_mode,
+        );
+        if target.virtual_tracks.is_empty()
+            || collision_mode != items::DragCollisionMode::Block
+            || can_place(project, kind, base, stream_count, start, end)
+        {
+            return target;
+        }
     }
 
     let available_base = track_count.checked_sub(stream_count).and_then(|last_base| {
@@ -1208,6 +1290,36 @@ fn placement(
                 Some(track_count),
             ),
         }
+    }
+}
+
+fn placement_at_base(
+    project: &Project,
+    kind: TrackKind,
+    stream_count: usize,
+    start: Time,
+    end: Time,
+    base: usize,
+    collision_mode: items::DragCollisionMode,
+) -> Placement {
+    let track_count = items::track_count(project, kind);
+    let fits = can_place_existing(project, kind, base, stream_count, start, end);
+    if fits || collision_mode == items::DragCollisionMode::Overwrite {
+        let first_new = (base + stream_count > track_count).then_some(track_count);
+        return Placement {
+            base,
+            virtual_tracks: virtual_tracks(kind, base, stream_count, track_count, first_new),
+        };
+    }
+    Placement {
+        base,
+        virtual_tracks: virtual_tracks(
+            kind,
+            base,
+            stream_count,
+            track_count,
+            Some(base.min(track_count)),
+        ),
     }
 }
 
@@ -1268,9 +1380,7 @@ fn virtual_tracks(
     new_track_index: Option<usize>,
 ) -> Vec<(TrackKind, usize)> {
     let first_new = new_track_index.unwrap_or(track_count);
-    (0..stream_count)
-        .map(|offset| base + offset)
-        .filter(|index| *index >= first_new)
+    (first_new..base + stream_count)
         .map(|index| (kind, index))
         .collect()
 }

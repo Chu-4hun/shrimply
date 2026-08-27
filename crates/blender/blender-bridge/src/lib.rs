@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use shrimply_math_core::Fraction;
+use shrimply_math_core::{Fraction, fraction_from_f64};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -41,6 +41,39 @@ pub fn binary() -> Option<PathBuf> {
         .read()
         .expect("Blender binary lock poisoned")
         .clone()
+}
+
+pub fn file_duration(path: &Path) -> Result<Fraction, String> {
+    let blend = blend::Blend::from_path(path)
+        .map_err(|error| format!("parse Blender file {}: {error:?}", path.display()))?;
+    let scene = blend
+        .instances_with_code(*b"SC")
+        .next()
+        .ok_or_else(|| format!("Blender file {} has no scene", path.display()))?;
+    if !scene.is_valid("r") {
+        return Err(format!(
+            "Blender file {} has no render settings",
+            path.display()
+        ));
+    }
+    let render = scene.get("r");
+    if !["sfra", "efra", "frs_sec", "frs_sec_base"]
+        .into_iter()
+        .all(|field| render.is_valid(field))
+    {
+        return Err(format!(
+            "Blender file {} has incomplete render settings",
+            path.display()
+        ));
+    }
+    let frames = render
+        .get_i32("efra")
+        .saturating_sub(render.get_i32("sfra"))
+        .saturating_add(1)
+        .max(1) as u64;
+    let fps = render.get_i32("frs_sec").max(1) as u64;
+    let fps_base = fraction_from_f64(f64::from(render.get_f32("frs_sec_base")));
+    Ok(Fraction::from(frames) * fps_base / Fraction::from(fps))
 }
 
 #[derive(Clone, Debug, Deserialize)]

@@ -311,16 +311,7 @@ fn paste_video_items(
     let Some(tracks) = project.video_tracks_for_path(&sequence_path) else {
         return;
     };
-    let target_base = paste_target_base(
-        &items,
-        tracks.len(),
-        |track_index, start, end| {
-            tracks
-                .get(track_index)
-                .is_some_and(|track| timeline_search::collides(&track.items, start, end))
-        },
-        start,
-    );
+    let target_base = paste_video_target_base(&items, tracks, start);
     let source_base = items
         .iter()
         .map(|(track_index, _, _, _)| *track_index)
@@ -515,6 +506,36 @@ pub(crate) fn paste_target_base<T: Clone + TimeSlice>(
     (0..=last_base)
         .find(|base| !paste_collides(items, *base, &collides, start))
         .unwrap_or(track_count)
+}
+
+fn paste_video_target_base<T: Clone + TimeSlice>(
+    items: &[(usize, u64, u64, T)],
+    tracks: &[VisualTrack],
+    start: Time,
+) -> usize {
+    let source_base = items
+        .iter()
+        .map(|(track_index, _, _, _)| *track_index)
+        .min()
+        .unwrap_or(0);
+    let span = relative_track_span(items, source_base);
+    let Some(last_base) = tracks.len().checked_sub(span) else {
+        return tracks.len();
+    };
+
+    let collides = |track_index: usize, start, end| {
+        timeline_search::collides(&tracks[track_index].items, start, end)
+    };
+    let obscured = |track_index: usize, start, end| {
+        !tracks[track_index].enabled
+            || tracks[track_index + 1..]
+                .iter()
+                .any(|track| track.enabled && timeline_search::collides(&track.items, start, end))
+    };
+    (0..=last_base)
+        .filter(|base| !paste_collides(items, *base, collides, start))
+        .min_by_key(|base| (paste_collides(items, *base, obscured, start), *base))
+        .unwrap_or(tracks.len())
 }
 
 pub(crate) fn paste_collides<T: Clone + TimeSlice>(

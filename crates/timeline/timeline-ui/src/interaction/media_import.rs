@@ -189,6 +189,7 @@ fn finish_media_import(
             project_state.fps = fps;
         }
     }
+    let collision_mode = runtime.borrow().drag_collision_mode;
     let preview = import::preview(
         &project_state,
         info.duration,
@@ -196,6 +197,7 @@ fn finish_media_import(
         info.audio_streams,
         start,
         y,
+        collision_mode,
     );
     let result = import::apply(&mut project_state, &info, &preview);
     let duration = project_state.duration();

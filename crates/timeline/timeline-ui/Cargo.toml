@@ -13,6 +13,7 @@ gtk = { workspace = true, features = ["v4_10"] }
 reqwest = { workspace = true, features = ["blocking"] }
 shrimply-3dgs = { path = "../../3d/3dgs" }
 shrimply-audio = { path = "../../audio/audio" }
+shrimply-blender = { path = "../../blender/blender-bridge" }
 shrimply-core = { path = "../../core" }
 shrimply-export = { path = "../../export/export" }
 shrimply-layered-image = { path = "../../layered-image/layered-image" }

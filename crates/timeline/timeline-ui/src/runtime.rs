@@ -291,6 +291,7 @@ pub(super) struct TimelineImportPreview {
     pub(super) duration: Time,
     pub(super) visual_kind: Option<import::VisualMediaKind>,
     pub(super) preview: import::ImportPreview,
+    pub(super) y: f64,
 }
 
 #[derive(Clone)]
