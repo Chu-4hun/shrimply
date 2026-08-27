@@ -148,7 +148,7 @@ pub(crate) fn add_input_controllers(
             {
                 motion_runtime.borrow_mut().software_cursor = Some(TimelineSoftwareCursor {
                     position: pos,
-                    cursor: SoftwareCursor::from_name(&cursor_name, &motion_area.display()),
+                    cursor: SoftwareCursor::from_name("grabbing", &motion_area.display()),
                 });
                 motion_area.set_cursor_from_name(Some("none"));
                 *motion_cursor_grab.borrow_mut() = Some(CursorGrab {
