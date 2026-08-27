@@ -47,16 +47,16 @@ then select a clip to edit it in the inspector.
 
 Useful timeline shortcuts include:
 
-* :kbd:`Space` — play or pause
-* :kbd:`S` — split every clip at the playhead
-* :kbd:`Shift+S` — split and select the clips on the left
-* :kbd:`Q` — ripple-trim the selected clip to the playhead
-* :kbd:`D` — delete the selection
-* :kbd:`Shift+D` — ripple cut
-* :kbd:`Ctrl+X` — cut
-* :kbd:`Z` — toggle timeline zoom
-* :kbd:`Ctrl+Z` — undo
-* :kbd:`Ctrl+Shift+Z` — redo
+* :kbd:`Space`: play or pause
+* :kbd:`S`: split every clip at the playhead
+* :kbd:`Shift+S`: split and select the clips on the left
+* :kbd:`Q`: ripple-trim the selected clip to the playhead
+* :kbd:`D`: delete the selection
+* :kbd:`Shift+D`: ripple cut
+* :kbd:`Ctrl+X`: cut
+* :kbd:`Z`: toggle timeline zoom
+* :kbd:`Ctrl+Z`: undo
+* :kbd:`Ctrl+Shift+Z`: redo
 
 Save and export
 ---------------

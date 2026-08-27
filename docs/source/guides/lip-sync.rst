@@ -99,8 +99,8 @@ Analysis
 
 Shrimply analyzes each unique audio selection once and reuses the result.
 Preview analysis happens in the background, so ``mouth()`` can briefly report
-that analysis is still loading. Export waits for analysis to finish. ``X`` is
-a real rest shape, not a loading or error value.
+that analysis is still loading. Export waits for analysis to finish. ``X``
+represents the rest shape. Loading and errors are reported separately.
 
 The mouth-shape images are from the Rhubarb Lip Sync README and are used under
 its MIT License.

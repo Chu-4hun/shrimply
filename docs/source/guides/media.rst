@@ -42,11 +42,10 @@ Import media
 ------------
 
 Move the playhead to the desired start time, then select the destination track.
-Click |add| **Add** (``plus-symbolic``) in that track's controls and choose
-|import| **Import Media…** or **Import Captions…**
-(``document-open-symbolic``). The file is inserted at the playhead on the track
-whose menu you opened. If that track is part of a multi-track selection, the
-import targets all selected tracks of the same type.
+Click |add| **Add** in that track's controls and choose |import| **Import
+Media…** or **Import Captions…**. The file is inserted at the playhead on the
+track whose menu you opened. If that track is part of a multi-track selection,
+the import targets all selected tracks of the same type.
 
 Video and audio files can only be imported to video or audio tracks. WebVTT
 files can only be imported to caption tracks. MKV and WebM files dropped onto
@@ -86,8 +85,8 @@ Create media
 ------------
 
 Move the playhead to an empty point on the destination track and click |add|
-**Add** (``plus-symbolic``). The new item starts at the playhead, uses the
-default visual duration, and ends early rather than overlapping the next item.
+**Add**. The new item starts at the playhead, uses the default visual duration,
+and ends early rather than overlapping the next item.
 Nothing is created if the playhead is already inside an item on that track.
 
 On a video track, the menu provides:
@@ -100,24 +99,24 @@ On a video track, the menu provides:
      - Action
      - Creates
    * - |text|
-     - **Text** (``draw-text-symbolic``)
+     - **Text**
      - A text layer using the default font.
    * - |shape|
-     - **Shape** (``shapes-large-symbolic``)
+     - **Shape**
      - A vector shape. Rectangle, ellipse, triangle, star, arrow, diamond,
        polygon, heart, and cross shapes are available in the inspector.
    * - |paint|
-     - **Paint** (``applications-graphics-symbolic``)
+     - **Paint**
      - A layer for drawing strokes directly on the canvas.
    * - |background|
-     - **Background** (``preferences-desktop-wallpaper-symbolic``)
+     - **Background**
      - A full-canvas background layer.
    * - |scene-3d|
-     - **3D Scene** (``3d-object-symbolic``)
+     - **3D Scene**
      - A 3D scene that can contain shapes, text, models, lights, and a ground
        plane.
    * - |video-generation|
-     - **Video Generation** (``video-generation-symbolic``)
+     - **Video Generation**
      - An AI video-generation item. This requires the
        :doc:`Shrimply server <../server/index>`.
 
@@ -131,10 +130,10 @@ On an audio track, the menu provides:
      - Action
      - Creates
    * - |text-to-speech|
-     - **Text to Speech** (``font-x-generic-symbolic``)
+     - **Text to Speech**
      - An item that generates speech from text using the Shrimply server.
    * - |audio-generator|
-     - **Audio Generator** (``sound-symbolic``)
+     - **Audio Generator**
      - A procedural audio item configured in the inspector.
 
 Text to Speech and Video Generation are backed by AI models and require the
@@ -145,13 +144,12 @@ Record content
 
 Recording actions are separate buttons in each track's controls:
 
-* On a video track, click |screen-recording| **Record Screen or Application**
-  (``screencast-recorded-symbolic``), choose a screen or application in the
-  system capture dialog, and click the same button again to stop. The recording
-  starts at the playhead and stops before the next item on the track.
-* On an audio track, click |microphone| **Record Microphone**
-  (``mic-1-symbolic``) to start recording from the default microphone. Click the
-  same button again to stop.
+* On a video track, click |screen-recording| **Record Screen or Application**,
+  choose a screen or application in the system capture dialog, and click the
+  same button again to stop. The recording starts at the playhead and stops
+  before the next item on the track.
+* On an audio track, click |microphone| **Record Microphone** to start recording
+  from the default microphone. Click the same button again to stop.
 
 The active recording button turns red. Recording advances playback and places
 the finished item on that track at the original playhead position. Start from
