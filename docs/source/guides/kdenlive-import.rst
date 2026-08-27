@@ -1,5 +1,5 @@
-Kdenlive Import Support
-=======================
+Kdenlive
+========
 
 Shrimply reads Kdenlive's saved MLT XML and converts the active timeline to a
 new Shrimply project. This is a one-way conversion, not a Kdenlive playback
