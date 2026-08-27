@@ -24,9 +24,9 @@ text-to-speech and voice-conversion models appear in Shrimply.
 Lip sync expressions
 --------------------
 
-Expressions can call ``mouth()`` to obtain Rhubarb mouth cues for the project
-audio mix or selected audio tracks. See :doc:`lip-sync` for cue values,
-selection syntax, and cache behavior.
+Expressions can call ``mouth()`` to match mouth shapes to the project audio or
+selected audio tracks. See :doc:`lip-sync` for mouth shapes, selection syntax,
+and analysis behavior.
 
 Audio cleanup
 -------------

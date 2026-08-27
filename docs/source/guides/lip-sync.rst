@@ -1,10 +1,9 @@
 Lip sync
 ========
 
-Shrimply uses the `Rhubarb Lip Sync
-<https://github.com/DanielSWolf/rhubarb-lip-sync>`__ C++ API directly.
-The ``shrimply-lip-sync`` crate builds the native library, and the audio crate
-analyzes a 16 kHz mono mix of the selected project audio tracks.
+Shrimply uses `Rhubarb Lip Sync
+<https://github.com/DanielSWolf/rhubarb-lip-sync#mouth-shapes>`__ to
+automatically match a character's mouth shape to speech in your project audio.
 
 Using mouth shapes in expressions
 ---------------------------------
@@ -17,9 +16,7 @@ and multiple zero-based track indices can be selected with calls such as
 See :doc:`expression-basics` for the rest of the expression API, including
 property values, time, math, color, and audio-level functions.
 
-The result is one of Rhubarb's shape strings. These examples are copied from
-the `mouth-shape table in Rhubarb's README
-<https://github.com/DanielSWolf/rhubarb-lip-sync#mouth-shapes>`__:
+The result is one of the mouth shapes below:
 
 .. list-table::
    :widths: 10 30 60
@@ -94,10 +91,9 @@ Expressions can branch on the result:
        "X" => 8,
    }
 
-Analysis
---------
+When analysis runs
+------------------
 
-Shrimply analyzes each unique audio selection once and reuses the result.
 Preview analysis happens in the background, so ``mouth()`` can briefly report
 that analysis is still loading. Export waits for analysis to finish. ``X``
 represents the rest shape. Loading and errors are reported separately.
