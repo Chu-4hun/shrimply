@@ -28,8 +28,7 @@ degrees per second:
 
    .. code-tab:: rust Shrimply
 
-      time * 40
-      // or t * 40
+      time * 40 // or t * 40
 
 Variable declarations
 ---------------------
