@@ -1,11 +1,11 @@
 Manim
 =====
 
-`Manim <https://github.com/3b1b/manim>`__ is a Python engine for making precise,
-programmatic animations. It is commonly used for explanatory videos containing
-text, equations, shapes, graphs, and 3D scenes. Shrimply can place a scene
-directly on the timeline, render it at the project's canvas size and frame
-rate, and composite its transparent background with other video tracks.
+`3b1b's Manim <https://github.com/3b1b/manim>`__ is a Python engine for making
+precise, programmatic animations. It is commonly used for explanatory videos
+containing text, equations, shapes, graphs, and 3D scenes. Shrimply can place a
+scene directly on the timeline, render it at the project's canvas size and
+frame rate, and composite its transparent background with other video tracks.
 
 Create a scene
 --------------
@@ -54,6 +54,8 @@ Expose parameters in the inspector
 The ``shrimply_manim`` reflection API lets a scene author turn Python values
 into editable inspector controls. Each function returns the current value: its
 default when first imported, or the value chosen in Shrimply on later renders.
+``shrimply_manim`` is supplied by Shrimply while it loads the scene; it is not
+part of upstream Manim.
 
 Call the functions inside ``construct`` so each scene exposes only its own
 controls:
