@@ -14,8 +14,8 @@ current project time. ``mouth(1)`` returns the shape for audio track 1,
 and multiple zero-based track indices can be selected with calls such as
 ``mouth(0, 2)``.
 
-See :doc:`expressions` for the rest of the expression API, including property
-values, time, math, color, and audio-level functions.
+See :doc:`expression-basics` for the rest of the expression API, including
+property values, time, math, color, and audio-level functions.
 
 The result is one of Rhubarb's shape strings. These examples are copied from
 the `mouth-shape table in Rhubarb's README
