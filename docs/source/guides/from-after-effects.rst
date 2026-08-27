@@ -10,7 +10,8 @@ than pasted directly into Shrimply.
 
 Both systems provide ``value`` for the property's value before the expression,
 ``time`` for time in seconds, and arrays such as ``[x, y]`` for multi-component
-properties. In Shrimply, the last value in the script is the result. See
+properties. Shrimply also provides ``t`` and ``local_t`` as aliases for
+``time``. In Shrimply, the last value in the script is the result. See
 :doc:`expression-basics` for every available value and function.
 
 Continuous motion
@@ -28,6 +29,7 @@ degrees per second:
    .. code-tab:: rust Shrimply
 
       time * 40
+      // or t * 40
 
 Variable declarations
 ---------------------
