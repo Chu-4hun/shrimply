@@ -4,6 +4,7 @@ Media
 .. toctree::
    :hidden:
 
+   blender
    kdenlive-import
    manim
 
@@ -82,7 +83,8 @@ Shrimply recognizes these source types:
    * - 3D content
      - OBJ, GLB, and PLY
    * - Application sources
-     - Blender ``.blend`` files and :doc:`Python Manim scenes <manim>`
+     - :doc:`Blender <blender>` ``.blend`` files and :doc:`Python Manim
+       scenes <manim>`
 
 Project opening additionally accepts native Shrimply projects, Shrimply JSON,
 OpenTimelineIO, and :doc:`Kdenlive projects <kdenlive-import>`.
