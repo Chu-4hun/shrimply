@@ -418,6 +418,7 @@ fn expression_engine() -> Engine {
         .set_optimization_level(OptimizationLevel::Simple);
     register_fraction_api(&mut engine);
     engine.register_global_module(rhai::exported_module!(color_functions).into());
+    engine.register_global_module(rhai::exported_module!(time_functions).into());
     register_volume_api(&mut engine);
     register_mouth_api(&mut engine);
     engine
@@ -465,6 +466,22 @@ fn register_mouth_api(engine: &mut Engine) {
                 expression_mouth(&indices)
             },
         );
+    }
+}
+
+#[export_module]
+mod time_functions {
+    use super::*;
+
+    #[rhai_fn(return_raw)]
+    pub fn timecode(
+        frame: INT,
+        frame_rate: Fraction,
+        drop_frame: bool,
+    ) -> Result<rhai::ImmutableString, Box<EvalAltResult>> {
+        let timecode = shrimply_math_core::smpte_timecode(frame, frame_rate, drop_frame)
+            .ok_or_else(|| arithmetic_error("could not format timecode"))?;
+        Ok(shrimply_math_core::format_smpte_timecode(timecode).into())
     }
 }
 

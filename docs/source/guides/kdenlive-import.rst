@@ -134,9 +134,12 @@ Media and generators
        video and audio generators. The random algorithm, video range/cadence,
        stereo correlation, and trimmed-generator start are not sample-exact.
    * - Counter generator (``count``), including its optional beep
-     - Not imported
-     - It remains a generic MLT media reference. Shrimply has no equivalent
-       counter or gated one-frame beep.
+     - Approximate
+     - Direction, all five text styles, drop-frame counting, trims, and the
+       gray background become animated Shrimply text. ``2pop`` and ``frame0``
+       tones become separate one-frame 1 kHz sine-generator items. Typeface
+       rendering can differ, and the film-leader rings, crosshair, and sweep
+       used by the ``clock`` background are omitted.
    * - Other MLT generators and playlists
      - Not imported
      - They remain generic media references without native conversion.
@@ -151,10 +154,10 @@ Media and generators
      - ``_placeholder`` and ``_missingsource`` are not replaced with invented
        visuals; the importer still follows the saved media path.
 
-Color Bars and White Noise created through Kdenlive's generator dialog are
-normally stored in separate ``.mlt`` files. Those files must be readable while
-the project is imported. After a recognized generator is converted, the
-Shrimply item no longer depends on that generator file.
+Color Bars, White Noise, and Counter clips created through Kdenlive's generator
+dialog are normally stored in separate ``.mlt`` files. Those files must be
+readable while the project is imported. After a recognized generator is
+converted, the Shrimply item no longer depends on that generator file.
 
 Video effects
 -------------

@@ -106,6 +106,20 @@ noise based on time; use ``shake(phase)`` to control its speed and
      y + shake(time * 8, 1) * 12
    ]
 
+Timecode
+~~~~~~~~
+
+``timecode(frame, frame_rate, drop_frame)`` formats a nonnegative frame number
+as SMPTE ``HH:MM:SS:FF`` text. Pass ``true`` for drop-frame numbering; standard
+29.97 and 59.94 fps rates use ``;`` before the frame field and skip the
+appropriate frame numbers.
+
+For example, this displays the current project frame as timecode:
+
+.. code-block:: rust
+
+   timecode(int(time * fps), fps, false)
+
 Color
 ~~~~~
 

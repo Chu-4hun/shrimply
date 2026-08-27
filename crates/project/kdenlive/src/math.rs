@@ -1,7 +1,7 @@
 use glam::{Mat3, Vec2};
 use num_traits::ToPrimitive;
 use shrimply_interpolation::Interpolation;
-use shrimply_math_core::Fraction;
+use shrimply_math_core::{Fraction, fraction_denominator, fraction_numerator};
 use shrimply_math_geometry::Rect;
 use shrimply_project::Time;
 
@@ -27,6 +27,17 @@ pub fn time(frame: i64, fps: Fraction) -> Time {
     Time {
         seconds: if frame < 0 { -magnitude } else { magnitude },
     }
+}
+
+pub fn ceil_positive_fraction(value: Fraction) -> Option<i64> {
+    let numerator = fraction_numerator(value);
+    let denominator = fraction_denominator(value);
+    if numerator <= 0 || denominator <= 0 {
+        return None;
+    }
+    numerator
+        .checked_add(denominator - 1)?
+        .checked_div(denominator)
 }
 
 pub fn fit_durations(first: &mut Time, second: &mut Time, available: Time) {

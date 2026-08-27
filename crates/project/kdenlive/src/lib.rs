@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 
 use glam::Vec2;
 use serde_json::Value;
-use shrimply_core::timeline_value::TimelineValue;
+use shrimply_core::timeline_value::{TimelineExpression, TimelineValue};
 use shrimply_math_core::Fraction;
 use shrimply_project::{
     AudioGenerator, AudioItem, AudioSource, AudioSpeedMethod, AudioTrack, AudioWaveform,
@@ -21,6 +21,11 @@ use shrimply_project::{
 use uuid::Uuid;
 
 use xml::Element;
+
+const COUNTER_BACKGROUND_CHANNEL: u8 = 0xd0;
+const COUNTER_BEEP_FREQUENCY_HZ: f32 = 1_000.0;
+const COUNTER_FONT_HEIGHT_PERCENT: u32 = 70;
+const PERCENT: u32 = 100;
 
 pub struct ImportResult {
     pub project: Value,
@@ -238,7 +243,7 @@ impl<'a> Converter<'a> {
                 "entry" => {
                     let duration = element_duration(node, self.fps)?;
                     let producer = self.entry_producer(node)?;
-                    items.push(self.audio_item(node, producer, cursor, duration)?);
+                    items.extend(self.audio_item(node, producer, cursor, duration)?);
                     cursor += duration;
                 }
                 _ => {}
@@ -265,6 +270,9 @@ impl<'a> Converter<'a> {
             None => entry_in,
         };
         let mut item = VideoItem::background_item(self.canvas_size, start, end);
+        if source.counter.is_some() {
+            item.animation_time_offset = frame_time(entry_in, self.fps);
+        }
         item.time_offset = source_time(source_frame, source.speed.abs(), self.fps);
         item.source_duration = source
             .source_duration
@@ -310,9 +318,18 @@ impl<'a> Converter<'a> {
         producer: &Element,
         start_frame: i64,
         duration_frames: i64,
-    ) -> Result<AudioItem, Box<dyn Error + Send + Sync>> {
+    ) -> Result<Vec<AudioItem>, Box<dyn Error + Send + Sync>> {
         let source = self.source(producer)?;
         let entry_in = entry_in(entry, self.fps)?;
+        if let Some(counter) = source.counter {
+            return self.counter_audio_items(
+                entry,
+                counter,
+                start_frame,
+                entry_in,
+                duration_frames,
+            );
+        }
         let source_frame = match source.reverse_origin_frame {
             Some(origin) => origin
                 .checked_sub(entry_in)
@@ -339,7 +356,77 @@ impl<'a> Converter<'a> {
         .file(source.path)
         .source(source.audio)
         .build();
-        self.apply_audio_effects(entry, item)
+        Ok(vec![self.apply_audio_effects(entry, item)?])
+    }
+
+    fn counter_audio_items(
+        &mut self,
+        entry: &Element,
+        counter: CounterGenerator,
+        start_frame: i64,
+        entry_in: i64,
+        duration_frames: i64,
+    ) -> Result<Vec<AudioItem>, Box<dyn Error + Send + Sync>> {
+        let mut source_frames = Vec::new();
+        match counter.sound {
+            CounterSound::Silent => {}
+            CounterSound::TwoPop => {
+                let nominal_fps = math::ceil_positive_fraction(self.fps)
+                    .ok_or_else(|| invalid("counter frame rate is not positive"))?;
+                let source_frame = counter
+                    .length
+                    .checked_sub(1)
+                    .and_then(|out| out.checked_sub(nominal_fps.checked_mul(2)?))
+                    .ok_or_else(|| invalid("counter 2-pop position overflowed"))?;
+                let entry_out = entry_in
+                    .checked_add(duration_frames)
+                    .ok_or_else(|| invalid("counter clip duration overflowed"))?;
+                if source_frame >= entry_in && source_frame < entry_out {
+                    source_frames.push(source_frame);
+                }
+            }
+            CounterSound::FrameZero => {
+                let entry_out = entry_in
+                    .checked_add(duration_frames)
+                    .ok_or_else(|| invalid("counter clip duration overflowed"))?;
+                for source_frame in entry_in..entry_out {
+                    let Some(position) = counter_position(counter, source_frame) else {
+                        continue;
+                    };
+                    if shrimply_math_core::smpte_timecode(position, self.fps, counter.drop_frame)
+                        .is_some_and(|timecode| timecode.frames == 0)
+                    {
+                        source_frames.push(source_frame);
+                    }
+                }
+            }
+        }
+
+        let mut items = Vec::with_capacity(source_frames.len());
+        for source_frame in source_frames {
+            let relative_frame = source_frame
+                .checked_sub(entry_in)
+                .ok_or_else(|| invalid("counter beep offset overflowed"))?;
+            let item_start = start_frame
+                .checked_add(relative_frame)
+                .ok_or_else(|| invalid("counter beep position overflowed"))?;
+            let item_end = item_start
+                .checked_add(1)
+                .ok_or_else(|| invalid("counter beep duration overflowed"))?;
+            let item = AudioItem::builder(
+                frame_time(item_start, self.fps),
+                frame_time(item_end, self.fps),
+            )
+            .source_duration(frame_time(1, self.fps))
+            .speed_method(AudioSpeedMethod::Naive)
+            .source(AudioSource::Generator(Box::new(AudioGenerator {
+                frequency_hz: TimelineValue::new_const(COUNTER_BEEP_FREQUENCY_HZ),
+                ..AudioGenerator::default()
+            })))
+            .build();
+            items.push(self.apply_audio_effects(entry, item)?);
+        }
+        Ok(items)
     }
 
     fn source(&mut self, producer: &Element) -> Result<Source, Box<dyn Error + Send + Sync>> {
@@ -366,6 +453,7 @@ impl<'a> Converter<'a> {
                 source_duration: Some(frame_time(sequence_duration(producer, self.fps)?, self.fps)),
                 reverse_origin_frame: None,
                 rotation_degrees: 0.0,
+                counter: None,
             });
         }
 
@@ -393,30 +481,32 @@ impl<'a> Converter<'a> {
                 source_duration: None,
                 reverse_origin_frame: None,
                 rotation_degrees: 0.0,
+                counter: None,
             });
         }
 
         let resource = producer
             .property("kdenlive:originalurl")
             .or_else(|| producer.property("warp_resource"))
-            .or_else(|| producer.property("resource"))
-            .ok_or_else(|| invalid("media producer has no resource"))?;
-        let path = resolve_path(&self.root_dir, resource);
-        let generator_path = resolve_path(
-            &self.root_dir,
-            resource
-                .strip_prefix("xml:")
-                .or_else(|| resource.strip_prefix("consumer:"))
-                .unwrap_or(resource),
-        );
-        if let Some(generator) = generator_source(service, &generator_path)? {
-            let (visual, audio, warning) = match generator {
+            .or_else(|| producer.property("resource"));
+        let generator_path = resource.map_or_else(PathBuf::new, |resource| {
+            resolve_path(
+                &self.root_dir,
+                resource
+                    .strip_prefix("xml:")
+                    .or_else(|| resource.strip_prefix("consumer:"))
+                    .unwrap_or(resource),
+            )
+        });
+        if let Some(generator) = generator_source(producer, &generator_path, self.fps)? {
+            let (visual, audio, warning, counter) = match generator {
                 GeneratorSource::ColorBars => (
                     VideoItemContent::Background(Box::new(Background {
                         generator: BackgroundGenerator::TestPattern,
                     })),
                     AudioSource::Media,
                     "Kdenlive Color Bars were approximated with the Shrimply test pattern.",
+                    None,
                 ),
                 GeneratorSource::WhiteNoise => (
                     VideoItemContent::Background(Box::new(Background {
@@ -427,6 +517,20 @@ impl<'a> Converter<'a> {
                         ..AudioGenerator::default()
                     })),
                     "Kdenlive White Noise was approximated with Shrimply video and audio generators.",
+                    None,
+                ),
+                GeneratorSource::Counter(counter) => (
+                    counter_visual(counter, self.canvas_size, self.fps)?,
+                    AudioSource::Generator(Box::new(AudioGenerator {
+                        frequency_hz: TimelineValue::new_const(COUNTER_BEEP_FREQUENCY_HZ),
+                        ..AudioGenerator::default()
+                    })),
+                    if counter.clock_background {
+                        "Kdenlive Counter was converted to animated Shrimply text; its typeface was approximated and film-leader graphics were omitted."
+                    } else {
+                        "Kdenlive Counter was converted to animated Shrimply text; its typeface was approximated."
+                    },
+                    Some(counter),
                 ),
             };
             self.warnings.insert(warning.to_owned());
@@ -440,11 +544,14 @@ impl<'a> Converter<'a> {
                 pitch_preserved: true,
                 video_track_id: 0,
                 audio_track_id: 0,
-                source_duration: None,
+                source_duration: counter.map(|counter| frame_time(counter.length, self.fps)),
                 reverse_origin_frame: None,
                 rotation_degrees: 0.0,
+                counter,
             });
         }
+        let resource = resource.ok_or_else(|| invalid("media producer has no resource"))?;
+        let path = resolve_path(&self.root_dir, resource);
         let speed = if service == "timewarp" {
             parse_fraction(producer.property("warp_speed").unwrap_or("1"))?
         } else {
@@ -561,6 +668,7 @@ impl<'a> Converter<'a> {
             source_duration,
             reverse_origin_frame,
             rotation_degrees,
+            counter: None,
         })
     }
 
@@ -652,48 +760,227 @@ struct Source {
     source_duration: Option<Time>,
     reverse_origin_frame: Option<i64>,
     rotation_degrees: f32,
+    counter: Option<CounterGenerator>,
 }
 
 #[derive(Clone, Copy)]
 enum GeneratorSource {
     ColorBars,
     WhiteNoise,
+    Counter(CounterGenerator),
+}
+
+#[derive(Clone, Copy)]
+struct CounterGenerator {
+    length: i64,
+    direction: CounterDirection,
+    style: CounterStyle,
+    sound: CounterSound,
+    clock_background: bool,
+    drop_frame: bool,
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum CounterDirection {
+    Down,
+    Up,
+}
+
+#[derive(Clone, Copy)]
+enum CounterStyle {
+    Seconds,
+    SecondsPlusOne,
+    Frames,
+    Timecode,
+    Clock,
+}
+
+#[derive(Clone, Copy)]
+enum CounterSound {
+    Silent,
+    TwoPop,
+    FrameZero,
 }
 
 fn generator_source(
-    service: &str,
+    producer: &Element,
     path: &Path,
+    fps: Fraction,
 ) -> Result<Option<GeneratorSource>, Box<dyn Error + Send + Sync>> {
-    let service = if matches!(service, "xml" | "consumer")
+    let service = producer.property("mlt_service").unwrap_or_default();
+    if matches!(service, "xml" | "consumer")
         && path
             .extension()
             .and_then(|value| value.to_str())
             .is_some_and(|value| value.eq_ignore_ascii_case("mlt"))
     {
         let root = xml::parse(path).map_err(invalid)?;
-        let mut services = root
+        let mut generators = root
             .children
             .iter()
             .filter(|node| matches!(node.name.as_str(), "producer" | "chain"))
-            .filter_map(|node| {
+            .filter(|node| {
                 node.property("mlt_service")
                     .or_else(|| node.attribute("mlt_service"))
+                    .is_some()
             });
-        let Some(service) = services.next() else {
+        let Some(generator) = generators.next() else {
             return Ok(None);
         };
-        if services.next().is_some() {
+        if generators.next().is_some() {
             return Ok(None);
         }
-        service.to_owned()
-    } else {
-        service.to_owned()
-    };
-    Ok(match service.as_str() {
+        return classify_generator(generator, fps);
+    }
+    classify_generator(producer, fps)
+}
+
+fn classify_generator(
+    producer: &Element,
+    fps: Fraction,
+) -> Result<Option<GeneratorSource>, Box<dyn Error + Send + Sync>> {
+    let service = producer
+        .property("mlt_service")
+        .or_else(|| producer.attribute("mlt_service"))
+        .unwrap_or_default();
+    Ok(match service {
         "frei0r.test_pat_B" => Some(GeneratorSource::ColorBars),
         "noise" => Some(GeneratorSource::WhiteNoise),
+        "count" => {
+            let length = producer
+                .property("length")
+                .map(|value| math::parse_frame(value, fps).map_err(invalid))
+                .transpose()?
+                .or_else(|| {
+                    producer
+                        .attribute("out")
+                        .and_then(|value| math::parse_frame(value, fps).ok())
+                        .and_then(|out| out.checked_add(1))
+                })
+                .ok_or_else(|| invalid("counter generator has no duration"))?;
+            if length <= 0 {
+                return Err(invalid("counter generator duration is not positive"));
+            }
+            Some(GeneratorSource::Counter(CounterGenerator {
+                length,
+                direction: if producer.property("direction").unwrap_or("down") == "down" {
+                    CounterDirection::Down
+                } else {
+                    CounterDirection::Up
+                },
+                style: match producer.property("style").unwrap_or("seconds+1") {
+                    "frames" => CounterStyle::Frames,
+                    "timecode" => CounterStyle::Timecode,
+                    "clock" => CounterStyle::Clock,
+                    "seconds+1" => CounterStyle::SecondsPlusOne,
+                    _ => CounterStyle::Seconds,
+                },
+                sound: match producer.property("sound").unwrap_or("silent") {
+                    "2pop" => CounterSound::TwoPop,
+                    "frame0" => CounterSound::FrameZero,
+                    _ => CounterSound::Silent,
+                },
+                clock_background: producer.property("background").unwrap_or("clock") == "clock",
+                drop_frame: producer
+                    .property("drop")
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .is_some_and(|value| value != 0),
+            }))
+        }
         _ => None,
     })
+}
+
+fn counter_visual(
+    counter: CounterGenerator,
+    canvas_size: CanvasSize,
+    fps: Fraction,
+) -> Result<VideoItemContent, Box<dyn Error + Send + Sync>> {
+    let initial_position = counter_position(counter, 0)
+        .ok_or_else(|| invalid("counter initial position overflowed"))?;
+    let mut item = VideoItem::text_item(canvas_size, Time::ZERO, Time::ZERO);
+    let VideoItemContent::Text(text) = &mut item.content else {
+        unreachable!("text item constructor must create text content");
+    };
+    text.text = TimelineValue::new_const(counter_text(counter, initial_position, fps)?);
+    text.text.expression = Some(TimelineExpression {
+        id: Uuid::new_v4(),
+        enabled: true,
+        source: counter_expression(counter),
+    });
+    text.font_size = TimelineValue::new_const(
+        canvas_size
+            .height
+            .saturating_mul(COUNTER_FONT_HEIGHT_PERCENT)
+            .checked_div(PERCENT)
+            .unwrap_or(0) as f32,
+    );
+    text.font_weight = TimelineValue::new_const(400.0);
+    text.color = TimelineValue::new_const(Color::<u8>::BLACK);
+    text.background_color = TimelineValue::new_const(Color::<u8>::from_rgba(
+        COUNTER_BACKGROUND_CHANNEL,
+        COUNTER_BACKGROUND_CHANNEL,
+        COUNTER_BACKGROUND_CHANNEL,
+        u8::MAX,
+    ));
+    text.background_padding = TimelineValue::new_const(Vec2::new(
+        canvas_size.width as f32,
+        canvas_size.height as f32,
+    ));
+    Ok(item.content)
+}
+
+fn counter_position(counter: CounterGenerator, source_frame: i64) -> Option<i64> {
+    if counter.direction == CounterDirection::Down {
+        counter.length.checked_sub(1)?.checked_sub(source_frame)
+    } else {
+        Some(source_frame)
+    }
+}
+
+fn counter_text(
+    counter: CounterGenerator,
+    position: i64,
+    fps: Fraction,
+) -> Result<String, Box<dyn Error + Send + Sync>> {
+    if matches!(counter.style, CounterStyle::Frames) {
+        return Ok(position.to_string());
+    }
+    let timecode = shrimply_math_core::smpte_timecode(position, fps, counter.drop_frame)
+        .ok_or_else(|| invalid("could not format counter timecode"))?;
+    Ok(match counter.style {
+        CounterStyle::Frames => unreachable!(),
+        CounterStyle::Timecode => shrimply_math_core::format_smpte_timecode(timecode),
+        CounterStyle::Clock => format!(
+            "{:02}:{:02}:{:02}",
+            timecode.hours, timecode.minutes, timecode.seconds
+        ),
+        CounterStyle::Seconds => timecode.seconds.to_string(),
+        CounterStyle::SecondsPlusOne => (timecode.seconds + 1).to_string(),
+    })
+}
+
+fn counter_expression(counter: CounterGenerator) -> String {
+    let position = if counter.direction == CounterDirection::Down {
+        format!("{} - int(time * fps)", counter.length - 1)
+    } else {
+        "int(time * fps)".to_owned()
+    };
+    let drop_frame = counter.drop_frame;
+    let value = match counter.style {
+        CounterStyle::Frames => "`${frame}`".to_owned(),
+        CounterStyle::Timecode => format!("timecode(frame, fps, {drop_frame})"),
+        CounterStyle::Clock => format!(
+            "let parts = timecode(frame, fps, {drop_frame}).split(\":\");\n`${{parts[0]}}:${{parts[1]}}:${{parts[2].sub_string(0, 2)}}`"
+        ),
+        CounterStyle::Seconds => format!(
+            "let parts = timecode(frame, fps, {drop_frame}).split(\":\");\nparts[2].sub_string(0, 2)"
+        ),
+        CounterStyle::SecondsPlusOne => format!(
+            "let parts = timecode(frame, fps, {drop_frame}).split(\":\");\n`${{parse_int(parts[2].sub_string(0, 2)) + 1}}`"
+        ),
+    };
+    format!("let frame = {position};\n{value}")
 }
 
 fn sequence_by_uuid(root: &Element, uuid: Uuid) -> Option<&Element> {

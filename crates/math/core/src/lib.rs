@@ -19,6 +19,140 @@ pub struct Time {
     pub seconds: Fraction,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct SmpteTimecode {
+    pub hours: i64,
+    pub minutes: i64,
+    pub seconds: i64,
+    pub frames: i64,
+    pub frame_separator: char,
+    pub frame_width: usize,
+}
+
+pub fn smpte_timecode(frame: i64, frame_rate: Fraction, drop_frame: bool) -> Option<SmpteTimecode> {
+    if frame < 0 {
+        return None;
+    }
+    let rate_numerator = i128::from(fraction_numerator(frame_rate));
+    let rate_denominator = i128::from(fraction_denominator(frame_rate));
+    if rate_numerator <= 0 || rate_denominator <= 0 {
+        return None;
+    }
+
+    let mut frame = i128::from(frame);
+    let (rate_numerator, rate_denominator, frame_separator) =
+        if rate_numerator * 1_001 == rate_denominator * 30_000 {
+            if drop_frame {
+                frame = drop_frame_number(frame, 30, 2)?;
+            }
+            (30, 1, if drop_frame { ';' } else { ':' })
+        } else if rate_numerator * 1_001 == rate_denominator * 60_000 {
+            if drop_frame {
+                frame = drop_frame_number(frame, 60, 4)?;
+            }
+            (60, 1, if drop_frame { ';' } else { ':' })
+        } else if drop_frame {
+            (
+                rate_numerator,
+                rate_denominator,
+                if rate_numerator % rate_denominator == 0 {
+                    ':'
+                } else {
+                    ';'
+                },
+            )
+        } else {
+            (
+                round_ratio_ties_even(rate_numerator, rate_denominator)?,
+                1,
+                ':',
+            )
+        };
+    if rate_numerator <= 0 {
+        return None;
+    }
+
+    let hours = frame
+        .checked_mul(rate_denominator)?
+        .checked_div(rate_numerator.checked_mul(3_600)?)?;
+    frame = frame.checked_sub(
+        hours
+            .checked_mul(3_600)?
+            .checked_mul(rate_numerator)?
+            .checked_div(rate_denominator)?,
+    )?;
+    let minutes = frame
+        .checked_mul(rate_denominator)?
+        .checked_div(rate_numerator.checked_mul(60)?)?;
+    frame = frame.checked_sub(
+        minutes
+            .checked_mul(60)?
+            .checked_mul(rate_numerator)?
+            .checked_div(rate_denominator)?,
+    )?;
+    let seconds = frame
+        .checked_mul(rate_denominator)?
+        .checked_div(rate_numerator)?;
+    let second_frames = seconds.checked_mul(rate_numerator)?;
+    let second_frames = second_frames
+        .checked_add(rate_denominator - 1)?
+        .checked_div(rate_denominator)?;
+    frame = frame.checked_sub(second_frames)?;
+
+    Some(SmpteTimecode {
+        hours: i64::try_from(hours).ok()?,
+        minutes: i64::try_from(minutes).ok()?,
+        seconds: i64::try_from(seconds).ok()?,
+        frames: i64::try_from(frame).ok()?,
+        frame_separator,
+        frame_width: if rate_numerator > rate_denominator * 999 {
+            4
+        } else if rate_numerator > rate_denominator * 99 {
+            3
+        } else {
+            2
+        },
+    })
+}
+
+pub fn format_smpte_timecode(timecode: SmpteTimecode) -> String {
+    format!(
+        "{:02}:{:02}:{:02}{}{:0width$}",
+        timecode.hours,
+        timecode.minutes,
+        timecode.seconds,
+        timecode.frame_separator,
+        timecode.frames,
+        width = timecode.frame_width,
+    )
+}
+
+fn drop_frame_number(frame: i128, nominal_rate: i128, dropped_frames: i128) -> Option<i128> {
+    let frames_per_minute = nominal_rate.checked_mul(60)?.checked_sub(dropped_frames)?;
+    let frames_per_ten_minutes = nominal_rate
+        .checked_mul(600)?
+        .checked_sub(dropped_frames.checked_mul(9)?)?;
+    let ten_minute_blocks = frame.checked_div(frames_per_ten_minutes)?;
+    let remaining = frame.checked_rem(frames_per_ten_minutes)?;
+    let extra_minutes = remaining
+        .checked_sub(dropped_frames)
+        .map_or(0, |remaining| remaining / frames_per_minute);
+    frame
+        .checked_add(ten_minute_blocks.checked_mul(dropped_frames.checked_mul(9)?)?)?
+        .checked_add(extra_minutes.checked_mul(dropped_frames)?)
+}
+
+fn round_ratio_ties_even(numerator: i128, denominator: i128) -> Option<i128> {
+    let quotient = numerator.checked_div(denominator)?;
+    let remainder = numerator.checked_rem(denominator)?;
+    match remainder.checked_mul(2)?.cmp(&denominator) {
+        std::cmp::Ordering::Less => Some(quotient),
+        std::cmp::Ordering::Greater => quotient.checked_add(1),
+        std::cmp::Ordering::Equal if quotient % 2 == 0 => Some(quotient),
+        std::cmp::Ordering::Equal => quotient.checked_add(1),
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 struct RawFraction {
     numerator: i64,
