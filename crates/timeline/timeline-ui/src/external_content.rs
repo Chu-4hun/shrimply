@@ -19,7 +19,7 @@ use super::interaction::{
     show_error_dialog,
 };
 use super::items::{self, ItemKey, TrackKind};
-use super::{RULER_HEIGHT, TRACK_HEIGHT, TimelineRuntime, import, timeline_x, x_to_time};
+use super::{TimelineRuntime, import, timeline_x, x_to_time};
 
 const CLIPBOARD_MEDIA_DIR: &str = "media/clipboard";
 
@@ -390,15 +390,6 @@ fn insert_file(
         },
         Placement::Playhead => {
             let start = player_state::snapshot(player_state).position;
-            let row = {
-                let project = project.borrow();
-                if kind == import::FileKind::Audio {
-                    project.caption_tracks.len() + project.video_tracks.len()
-                } else {
-                    project.caption_tracks.len()
-                }
-            };
-            let y = RULER_HEIGHT + row as f64 * TRACK_HEIGHT + TRACK_HEIGHT / 2.0;
             match kind {
                 import::FileKind::Mp4
                 | import::FileKind::Mov
@@ -419,7 +410,7 @@ fn insert_file(
                     runtime,
                     path,
                     start,
-                    y,
+                    import::ImportTarget::Automatic,
                 ),
                 import::FileKind::Mkv | import::FileKind::WebM => ask_remux_then_import_at(
                     area,
@@ -429,7 +420,7 @@ fn insert_file(
                     runtime,
                     path,
                     start,
-                    y,
+                    import::ImportTarget::Automatic,
                 ),
                 import::FileKind::Vtt => return false,
             }

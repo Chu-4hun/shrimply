@@ -35,7 +35,7 @@ pub(crate) fn import_path(
         runtime,
         path,
         start,
-        y,
+        import::ImportTarget::Timeline(y),
     );
 }
 
@@ -48,7 +48,7 @@ pub(crate) fn import_path_at(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     path: PathBuf,
     start: Time,
-    y: f64,
+    target: import::ImportTarget,
 ) {
     let (canvas_size, default_visual_duration) = {
         let project = project.borrow();
@@ -74,7 +74,7 @@ pub(crate) fn import_path_at(
                 &runtime_for_result,
                 info,
                 start,
-                y,
+                target,
             );
         },
     );
@@ -123,7 +123,7 @@ pub(crate) fn import_media_at(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     info: import::MediaInfo,
     start: Time,
-    y: f64,
+    target: import::ImportTarget,
 ) {
     let changes = {
         let project = project.borrow();
@@ -145,7 +145,7 @@ pub(crate) fn import_media_at(
                 &runtime,
                 info,
                 start,
-                y,
+                target,
                 match_video.then_some(changes),
             );
         });
@@ -159,7 +159,7 @@ pub(crate) fn import_media_at(
         runtime,
         info,
         start,
-        y,
+        target,
         None,
     );
 }
@@ -173,7 +173,7 @@ fn finish_media_import(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     info: import::MediaInfo,
     start: Time,
-    y: f64,
+    target: import::ImportTarget,
     settings: Option<(Option<CanvasSize>, Option<Fraction>)>,
 ) {
     if let Err(error) = info.snapshot.ensure_current() {
@@ -196,7 +196,7 @@ fn finish_media_import(
         info.video_streams,
         info.audio_streams,
         start,
-        y,
+        target,
         collision_mode,
     );
     let result = import::apply(&mut project_state, &info, &preview);
@@ -490,7 +490,7 @@ pub(crate) fn ask_remux_then_import(
         runtime,
         path,
         start,
-        y,
+        import::ImportTarget::Timeline(y),
     );
 }
 
@@ -503,7 +503,7 @@ pub(crate) fn ask_remux_then_import_at(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     path: PathBuf,
     start: Time,
-    y: f64,
+    target: import::ImportTarget,
 ) {
     let dialog = adw::AlertDialog::new(
         Some("Remux MKV/WebM to MP4?"),
@@ -536,7 +536,7 @@ pub(crate) fn ask_remux_then_import_at(
                     &runtime,
                     path,
                     start,
-                    y,
+                    target,
                 );
             } else {
                 runtime.borrow_mut().import_preview = None;
@@ -555,7 +555,7 @@ fn start_remux(
     runtime: &Rc<RefCell<TimelineRuntime>>,
     path: PathBuf,
     start: Time,
-    y: f64,
+    target: import::ImportTarget,
 ) {
     let (tx, rx) = mpsc::channel();
     let original_path = path.clone();
@@ -609,7 +609,7 @@ fn start_remux(
                         &runtime_for_choice,
                         remuxed_path,
                         start,
-                        y,
+                        target,
                     );
                 },
             );

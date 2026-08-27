@@ -508,7 +508,7 @@ pub(crate) fn paste_target_base<T: Clone + TimeSlice>(
         .unwrap_or(track_count)
 }
 
-fn paste_video_target_base<T: Clone + TimeSlice>(
+pub(crate) fn paste_video_target_base<T>(
     items: &[(usize, u64, u64, T)],
     tracks: &[VisualTrack],
     start: Time,
@@ -538,7 +538,7 @@ fn paste_video_target_base<T: Clone + TimeSlice>(
         .unwrap_or(tracks.len())
 }
 
-pub(crate) fn paste_collides<T: Clone + TimeSlice>(
+pub(crate) fn paste_collides<T>(
     items: &[(usize, u64, u64, T)],
     target_base: usize,
     collides: impl Fn(usize, Time, Time) -> bool,
