@@ -187,7 +187,6 @@ pub(crate) fn add_input_controllers(
         runtime.suppress_double_click_selection = n_press == 2;
         let pos = vec2(x as f32, y as f32);
         runtime.pointer_pos = Some(pos);
-        runtime.software_cursor = None;
         runtime.pointer_press_origin = Some(pos);
         runtime.pointer_release_pos = None;
         runtime.primary_pressed = true;
@@ -269,7 +268,6 @@ pub(crate) fn add_input_controllers(
         runtime.modifiers = modifiers;
         let pos = vec2(x as f32, y as f32);
         runtime.pointer_pos = Some(pos);
-        runtime.software_cursor = None;
         runtime.pointer_press_origin = Some(pos);
         runtime.pointer_release_pos = None;
         runtime.middle_pressed = true;
@@ -386,11 +384,10 @@ fn finish_cursor_grab(
         .borrow_mut()
         .software_cursor
         .take()
-        .expect("timeline cursor grab must own a software cursor")
-        .position;
-    let position = pointer_surface_position(area, position)
-        .expect("timeline must remain attached to its native surface while dragging");
-    pointer_lock.restore_cursor_at(f64::from(position.x()), f64::from(position.y()));
+        .and_then(|cursor| pointer_surface_position(area, cursor.position));
+    if let Some(position) = position {
+        pointer_lock.restore_cursor_at(f64::from(position.x()), f64::from(position.y()));
+    }
     drop(pointer_lock);
     area.set_cursor_from_name(Some(&cursor_name));
 }
