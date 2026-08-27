@@ -92,49 +92,42 @@ Nothing is created if the playhead is already inside an item on that track.
 On a video track, the menu provides:
 
 .. list-table::
-   :widths: 8 25 67
+   :widths: 8 92
    :header-rows: 1
 
    * - Icon
-     - Action
-     - Creates
+     - Description
    * - |text|
-     - **Text**
-     - A text layer using the default font.
+     - **Text** creates a text layer using the default font.
    * - |shape|
-     - **Shape**
-     - A vector shape. Rectangle, ellipse, triangle, star, arrow, diamond,
-       polygon, heart, and cross shapes are available in the inspector.
+     - **Shape** creates a vector shape. Rectangle, ellipse, triangle, star,
+       arrow, diamond, polygon, heart, and cross shapes are available in the
+       inspector.
    * - |paint|
-     - **Paint**
-     - A layer for drawing strokes directly on the canvas.
+     - **Paint** creates a layer for drawing strokes directly on the canvas.
    * - |background|
-     - **Background**
-     - A full-canvas background layer.
+     - **Background** creates a full-canvas background layer.
    * - |scene-3d|
-     - **3D Scene**
-     - A 3D scene that can contain shapes, text, models, lights, and a ground
-       plane.
+     - **3D Scene** creates a scene that can contain shapes, text, models,
+       lights, and a ground plane.
    * - |video-generation|
-     - **Video Generation**
-     - An AI video-generation item. This requires the
+     - **Video Generation** creates an AI video-generation item. This requires the
        :doc:`Shrimply server <../server/index>`.
 
 On an audio track, the menu provides:
 
 .. list-table::
-   :widths: 8 25 67
+   :widths: 8 92
    :header-rows: 1
 
    * - Icon
-     - Action
-     - Creates
+     - Description
    * - |text-to-speech|
-     - **Text to Speech**
-     - An item that generates speech from text using the Shrimply server.
+     - **Text to Speech** creates an item that generates speech from text using
+       the Shrimply server.
    * - |audio-generator|
-     - **Audio Generator**
-     - A procedural audio item configured in the inspector.
+     - **Audio Generator** creates a procedural audio item configured in the
+       inspector.
 
 Text to Speech and Video Generation are backed by AI models and require the
 :doc:`Shrimply server <../server/index>`.
@@ -142,15 +135,18 @@ Text to Speech and Video Generation are backed by AI models and require the
 Record content
 --------------
 
-Recording actions are separate buttons in each track's controls:
+.. list-table::
+   :widths: 8 92
+   :header-rows: 1
 
-* On a video track, click |screen-recording| **Record Screen or Application**,
-  choose a screen or application in the system capture dialog, and click the
-  same button again to stop. The recording starts at the playhead and stops
-  before the next item on the track.
-* On an audio track, click |microphone| **Record Microphone** to start recording
-  from the default microphone. Click the same button again to stop.
+   * - Icon
+     - Description
+   * - |screen-recording|
+     - Records a screen or application to the video track.
+   * - |microphone|
+     - Records the default microphone to the audio track.
 
-The active recording button turns red. Recording advances playback and places
-the finished item on that track at the original playhead position. Start from
-an empty point so the recording does not overlap an existing item.
+Move the playhead to an empty point on the track, then click its recording
+icon. Screen recording opens the system capture dialog so you can choose a
+screen or application. Click the icon again to stop. The icon is red while
+recording, and the finished item starts at the original playhead position.
