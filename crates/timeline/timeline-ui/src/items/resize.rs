@@ -72,7 +72,14 @@ pub(crate) fn update_resize_drag(
                 })
                 .min()
                 .expect("resize drag has no items");
-            let delta = target_delta.min(max_delta);
+            let earliest_start = drag
+                .items
+                .iter()
+                .map(|item| item.start)
+                .min()
+                .expect("resize drag has no items");
+            let min_delta = Time::ZERO.signed_sub(earliest_start);
+            let delta = target_delta.min(max_delta).max(min_delta);
             drag.target_start = drag.start.saturating_add(delta);
             drag.target_end = drag.end;
         }

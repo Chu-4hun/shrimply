@@ -62,7 +62,14 @@ pub(crate) fn update_dragged_group(
     let pointer_seconds = x_to_time(x, view.scroll_seconds, view.seconds_per_pixel)
         - group.pointer_offset.as_secs_f64();
     let target = Time::from_seconds_f64(pointer_seconds);
-    group.target_start = snap_repository.snap(target).unwrap_or(target);
+    let target = snap_repository.snap(target).unwrap_or(target);
+    let earliest_start = group
+        .items
+        .iter()
+        .map(|item| item.start)
+        .min()
+        .unwrap_or(group.grabbed_start);
+    group.target_start = target.max(group.grabbed_start.signed_sub(earliest_start));
     group.blocked_indicators.clear();
     group.overwrite_indicators.clear();
     group.cross_scope_preview_row = None;
