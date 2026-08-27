@@ -4,7 +4,7 @@ use std::sync::mpsc::{self, Receiver, SyncSender};
 use std::sync::{Arc, Condvar, Mutex, OnceLock};
 use std::thread::{self, JoinHandle};
 
-use shrimply_decoder_pool::{DecoderActivityGuard, TemporalDecoder, TemporalFramePool};
+use shrimply_decoder_pool::{DecoderActivityGuard, TemporalDecoder, TemporalDecoderPool};
 use shrimply_math_core::Fraction;
 use shrimply_project::project::{
     CanvasSize, Time, VideoItem, playback_speed_is_negative, playback_speed_is_zero,
@@ -557,7 +557,7 @@ impl Drop for PooledVideoDecoder {
 }
 
 pub struct VideoDecoderPool {
-    decoders: Arc<TemporalFramePool<VideoSource, VideoDecoderOwner, PooledVideoDecoder>>,
+    decoders: Arc<TemporalDecoderPool<VideoSource, VideoDecoderOwner, PooledVideoDecoder>>,
     consumer: u64,
 }
 
@@ -570,11 +570,11 @@ impl Default for VideoDecoderPool {
 impl VideoDecoderPool {
     pub fn new(maximum_decoders: usize) -> Self {
         static DECODERS: OnceLock<
-            Arc<TemporalFramePool<VideoSource, VideoDecoderOwner, PooledVideoDecoder>>,
+            Arc<TemporalDecoderPool<VideoSource, VideoDecoderOwner, PooledVideoDecoder>>,
         > = OnceLock::new();
         let decoders = DECODERS
             .get_or_init(|| {
-                Arc::new(TemporalFramePool::new(
+                Arc::new(TemporalDecoderPool::new(
                     DEFAULT_VIDEO_DECODER_POOL_SIZE,
                     VideoDecoderContext,
                 ))
@@ -756,7 +756,7 @@ impl Drop for VideoDecoderPool {
 }
 
 pub struct VideoDecoderHandle {
-    decoders: Arc<TemporalFramePool<VideoSource, VideoDecoderOwner, PooledVideoDecoder>>,
+    decoders: Arc<TemporalDecoderPool<VideoSource, VideoDecoderOwner, PooledVideoDecoder>>,
     source: VideoSource,
     owner: VideoDecoderOwner,
     frame_size: CanvasSize,
@@ -892,11 +892,11 @@ impl VideoDecoderHandle {
 
 fn update_temporal_frame_counter() {
     shrimply_benchmarking::set_counter(
-        "Temporal frame pool / GPU bytes retained",
+        "Temporal decoder state / GPU bytes retained",
         TEMPORAL_CURRENT_BYTES.load(Ordering::Acquire),
     );
     shrimply_benchmarking::set_counter(
-        "Temporal frame pool / GPU frames retained",
+        "Temporal decoder state / GPU frames retained",
         TEMPORAL_CURRENT_FRAMES.load(Ordering::Acquire),
     );
 }

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use shrimply_asset::{Asset, AssetSnapshot};
-use shrimply_frame_pool::{ImageKey, global as global_image_pool};
+use shrimply_gpu_memory::{ResourceKey, global as gpu_memory};
 use shrimply_project::project::{CanvasSize, VideoItem, VideoItemContent};
 use uuid::Uuid;
 
@@ -33,19 +33,19 @@ impl PdfRenderSession {
         })
     }
 
-    fn image_key(&self) -> ImageKey {
+    fn image_key(&self) -> ResourceKey {
         let mut discriminator = Vec::new();
         discriminator.extend_from_slice(b"pdf-rgba\0");
         discriminator.extend_from_slice(self.snapshot.cache_key().as_bytes());
         discriminator.extend_from_slice(&self.page.to_le_bytes());
         discriminator.extend_from_slice(&self.width.to_le_bytes());
         discriminator.extend_from_slice(&self.height.to_le_bytes());
-        ImageKey::new(self.snapshot.path().to_path_buf(), discriminator)
+        ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
     }
 
     fn request_page(&self) {
         let key = self.image_key();
-        if !global_image_pool().begin_load(key.clone()) {
+        if !gpu_memory().begin_resource_load(key.clone()) {
             return;
         }
         let file = self.file.clone();
@@ -61,7 +61,8 @@ impl PdfRenderSession {
                     rendered.rgba,
                 )
             });
-            if let Err(error) = global_image_pool().finish_load(key, result) {
+            let bytes = result.as_ref().map_or(0, VisualFrame::bytes);
+            if let Err(error) = gpu_memory().finish_resource_load(key, bytes, result) {
                 tracing::error!(file = %file.display(), %error, "could not finish loading PDF page");
             }
         });
@@ -98,7 +99,7 @@ impl VisualElement for PdfRenderSession {
         _track_id: Uuid,
         _cache: &mut VisualSourceCache,
     ) -> Result<VisualRender, String> {
-        if let Some(frame) = global_image_pool().get(&self.image_key())? {
+        if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.image_key())? {
             shrimply_benchmarking::increment("PDF raster cache / Hit");
             let frame = Rc::new(compositor.upload_frame(&frame)?);
             return Ok(VisualRender::Ready(Visual::Raster(

@@ -370,7 +370,15 @@ pub(super) fn render_project_frame(
         }
     };
 
-    let clear = frame.is_none() && !loading;
+    // A render failure must not turn into a successful empty frame. The preview
+    // keeps its last completed frame while the source/compositor recovers. An
+    // empty layer set without an error is the only active-item case that
+    // intentionally clears the canvas; the no-active-items case returned above.
+    let clear = frame.is_none()
+        && !loading
+        && !renderer.superseded
+        && errors.is_empty()
+        && output_layers.is_empty();
     RenderedFrame {
         frame,
         audio_analysis: audio_analysis.clone(),

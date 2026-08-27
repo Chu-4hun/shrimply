@@ -67,8 +67,6 @@ pub enum GpuFrame {
 }
 
 pub(crate) trait VisualData {
-    fn cache_key(&self) -> &[u8];
-
     fn morph_scene(&self) -> Option<crate::vector_morph::MorphScene> {
         None
     }
@@ -586,8 +584,8 @@ impl ExecutionState {
         self,
         compositor: &mut CudaVideoCompositor,
         _canvas: CanvasSize,
-        cache_scope: (&[Uuid], Uuid, Uuid),
-        cache: &mut VisualSourceCache,
+        _cache_scope: (&[Uuid], Uuid, Uuid),
+        _cache: &mut VisualSourceCache,
     ) -> Result<Self, String> {
         match self {
             Self::Prepared {
@@ -597,38 +595,11 @@ impl ExecutionState {
             } => {
                 let (frame, state) = match source {
                     LazySource::Data(data) => {
-                        // Vector operations must be baked by Skia together with the source. A
-                        // cached source-only texture cannot be reused here and transformed later:
-                        // doing so turns shear, scale, repeats, and transitions into raster-layer
-                        // sampling. Source-raster caching is valid only for an empty vector plan.
-                        let layer = if vector_operations.is_empty() {
-                            let key = data.cache_key();
-                            let renderer_generation = compositor.generated_renderer_generation();
-                            if let Some(layer) =
-                                cache.vector(compositor, cache_scope, key, renderer_generation)?
-                            {
-                                layer
-                            } else {
-                                let layer = data.rasterize(
-                                    compositor,
-                                    state.skia_drawing_strategy,
-                                    &vector_operations,
-                                )?;
-                                cache.set_vector(
-                                    cache_scope,
-                                    key.to_vec(),
-                                    compositor.generated_renderer_generation(),
-                                    layer.clone(),
-                                );
-                                layer
-                            }
-                        } else {
-                            data.rasterize(
-                                compositor,
-                                state.skia_drawing_strategy,
-                                &vector_operations,
-                            )?
-                        };
+                        let layer = data.rasterize(
+                            compositor,
+                            state.skia_drawing_strategy,
+                            &vector_operations,
+                        )?;
                         (GpuFrame::Rgba(layer), state.baked())
                     }
                     LazySource::Frame(frame) => {

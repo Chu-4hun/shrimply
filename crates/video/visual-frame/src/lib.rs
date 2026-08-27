@@ -2,7 +2,8 @@ use std::any::Any;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use cuda_core::{CudaContext, DeviceBuffer, sys};
+use cuda_core::{CudaContext, DeviceBuffer, MemoryKind, sys};
+use shrimply_gpu_memory::AllocationClass;
 
 mod ffmpeg;
 
@@ -58,7 +59,7 @@ struct GpuStorage {
 }
 
 enum GpuOwner {
-    Oxide { _buffers: Vec<DeviceBuffer<u8>> },
+    Oxide { buffers: Vec<DeviceBuffer<u8>> },
     External { _owner: Box<dyn Any + Send + Sync> },
 }
 
@@ -67,6 +68,7 @@ struct GpuPlane {
     pitch_bytes: usize,
     width_bytes: usize,
     height: usize,
+    memory_kind: MemoryKind,
 }
 
 struct CpuPlane {
@@ -145,7 +147,32 @@ impl VisualFrame {
         width: u32,
         height: u32,
     ) -> Result<Self, String> {
-        Self::allocate_on(context, 0, format, width, height)
+        Self::allocate_on(
+            context,
+            0,
+            format,
+            width,
+            height,
+            AllocationClass::Transient,
+        )
+    }
+
+    pub fn allocate_persistent(
+        context: Arc<CudaContext>,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+        description: &str,
+    ) -> Result<Self, String> {
+        Self::allocate_on_with_description(
+            context,
+            0,
+            format,
+            width,
+            height,
+            AllocationClass::Persistent,
+            description,
+        )
     }
 
     fn allocate_on(
@@ -154,6 +181,27 @@ impl VisualFrame {
         format: VisualFormat,
         width: u32,
         height: u32,
+        allocation_class: AllocationClass,
+    ) -> Result<Self, String> {
+        Self::allocate_on_with_description(
+            context,
+            device_index,
+            format,
+            width,
+            height,
+            allocation_class,
+            "CUDA visual plane",
+        )
+    }
+
+    fn allocate_on_with_description(
+        context: Arc<CudaContext>,
+        device_index: usize,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+        allocation_class: AllocationClass,
+        description: &str,
     ) -> Result<Self, String> {
         let layout = plane_layout(format, width, height)?;
         context
@@ -162,22 +210,45 @@ impl VisualFrame {
         let mut buffers = Vec::with_capacity(layout.len());
         let mut planes = Vec::with_capacity(layout.len());
         for (width_bytes, height) in layout {
-            let (device_ptr, pitch_bytes, length) = allocate_gpu_plane(width_bytes, height)?;
-            buffers
-                .push(unsafe { DeviceBuffer::from_raw_parts(device_ptr, length, context.clone()) });
+            let length = width_bytes
+                .checked_mul(height)
+                .ok_or("visual frame allocation size overflow")?;
+            let buffer = shrimply_gpu_memory::global()
+                .allocate_buffer::<u8>(
+                    context.default_stream().as_ref(),
+                    length,
+                    allocation_class,
+                    description,
+                )
+                .map_err(|error| {
+                    if error.contains("out of memory") || error.contains("OUT_OF_MEMORY") {
+                        GPU_OOM_GENERATION.fetch_add(1, Ordering::AcqRel);
+                        format!("{GPU_FRAME_ALLOCATION_EXHAUSTED}; {error}")
+                    } else {
+                        error
+                    }
+                })?;
+            let device_ptr = buffer.cu_deviceptr();
+            let memory_kind = buffer.memory_kind();
+            buffers.push(buffer);
             planes.push(GpuPlane {
                 device_ptr,
-                pitch_bytes,
+                pitch_bytes: width_bytes,
                 width_bytes,
                 height,
+                memory_kind,
             });
         }
+        context
+            .default_stream()
+            .synchronize()
+            .map_err(|error| format!("finish CUDA visual plane allocation: {error}"))?;
         Ok(Self {
             inner: Arc::new(FrameStorage::Gpu(GpuStorage::new(
                 context,
                 device_index,
                 planes,
-                GpuOwner::Oxide { _buffers: buffers },
+                GpuOwner::Oxide { buffers },
             ))),
             format,
             width,
@@ -197,8 +268,93 @@ impl VisualFrame {
         planes: &[VisualPlane],
         owner: Box<dyn Any + Send + Sync>,
     ) -> Result<Self, String> {
+        unsafe {
+            Self::from_external_gpu_with_memory_kinds(
+                context,
+                format,
+                width,
+                height,
+                planes,
+                &vec![MemoryKind::Device; planes.len()],
+                owner,
+            )
+        }
+    }
+
+    /// # Safety
+    ///
+    /// The `memory_kinds` must describe the allocation backing each plane. All other ownership
+    /// requirements are the same as [`Self::from_external_gpu`].
+    pub unsafe fn from_external_gpu_with_memory_kinds(
+        context: Arc<CudaContext>,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+        planes: &[VisualPlane],
+        memory_kinds: &[MemoryKind],
+        owner: Box<dyn Any + Send + Sync>,
+    ) -> Result<Self, String> {
+        Self::from_gpu_planes(
+            context,
+            format,
+            width,
+            height,
+            planes,
+            memory_kinds,
+            GpuOwner::External { _owner: owner },
+        )
+    }
+
+    /// # Safety
+    ///
+    /// Each plane must describe the corresponding owned buffer and match the declared format and
+    /// dimensions.
+    pub unsafe fn from_owned_gpu_buffers(
+        context: Arc<CudaContext>,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+        planes: &[VisualPlane],
+        buffers: Vec<DeviceBuffer<u8>>,
+    ) -> Result<Self, String> {
+        if buffers.len() != planes.len()
+            || buffers.iter().zip(planes).any(|(buffer, plane)| {
+                buffer.cu_deviceptr() != plane.device_ptr
+                    || plane
+                        .pitch_bytes
+                        .checked_mul(plane.height)
+                        .is_none_or(|bytes| bytes > buffer.len())
+            })
+        {
+            return Err("owned visual frame planes do not match their CUDA buffers".to_string());
+        }
+        let memory_kinds = buffers
+            .iter()
+            .map(DeviceBuffer::memory_kind)
+            .collect::<Vec<_>>();
+        Self::from_gpu_planes(
+            context,
+            format,
+            width,
+            height,
+            planes,
+            &memory_kinds,
+            GpuOwner::Oxide { buffers },
+        )
+    }
+
+    fn from_gpu_planes(
+        context: Arc<CudaContext>,
+        format: VisualFormat,
+        width: u32,
+        height: u32,
+        planes: &[VisualPlane],
+        memory_kinds: &[MemoryKind],
+        owner: GpuOwner,
+    ) -> Result<Self, String> {
         let layout = plane_layout(format, width, height)?;
         if planes.len() != layout.len()
+            || memory_kinds.len() != layout.len()
             || planes
                 .iter()
                 .zip(layout)
@@ -217,14 +373,16 @@ impl VisualFrame {
                 0,
                 planes
                     .iter()
-                    .map(|plane| GpuPlane {
+                    .zip(memory_kinds)
+                    .map(|(plane, &memory_kind)| GpuPlane {
                         device_ptr: plane.device_ptr,
                         pitch_bytes: plane.pitch_bytes,
                         width_bytes: plane.width_bytes,
                         height: plane.height,
+                        memory_kind,
                     })
                     .collect(),
-                GpuOwner::External { _owner: owner },
+                owner,
             ))),
             format,
             width,
@@ -281,12 +439,22 @@ impl VisualFrame {
             return None;
         };
         let plane = storage.planes.get(index)?;
+        if let GpuOwner::Oxide { buffers } = &storage._owner {
+            buffers.get(index)?.cu_deviceptr();
+        }
         Some(VisualPlane {
             device_ptr: plane.device_ptr,
             pitch_bytes: plane.pitch_bytes,
             width_bytes: plane.width_bytes,
             height: plane.height,
         })
+    }
+
+    pub fn memory_kind(&self, index: usize) -> Option<MemoryKind> {
+        let FrameStorage::Gpu(storage) = &*self.inner else {
+            return None;
+        };
+        storage.planes.get(index).map(|plane| plane.memory_kind)
     }
 
     pub fn plane_count(&self) -> usize {
@@ -358,7 +526,7 @@ impl VisualFrame {
                 .ok_or("CPU visual frame size overflow")?;
             let mut bytes = vec![0_u8; length];
             let mut copy: sys::CUDA_MEMCPY2D = unsafe { std::mem::zeroed() };
-            copy.srcMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
+            copy.srcMemoryType = memory_type(source.memory_kind);
             copy.srcDevice = source.device_ptr;
             copy.srcPitch = source.pitch_bytes;
             copy.dstMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_HOST;
@@ -399,6 +567,7 @@ impl VisualFrame {
             self.format,
             self.width,
             self.height,
+            AllocationClass::Persistent,
         )?;
         let stream = context.default_stream();
         for (index, source) in planes.iter().enumerate() {
@@ -409,7 +578,11 @@ impl VisualFrame {
             copy.srcMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_HOST;
             copy.srcHost = source.bytes.as_ptr().cast();
             copy.srcPitch = source.width_bytes;
-            copy.dstMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
+            copy.dstMemoryType = memory_type(
+                frame
+                    .memory_kind(index)
+                    .expect("uploaded visual frame lost allocation metadata"),
+            );
             copy.dstDevice = destination.device_ptr;
             copy.dstPitch = destination.pitch_bytes;
             copy.WidthInBytes = source.width_bytes;
@@ -426,38 +599,11 @@ impl VisualFrame {
     }
 }
 
-fn allocate_gpu_plane(
-    width_bytes: usize,
-    height: usize,
-) -> Result<(sys::CUdeviceptr, usize, usize), String> {
-    let requested_bytes = width_bytes
-        .checked_mul(height)
-        .ok_or("visual frame allocation size overflow")? as u64;
-    let mut device_ptr = 0;
-    let mut pitch_bytes = 0;
-    let result = unsafe {
-        sys::cuMemAllocPitch_v2(&mut device_ptr, &mut pitch_bytes, width_bytes, height, 16)
-    };
-    if result == sys::cudaError_enum_CUDA_ERROR_OUT_OF_MEMORY {
-        GPU_OOM_GENERATION
-            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |generation| {
-                generation.checked_add(1)
-            })
-            .expect("GPU OOM generation overflowed");
-        return Err(format!(
-            "{GPU_FRAME_ALLOCATION_EXHAUSTED}; requested {requested_bytes} bytes"
-        ));
+fn memory_type(kind: MemoryKind) -> sys::CUmemorytype {
+    match kind {
+        MemoryKind::Device => sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+        MemoryKind::Managed => sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED,
     }
-    if result != sys::cudaError_enum_CUDA_SUCCESS {
-        return Err(format!("allocate visual frame plane: {result:?}"));
-    }
-    let Some(length) = pitch_bytes.checked_mul(height) else {
-        if unsafe { sys::cuMemFree_v2(device_ptr) } != sys::cudaError_enum_CUDA_SUCCESS {
-            std::process::abort();
-        }
-        return Err("visual frame allocation size overflow".to_string());
-    };
-    Ok((device_ptr, pitch_bytes, length))
 }
 
 fn plane_layout(

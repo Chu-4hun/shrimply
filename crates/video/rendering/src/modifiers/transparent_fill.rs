@@ -490,10 +490,11 @@ mod tests {
         time::{Duration, Instant},
     };
 
-    use cuda_core::{CudaContext, DeviceBuffer};
+    use cuda_core::CudaContext;
     use glam::Vec2;
     use shrimply_asset::Asset;
     use shrimply_core::timeline_value::TimelineValue;
+    use shrimply_gpu_memory::AllocationClass;
     use shrimply_math_core::{Time, fraction_new};
     use shrimply_project::project::{
         CanvasSize, ItemAddress, Project, VideoItem, VideoItemContent, VideoTrack, VisualModifier,
@@ -693,17 +694,36 @@ mod tests {
             .expect("load CUDA matte module");
         let pixels = WIDTH as usize * HEIGHT as usize;
         let input_pixels = vec![u32::MAX; pixels];
-        let mut input = DeviceBuffer::zeroed(&stream, pixels).expect("allocate CUDA mask input");
+        let mut input = shrimply_gpu_memory::global()
+            .allocate_buffer(
+                &stream,
+                pixels,
+                AllocationClass::Transient,
+                "CUDA mask input",
+            )
+            .expect("allocate CUDA mask input");
         input
             .copy_from_host(&stream, &input_pixels)
             .expect("upload CUDA mask input");
-        let mut device_mask =
-            DeviceBuffer::zeroed(&stream, mask.len()).expect("allocate CUDA mask");
+        let mut device_mask = shrimply_gpu_memory::global()
+            .allocate_buffer(
+                &stream,
+                mask.len(),
+                AllocationClass::Transient,
+                "CUDA mask upload",
+            )
+            .expect("allocate CUDA mask");
         device_mask
             .copy_from_host(&stream, &mask)
             .expect("upload CUDA mask");
-        let mut output: DeviceBuffer<u32> =
-            DeviceBuffer::zeroed(&stream, pixels).expect("allocate CUDA mask output");
+        let mut output = shrimply_gpu_memory::global()
+            .allocate_buffer::<u32>(
+                &stream,
+                pixels,
+                AllocationClass::Transient,
+                "CUDA mask output",
+            )
+            .expect("allocate CUDA mask output");
         unsafe {
             cuda_host::cuda_launch! {
                 kernel: transparent_fill_apply_mask,

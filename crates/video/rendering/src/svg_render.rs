@@ -1,15 +1,13 @@
 use std::rc::Rc;
 
-use cached::{Cached, stores::LruCache};
-use serde::Serialize;
 use shrimply_asset::{Asset, AssetSnapshot};
-use shrimply_visual_frame::Device;
+use shrimply_gpu_memory::HostReservation;
 use skia_safe::{Canvas, FontMgr, svg::Dom};
 use uuid::Uuid;
 
 use crate::gpu::CudaVideoCompositor;
 use crate::gpu::generated_gpu::GeneratedVisual;
-use crate::layer::{VectorOperation, VectorVisual, Visual, VisualData, VisualState};
+use crate::layer::{VectorVisual, Visual, VisualData, VisualState};
 use crate::svg_color;
 use crate::visual_source::VisualSourceCache;
 use crate::visual_source::{GeneratedTransition, VisualElement, VisualRender, VisualRenderRequest};
@@ -25,40 +23,10 @@ pub struct SvgRenderSession {
     surface_width: u32,
     surface_height: u32,
     color_overrides: Vec<shrimply_project::project::SvgColorOverride>,
-}
-
-const MAX_SVG_RASTER_CACHE_ENTRIES: usize = 8;
-
-pub(crate) struct SvgRasterCache(LruCache<Vec<u8>, Rc<crate::gpu::VisualFrame>>);
-
-impl Default for SvgRasterCache {
-    fn default() -> Self {
-        Self(
-            LruCache::builder()
-                .max_size(MAX_SVG_RASTER_CACHE_ENTRIES)
-                .build()
-                .expect("valid SVG raster cache size"),
-        )
-    }
-}
-
-impl SvgRasterCache {
-    fn get(&mut self, key: &[u8]) -> Option<Rc<crate::gpu::VisualFrame>> {
-        self.0.cache_get(key).map(Rc::clone)
-    }
-
-    fn set(&mut self, key: Vec<u8>, frame: Rc<crate::gpu::VisualFrame>) {
-        debug_assert_eq!(frame.device(), Device::Cpu);
-        self.0.cache_set(key, frame);
-        shrimply_benchmarking::set_counter(
-            "SVG raster cache / CPU bytes retained",
-            self.0.value_order().iter().map(|frame| frame.bytes()).sum(),
-        );
-    }
+    _host_reservation: Option<HostReservation>,
 }
 
 struct DeferredSvgFrame {
-    cache_key: Vec<u8>,
     svg: String,
     dom: Option<Rc<Dom>>,
     root_width: u32,
@@ -71,7 +39,6 @@ struct DeferredSvgFrame {
 }
 
 pub(crate) struct SvgVectorVisualParams {
-    pub item_id: Uuid,
     pub svg: String,
     pub dom: Option<Rc<Dom>>,
     pub root_size: CanvasSize,
@@ -86,7 +53,6 @@ pub(crate) fn svg_vector_visual(
     state: VisualState,
 ) -> Result<Visual, String> {
     let SvgVectorVisualParams {
-        item_id,
         svg,
         dom,
         root_size,
@@ -95,37 +61,7 @@ pub(crate) fn svg_vector_visual(
         evaluation,
         transition,
     } = params;
-    let cache_key = serde_json::to_vec(&(
-        item_id,
-        &svg,
-        root_size.width,
-        root_size.height,
-        surface_size.width,
-        surface_size.height,
-        canvas_size,
-        transition.map(|value| {
-            (
-                value.kind,
-                value.side == shrimply_project::project::TransitionSide::Intro,
-                value.progress.to_bits(),
-                value.interpolation,
-                value.ordering,
-                value.drawing_stroke_overlap.to_bits(),
-                value.drawing_stroke_length_weight.to_bits(),
-                value.drawing_fill_mode,
-                value.morph_unit,
-                value.effect_amount.to_bits(),
-                value.effect_detail.to_bits(),
-                value.effect_angle_degrees.to_bits(),
-                value.effect_fade,
-                value.effect_seed,
-            )
-        }),
-    ))
-    .map_err(|error| format!("serialize SVG raster cache key: {error}"))?;
-
     let frame = Box::new(DeferredSvgFrame {
-        cache_key,
         svg,
         dom,
         root_width: root_size.width,
@@ -137,84 +73,6 @@ pub(crate) fn svg_vector_visual(
         transition,
     });
     Ok(Visual::Vector(VectorVisual::prepared(frame, state)))
-}
-
-#[derive(Serialize)]
-enum SvgVectorOperationKey {
-    Transform([u32; 9]),
-    MotionBlur(Vec<[u32; 9]>),
-    Opacity(u32),
-    Hsv {
-        hue_turns: u32,
-        saturation: u32,
-        value: u32,
-    },
-    Repeat {
-        copies_x: u32,
-        copies_y: u32,
-        step: [u32; 2],
-        row_offset: [u32; 2],
-    },
-    ShakyPath {
-        amplitude: u32,
-        step_size: u32,
-        seed: u32,
-    },
-    TextMask {
-        amount: u32,
-        partial_mode: shrimply_video_modifiers::text_mask::TextMaskPartialMode,
-        direction: shrimply_video_modifiers::text_mask::TextMaskDirection,
-    },
-}
-
-fn transform_key(transform: shrimply_math_geometry::ComposedTransform2D) -> [u32; 9] {
-    transform.matrix.to_cols_array().map(f32::to_bits)
-}
-
-fn operation_key(operation: &VectorOperation) -> SvgVectorOperationKey {
-    match operation {
-        VectorOperation::Transform(transform) => {
-            SvgVectorOperationKey::Transform(transform_key(*transform))
-        }
-        VectorOperation::MotionBlur(transforms) => SvgVectorOperationKey::MotionBlur(
-            transforms.iter().copied().map(transform_key).collect(),
-        ),
-        VectorOperation::Opacity(opacity) => SvgVectorOperationKey::Opacity(opacity.to_bits()),
-        VectorOperation::Hsv {
-            hue_turns,
-            saturation,
-            value,
-        } => SvgVectorOperationKey::Hsv {
-            hue_turns: hue_turns.to_bits(),
-            saturation: saturation.to_bits(),
-            value: value.to_bits(),
-        },
-        VectorOperation::Repeat {
-            copies_x,
-            copies_y,
-            step,
-            row_offset,
-        } => SvgVectorOperationKey::Repeat {
-            copies_x: *copies_x,
-            copies_y: *copies_y,
-            step: [step.x.to_bits(), step.y.to_bits()],
-            row_offset: [row_offset.x.to_bits(), row_offset.y.to_bits()],
-        },
-        VectorOperation::ShakyPath {
-            amplitude,
-            step_size,
-            seed,
-        } => SvgVectorOperationKey::ShakyPath {
-            amplitude: amplitude.to_bits(),
-            step_size: step_size.to_bits(),
-            seed: *seed,
-        },
-        VectorOperation::TextMask(mask) => SvgVectorOperationKey::TextMask {
-            amount: mask.amount.to_bits(),
-            partial_mode: mask.partial_mode,
-            direction: mask.direction,
-        },
-    }
 }
 
 impl GeneratedVisual for DeferredSvgFrame {
@@ -288,6 +146,12 @@ impl SvgRenderSession {
         let svg = svg_color::apply_overrides(&source, &color_overrides);
         let dom = Dom::from_str(&svg, FontMgr::new())
             .map_err(|error| format!("could not parse SVG {}: {error}", item.file.display()))?;
+        let source_bytes = u64::try_from(svg.len())
+            .map_err(|_| format!("SVG {} source size exceeds u64", item.file.display()))?;
+        let memory = shrimply_gpu_memory::global();
+        let host_reservation = (memory.telemetry().host_budget_bytes != 0)
+            .then(|| memory.reserve_host(source_bytes))
+            .transpose()?;
         Ok(Self {
             file: item.file.clone(),
             snapshot,
@@ -298,6 +162,7 @@ impl SvgRenderSession {
             surface_width: canvas_size.width.max(1),
             surface_height: canvas_size.height.max(1),
             color_overrides,
+            _host_reservation: host_reservation,
         })
     }
 
@@ -313,10 +178,6 @@ impl SvgRenderSession {
 }
 
 impl VisualData for DeferredSvgFrame {
-    fn cache_key(&self) -> &[u8] {
-        &self.cache_key
-    }
-
     fn morph_scene(&self) -> Option<crate::vector_morph::MorphScene> {
         let dom = self
             .dom
@@ -380,23 +241,6 @@ impl VisualData for DeferredSvgFrame {
         drawing_strategy: shrimply_project::project::SkiaDrawingStrategy,
         operations: &[crate::layer::VectorOperation],
     ) -> Result<Rc<crate::gpu::VisualFrame>, String> {
-        let operation_keys = operations.iter().map(operation_key).collect::<Vec<_>>();
-        let cache_key = |renderer_generation| {
-            serde_json::to_vec(&(
-                &self.cache_key,
-                drawing_strategy,
-                renderer_generation,
-                &operation_keys,
-            ))
-            .map_err(|error| format!("serialize SVG raster cache key: {error}"))
-        };
-        let key = cache_key(compositor.generated_renderer_generation())?;
-        if let Some(frame) = compositor.svg_rasters.get(&key) {
-            shrimply_benchmarking::increment("SVG raster cache / Hit");
-            return compositor.upload_frame(&frame).map(Rc::new);
-        }
-
-        shrimply_benchmarking::increment("SVG raster cache / Miss");
         let frame = Rc::new(compositor.render_generated_visual(
             CanvasSize {
                 width: self.surface_width,
@@ -408,10 +252,6 @@ impl VisualData for DeferredSvgFrame {
             operations,
             drawing_strategy,
         )?);
-        let key = cache_key(compositor.generated_renderer_generation())?;
-        compositor
-            .svg_rasters
-            .set(key, Rc::new(frame.copy_to(Device::Cpu)?));
         Ok(frame)
     }
 }
@@ -436,7 +276,6 @@ impl VisualElement for SvgRenderSession {
         );
         svg_vector_visual(
             SvgVectorVisualParams {
-                item_id: request.item.id,
                 svg: self.svg.clone(),
                 dom: Some(self.dom.clone()),
                 root_size: CanvasSize {

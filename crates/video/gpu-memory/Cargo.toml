@@ -1,0 +1,11 @@
+[package]
+name = "shrimply-gpu-memory"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cuda-core.workspace = true
+hashbrown.workspace = true
+libc.workspace = true
+shrimply-benchmarking = { path = "../../benchmarking" }
+tracing.workspace = true

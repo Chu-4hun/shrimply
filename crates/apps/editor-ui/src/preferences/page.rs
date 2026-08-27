@@ -133,20 +133,30 @@ pub fn show_preferences_dialog(
     temporal_decoder_pool_size.set_value(f64::from(snapshot.temporal_decoder_pool_size));
     temporal_decoder_pool_size.set_digits(0);
 
-    let image_pool_cpu = adw::SpinRow::with_range(
+    let gpu_host_memory = adw::SpinRow::with_range(
         0.0,
-        f64::from(preferences_store::MAX_RESOURCE_POOL_GIB),
+        preferences_store::physical_system_memory_gib()
+            .to_f64()
+            .expect("physical RAM GiB must convert to f64"),
         0.25,
     );
-    image_pool_cpu.set_title(tr!("Image Pool CPU Budget").as_ref());
-    image_pool_cpu.set_subtitle(tr!("Static image cache in system RAM (GiB)").as_ref());
-    image_pool_cpu.set_value(snapshot.image_pool_cpu_gib.to_f64().unwrap_or(4.0));
-    image_pool_cpu.set_digits(2);
+    gpu_host_memory.set_title(tr!("GPU Host Memory Budget").as_ref());
+    gpu_host_memory.set_subtitle(
+        tr!("Maximum system RAM available for CUDA spill and reconstructible GPU resources")
+            .as_ref(),
+    );
+    gpu_host_memory.set_value(
+        snapshot
+            .gpu_host_memory_gib
+            .to_f64()
+            .expect("GPU host memory preference must convert to f64"),
+    );
+    gpu_host_memory.set_digits(2);
 
     let performance_group = adw::PreferencesGroup::new();
     performance_group.set_title(tr!("Performance").as_ref());
     performance_group.add(&temporal_decoder_pool_size);
-    performance_group.add(&image_pool_cpu);
+    performance_group.add(&gpu_host_memory);
 
     let appearance_page = adw::PreferencesPage::builder()
         .title(tr!("Appearance").as_ref())
@@ -273,9 +283,12 @@ pub fn show_preferences_dialog(
         );
     });
 
-    let image_pool_cpu_store = preferences.clone();
-    image_pool_cpu.connect_value_notify(move |row| {
-        preferences_store::set_image_pool_cpu_gib(&image_pool_cpu_store, gib_fraction(row.value()));
+    let gpu_host_memory_store = preferences.clone();
+    gpu_host_memory.connect_value_notify(move |row| {
+        preferences_store::set_gpu_host_memory_gib(
+            &gpu_host_memory_store,
+            gib_fraction(row.value()),
+        );
     });
 
     let clear_store = preferences.clone();

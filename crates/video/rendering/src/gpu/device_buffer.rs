@@ -21,10 +21,23 @@ pub(super) fn copy<T>(
     let buffer = if let Some(buffer) = spare.filter(|buffer| buffer.len() == data.len()) {
         buffer
     } else {
-        let ptr = unsafe { memory::malloc_sync(byte_len) }
-            .map_err(|error| format!("allocate CUDA params: {error:?}"))?;
-        unsafe { DeviceBuffer::from_raw_parts(ptr, data.len(), stream.context().clone()) }
+        shrimply_gpu_memory::global()
+            .allocate_buffer::<u8>(
+                stream,
+                byte_len,
+                shrimply_gpu_memory::AllocationClass::Transient,
+                "CUDA compositor parameters",
+            )?
+            .cast_chunks::<T>()
+            .map_err(|_| "CUDA compositor parameter buffer alignment mismatch".to_string())?
     };
+    // New buffers are zeroed asynchronously on this stream. Order that memset
+    // (and any previous use of a recycled buffer) before the legacy synchronous
+    // host upload, which is not ordered with a non-blocking CUDA stream.
+    if let Err(error) = stream.synchronize() {
+        drop(buffer);
+        return Err(format!("synchronize CUDA params buffer: {error:?}"));
+    }
     if let Err(error) =
         unsafe { memory::memcpy_htod_sync(buffer.cu_deviceptr(), data.as_ptr(), byte_len) }
     {

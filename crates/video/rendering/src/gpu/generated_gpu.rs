@@ -19,39 +19,21 @@ use shrimply_visual_frame::{VisualFormat, VisualFrame, VisualPlane};
 use skia_safe::gpu::{self, backend_render_targets, direct_contexts, surfaces, vk as skia_vk};
 use skia_safe::{Canvas, Color, ColorType, PictureRecorder};
 
-use super::{CompositedVideoFrame, bind_context, cuda_check};
+use super::{bind_context, cuda_check};
 use crate::layer::VectorOperation;
 
 mod background;
 mod mesh_flow;
 mod scene_3d;
+mod visual;
+
+pub(crate) use visual::GeneratedVisual;
+pub(super) use visual::visual_frame_from_canvas;
 
 const VECTOR_FORMAT: vk::Format = vk::Format::R8G8B8A8_UNORM;
 const VECTOR_SKIA_FORMAT: skia_vk::Format = skia_vk::Format::R8G8B8A8_UNORM;
 static IMPORTED_VULKAN_FRAMES: AtomicU64 = AtomicU64::new(0);
 static IMPORTED_VULKAN_BYTES: AtomicU64 = AtomicU64::new(0);
-
-pub(super) fn visual_frame_from_canvas(
-    context: Arc<CudaContext>,
-    frame: CompositedVideoFrame,
-) -> Result<VisualFrame, String> {
-    let plane = VisualPlane {
-        device_ptr: frame.buffer.cu_deviceptr(),
-        pitch_bytes: frame.width as usize * 4,
-        width_bytes: frame.width as usize * 4,
-        height: frame.height as usize,
-    };
-    unsafe {
-        VisualFrame::from_external_gpu(
-            context,
-            VisualFormat::Rgba8,
-            frame.width,
-            frame.height,
-            &[plane],
-            Box::new(frame.buffer),
-        )
-    }
-}
 
 pub struct GeneratedGpuRenderer {
     physical_device: vk::PhysicalDevice,
@@ -116,6 +98,17 @@ impl ManimRenderer {
             serial: 0,
             renderer,
         })
+    }
+
+    fn release_render_surfaces(&mut self) -> bool {
+        let released = !self.sources.is_empty();
+        let released = self.renderer.release_render_surfaces() || released;
+        self.sources.clear();
+        released
+    }
+
+    fn release_gpu_animation_resources(&mut self) -> bool {
+        self.release_render_surfaces() | self.renderer.release_gpu_animation_resources()
     }
 
     fn render(
@@ -346,6 +339,7 @@ fn copy_manim_source(
     semaphore_value: u64,
     destination: &VisualFrame,
 ) -> Result<(), String> {
+    let destination_memory = destination.memory_kind(0);
     let destination = destination
         .plane(0)
         .ok_or_else(|| "Manim CUDA output has no RGBA plane".to_string())?;
@@ -369,7 +363,10 @@ fn copy_manim_source(
         srcPitch: 0,
         dstXInBytes: 0,
         dstY: 0,
-        dstMemoryType: sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+        dstMemoryType: match destination_memory {
+            Some(cuda_core::MemoryKind::Managed) => sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED,
+            _ => sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+        },
         dstHost: ptr::null_mut(),
         dstDevice: destination.device_ptr,
         dstArray: ptr::null_mut(),
@@ -381,16 +378,6 @@ fn copy_manim_source(
         unsafe { sys::cuMemcpy2DAsync_v2(&copy, stream.cu_stream()) },
         "copy Manim WGPU image to CUDA frame",
     )
-}
-
-pub(crate) trait GeneratedVisual {
-    fn draw(
-        &self,
-        canvas: &Canvas,
-        evaluation: &TransformEvaluation,
-        expressions: &mut TransformExpressionCache,
-        path_effect: Option<&skia_safe::PathEffect>,
-    );
 }
 
 impl GeneratedGpuRenderer {
@@ -802,23 +789,6 @@ impl GeneratedGpuRenderer {
             .memory_type_index(memory_type);
         let memory = match unsafe { self.vulkan.device.allocate_memory(&allocate_info, None) } {
             Ok(memory) => memory,
-            Err(vk::Result::ERROR_OUT_OF_DEVICE_MEMORY) => {
-                if let Err(error) = self.relieve_gpu_pressure(requirements.size) {
-                    unsafe { self.vulkan.device.destroy_image(image, None) };
-                    return Err(format!(
-                        "relieve GPU pressure for Vulkan generated image: {error}"
-                    ));
-                }
-                match unsafe { self.vulkan.device.allocate_memory(&allocate_info, None) } {
-                    Ok(memory) => memory,
-                    Err(error) => {
-                        unsafe { self.vulkan.device.destroy_image(image, None) };
-                        return Err(format!(
-                            "allocate Vulkan generated image memory after GPU pressure relief: {error:?}"
-                        ));
-                    }
-                }
-            }
             Err(error) => {
                 unsafe { self.vulkan.device.destroy_image(image, None) };
                 return Err(format!("allocate Vulkan generated image memory: {error:?}"));
@@ -871,23 +841,6 @@ impl GeneratedGpuRenderer {
             .push_next(&mut export_info);
         let memory = match unsafe { self.vulkan.device.allocate_memory(&allocate_info, None) } {
             Ok(memory) => memory,
-            Err(vk::Result::ERROR_OUT_OF_DEVICE_MEMORY) => {
-                if let Err(error) = self.relieve_gpu_pressure(requirements.size) {
-                    unsafe { self.vulkan.device.destroy_buffer(buffer, None) };
-                    return Err(format!(
-                        "relieve GPU pressure for Vulkan generated export: {error}"
-                    ));
-                }
-                match unsafe { self.vulkan.device.allocate_memory(&allocate_info, None) } {
-                    Ok(memory) => memory,
-                    Err(error) => {
-                        unsafe { self.vulkan.device.destroy_buffer(buffer, None) };
-                        return Err(format!(
-                            "allocate Vulkan generated export memory after GPU pressure relief: {error:?}"
-                        ));
-                    }
-                }
-            }
             Err(error) => {
                 unsafe { self.vulkan.device.destroy_buffer(buffer, None) };
                 return Err(format!(
@@ -923,8 +876,7 @@ impl GeneratedGpuRenderer {
         })
     }
 
-    pub(super) fn relieve_gpu_pressure(&mut self, requested_bytes: u64) -> Result<bool, String> {
-        let skia_before = self.skia.resource_cache_usage().resource_bytes;
+    pub(super) fn release_render_surfaces(&mut self, requested_bytes: u64) -> Result<bool, String> {
         let background_frame = self.background_frame.take().map(|(_, frame)| frame.bytes());
         let mut released = background_frame.is_some();
         let gaussian_frames = self
@@ -934,20 +886,18 @@ impl GeneratedGpuRenderer {
             .drain(..)
             .count();
         released |= gaussian_frames > 0;
-        released |= self.manim.take().is_some();
-        released |= self.gaussian_3d.take().is_some();
-        released |= self.background.take().is_some();
-        released |= self.scene_3d.take().is_some();
-        released |= self.mesh_flow.take().is_some();
-        released |= self.optix_denoiser.take().is_some();
-        self.skia.free_gpu_resources();
+        if let Some(manim) = self.manim.as_mut() {
+            let manim_released = manim.release_render_surfaces();
+            released |= manim_released;
+            if manim_released {
+                shrimply_gpu_memory::global().note_manim_render_surface_release();
+            }
+        }
         let retained = self.skia.resource_cache_usage().resource_bytes;
-        released |= retained < skia_before;
         shrimply_benchmarking::set_counter("Generated Skia GPU cache bytes", retained as u64);
         if released {
             tracing::warn!(
                 requested_bytes,
-                skia_released = skia_before.saturating_sub(retained),
                 background_frame_bytes = background_frame.unwrap_or(0),
                 gaussian_frames,
                 retained,
@@ -961,6 +911,31 @@ impl GeneratedGpuRenderer {
             );
         }
         Ok(released)
+    }
+
+    pub(super) fn release_gpu_animation_resources(&mut self) -> bool {
+        let released = self
+            .manim
+            .as_mut()
+            .is_some_and(ManimRenderer::release_gpu_animation_resources);
+        if released {
+            shrimply_gpu_memory::global().note_manim_gpu_animation_release();
+        }
+        released
+    }
+
+    pub(super) fn release_external_gpu_resources(&mut self) -> bool {
+        let mut released = self.gaussian_3d.take().is_some();
+        released |= self.background.take().is_some();
+        released |= self.scene_3d.take().is_some();
+        released |= self.mesh_flow.take().is_some();
+        released |= self.optix_denoiser.take().is_some();
+        let skia_before = self.skia.resource_cache_usage().resource_bytes;
+        self.skia.free_gpu_resources();
+        let skia_retained = self.skia.resource_cache_usage().resource_bytes;
+        released |= skia_retained < skia_before;
+        shrimply_benchmarking::set_counter("Generated Skia GPU cache bytes", skia_retained as u64);
+        released
     }
 
     fn surface_for_image(

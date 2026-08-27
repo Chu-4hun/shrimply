@@ -129,8 +129,12 @@ impl Workspace {
         let pixel_count = pixel_count(image.width, image.height)?;
         let launch_count = u32::try_from(pixel_count)
             .map_err(|_| "Anime4K output is too large for a CUDA launch".to_string())?;
-        let mut pixels = DeviceBuffer::<u32>::zeroed(stream, pixel_count)
-            .map_err(|error| format!("allocate Anime4K RGBA output: {error:?}"))?;
+        let mut pixels = shrimply_gpu_memory::global().allocate_buffer::<u32>(
+            stream,
+            pixel_count,
+            shrimply_gpu_memory::AllocationClass::Transient,
+            "Anime4K RGBA output",
+        )?;
         unsafe {
             match source {
                 Source::Nv12 { .. } => self
@@ -179,8 +183,12 @@ impl Workspace {
         let count = pixel_count(width, height)?;
         let launch_count = u32::try_from(count)
             .map_err(|_| "Anime4K input is too large for a CUDA launch".to_string())?;
-        let mut pixels = DeviceBuffer::<[f32; 4]>::zeroed(stream, count)
-            .map_err(|error| format!("allocate Anime4K input: {error:?}"))?;
+        let mut pixels = shrimply_gpu_memory::global().allocate_buffer::<[f32; 4]>(
+            stream,
+            count,
+            shrimply_gpu_memory::AllocationClass::Transient,
+            "Anime4K input",
+        )?;
         unsafe {
             match source {
                 Source::Nv12 {
@@ -263,8 +271,12 @@ impl Workspace {
                     .ok_or_else(|| format!("Anime4K stage {} is missing input {name}", stage.name))?
                     .descriptor();
             }
-            let mut output = DeviceBuffer::<[f32; 4]>::zeroed(stream, count)
-                .map_err(|error| format!("allocate Anime4K stage {}: {error:?}", stage.name))?;
+            let mut output = shrimply_gpu_memory::global().allocate_buffer::<[f32; 4]>(
+                stream,
+                count,
+                shrimply_gpu_memory::AllocationClass::Transient,
+                format!("Anime4K stage {}", stage.name),
+            )?;
             unsafe {
                 match stage.kind {
                     StageKind::Convolution => {
@@ -418,8 +430,12 @@ struct ParsedStage {
 
 impl ParsedStage {
     fn upload(self, stream: &Arc<CudaStream>) -> Result<Stage, String> {
-        let mut terms = DeviceBuffer::zeroed(stream, self.terms.len())
-            .map_err(|error| format!("allocate Anime4K weights for {}: {error:?}", self.name))?;
+        let mut terms = shrimply_gpu_memory::global().allocate_buffer(
+            stream,
+            self.terms.len(),
+            shrimply_gpu_memory::AllocationClass::Persistent,
+            format!("Anime4K weights for {}", self.name),
+        )?;
         terms
             .copy_from_host(stream, &self.terms)
             .map_err(|error| format!("upload Anime4K weights for {}: {error:?}", self.name))?;

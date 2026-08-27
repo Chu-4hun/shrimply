@@ -101,14 +101,17 @@ impl VideoCommand {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RenderResourceConfig {
     pub maximum_temporal_decoders: usize,
-    pub image_pool_cpu_gib: Fraction,
+    pub gpu_host_memory_gib: Fraction,
 }
 
 impl Default for RenderResourceConfig {
     fn default() -> Self {
         Self {
             maximum_temporal_decoders: crate::decode::DEFAULT_VIDEO_DECODER_POOL_SIZE,
-            image_pool_cpu_gib: shrimply_frame_pool::default_cpu_gib(),
+            gpu_host_memory_gib: Fraction::new_raw(
+                shrimply_gpu_memory::default_host_budget_bytes(),
+                1024_u64.pow(3),
+            ),
         }
     }
 }
@@ -428,7 +431,9 @@ impl Default for RenderSessions {
 
 impl RenderSessions {
     fn new(audio_sample_rate: u32, export: bool, resource_config: RenderResourceConfig) -> Self {
-        shrimply_frame_pool::configure(resource_config.image_pool_cpu_gib);
+        shrimply_gpu_memory::configure(shrimply_math_media::gib_to_bytes(
+            resource_config.gpu_host_memory_gib,
+        ));
         Self {
             elements: HashMap::new(),
             decoders: crate::decode::VideoDecoderPool::new(
@@ -468,7 +473,9 @@ impl RenderSessions {
         );
         self.resource_config = config;
         self.decoders.configure(config.maximum_temporal_decoders);
-        shrimply_frame_pool::configure(config.image_pool_cpu_gib);
+        shrimply_gpu_memory::configure(shrimply_math_media::gib_to_bytes(
+            config.gpu_host_memory_gib,
+        ));
     }
 
     fn remove_manim_replacement(&mut self, replacement: &VisualElementKey) {

@@ -4,7 +4,7 @@ use std::sync::mpsc::{self, Receiver, TryRecvError};
 
 use shrimply_asset::{Asset, AssetSnapshot};
 use shrimply_evaluation::{TransformExpressionCache, VisualEvaluation, resolve_bool};
-use shrimply_frame_pool::{ImageKey, global as global_image_pool};
+use shrimply_gpu_memory::{ResourceKey, global as gpu_memory};
 use shrimply_layered_image::LayeredImage;
 use shrimply_project::project::{CanvasSize, LayeredImageItem, VideoItem, VideoItemContent};
 use uuid::Uuid;
@@ -20,6 +20,7 @@ const RGBA_BYTES_PER_PIXEL: usize = 4;
 struct LoadedLayeredImage {
     snapshot: AssetSnapshot,
     document: Arc<LayeredImage>,
+    source_bytes: u64,
 }
 
 pub struct LayeredImageRenderSession {
@@ -30,7 +31,7 @@ pub struct LayeredImageRenderSession {
 pub(crate) struct LayeredImageAsset {
     file: Asset,
     snapshot: Option<AssetSnapshot>,
-    document: Option<Arc<LayeredImage>>,
+    document_key: Option<ResourceKey>,
     pending: Option<Receiver<Result<LoadedLayeredImage, String>>>,
     last_reload_error: Option<String>,
 }
@@ -52,7 +53,7 @@ impl LayeredImageAsset {
         Self {
             file,
             snapshot: None,
-            document: None,
+            document_key: None,
             pending: None,
             last_reload_error: None,
         }
@@ -61,13 +62,13 @@ impl LayeredImageAsset {
     pub(crate) fn preload(&mut self) -> Result<(), String> {
         if self.pending.is_some()
             || self
-                .snapshot
+                .document_key
                 .as_ref()
-                .is_some_and(AssetSnapshot::is_current)
+                .is_some_and(|key| gpu_memory().contains_resource(key))
         {
             return Ok(());
         }
-        if self.document.is_none()
+        if self.document_key.is_none()
             && let Some(error) = &self.last_reload_error
         {
             return Err(error.clone());
@@ -99,7 +100,7 @@ impl LayeredImageAsset {
                     Ok(result) => result,
                     Err(TryRecvError::Empty) => {
                         self.pending = Some(pending);
-                        return Ok((self.document.is_some(), true));
+                        return Ok((self.document_key.is_some(), true));
                     }
                     Err(TryRecvError::Disconnected) => {
                         return Err(
@@ -109,8 +110,14 @@ impl LayeredImageAsset {
                 }
             };
             match result {
-                Ok(LoadedLayeredImage { snapshot, document }) => {
-                    self.document = Some(document);
+                Ok(LoadedLayeredImage {
+                    snapshot,
+                    document,
+                    source_bytes,
+                }) => {
+                    let key = layered_document_key(&snapshot);
+                    gpu_memory().insert_resource(key.clone(), source_bytes, document)?;
+                    self.document_key = Some(key);
                     self.snapshot = Some(snapshot);
                     self.last_reload_error = None;
                     shrimply_benchmarking::increment("Layered image / Preloads consumed");
@@ -123,7 +130,12 @@ impl LayeredImageAsset {
             }
         }
 
-        if self.document.is_none() {
+        if self
+            .document_key
+            .as_ref()
+            .is_none_or(|key| !gpu_memory().contains_resource(key))
+        {
+            self.document_key = None;
             self.preload()?;
             return self.reload(exact, block);
         }
@@ -159,7 +171,16 @@ impl LayeredImageAsset {
         if !loaded {
             return Ok((None, refreshing));
         }
-        let document = self.document.as_ref().expect("layered image was loaded");
+        let key = self
+            .document_key
+            .clone()
+            .expect("layered image document source was loaded");
+        let Some(document) = gpu_memory().get_resource::<Arc<LayeredImage>>(&key)? else {
+            self.document_key = None;
+            self.preload()?;
+            return Ok((None, true));
+        };
+        let document: &LayeredImage = document.as_ref();
         let VideoItemContent::LayeredImage(item) = &request.item.content else {
             unreachable!();
         };
@@ -180,33 +201,13 @@ impl LayeredImageAsset {
                 })
                 .collect::<Vec<_>>()
         };
-        let snapshot = self
-            .snapshot
-            .as_ref()
-            .expect("layered image snapshot was loaded");
-        let composite_key = layered_frame_key(snapshot, LayeredFrame::Composite(&visible));
-        if let Some(layer) = global_image_pool().get(&composite_key)? {
-            shrimply_benchmarking::increment("Layered image cache / Hit");
-            return Ok((Some(Rc::new(compositor.upload_frame(&layer)?)), refreshing));
-        }
-        shrimply_benchmarking::increment("Layered image cache / Miss");
-
         let source_layers = document
             .layers
             .iter()
-            .enumerate()
-            .map(|(index, source)| {
-                let key = layered_frame_key(snapshot, LayeredFrame::Source(index));
-                if let Some(layer) = global_image_pool().get(&key)? {
-                    return compositor.upload_frame(&layer).map(Rc::new);
-                }
-                let layer = Rc::new(compositor.upload_rgba_layer(
-                    document.width.max(1),
-                    document.height.max(1),
-                    &source.rgba,
-                )?);
-                global_image_pool().insert(key, (*layer).clone())?;
-                Ok(layer)
+            .map(|source| {
+                compositor
+                    .upload_rgba_layer(document.width.max(1), document.height.max(1), &source.rgba)
+                    .map(Rc::new)
             })
             .collect::<Result<Vec<_>, String>>()?;
         let mut gpu_layers = Vec::new();
@@ -248,7 +249,6 @@ impl LayeredImageAsset {
                 &gpu_layers,
             )?)
         };
-        global_image_pool().insert(composite_key, (*layer).clone())?;
         Ok((Some(layer), refreshing))
     }
 }
@@ -259,8 +259,17 @@ fn load_layered_image(file: &Asset) -> Result<LoadedLayeredImage, String> {
     snapshot.verify_current()?;
     let width = document.width.max(1);
     let height = document.height.max(1);
-    let expected_bytes = width as usize * height as usize * RGBA_BYTES_PER_PIXEL;
-    for (index, layer) in document.layers.iter().enumerate() {
+    let expected_bytes = usize::try_from(width)
+        .ok()
+        .and_then(|width| {
+            usize::try_from(height)
+                .ok()
+                .and_then(|height| width.checked_mul(height))
+        })
+        .and_then(|pixels| pixels.checked_mul(RGBA_BYTES_PER_PIXEL))
+        .ok_or_else(|| "layered image byte size overflow".to_string())?;
+    let mut source_bytes = 0_u64;
+    for layer in &document.layers {
         if layer.rgba.len() != expected_bytes {
             return Err(format!(
                 "layer {} has {} RGBA bytes, expected {expected_bytes}",
@@ -268,34 +277,25 @@ fn load_layered_image(file: &Asset) -> Result<LoadedLayeredImage, String> {
                 layer.rgba.len(),
             ));
         }
-        global_image_pool().insert(
-            layered_frame_key(&snapshot, LayeredFrame::Source(index)),
-            VisualFrame::from_rgba_bytes(width, height, layer.rgba.clone())?,
-        )?;
+        source_bytes = source_bytes
+            .checked_add(
+                u64::try_from(layer.rgba.len())
+                    .map_err(|_| "layered image source size exceeds u64".to_string())?,
+            )
+            .ok_or_else(|| "layered image source byte size overflow".to_string())?;
     }
-    Ok(LoadedLayeredImage { snapshot, document })
+    Ok(LoadedLayeredImage {
+        snapshot,
+        document,
+        source_bytes,
+    })
 }
 
-enum LayeredFrame<'a> {
-    Source(usize),
-    Composite(&'a [bool]),
-}
-
-fn layered_frame_key(snapshot: &AssetSnapshot, frame: LayeredFrame<'_>) -> ImageKey {
+fn layered_document_key(snapshot: &AssetSnapshot) -> ResourceKey {
     let mut discriminator = Vec::new();
-    discriminator.extend_from_slice(b"layered");
+    discriminator.extend_from_slice(b"layered-document");
     discriminator.extend_from_slice(snapshot.cache_key().as_bytes());
-    match frame {
-        LayeredFrame::Source(index) => {
-            discriminator.push(0);
-            discriminator.extend_from_slice(&index.to_le_bytes());
-        }
-        LayeredFrame::Composite(visible) => {
-            discriminator.push(1);
-            discriminator.extend(visible.iter().map(|visible| u8::from(*visible)));
-        }
-    }
-    ImageKey::new(snapshot.path().to_path_buf(), discriminator)
+    ResourceKey::new(snapshot.path().to_path_buf(), discriminator)
 }
 
 impl VisualElement for LayeredImageRenderSession {

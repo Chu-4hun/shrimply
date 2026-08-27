@@ -281,6 +281,18 @@ impl Renderer {
         self.targets.get(&slot).map(Target::descriptor)
     }
 
+    pub fn release_render_surfaces(&mut self) -> bool {
+        let released = !self.targets.is_empty();
+        self.targets.clear();
+        released
+    }
+
+    pub fn release_gpu_animation_resources(&mut self) -> bool {
+        let released = !self.animations.is_empty();
+        self.animations.clear();
+        released
+    }
+
     pub fn render_external(
         &mut self,
         slot: usize,

@@ -150,6 +150,7 @@ impl VideoRenderer {
             .ok_or_else(|| "CUDA RGBA texture is not registered".to_string())?
             .copy_from_device(
                 frame.buffer.cu_deviceptr(),
+                frame.buffer.memory_kind(),
                 frame.width as usize * std::mem::size_of::<u32>(),
                 frame.width as usize * std::mem::size_of::<u32>(),
                 frame.height as usize,

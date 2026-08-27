@@ -2,7 +2,7 @@ use std::ffi::CStr;
 use std::ptr;
 use std::sync::Arc;
 
-use cuda_core::{CudaContext, sys};
+use cuda_core::{CudaContext, MemoryKind, sys};
 use libc::size_t;
 
 const CU_GRAPHICS_REGISTER_FLAGS_WRITE_DISCARD: u32 = 0x02;
@@ -47,6 +47,7 @@ impl CudaTexture {
     pub fn copy_from_device(
         &self,
         source: sys::CUdeviceptr,
+        source_memory: MemoryKind,
         source_pitch_bytes: usize,
         width_bytes: usize,
         height: usize,
@@ -75,7 +76,10 @@ impl CudaTexture {
         let copy = sys::CUDA_MEMCPY2D {
             srcXInBytes: 0,
             srcY: 0,
-            srcMemoryType: sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+            srcMemoryType: match source_memory {
+                MemoryKind::Device => sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+                MemoryKind::Managed => sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED,
+            },
             srcHost: ptr::null(),
             srcDevice: source,
             srcArray: ptr::null_mut(),

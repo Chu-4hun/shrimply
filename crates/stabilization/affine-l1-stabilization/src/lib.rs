@@ -3,11 +3,10 @@ use good_lp::{
     Expression, IntoAffineExpression, ProblemVariables, Solution, SolutionStatus, SolverModel,
     Variable, highs, variable,
 };
-use std::mem;
 use std::path::Path;
 use std::sync::Arc;
 
-use cuda_core::{CudaContext, CudaStream, DeviceBuffer, memory};
+use cuda_core::{CudaContext, CudaStream, DeviceBuffer};
 use opencv::core::{
     self, Mat, MatTraitConst, Point2f, Size, TermCriteria, TermCriteria_Type, Vector,
 };
@@ -70,7 +69,6 @@ struct NvidiaAffineEstimator {
     optical_flow: OpticalFlow,
     previous: DeviceBuffer<u32>,
     stream: Arc<CudaStream>,
-    context: Arc<CudaContext>,
     first_pair: bool,
 }
 
@@ -102,19 +100,18 @@ impl NvidiaAffineEstimator {
                 settings(OutputGrid::FourByFour),
             )
         })?;
-        let previous = upload_optical_flow_frame(&context, &stream, previous)?;
+        let previous = upload_optical_flow_frame(&stream, previous)?;
         Ok(Self {
             optical_flow,
             previous,
             stream,
-            context,
             first_pair: true,
         })
     }
 
     fn estimate(&mut self, current: &Mat) -> Result<Mat3, String> {
         let image_size = UVec2::new(current.cols() as u32, current.rows() as u32);
-        let current = upload_optical_flow_frame(&self.context, &self.stream, current)?;
+        let current = upload_optical_flow_frame(&self.stream, current)?;
         let field = self.optical_flow.estimate(
             self.previous.cu_deviceptr(),
             current.cu_deviceptr(),
@@ -364,7 +361,6 @@ fn estimate_affine_from_points(
 }
 
 fn upload_optical_flow_frame(
-    context: &CudaContext,
     stream: &CudaStream,
     frame: &Mat,
 ) -> Result<DeviceBuffer<u32>, String> {
@@ -380,19 +376,15 @@ fn upload_optical_flow_frame(
         .chunks_exact(4)
         .map(|pixel| u32::from_le_bytes(pixel.try_into().expect("four-byte RGBA pixel")))
         .collect::<Vec<_>>();
-    let output = DeviceBuffer::zeroed(stream, pixels.len())
-        .map_err(|error| format!("allocate NVIDIA optical flow input: {error:?}"))?;
-    context
-        .bind_to_thread()
-        .map_err(|error| format!("bind CUDA context for optical flow upload: {error:?}"))?;
-    unsafe {
-        memory::memcpy_htod_sync(
-            output.cu_deviceptr(),
-            pixels.as_ptr(),
-            mem::size_of_val(pixels.as_slice()),
-        )
-    }
-    .map_err(|error| format!("upload NVIDIA optical flow input: {error:?}"))?;
+    let mut output = shrimply_gpu_memory::global().allocate_buffer(
+        stream,
+        pixels.len(),
+        shrimply_gpu_memory::AllocationClass::Transient,
+        "stabilization optical-flow input",
+    )?;
+    output
+        .copy_from_host(stream, &pixels)
+        .map_err(|error| format!("upload NVIDIA optical flow input: {error:?}"))?;
     Ok(output)
 }
 

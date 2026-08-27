@@ -5,7 +5,7 @@ use std::ptr;
 use std::sync::Arc;
 
 use ash::vk;
-use cuda_core::{CudaContext, CudaStream, DeviceBuffer, LaunchConfig, sys};
+use cuda_core::{CudaContext, CudaStream, LaunchConfig, sys};
 use shrimply_math_color::Color;
 use shrimply_visual_frame::{VisualFormat, VisualFrame, VisualPlane};
 
@@ -83,7 +83,12 @@ impl GeneratedGpuRenderer {
                 "bind CUDA context for 3D transmission background copy",
             )?;
             let mut copy: sys::CUDA_MEMCPY2D = unsafe { std::mem::zeroed() };
-            copy.srcMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
+            copy.srcMemoryType = match source.memory_kind(0) {
+                Some(cuda_core::MemoryKind::Managed) => {
+                    sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED
+                }
+                _ => sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+            };
             copy.srcDevice = source_plane.device_ptr;
             copy.srcPitch = source_plane.pitch_bytes;
             copy.dstMemoryType = sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
@@ -151,9 +156,12 @@ impl GeneratedGpuRenderer {
                     .plane(0)
                     .expect("RGBA OptiX guide frame has no plane")
                     .device_ptr;
-                let mut output =
-                    unsafe { DeviceBuffer::<u32>::uninitialized_async(stream, pixel_count) }
-                        .map_err(|error| format!("allocate tone-mapped 3D output: {error:?}"))?;
+                let mut output = shrimply_gpu_memory::global().allocate_buffer::<u32>(
+                    stream,
+                    pixel_count,
+                    shrimply_gpu_memory::AllocationClass::Transient,
+                    "tone-mapped 3D output",
+                )?;
 
                 if self
                     .optix_denoiser

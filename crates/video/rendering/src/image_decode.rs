@@ -13,7 +13,7 @@ use ffmpeg::{format, media};
 use ffmpeg_next as ffmpeg;
 use rayon::prelude::*;
 use shrimply_asset::{Asset, AssetSnapshot};
-use shrimply_frame_pool::{ImageKey, global as global_image_pool};
+use shrimply_gpu_memory::{ResourceKey, global as gpu_memory};
 use shrimply_project::project::{Time, VideoItem, VideoItemContent};
 use shrimply_video_modifiers::ModifierEffect;
 use shrimply_video_modifiers::vectorize::{
@@ -85,12 +85,12 @@ struct RasterDecoder {
 }
 
 impl ImageDecodeSession {
-    fn image_key(&self) -> ImageKey {
+    fn image_key(&self) -> ResourceKey {
         let mut discriminator = Vec::new();
         discriminator.extend_from_slice(b"rgba");
         discriminator.push(0);
         discriminator.extend_from_slice(self.snapshot.cache_key().as_bytes());
-        ImageKey::new(self.snapshot.path().to_path_buf(), discriminator)
+        ResourceKey::new(self.snapshot.path().to_path_buf(), discriminator)
     }
 
     pub fn new(item: &VideoItem) -> Result<Self, String> {
@@ -235,7 +235,6 @@ impl ImageDecodeSession {
         };
         let visual = svg_vector_visual(
             SvgVectorVisualParams {
-                item_id: request.item.id,
                 svg: image.svg.clone(),
                 dom: None,
                 root_size: shrimply_project::project::CanvasSize {
@@ -277,13 +276,13 @@ impl ImageDecodeSession {
         target: Time,
         compositor: &mut CudaVideoCompositor,
     ) -> Result<Option<Rc<VisualFrame>>, String> {
-        if self.kind == ImageDecodeKind::Image
-            && let Some(frame) = global_image_pool().get(&self.image_key())?
-        {
-            return compositor.upload_frame(&frame).map(Rc::new).map(Some);
-        }
-        if self.kind == ImageDecodeKind::Image && global_image_pool().contains(&self.image_key()) {
-            return Ok(None);
+        if self.kind == ImageDecodeKind::Image {
+            if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.image_key())? {
+                return compositor.upload_frame(&frame).map(Rc::new).map(Some);
+            }
+            if gpu_memory().contains_resource(&self.image_key()) {
+                return Ok(None);
+            }
         }
         if self
             .raster
@@ -301,6 +300,12 @@ impl ImageDecodeSession {
 
         loop {
             if self.receive_frames(target, compositor)? {
+                if self.kind == ImageDecodeKind::Image {
+                    let frame = gpu_memory()
+                        .get_resource::<VisualFrame>(&self.image_key())?
+                        .ok_or_else(|| "decoded image source disappeared".to_string())?;
+                    return compositor.upload_frame(&frame).map(Rc::new).map(Some);
+                }
                 return Ok(self.frame_at_or_before(target));
             }
             let Some(raster) = &mut self.raster else {
@@ -424,7 +429,8 @@ impl ImageDecodeSession {
             let layer = Rc::new(compositor.upload_rgba_layer(self.width, self.height, &pixels)?);
             match self.kind {
                 ImageDecodeKind::Image => {
-                    global_image_pool().insert(self.image_key(), (*layer).clone())?;
+                    let source = VisualFrame::from_rgba_bytes(self.width, self.height, pixels)?;
+                    gpu_memory().insert_resource(self.image_key(), source.bytes(), source)?;
                 }
                 ImageDecodeKind::Gif => {
                     self.gif_previous_frame = self.gif_frame.replace((position, layer));
@@ -484,12 +490,13 @@ impl VisualElement for ImageDecodeSession {
         let file = self.file.clone();
         let key = self.image_key();
         let snapshot = self.snapshot.clone();
-        if !global_image_pool().begin_load(key.clone()) {
+        if !gpu_memory().begin_resource_load(key.clone()) {
             return Ok(());
         }
         rayon::spawn(move || {
             let decoded = decode_still_image(&file, snapshot);
-            if let Err(error) = global_image_pool().finish_load(key, decoded) {
+            let bytes = decoded.as_ref().map_or(0, VisualFrame::bytes);
+            if let Err(error) = gpu_memory().finish_resource_load(key, bytes, decoded) {
                 tracing::error!(file = %file.display(), %error, "could not finish loading image");
             }
         });

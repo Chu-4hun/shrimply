@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 hashbrown.workspace = true
+libc.workspace = true
 rusqlite = { workspace = true, features = ["bundled"] }
 shrimply-benchmarking = { path = "../benchmarking" }
 shrimply-math-color = { path = "../math/color" }

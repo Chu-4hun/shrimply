@@ -216,10 +216,10 @@ impl VisualElement for VideoElement {
             mode,
         ) {
             self.prepared = None;
-            shrimply_benchmarking::increment("Temporal frame pool / Current hit");
+            shrimply_benchmarking::increment("Temporal decoder state / Current hit");
             return Ok(stabilized_frame(frame, request.item, request.state));
         }
-        shrimply_benchmarking::increment("Temporal frame pool / Current miss");
+        shrimply_benchmarking::increment("Temporal decoder state / Current miss");
         if mode.realtime() {
             self.prepared = None;
             let _ = self.decoder.try_latest(
@@ -227,7 +227,7 @@ impl VisualElement for VideoElement {
                     .handoff_from(self.handoff_from.clone()),
                 true,
             )?;
-            shrimply_benchmarking::increment("Temporal frame pool / Dropped target");
+            shrimply_benchmarking::increment("Temporal decoder state / Dropped target");
             return current.map_or_else(
                 || Ok(VisualRender::Loading(self.decoder.frame_size())),
                 |frame| Ok(stabilized_frame(frame, request.item, request.state)),

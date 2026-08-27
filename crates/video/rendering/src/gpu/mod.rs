@@ -50,7 +50,6 @@ impl ExportPixelFormat {
 pub struct CudaVideoCompositor {
     generated_renderer: Option<generated_gpu::GeneratedGpuRenderer>,
     generated_renderer_generation: u64,
-    pub(crate) svg_rasters: crate::svg_render::SvgRasterCache,
     module: kernels::PreviewModule,
     export_module: Option<kernels::ExportModule>,
     stream: Arc<CudaStream>,
@@ -87,7 +86,6 @@ impl CudaVideoCompositor {
             export_module: None,
             generated_renderer: None,
             generated_renderer_generation: 0,
-            svg_rasters: crate::svg_render::SvgRasterCache::default(),
             next_serial: 1,
             observed_gpu_oom_generation: gpu_oom_generation(),
             export_layer_params: None,
@@ -308,7 +306,7 @@ impl CudaVideoCompositor {
             .ok_or_else(|| "CUDA compositor canvas size overflow".to_string())?;
         let result = match self.render_frame_once(canvas_size, layers, background_alpha) {
             Err(error) if is_gpu_oom(&error) => {
-                self.relieve_gpu_pressure(requested_bytes)?;
+                self.relieve_gpu_pressure(requested_bytes, "CUDA compositor output")?;
                 tracing::warn!(%error, "retrying CUDA compositor frame after GPU pressure relief");
                 self.render_frame_once(canvas_size, layers, background_alpha)
                     .map_err(|retry| {
@@ -434,7 +432,7 @@ impl CudaVideoCompositor {
                     if error.0 != sys::cudaError_enum_CUDA_ERROR_OUT_OF_MEMORY {
                         return Err(format!("launch CUDA compositor kernel: {error:?}"));
                     }
-                    self.relieve_gpu_pressure(output_bytes)?;
+                    self.relieve_gpu_pressure(output_bytes, "CUDA compositor kernel output")?;
                     unsafe {
                         self.module
                             .composite_nv12_layers(
@@ -498,9 +496,12 @@ impl CudaVideoCompositor {
         drawing_strategy: shrimply_project::project::SkiaDrawingStrategy,
     ) -> Result<VisualFrame, String> {
         let context = self.context.clone();
+        let stream = self.stream.clone();
         render_with_generated_gpu(
             &mut self.generated_renderer,
             &mut self.generated_renderer_generation,
+            &context,
+            &stream,
             "generated visual render",
             |renderer| {
                 renderer.render_visual(
@@ -529,6 +530,8 @@ impl CudaVideoCompositor {
         render_with_generated_gpu(
             &mut self.generated_renderer,
             &mut self.generated_renderer_generation,
+            &context,
+            stream,
             "3D scene render",
             |renderer| {
                 renderer.render_scene_3d(
@@ -553,9 +556,12 @@ impl CudaVideoCompositor {
         params: &shrimply_3dgs::RenderParams,
     ) -> Result<VisualFrame, String> {
         let context = self.context.clone();
+        let stream = self.stream.clone();
         render_with_generated_gpu(
             &mut self.generated_renderer,
             &mut self.generated_renderer_generation,
+            &context,
+            &stream,
             "3DGS render",
             |renderer| renderer.render_gaussian_3d(context.clone(), session, width, height, params),
         )
@@ -573,6 +579,8 @@ impl CudaVideoCompositor {
         render_with_generated_gpu(
             &mut self.generated_renderer,
             &mut self.generated_renderer_generation,
+            &context,
+            &stream,
             "background Slang/Vulkan render",
             |renderer| {
                 renderer.render_background(
@@ -599,6 +607,8 @@ impl CudaVideoCompositor {
         render_with_generated_gpu(
             &mut self.generated_renderer,
             &mut self.generated_renderer_generation,
+            &context,
+            &stream,
             "Manim WGPU render",
             |renderer| {
                 renderer.render_manim(
@@ -625,6 +635,8 @@ impl CudaVideoCompositor {
         render_with_generated_gpu(
             &mut self.generated_renderer,
             &mut self.generated_renderer_generation,
+            &context,
+            &stream,
             "MeshFlow Slang/Vulkan warp",
             |renderer| {
                 renderer.render_mesh_flow(
@@ -648,25 +660,40 @@ impl CudaVideoCompositor {
         length: usize,
         description: &str,
     ) -> Result<DeviceBuffer<T>, String> {
-        match DeviceBuffer::zeroed(&self.stream, length) {
+        match shrimply_gpu_memory::global().allocate_buffer(
+            &self.stream,
+            length,
+            shrimply_gpu_memory::AllocationClass::Transient,
+            description,
+        ) {
             Ok(buffer) => Ok(buffer),
-            Err(error) if error.0 == sys::cudaError_enum_CUDA_ERROR_OUT_OF_MEMORY => {
+            Err(error) => {
                 let bytes = length
                     .checked_mul(size_of::<T>())
                     .and_then(|bytes| u64::try_from(bytes).ok())
                     .ok_or_else(|| format!("{description} size overflow"))?;
-                self.relieve_gpu_pressure(bytes)?;
-                DeviceBuffer::zeroed(&self.stream, length).map_err(|retry| {
+                self.relieve_gpu_pressure(bytes, description)?;
+                shrimply_gpu_memory::global()
+                    .allocate_buffer(
+                        &self.stream,
+                        length,
+                        shrimply_gpu_memory::AllocationClass::Transient,
+                        description,
+                    )
+                    .map_err(|retry| {
                     format!(
-                        "allocate {description} after GPU pressure relief: {retry:?}; initial error: {error:?}"
+                        "allocate {description} after GPU pressure relief: {retry}; initial error: {error}"
                     )
                 })
             }
-            Err(error) => Err(format!("allocate {description}: {error:?}")),
         }
     }
 
-    fn relieve_gpu_pressure(&mut self, requested_bytes: u64) -> Result<(), String> {
+    fn relieve_gpu_pressure(
+        &mut self,
+        requested_bytes: u64,
+        allocation_description: &str,
+    ) -> Result<(), String> {
         self.context
             .bind_to_thread()
             .map_err(|error| format!("bind CUDA context for GPU pressure relief: {error:?}"))?;
@@ -680,18 +707,57 @@ impl CudaVideoCompositor {
             );
         }
         let before = self.gpu_memory_info().ok();
+        let migrated_bytes = shrimply_gpu_memory::global().relieve_vram_pressure(
+            &self.context,
+            &self.stream,
+            requested_bytes,
+        )?;
+        let (free, total) = self.gpu_memory_info()?;
+        let reserve = total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR;
+        if free >= reserve.saturating_add(requested_bytes) {
+            let telemetry = shrimply_gpu_memory::global().telemetry();
+            tracing::warn!(
+                allocation_description,
+                requested_bytes,
+                free_vram_bytes = free,
+                total_vram_bytes = total,
+                reserve_bytes = reserve,
+                managed_bytes = telemetry.managed_bytes,
+                host_reserved_bytes = telemetry.host_reserved_bytes,
+                host_budget_bytes = telemetry.host_budget_bytes,
+                migrated_bytes,
+                relief_level = "managed migration",
+                "restored CUDA reserve by migrating managed allocations"
+            );
+            return Ok(());
+        }
         let mut released = self.export_layer_params.take().is_some();
         released |= self.export_motion_transforms.take().is_some();
         released |= self.export_output.take().is_some();
-        released |= self.export_render_events.take().is_some();
-        released |= self.export_conversion_events.take().is_some();
-        released |= self.export_module.take().is_some();
         released |= self.solid_layer.take().is_some();
-        released |= self.optical_flow.take().is_some();
         released |= self.modifier_workspace.clear_cached_gpu_resources();
-        released |= self.anime4k.clear_cached_models();
         if let Some(renderer) = self.generated_renderer.as_mut() {
-            released |= renderer.relieve_gpu_pressure(requested_bytes)?;
+            released |= renderer.release_render_surfaces(requested_bytes)?;
+        }
+        let transient_sufficient = self
+            .gpu_memory_info()
+            .is_ok_and(|(free, _)| free >= reserve.saturating_add(requested_bytes));
+        let mut relief_level = "transient surfaces";
+        let mut last_resort_before = None;
+        if !transient_sufficient {
+            relief_level = "last-resort external resources";
+            last_resort_before = self.gpu_memory_info().ok();
+            released |= self.export_render_events.take().is_some();
+            released |= self.export_conversion_events.take().is_some();
+            released |= self.export_module.take().is_some();
+            released |= self.optical_flow.take().is_some();
+            released |= self.anime4k.clear_cached_models();
+            if let Some(renderer) = self.generated_renderer.as_mut() {
+                if renderer.release_gpu_animation_resources() {
+                    released = true;
+                }
+                released |= renderer.release_external_gpu_resources();
+            }
         }
         let after = self.gpu_memory_info().ok();
         let recovered_bytes = before
@@ -699,11 +765,27 @@ impl CudaVideoCompositor {
             .map_or(0, |((before, _), (after, _))| after.saturating_sub(before));
         shrimply_benchmarking::increment("GPU pressure / Events");
         shrimply_benchmarking::add_to_counter("GPU pressure / Bytes recovered", recovered_bytes);
+        if relief_level == "last-resort external resources" {
+            let last_resort_recovered = last_resort_before
+                .zip(after)
+                .map_or(0, |((before, _), (after, _))| after.saturating_sub(before));
+            shrimply_gpu_memory::global().note_last_resort_cleanup(last_resort_recovered);
+        }
         self.record_gpu_memory_usage();
+        let telemetry = shrimply_gpu_memory::global().telemetry();
         tracing::warn!(
+            allocation_description,
             requested_bytes,
+            free_vram_bytes = after.map_or(0, |(free, _)| free),
+            total_vram_bytes = after.map_or(total, |(_, total)| total),
+            reserve_bytes = reserve,
+            managed_bytes = telemetry.managed_bytes,
+            host_reserved_bytes = telemetry.host_reserved_bytes,
+            host_budget_bytes = telemetry.host_budget_bytes,
+            migrated_bytes,
             recovered_bytes,
             released,
+            relief_level,
             "released cached GPU resources after allocation pressure"
         );
         Ok(())
@@ -715,7 +797,7 @@ impl CudaVideoCompositor {
             return Ok(());
         }
         self.observed_gpu_oom_generation = generation;
-        self.relieve_gpu_pressure(0)?;
+        self.relieve_gpu_pressure(0, "previously reported CUDA OOM")?;
         Ok(())
     }
 
@@ -723,7 +805,7 @@ impl CudaVideoCompositor {
         let (free, total) = self.gpu_memory_info()?;
         let reserve = total / DISPLAY_GPU_MEMORY_RESERVE_DIVISOR;
         if free < reserve {
-            self.relieve_gpu_pressure(reserve - free)?;
+            self.relieve_gpu_pressure(0, "post-render CUDA reserve")?;
         }
         Ok(())
     }
@@ -761,7 +843,7 @@ impl CudaVideoCompositor {
             Err(error) => return Err(error),
         };
         self.observed_gpu_oom_generation = gpu_oom_generation();
-        self.relieve_gpu_pressure(frame.bytes())?;
+        self.relieve_gpu_pressure(frame.bytes(), "persistent visual upload")?;
         frame.copy_to(Device::Cuda(0)).map_err(|retry| {
             format!(
                 "upload visual frame after GPU pressure relief: {retry}; initial error: {error}"
@@ -803,7 +885,7 @@ impl CudaVideoCompositor {
             .checked_mul(u64::from(height))
             .and_then(|pixels| pixels.checked_mul(size_of::<u32>() as u64))
             .ok_or_else(|| "RGBA layer size overflow".to_string())?;
-        self.relieve_gpu_pressure(requested_bytes)?;
+        self.relieve_gpu_pressure(requested_bytes, "active RGBA render output")?;
         allocate().map_err(|retry| {
             format!(
                 "allocate RGBA layer after GPU pressure relief: {retry}; initial error: {error}"
@@ -816,6 +898,7 @@ impl CudaVideoCompositor {
         destination: &VisualFrame,
         pixels: &[u8],
     ) -> Result<(), String> {
+        let destination_memory = destination.memory_kind(0);
         let destination = destination
             .plane(0)
             .ok_or_else(|| "Manim preview image has no RGBA plane".to_string())?;
@@ -840,7 +923,12 @@ impl CudaVideoCompositor {
             srcPitch: destination.width_bytes,
             dstXInBytes: 0,
             dstY: 0,
-            dstMemoryType: sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+            dstMemoryType: match destination_memory {
+                Some(cuda_core::MemoryKind::Managed) => {
+                    sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED
+                }
+                _ => sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+            },
             dstHost: ptr::null_mut(),
             dstDevice: destination.device_ptr,
             dstArray: ptr::null_mut(),
@@ -1218,13 +1306,15 @@ impl CudaVideoCompositor {
 fn render_with_generated_gpu<T>(
     renderer: &mut Option<generated_gpu::GeneratedGpuRenderer>,
     generation: &mut u64,
+    context: &Arc<CudaContext>,
+    stream: &CudaStream,
     operation: &str,
     mut render: impl FnMut(&mut generated_gpu::GeneratedGpuRenderer) -> Result<T, String>,
 ) -> Result<T, String> {
     if renderer.is_none() {
         *renderer = Some(generated_gpu::GeneratedGpuRenderer::new()?);
     }
-    let mut retried_oom = false;
+    let mut relief_level = 0_u8;
     let error = loop {
         match render(
             renderer
@@ -1232,13 +1322,36 @@ fn render_with_generated_gpu<T>(
                 .expect("generated GPU renderer was initialized"),
         ) {
             Ok(output) => return Ok(output),
-            Err(error) if is_gpu_oom(&error) && !retried_oom => {
-                retried_oom = true;
+            Err(error) if is_gpu_oom(&error) && relief_level == 0 => {
+                shrimply_gpu_memory::global().relieve_vram_pressure(context, stream, 0)?;
                 renderer
                     .as_mut()
                     .expect("generated GPU renderer was initialized")
-                    .relieve_gpu_pressure(u64::MAX)?;
-                tracing::warn!(operation, %error, "retrying generated GPU operation after pressure relief");
+                    .release_render_surfaces(0)?;
+                relief_level = 1;
+                tracing::warn!(
+                    operation,
+                    %error,
+                    relief_level = "managed migration and render surfaces",
+                    "retrying generated GPU operation after pressure relief"
+                );
+            }
+            Err(error) if is_gpu_oom(&error) && relief_level == 1 => {
+                let renderer = renderer
+                    .as_mut()
+                    .expect("generated GPU renderer was initialized");
+                let released_animation = renderer.release_gpu_animation_resources();
+                let released_external = renderer.release_external_gpu_resources();
+                shrimply_gpu_memory::global().note_last_resort_cleanup(0);
+                relief_level = 2;
+                tracing::warn!(
+                    operation,
+                    %error,
+                    released_animation,
+                    released_external,
+                    relief_level = "GPU animation and external resources",
+                    "retrying generated GPU operation after last-resort pressure relief"
+                );
             }
             Err(error) if !error.contains("ERROR_DEVICE_LOST") => return Err(error),
             Err(error) => break error,

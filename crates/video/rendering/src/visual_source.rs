@@ -1,9 +1,8 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::rc::Rc;
 
 use hashbrown::{HashMap, hash_map::Entry};
 use shrimply_asset::Asset;
-use shrimply_frame_pool::{ImageKey, global as global_image_pool};
 use uuid::Uuid;
 
 use crate::background_render::BackgroundElement;
@@ -156,34 +155,6 @@ impl Default for VisualSourceCache {
 }
 
 impl VisualSourceCache {
-    pub fn vector(
-        &mut self,
-        compositor: &mut CudaVideoCompositor,
-        scope: (&[Uuid], Uuid, Uuid),
-        key: &[u8],
-        renderer_generation: u64,
-    ) -> Result<Option<Rc<VisualFrame>>, String> {
-        global_image_pool()
-            .get(&vector_frame_key(scope, key, renderer_generation))?
-            .map(|frame| compositor.upload_frame(&frame).map(Rc::new))
-            .transpose()
-    }
-
-    pub fn set_vector(
-        &mut self,
-        scope: (&[Uuid], Uuid, Uuid),
-        key: Vec<u8>,
-        renderer_generation: u64,
-        layer: Rc<VisualFrame>,
-    ) {
-        if let Err(error) = global_image_pool().insert(
-            vector_frame_key(scope, &key, renderer_generation),
-            (*layer).clone(),
-        ) {
-            tracing::warn!(%error, "could not retain a generated frame in the image pool");
-        }
-    }
-
     pub(crate) fn layered_image(&mut self, file: &Asset) -> &mut LayeredImageAsset {
         match self.layered_image_files.entry(file.clone()) {
             Entry::Occupied(entry) => {
@@ -210,25 +181,6 @@ impl VisualSourceCache {
     pub fn clear(&mut self) {
         self.layered_image_files.clear();
     }
-}
-
-fn vector_frame_key(
-    scope: (&[Uuid], Uuid, Uuid),
-    content: &[u8],
-    renderer_generation: u64,
-) -> ImageKey {
-    let (sequence_path, track_id, item_id) = scope;
-    let mut discriminator = Vec::new();
-    discriminator.extend_from_slice(b"vector");
-    discriminator.extend_from_slice(&sequence_path.len().to_le_bytes());
-    for id in sequence_path {
-        discriminator.extend_from_slice(id.as_bytes());
-    }
-    discriminator.extend_from_slice(track_id.as_bytes());
-    discriminator.extend_from_slice(item_id.as_bytes());
-    discriminator.extend_from_slice(&renderer_generation.to_le_bytes());
-    discriminator.extend_from_slice(content);
-    ImageKey::new(PathBuf::new(), discriminator)
 }
 
 /// A stateful renderer for one visual source. Source selection belongs exclusively to

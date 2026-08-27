@@ -207,7 +207,7 @@ fn player(
     shrimply_audio::pneuma::set_server_url(&preference_snapshot.compute_server_url);
     let resource_config = RenderResourceConfig {
         maximum_temporal_decoders: preference_snapshot.temporal_decoder_pool_size as usize,
-        image_pool_cpu_gib: preference_snapshot.image_pool_cpu_gib,
+        gpu_host_memory_gib: preference_snapshot.gpu_host_memory_gib,
     };
     let performance_observer = playback_performance.clone();
     let observer = Arc::new(move |event| {
@@ -244,7 +244,7 @@ fn player(
         shrimply_audio::pneuma::set_server_url(&snapshot.compute_server_url);
         let config = RenderResourceConfig {
             maximum_temporal_decoders: snapshot.temporal_decoder_pool_size as usize,
-            image_pool_cpu_gib: snapshot.image_pool_cpu_gib,
+            gpu_host_memory_gib: snapshot.gpu_host_memory_gib,
         };
         if configured_resources.replace(config) != config {
             send_video_command(

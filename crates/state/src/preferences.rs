@@ -30,7 +30,7 @@ const KEY_PREVIEW_UPSAMPLE_METHOD: &str = "preview_upsample_method";
 const KEY_PREVIEW_DOWNSAMPLE_METHOD: &str = "preview_downsample_method";
 const KEY_PREVIEW_GUIDES_VISIBLE: &str = "preview_guides_visible";
 const KEY_TEMPORAL_DECODER_POOL_SIZE: &str = "temporal_decoder_pool_size";
-const KEY_IMAGE_POOL_CPU_GIB: &str = "image_pool_cpu_gib";
+const KEY_GPU_HOST_MEMORY_GIB: &str = "gpu_host_memory_gib";
 const KEY_BLENDER_BINARY: &str = "blender_binary";
 const DEFAULT_CAPTION_FONT_SIZE: f32 = 32.0;
 const DEFAULT_CAPTION_BACKGROUND_COLOR: Color<u8> = Color::new(0, 0, 0, 204);
@@ -46,12 +46,11 @@ const DEFAULT_PREVIEW_DOWNSAMPLE_METHOD: PreviewDownsampleMethod =
     PreviewDownsampleMethod::Trilinear;
 const DEFAULT_PREVIEW_GUIDES_VISIBLE: bool = false;
 const DEFAULT_TEMPORAL_DECODER_POOL_SIZE: u32 = 16;
-const DEFAULT_IMAGE_POOL_CPU_GIB: u32 = 4;
 pub const MAX_PREVIEW_PADDING_PX: u32 = 200;
 pub const MAX_PREVIEW_SHADOW_SIZE_PX: u32 = 200;
 pub const MIN_TEMPORAL_DECODER_POOL_SIZE: u32 = 1;
 pub const MAX_TEMPORAL_DECODER_POOL_SIZE: u32 = 256;
-pub const MAX_RESOURCE_POOL_GIB: u32 = 64;
+const GIB_BYTES: u64 = 1024 * 1024 * 1024;
 const DEFAULT_TIMELINE_CURSOR: &str = "pointer";
 const DEFAULT_TIMELINE_DRAG_COLLISION_MODE: &str = "overwrite";
 const DEFAULT_VISUAL_DURATION: Time = Time {
@@ -137,7 +136,7 @@ pub struct PreferencesSnapshot {
     pub preview_downsample_method: PreviewDownsampleMethod,
     pub preview_guides_visible: bool,
     pub temporal_decoder_pool_size: u32,
-    pub image_pool_cpu_gib: Fraction,
+    pub gpu_host_memory_gib: Fraction,
     pub blender_binary: Option<PathBuf>,
 }
 
@@ -169,7 +168,7 @@ pub struct PreferencesStore {
     preview_downsample_method: PreviewDownsampleMethod,
     preview_guides_visible: bool,
     temporal_decoder_pool_size: u32,
-    image_pool_cpu_gib: Fraction,
+    gpu_host_memory_gib: Fraction,
     blender_binary: Option<PathBuf>,
     conn: Option<Connection>,
     listeners: Vec<PreferenceListenerEntry>,
@@ -371,9 +370,15 @@ impl PreferencesStore {
                         MAX_TEMPORAL_DECODER_POOL_SIZE,
                     )
                 });
-        let default_image_pool_cpu_gib = Fraction::from(DEFAULT_IMAGE_POOL_CPU_GIB);
-        let image_pool_cpu_gib = conn.as_ref().map_or(default_image_pool_cpu_gib, |conn| {
-            read_fraction_or_default(conn, KEY_IMAGE_POOL_CPU_GIB, default_image_pool_cpu_gib)
+        let maximum_gpu_host_memory_gib = physical_system_memory_gib();
+        let default_gpu_host_memory_gib = maximum_gpu_host_memory_gib / Fraction::from(2_u8);
+        let gpu_host_memory_gib = conn.as_ref().map_or(default_gpu_host_memory_gib, |conn| {
+            read_fraction_or_default(
+                conn,
+                KEY_GPU_HOST_MEMORY_GIB,
+                default_gpu_host_memory_gib,
+                maximum_gpu_host_memory_gib,
+            )
         });
         let blender_binary = conn.as_ref().and_then(|conn| {
             let path = read_string_or_default(conn, KEY_BLENDER_BINARY, "", |_| true);
@@ -399,7 +404,7 @@ impl PreferencesStore {
             preview_downsample_method,
             preview_guides_visible,
             temporal_decoder_pool_size,
-            image_pool_cpu_gib,
+            gpu_host_memory_gib,
             blender_binary,
             conn,
             listeners: Vec::new(),
@@ -614,20 +619,20 @@ pub fn set_temporal_decoder_pool_size(store: &SharedPreferences, size: u32) {
     notify_listeners(state);
 }
 
-pub fn set_image_pool_cpu_gib(store: &SharedPreferences, size_gib: Fraction) {
-    let size_gib = clamp_resource_pool_gib(size_gib);
+pub fn set_gpu_host_memory_gib(store: &SharedPreferences, size_gib: Fraction) {
+    let size_gib = clamp_gpu_host_memory_gib(size_gib);
     let mut state = store.borrow_mut();
-    if state.image_pool_cpu_gib == size_gib {
+    if state.gpu_host_memory_gib == size_gib {
         return;
     }
 
-    let previous = state.image_pool_cpu_gib;
-    state.image_pool_cpu_gib = size_gib;
+    let previous = state.gpu_host_memory_gib;
+    state.gpu_host_memory_gib = size_gib;
     if let Some(conn) = &state.conn
-        && let Err(error) = write_string(conn, KEY_IMAGE_POOL_CPU_GIB, &size_gib.to_string())
+        && let Err(error) = write_string(conn, KEY_GPU_HOST_MEMORY_GIB, &size_gib.to_string())
     {
-        tracing::warn!("Could not write image pool CPU budget preference: {error}");
-        state.image_pool_cpu_gib = previous;
+        tracing::warn!("Could not write GPU host memory budget preference: {error}");
+        state.gpu_host_memory_gib = previous;
         return;
     }
     notify_listeners(state);
@@ -945,7 +950,7 @@ fn snapshot_from_state(state: &PreferencesStore) -> PreferencesSnapshot {
         preview_downsample_method: state.preview_downsample_method,
         preview_guides_visible: state.preview_guides_visible,
         temporal_decoder_pool_size: state.temporal_decoder_pool_size,
-        image_pool_cpu_gib: state.image_pool_cpu_gib,
+        gpu_host_memory_gib: state.gpu_host_memory_gib,
         blender_binary: state.blender_binary.clone(),
     }
 }
@@ -1016,21 +1021,29 @@ fn read_u32_in_range_or_default(
     .unwrap_or(default)
 }
 
-fn read_fraction_or_default(conn: &Connection, key: &str, default: Fraction) -> Fraction {
+fn read_fraction_or_default(
+    conn: &Connection,
+    key: &str,
+    default: Fraction,
+    maximum: Fraction,
+) -> Fraction {
     Fraction::from_str(&read_string_or_default(
         conn,
         key,
         &default.to_string(),
         |value| {
-            Fraction::from_str(value).is_ok_and(|value| clamp_resource_pool_gib(value) == value)
+            Fraction::from_str(value).is_ok_and(|value| clamp_fraction(value, maximum) == value)
         },
     ))
     .unwrap_or(default)
 }
 
-fn clamp_resource_pool_gib(value: Fraction) -> Fraction {
+fn clamp_gpu_host_memory_gib(value: Fraction) -> Fraction {
+    clamp_fraction(value, physical_system_memory_gib())
+}
+
+fn clamp_fraction(value: Fraction, maximum: Fraction) -> Fraction {
     let zero = Fraction::from(0_u8);
-    let maximum = Fraction::from(MAX_RESOURCE_POOL_GIB);
     if value < zero {
         zero
     } else if value > maximum {
@@ -1038,6 +1051,19 @@ fn clamp_resource_pool_gib(value: Fraction) -> Fraction {
     } else {
         value
     }
+}
+
+pub fn physical_system_memory_gib() -> Fraction {
+    let pages = unsafe { libc::sysconf(libc::_SC_PHYS_PAGES) };
+    let page_bytes = unsafe { libc::sysconf(libc::_SC_PAGESIZE) };
+    let pages =
+        u64::try_from(pages).expect("detect physical system RAM: sysconf(_SC_PHYS_PAGES) failed");
+    let page_bytes = u64::try_from(page_bytes)
+        .expect("detect physical system RAM: sysconf(_SC_PAGESIZE) failed");
+    let bytes = pages
+        .checked_mul(page_bytes)
+        .expect("detect physical system RAM: byte count overflowed");
+    Fraction::new_raw(bytes, GIB_BYTES)
 }
 
 fn parse_u32(value: &str) -> Option<u32> {

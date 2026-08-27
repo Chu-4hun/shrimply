@@ -112,7 +112,7 @@ pub struct ExportSettings {
     pub audio_sample_rate: u32,
     pub audio_bitrate_kbps: u32,
     pub maximum_temporal_decoders: usize,
-    pub image_pool_cpu_gib: Fraction,
+    pub gpu_host_memory_gib: Fraction,
 }
 
 #[derive(Clone, Debug)]
@@ -249,7 +249,7 @@ where
         settings.audio_sample_rate,
         RenderResourceConfig {
             maximum_temporal_decoders: settings.maximum_temporal_decoders,
-            image_pool_cpu_gib: settings.image_pool_cpu_gib,
+            gpu_host_memory_gib: settings.gpu_host_memory_gib,
         },
     )?;
     let mut frame_target = match settings.video_codec {

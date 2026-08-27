@@ -9,5 +9,6 @@ good_lp.workspace = true
 glam.workspace = true
 opencv.workspace = true
 shrimply-math-core = { path = "../../math/core" }
+shrimply-gpu-memory = { path = "../../video/gpu-memory" }
 shrimply-nvidia-optical-flow = { path = "../nvidia-optical-flow" }
 tracing.workspace = true

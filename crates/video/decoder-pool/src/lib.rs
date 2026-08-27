@@ -39,7 +39,7 @@ pub trait TemporalDecoder<S>: Sized {
     ) -> Result<Self::Response, Self::Error>;
 }
 
-pub struct TemporalFramePool<S, O, D>
+pub struct TemporalDecoderPool<S, O, D>
 where
     S: Send,
     O: Send,
@@ -60,7 +60,7 @@ where
     context: D::Context,
 }
 
-impl<S, O, D> TemporalFramePool<S, O, D>
+impl<S, O, D> TemporalDecoderPool<S, O, D>
 where
     S: Clone + Eq + Send,
     O: Clone + Eq + Hash + Send,
@@ -126,7 +126,7 @@ where
         let mut state = self
             .state
             .lock()
-            .expect("temporal frame pool mutex poisoned");
+            .expect("temporal decoder pool mutex poisoned");
         if !state.ensure_decoder(&source, &owner, handoff_from.as_ref(), foreground, false)? {
             return Ok(None);
         }
@@ -141,7 +141,7 @@ where
     pub fn current_for_owner(&self, source: &S, owner: &O) -> Option<D::Current> {
         self.state
             .lock()
-            .expect("temporal frame pool mutex poisoned")
+            .expect("temporal decoder pool mutex poisoned")
             .decoders
             .get(owner)
             .filter(|entry| &entry.source == source)
@@ -151,7 +151,7 @@ where
     pub fn metadata_for_owner(&self, source: &S, owner: &O) -> Option<D::Metadata> {
         self.state
             .lock()
-            .expect("temporal frame pool mutex poisoned")
+            .expect("temporal decoder pool mutex poisoned")
             .decoders
             .get(owner)
             .filter(|entry| &entry.source == source)

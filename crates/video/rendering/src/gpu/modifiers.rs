@@ -4,7 +4,7 @@ use std::{
 };
 
 use cached::{Cached, UnboundCache};
-use cuda_core::{CudaContext, CudaStream, DeviceBuffer, DeviceCopy, memory, sys};
+use cuda_core::{CudaContext, CudaStream, DeviceBuffer, DeviceCopy, memory};
 
 use super::{CompositedVideoFrame, VisualFrame};
 
@@ -162,19 +162,30 @@ impl ModifierContext<'_> {
         len: usize,
         description: &str,
     ) -> Result<DeviceBuffer<T>, String> {
-        let error = match DeviceBuffer::zeroed(self.stream, len) {
+        let error = match shrimply_gpu_memory::global().allocate_buffer(
+            self.stream,
+            len,
+            shrimply_gpu_memory::AllocationClass::Transient,
+            description,
+        ) {
             Ok(buffer) => return Ok(buffer),
-            Err(error) if error.0 == sys::cudaError_enum_CUDA_ERROR_OUT_OF_MEMORY => error,
-            Err(error) => return Err(format!("allocate {description}: {error:?}")),
+            Err(error) => error,
         };
         *self.spare = None;
         *self.scratch = None;
         self.typed_scratch.cache_clear();
         *self.sam2_mask_upload = None;
         *self.transparent_fill_mask_upload = None;
-        DeviceBuffer::zeroed(self.stream, len).map_err(|retry| {
+        shrimply_gpu_memory::global()
+            .allocate_buffer(
+                self.stream,
+                len,
+                shrimply_gpu_memory::AllocationClass::Transient,
+                description,
+            )
+            .map_err(|retry| {
             format!(
-                "allocate {description} after clearing modifier GPU caches: {retry:?}; initial error: {error:?}"
+                "allocate {description} after clearing modifier GPU caches: {retry}; initial error: {error}"
             )
         })
     }

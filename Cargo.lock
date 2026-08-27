@@ -4887,6 +4887,7 @@ dependencies = [
  "glam 0.33.5",
  "good_lp",
  "opencv",
+ "shrimply-gpu-memory",
  "shrimply-math-core",
  "shrimply-nvidia-optical-flow",
  "tracing",
@@ -4901,6 +4902,7 @@ dependencies = [
  "cuda-host",
  "glam 0.33.5",
  "hashbrown 0.17.1",
+ "shrimply-gpu-memory",
 ]
 
 [[package]]
@@ -5119,14 +5121,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "shrimply-frame-pool"
+name = "shrimply-gpu-memory"
 version = "0.1.0"
 dependencies = [
+ "cuda-core",
  "hashbrown 0.17.1",
+ "libc",
  "shrimply-benchmarking",
- "shrimply-math-core",
- "shrimply-math-media",
- "shrimply-visual-frame",
+ "tracing",
 ]
 
 [[package]]
@@ -5787,6 +5789,7 @@ name = "shrimply-state"
 version = "0.1.0"
 dependencies = [
  "hashbrown 0.17.1",
+ "libc",
  "rusqlite",
  "shrimply-benchmarking",
  "shrimply-math-color",
@@ -6020,7 +6023,7 @@ dependencies = [
  "shrimply-blender",
  "shrimply-core",
  "shrimply-evaluation",
- "shrimply-frame-pool",
+ "shrimply-gpu-memory",
  "shrimply-i18n",
  "shrimply-layered-image",
  "shrimply-loading-screen",
@@ -6144,6 +6147,7 @@ version = "0.1.0"
 dependencies = [
  "cuda-core",
  "ffmpeg-next",
+ "shrimply-gpu-memory",
 ]
 
 [[package]]

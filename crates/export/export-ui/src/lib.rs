@@ -703,7 +703,7 @@ fn collect_export_video_settings(
         audio_sample_rate: audio_sample_rate_row.selected(),
         audio_bitrate_kbps: audio_bitrate_row.value() as u32,
         maximum_temporal_decoders: preferences.temporal_decoder_pool_size as usize,
-        image_pool_cpu_gib: preferences.image_pool_cpu_gib,
+        gpu_host_memory_gib: preferences.gpu_host_memory_gib,
     }
 }
 

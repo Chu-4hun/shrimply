@@ -40,7 +40,13 @@ impl TryFrom<&ffmpeg_next::frame::Video> for VisualFrame {
         let width = raw.width.max(0) as u32;
         let height = raw.height.max(0) as u32;
         let format = unsafe { (*frames_context).sw_format };
-        let frame = Self::allocate(context, visual_format(format)?, width, height)?;
+        let frame = Self::allocate_persistent(
+            context,
+            visual_format(format)?,
+            width,
+            height,
+            "retained decoded video frame",
+        )?;
         let (row_bytes, heights) = cuda_plane_layout(format, width, height)?;
         let push = unsafe { cuda_sys::cuCtxPushCurrent_v2(cuda.context) };
         if push != cuda_sys::cudaError_enum_CUDA_SUCCESS {
@@ -51,7 +57,13 @@ impl TryFrom<&ffmpeg_next::frame::Video> for VisualFrame {
             descriptor.srcMemoryType = cuda_sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
             descriptor.srcDevice = raw.data[index] as usize as cuda_sys::CUdeviceptr;
             descriptor.srcPitch = raw.linesize[index].max(0) as usize;
-            descriptor.dstMemoryType = cuda_sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE;
+            descriptor.dstMemoryType = match frame
+                .memory_kind(index)
+                .expect("video VisualFrame lost allocation metadata")
+            {
+                cuda_core::MemoryKind::Device => cuda_sys::CUmemorytype_enum_CU_MEMORYTYPE_DEVICE,
+                cuda_core::MemoryKind::Managed => cuda_sys::CUmemorytype_enum_CU_MEMORYTYPE_UNIFIED,
+            };
             let destination = frame
                 .plane(index)
                 .expect("video VisualFrame lost a required plane");

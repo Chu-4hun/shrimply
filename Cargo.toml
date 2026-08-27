@@ -74,7 +74,7 @@ members = [
     "crates/video/anime4k",
     "crates/video/decoder",
     "crates/video/decoder-pool",
-    "crates/video/frame-pool",
+    "crates/video/gpu-memory",
     "crates/video/visual-frame",
     "crates/3d/3d-control",
     "crates/3d/3dgs",

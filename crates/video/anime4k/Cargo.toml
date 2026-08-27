@@ -9,3 +9,4 @@ cuda-core.workspace = true
 cuda-device.workspace = true
 cuda-host.workspace = true
 glam.workspace = true
+shrimply-gpu-memory = { path = "../gpu-memory" }
