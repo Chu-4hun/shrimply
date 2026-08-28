@@ -340,10 +340,7 @@ fn remove_silences(
             ..ProjectChange::default()
         },
     );
-    player_state::seek_time(
-        player_state,
-        shifted_position(position, &ranges).min(duration),
-    );
+    player_state::seek_time(player_state, shifted_position(position, &ranges));
     area.queue_render();
 }
 

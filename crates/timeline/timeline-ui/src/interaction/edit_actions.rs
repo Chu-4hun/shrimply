@@ -396,7 +396,7 @@ pub(super) fn delete_selected_addressed_items(
             },
         );
         if let Some(position) = shifted_position {
-            player_state::seek_time(player_state, position.min(duration));
+            player_state::seek_time(player_state, position);
         }
     }
     area.queue_render();

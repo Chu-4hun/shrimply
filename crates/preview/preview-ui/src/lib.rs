@@ -1627,7 +1627,6 @@ fn attach_position_clock(
         if layout_weak.upgrade().is_none() {
             return glib::ControlFlow::Break;
         }
-
         if let Some(error) = audio_player.take_failure() {
             player_state::set_playing(&player_state, false);
             let dialog = adw::AlertDialog::new(Some("Audio playback stopped"), Some(&error));
@@ -1889,13 +1888,19 @@ fn step_by_frame(
 ) {
     player_state::set_playing(player_state, false);
     let snapshot = player_state::snapshot(player_state);
-    let frame = match direction {
-        StepDirection::Backward => snapshot.frame.saturating_sub(1),
-        StepDirection::Forward => snapshot.frame.saturating_add(1).min(snapshot.frame_count),
+    let step = shrimply_math_core::time_from_frame(1, snapshot.frame_rate)
+        .expect("validated project FPS must produce an exact frame step");
+    let position = match direction {
+        StepDirection::Backward => snapshot.position.saturating_sub(step),
+        StepDirection::Forward => snapshot.position.saturating_add(step),
     };
-    if frame != snapshot.frame {
+    if position != snapshot.position {
         step_direction.set(Some(direction));
     }
-    player_state::seek_frame(player_state, frame);
-    tracing::debug!("Exact frame step to {frame} from {}", snapshot.frame);
+    player_state::seek_time(player_state, position);
+    tracing::debug!(
+        "Exact frame step to {} from {}",
+        position.as_label(),
+        snapshot.position.as_label()
+    );
 }

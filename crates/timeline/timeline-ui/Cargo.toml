@@ -16,7 +16,6 @@ shrimply-audio = { path = "../../audio/audio" }
 shrimply-blender = { path = "../../blender/blender-bridge" }
 shrimply-core = { path = "../../core" }
 shrimply-export = { path = "../../export/export" }
-shrimply-layered-image = { path = "../../layered-image/layered-image" }
 shrimply-math-media = { path = "../../math/media" }
 shrimply-math-core = { path = "../../math/core" }
 shrimply-property-transfer = { path = "../../property-transfer" }

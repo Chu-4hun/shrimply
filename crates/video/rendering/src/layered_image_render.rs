@@ -65,6 +65,10 @@ impl LayeredImageAsset {
                 .document_key
                 .as_ref()
                 .is_some_and(|key| gpu_memory().contains_resource(key))
+                && self
+                    .snapshot
+                    .as_ref()
+                    .is_some_and(AssetSnapshot::is_current)
         {
             return Ok(());
         }
@@ -77,7 +81,7 @@ impl LayeredImageAsset {
         let (reply, response) = mpsc::sync_channel(1);
         rayon::spawn(move || {
             let _measurement = shrimply_benchmarking::measure("Layered image / Preload");
-            let _ = reply.send(load_layered_image(&file));
+            let _ = reply.send(prepare_layered_image(&file));
         });
         self.pending = Some(response);
         shrimply_benchmarking::increment("Layered image / Preloads submitted");
@@ -116,7 +120,9 @@ impl LayeredImageAsset {
                     source_bytes,
                 }) => {
                     let key = layered_document_key(&snapshot);
-                    gpu_memory().insert_resource(key.clone(), source_bytes, document)?;
+                    if !gpu_memory().contains_resource(&key) {
+                        gpu_memory().insert_resource(key.clone(), source_bytes, document)?;
+                    }
                     self.document_key = Some(key);
                     self.snapshot = Some(snapshot);
                     self.last_reload_error = None;
@@ -287,9 +293,21 @@ impl LayeredImageAsset {
     }
 }
 
-fn load_layered_image(file: &Asset) -> Result<LoadedLayeredImage, String> {
+pub fn load_layered_image(source: impl Into<Asset>) -> Result<Arc<LayeredImage>, String> {
+    let file = source.into();
+    prepare_layered_image(&file).map(|loaded| loaded.document)
+}
+
+fn prepare_layered_image(file: &Asset) -> Result<LoadedLayeredImage, String> {
     let snapshot = file.snapshot()?;
-    let document = shrimply_layered_image::load(file)?;
+    let key = layered_document_key(&snapshot);
+    let document = if let Some(document) = gpu_memory().get_resource::<Arc<LayeredImage>>(&key)? {
+        shrimply_benchmarking::increment("Layered image source residency / Hit");
+        Arc::clone(&document)
+    } else {
+        shrimply_benchmarking::increment("Layered image source residency / Miss");
+        shrimply_layered_image::load(file)?
+    };
     snapshot.verify_current()?;
     let width = document.width.max(1);
     let height = document.height.max(1);
@@ -317,6 +335,9 @@ fn load_layered_image(file: &Asset) -> Result<LoadedLayeredImage, String> {
                     .map_err(|_| "layered image source size exceeds u64".to_string())?,
             )
             .ok_or_else(|| "layered image source byte size overflow".to_string())?;
+    }
+    if !gpu_memory().contains_resource(&key) {
+        gpu_memory().insert_resource(key, source_bytes, Arc::clone(&document))?;
     }
     Ok(LoadedLayeredImage {
         snapshot,

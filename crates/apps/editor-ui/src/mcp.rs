@@ -12,7 +12,7 @@ use std::time::{Duration, Instant};
 
 use gtk::{gdk, glib, prelude::*};
 use serde_json::{Value, json};
-use shrimply_math_core::{Time, frame_count, time_from_frame};
+use shrimply_math_core::{Time, time_from_frame};
 use shrimply_mcp::protocol::{
     ActiveScopeSnapshot, BridgeCommand, BridgeRequest, BridgeResponse, EditRequest, EditResponse,
     LiveSnapshot, PlayerSnapshot, ScopeRef, ViewFrameResponse,
@@ -380,11 +380,11 @@ fn handle_command(
         BridgeCommand::Snapshot => serde_json::to_value(snapshot(project, player, selection)?)
             .map_err(|error| format!("could not serialize live snapshot: {error}")),
         BridgeCommand::Seek { frame } => {
-            let state = player_state::snapshot(player);
             let project = project.borrow();
-            let actual_frame = frame.min(state.frame_count);
-            player_state::seek_frame(player, actual_frame);
-            serde_json::to_value(shrimply_mcp::query::frame_time(actual_frame, project.fps)?)
+            let position = time_from_frame(frame, project.fps)
+                .ok_or_else(|| "frame exceeds the supported exact range".to_string())?;
+            player_state::seek_time(player, position);
+            serde_json::to_value(shrimply_mcp::query::frame_time(frame, project.fps)?)
                 .map_err(|error| format!("could not serialize playhead: {error}"))
         }
         BridgeCommand::ViewFrame { .. } => {
@@ -400,9 +400,6 @@ async fn view_frame(
     canceled: Arc<AtomicBool>,
 ) -> Result<Value, String> {
     let project = live.borrow().clone();
-    let count = frame_count(project.duration(), project.fps)
-        .ok_or_else(|| "project frame rate must be positive".to_string())?;
-    let frame = frame.min(count.saturating_sub(1));
     let position = time_from_frame(frame, project.fps)
         .ok_or_else(|| "frame exceeds the supported exact range".to_string())?;
     let fps = project.fps;
@@ -505,7 +502,7 @@ fn snapshot(
         .to_string(),
         project: project.clone(),
         player: PlayerSnapshot {
-            frame: player_snapshot.frame,
+            position: player_snapshot.position,
             duration: player_snapshot.duration,
             playing: player_snapshot.playing,
             revision: player_snapshot.revision,
@@ -565,7 +562,7 @@ async fn apply_edit(
     );
     let project = live.borrow().clone();
     let original = project_content_fingerprint(&project)?;
-    let playhead_frame = player_state::current_frame(player);
+    let playhead_frame = player_state::current_time(player).as_frame(project.fps);
     let active_scope = selection_state::active_scope(selection);
     let history_label = request.history_label.clone();
     let worker_path = project_path.clone();

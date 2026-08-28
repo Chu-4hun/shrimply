@@ -1240,7 +1240,7 @@ fn layered_image_controls(
     value: &LayeredImageLayers,
     context: &InspectorContext,
 ) -> Vec<gtk::Widget> {
-    let Ok(image) = shrimply_layered_image::load(&value.file) else {
+    let Ok(image) = shrimply_video::load_layered_image(&value.file) else {
         return Vec::new();
     };
     let section = InspectorSection::controls();
@@ -1444,9 +1444,10 @@ pub(super) fn visual_animation_time(
 ) -> Option<Time> {
     let time = project.timeline_time_to_sequence(&key.track(), time)?;
     let item = project.video_item(&key)?;
-    Some(shrimply_project::project::generated_item_animation_time(
-        item, time,
-    ))
+    Some(
+        time.signed_sub(item.start)
+            .saturating_add(item.animation_time_offset),
+    )
 }
 
 pub(super) fn visual_global_time(project: &Project, key: SelectedItem, time: Time) -> Option<Time> {

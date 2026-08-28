@@ -209,10 +209,9 @@ pub(in crate::drawing) fn preview_video_marker(
             source.repeat_strategy,
             source.source_duration,
         );
-        preview.animation_time_offset = Time::from_seconds_f64(
-            source.animation_time_offset.as_secs_f64()
-                + (start.as_secs_f64() - source.start.as_secs_f64()),
-        );
+        preview.animation_time_offset = source
+            .animation_time_offset
+            .saturating_add(start.signed_sub(source.start));
     }
     NaturalEndMarker {
         start,

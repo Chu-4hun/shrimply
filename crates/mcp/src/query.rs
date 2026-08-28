@@ -154,7 +154,7 @@ pub fn editor_state(snapshot: &LiveSnapshot) -> Result<EditorState, String> {
             height: project.canvas_size.height,
         },
         duration: frame_time_from_time(snapshot.player.duration, project.fps, true),
-        playhead: frame_time(snapshot.player.frame, project.fps)?,
+        playhead: frame_time(snapshot.player.position.as_frame(project.fps), project.fps)?,
         playing: snapshot.player.playing,
         revision: snapshot.player.revision,
         active_scope: ActiveScopeSummary {

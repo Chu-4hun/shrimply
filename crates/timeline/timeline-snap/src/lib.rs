@@ -50,8 +50,10 @@ impl SnapRepo {
     }
 
     pub fn snap(&self, time: Time) -> Option<Time> {
-        let distance = self.distance?;
         let time = time.snapped(self.frame_step);
+        let Some(distance) = self.distance else {
+            return Some(time);
+        };
         self.offsets
             .iter()
             .filter_map(|offset| {

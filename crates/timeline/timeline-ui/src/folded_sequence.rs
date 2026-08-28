@@ -612,9 +612,11 @@ pub(super) fn update_drag(drag: &mut FoldedDrag, target: Time, minimum_duration:
             let earliest_offset = drag
                 .items
                 .iter()
-                .map(|item| item.start.as_secs_f64() - drag.start.as_secs_f64())
-                .fold(0.0_f64, f64::min);
-            let start = Time::from_seconds_f64(target.as_secs_f64().max(-earliest_offset));
+                .map(|item| item.start.signed_sub(drag.start))
+                .min()
+                .unwrap_or(Time::ZERO)
+                .min(Time::ZERO);
+            let start = target.max(Time::ZERO.signed_sub(earliest_offset));
             let duration = drag.end.saturating_sub(drag.start);
             drag.target_start = start;
             drag.target_end = start.saturating_add(duration);
@@ -624,25 +626,24 @@ pub(super) fn update_drag(drag: &mut FoldedDrag, target: Time, minimum_duration:
                 .items
                 .iter()
                 .map(|item| {
-                    item.end.as_secs_f64()
-                        - item.start.as_secs_f64()
-                        - minimum_duration.as_secs_f64()
+                    item.end
+                        .saturating_sub(item.start)
+                        .signed_sub(minimum_duration)
                 })
-                .fold(f64::INFINITY, f64::min);
-            let delta = (target.as_secs_f64() - drag.start.as_secs_f64()).min(max_delta);
-            drag.target_start = Time::from_seconds_f64(drag.start.as_secs_f64() + delta);
+                .min()
+                .unwrap_or(Time::ZERO);
+            let delta = target.signed_sub(drag.start).min(max_delta);
+            drag.target_start = drag.start.saturating_add(delta);
         }
         FoldedDragKind::ResizeEnd => {
             let min_delta = drag
                 .items
                 .iter()
-                .map(|item| {
-                    minimum_duration.as_secs_f64()
-                        - (item.end.as_secs_f64() - item.start.as_secs_f64())
-                })
-                .fold(f64::NEG_INFINITY, f64::max);
-            let delta = (target.as_secs_f64() - drag.end.as_secs_f64()).max(min_delta);
-            drag.target_end = Time::from_seconds_f64(drag.end.as_secs_f64() + delta);
+                .map(|item| minimum_duration.signed_sub(item.end.saturating_sub(item.start)))
+                .max()
+                .unwrap_or(Time::ZERO);
+            let delta = target.signed_sub(drag.end).max(min_delta);
+            drag.target_end = drag.end.saturating_add(delta);
         }
     }
     drag.update_item_times();

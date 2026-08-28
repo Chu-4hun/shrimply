@@ -16,7 +16,9 @@ use crate::player_state;
 use crate::timeline::renderer::{
     Rect, Stroke, StrokeKind, TimelinePainter, TimelineRenderer, Vec2, vec2,
 };
-use shrimply_project::project::{Project, Time, fraction_denominator, fraction_numerator};
+use shrimply_project::project::{
+    ItemAddress, Project, Time, fraction_denominator, fraction_numerator,
+};
 
 pub(crate) use super::keyframe_graph::{KeyframeGraph, KeyframePoint, RawSegment, SpeedSegment};
 use super::{InspectorContext, keyframe_graph::GraphDomain, keyframe_model};
@@ -193,6 +195,18 @@ pub(crate) fn project_frame_step(project: &Project) -> Time {
     } else {
         Time::from_fraction(1, 30)
     }
+}
+
+fn project_frame_keyframe_time(project: &Project, item: Option<&ItemAddress>, time: Time) -> Time {
+    let step = project_frame_step(project);
+    let Some(item) = item else {
+        return time.snapped(step);
+    };
+    let Some(global) = crate::video::visual_global_time(project, item.clone(), time) else {
+        return time.snapped(step);
+    };
+    crate::video::visual_animation_time(project, item.clone(), global.snapped(step))
+        .unwrap_or_else(|| time.snapped(step))
 }
 
 pub(crate) fn build(
@@ -751,6 +765,8 @@ pub(crate) fn build(
         let selection_box = selection_box.clone();
         let selected_time = selected_time.clone();
         let update_point = actions.update_point.clone();
+        let project = project.clone();
+        let selected_item = selected_item.clone();
         let playhead = actions.playhead.clone();
         let select_time = actions.select_time.clone();
         let preferences = preferences.clone();
@@ -892,6 +908,8 @@ pub(crate) fn build(
                 }
             }
             for (old_time, time, value) in point_updates {
+                let time =
+                    project_frame_keyframe_time(&project.borrow(), selected_item.as_ref(), time);
                 update_point(old_time, time, value);
             }
             graph.queue_render();

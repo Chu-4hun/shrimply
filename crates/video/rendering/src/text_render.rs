@@ -526,6 +526,7 @@ fn draw_text(
         shrimply_evaluation::resolve_color(&text.outline_color, evaluation, expressions);
     let shadow_color =
         shrimply_evaluation::resolve_color(&text.shadow_color, evaluation, expressions);
+    let color_glyphs = layout.color_glyphs(fill_color);
 
     if background_color.a > 0 {
         canvas.draw_rrect(
@@ -561,6 +562,7 @@ fn draw_text(
             shadow_width,
             shadow_blur,
             fallback_trace_width,
+            color_glyphs.as_ref(),
         );
     } else {
         let affected_path = affected.as_ref().map(|paths| {
@@ -598,7 +600,14 @@ fn draw_text(
             paint.set_stroke_width(outline_width);
             draw(canvas, origin, &paint);
         }
-        draw(canvas, origin, &fill_paint(fill_color));
+        draw_text_fill(
+            canvas,
+            affected_path.as_ref().unwrap_or(&layout.path),
+            origin,
+            fill_color,
+            color_glyphs.as_ref(),
+            1.0,
+        );
     }
 
     if masked {
@@ -615,6 +624,44 @@ fn draw_text(
         );
         canvas.restore();
     }
+}
+
+fn draw_text_fill(
+    canvas: &Canvas,
+    path: &skia_safe::Path,
+    origin: glam::Vec2,
+    fill_color: Color<u8>,
+    color_glyphs: Option<&crate::text_layout::ColorGlyphImage>,
+    opacity: f32,
+) {
+    if opacity <= 0.0 {
+        return;
+    }
+    canvas.save();
+    canvas.translate((origin.x, origin.y));
+
+    let Some(color_glyphs) = color_glyphs else {
+        canvas.draw_path(path, &fill_paint(fill_color.alpha_multiply(opacity)));
+        canvas.restore();
+        return;
+    };
+
+    canvas.save_layer(&SaveLayerRec::default());
+    canvas.draw_path(path, &fill_paint(fill_color.alpha_multiply(opacity)));
+    canvas.clip_path(path, None, true);
+    let mut clear = Paint::default();
+    clear.set_blend_mode(BlendMode::Clear);
+    canvas.draw_path(&color_glyphs.silhouette, &clear);
+
+    let mut paint = Paint::default();
+    paint.set_alpha_f(f32::from(fill_color.a) / f32::from(u8::MAX) * opacity);
+    canvas.draw_image(
+        color_glyphs.image.as_ref(),
+        (color_glyphs.offset.x, color_glyphs.offset.y),
+        Some(&paint),
+    );
+    canvas.restore();
+    canvas.restore();
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -784,6 +831,7 @@ fn draw_text_transition(
     shadow_width: f32,
     shadow_blur: f32,
     fallback_trace_width: f32,
+    color_glyphs: Option<&crate::text_layout::ColorGlyphImage>,
 ) {
     match transition.kind {
         shrimply_project::project::VisualTransitionKind::Morph => {
@@ -807,6 +855,7 @@ fn draw_text_transition(
                         shadow_offset,
                         shadow_width,
                         shadow_blur,
+                        color_glyphs,
                         1.0,
                     );
                 }
@@ -829,6 +878,7 @@ fn draw_text_transition(
                     shadow_offset,
                     shadow_width,
                     shadow_blur,
+                    color_glyphs,
                     local_progress,
                 );
                 return;
@@ -846,6 +896,7 @@ fn draw_text_transition(
                     shadow_offset,
                     shadow_width,
                     shadow_blur,
+                    color_glyphs,
                     1.0,
                 );
             }
@@ -866,6 +917,7 @@ fn draw_text_transition(
                 shadow_offset,
                 shadow_width,
                 shadow_blur,
+                color_glyphs,
                 1.0,
             );
         }
@@ -930,7 +982,14 @@ fn draw_text_transition(
                 if stroke.stroke_width() > 0.0 {
                     canvas.draw_path(path, &stroke);
                 }
-                canvas.draw_path(path, &fill_paint(fill_color.alpha_multiply(style_progress)));
+                draw_text_fill(
+                    canvas,
+                    path,
+                    glam::Vec2::ZERO,
+                    fill_color,
+                    color_glyphs,
+                    style_progress,
+                );
             }
         }
         shrimply_project::project::VisualTransitionKind::Create => {
@@ -953,6 +1012,7 @@ fn draw_text_transition(
                 shadow_offset,
                 shadow_width,
                 shadow_blur,
+                color_glyphs,
                 1.0,
             );
         }
@@ -985,6 +1045,7 @@ fn draw_text_transition(
                         shadow_offset,
                         shadow_width,
                         shadow_blur,
+                        color_glyphs,
                         facet_opacity,
                     );
                     canvas.restore();
@@ -1001,6 +1062,7 @@ fn draw_text_transition(
                     shadow_offset,
                     shadow_width,
                     shadow_blur,
+                    color_glyphs,
                     finished_opacity,
                 );
 
@@ -1052,6 +1114,7 @@ fn draw_text_transition(
                     shadow_offset,
                     shadow_width,
                     shadow_blur,
+                    color_glyphs,
                     1.0,
                 );
                 canvas.restore();
@@ -1072,6 +1135,7 @@ fn draw_text_transition(
                     shadow_offset,
                     shadow_width,
                     shadow_blur,
+                    color_glyphs,
                     crate::math::vector_reveal_opacity(progress),
                 );
                 canvas.draw_path(
@@ -1121,6 +1185,7 @@ fn draw_text_transition(
                     shadow_offset,
                     shadow_width,
                     shadow_blur,
+                    color_glyphs,
                     1.0,
                 );
                 canvas.restore();
@@ -1154,6 +1219,7 @@ fn draw_text_transition(
                     shadow_offset,
                     shadow_width,
                     shadow_blur,
+                    color_glyphs,
                     1.0,
                 );
                 canvas.restore();
@@ -1194,6 +1260,7 @@ fn draw_text_transition(
                     shadow_offset,
                     shadow_width,
                     shadow_blur,
+                    color_glyphs,
                     opacity,
                 );
             }
@@ -1213,6 +1280,7 @@ fn draw_finished_text(
     shadow_offset: glam::Vec2,
     shadow_width: f32,
     shadow_blur: f32,
+    color_glyphs: Option<&crate::text_layout::ColorGlyphImage>,
     opacity: f32,
 ) {
     if opacity <= 0.0 {
@@ -1238,7 +1306,14 @@ fn draw_finished_text(
         paint.set_stroke_width(outline_width);
         canvas.draw_path(path, &paint);
     }
-    canvas.draw_path(path, &fill_paint(fill_color.alpha_multiply(opacity)));
+    draw_text_fill(
+        canvas,
+        path,
+        glam::Vec2::ZERO,
+        fill_color,
+        color_glyphs,
+        opacity,
+    );
 }
 
 fn number_value(

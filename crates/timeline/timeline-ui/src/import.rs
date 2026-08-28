@@ -323,7 +323,7 @@ pub fn inspect(
         });
     }
     if file_kind == FileKind::LayeredImage {
-        let image = shrimply_layered_image::load(source.clone())?;
+        let image = shrimply_video::load_layered_image(source.clone())?;
         snapshot.ensure_current()?;
         let layered_image_layers = image
             .entries
@@ -602,11 +602,12 @@ pub(super) fn preview(
     target: items::NewItemTarget,
     collision_mode: items::DragCollisionMode,
 ) -> ImportPreview {
-    let end = Time::from_nanos(
-        start
-            .as_nonnegative_nanos()
-            .saturating_add(duration.as_nonnegative_nanos().max(1)),
-    );
+    let step = project.frame_step();
+    let start = start.max(Time::ZERO).snapped(step);
+    let end = start
+        .saturating_add(duration)
+        .snapped(step)
+        .max(start.saturating_add(step));
     let collision_mode = match target {
         items::NewItemTarget::Automatic => items::DragCollisionMode::NewTrack,
         items::NewItemTarget::AtY(_) => collision_mode,
@@ -786,7 +787,12 @@ pub fn apply_media_to_tracks(
     track_indices: &[usize],
     start: Time,
 ) -> Result<ImportResult, String> {
-    let end = start.saturating_add(info.duration.max(Time::from_nanos(1)));
+    let step = project.frame_step();
+    let start = start.max(Time::ZERO).snapped(step);
+    let end = start
+        .saturating_add(info.duration)
+        .snapped(step)
+        .max(start.saturating_add(step));
     match kind {
         TrackKind::Video => apply_video_to_tracks(project, info, track_indices, start, end),
         TrackKind::Audio if info.visual_kind.is_some() => {
@@ -805,6 +811,8 @@ pub fn apply_vtt_to_tracks(
     track_indices: &[usize],
     start: Time,
 ) -> Result<ImportResult, String> {
+    let step = project.frame_step();
+    let start = start.max(Time::ZERO).snapped(step);
     let cues = parse_vtt(path)?;
     if cues.is_empty() {
         return Err(format!("{} has no VTT cues", path.display()));
@@ -815,8 +823,11 @@ pub fn apply_vtt_to_tracks(
             return Err(format!("caption track {} does not exist", track_index + 1));
         };
         for cue in &cues {
-            let item_start = start.saturating_add(cue.start);
-            let item_end = start.saturating_add(cue.end);
+            let item_start = start.saturating_add(cue.start).snapped(step);
+            let item_end = start
+                .saturating_add(cue.end)
+                .snapped(step)
+                .max(item_start.saturating_add(step));
             if timeline_search::collides(&track.items, item_start, item_end) {
                 return Err(format!(
                     "VTT import collides with caption track {}",
@@ -833,11 +844,12 @@ pub fn apply_vtt_to_tracks(
             continue;
         };
         for cue in &cues {
-            let mut item = CaptionItem::new(
-                start.saturating_add(cue.start),
-                start.saturating_add(cue.end),
-                cue.text.clone(),
-            );
+            let item_start = start.saturating_add(cue.start).snapped(step);
+            let item_end = start
+                .saturating_add(cue.end)
+                .snapped(step)
+                .max(item_start.saturating_add(step));
+            let mut item = CaptionItem::new(item_start, item_end, cue.text.clone());
             item.group_id = group_id;
             let item_index = items::insert_sorted(&mut track.items, item);
             selection.push(ItemKey {

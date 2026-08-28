@@ -9,6 +9,7 @@ pub mod gpu;
 pub mod image_decode;
 pub mod layer;
 mod layered_image_render;
+pub use layered_image_render::load_layered_image;
 mod manim_render;
 pub mod modifier_cache;
 pub mod modifiers;

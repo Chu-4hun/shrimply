@@ -138,7 +138,7 @@ fn build_ui(window: &adw::ApplicationWindow, project: project::Project) {
         }
     });
     if let Some(position) = project.borrow().cursor_position {
-        player_state::seek_time(&player_state, position.clamp(project::Time::ZERO, duration));
+        player_state::seek_time(&player_state, position.max(project::Time::ZERO));
     }
     let cursor_project = project.clone();
     let cursor_player_state = player_state.clone();
@@ -149,9 +149,7 @@ fn build_ui(window: &adw::ApplicationWindow, project: project::Project) {
             return;
         }
         let snapshot = player_state::snapshot(&cursor_player_state);
-        let position = snapshot
-            .position
-            .clamp(project::Time::ZERO, snapshot.duration);
+        let position = snapshot.position.max(project::Time::ZERO);
         pending_cursor.set(Some(position));
         if cursor_update_scheduled.replace(true) {
             return;

@@ -19,10 +19,11 @@ pub(super) fn timeline_ui(
     }
     let (duration_seconds, frame_step_seconds) = {
         let project = project.borrow();
-        let playback_duration = player_state::snapshot(player_state).duration;
+        let player = player_state::snapshot(player_state);
         (
             folded_sequence::expanded_timeline_end(&project)
-                .max(playback_duration)
+                .max(player.duration)
+                .max(player.position)
                 .max(Time::from_seconds(1))
                 .as_secs_f64(),
             frame_step_seconds(&project),

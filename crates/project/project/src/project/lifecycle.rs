@@ -36,6 +36,11 @@ pub fn from_json_value(value: serde_json::Value) -> Result<Project, String> {
 }
 
 impl Project {
+    pub fn frame_step(&self) -> Time {
+        shrimply_math_core::time_from_frame(1, self.fps)
+            .expect("project frame rate must be positive")
+    }
+
     pub fn normalize_clip_transitions(&mut self) {
         for track in &mut self.video_tracks {
             normalize_visual_clip_transitions(&mut track.items);

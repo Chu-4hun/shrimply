@@ -93,8 +93,7 @@ pub(super) fn frame_step_seconds(project: &Project) -> f64 {
 }
 
 pub(super) fn frame_step(project: &Project) -> Time {
-    shrimply_math_core::time_from_frame(1, project.fps)
-        .expect("project frame rate must be positive")
+    project.frame_step()
 }
 
 pub(crate) fn waveform_chunks_per_second_from_frame_step(frame_step_seconds: f64) -> u32 {
