@@ -29,6 +29,9 @@ pub trait TemporalDecoder<S>: Sized {
     type Response;
 
     fn create(source: &S, context: &Self::Context) -> Result<Self, Self::Error>;
+    fn try_create(source: &S, context: &Self::Context) -> Result<Option<Self>, Self::Error> {
+        Self::create(source, context).map(Some)
+    }
     fn metadata(&self) -> Self::Metadata;
     fn current(&self) -> Option<Self::Current>;
     fn request(
@@ -199,8 +202,15 @@ where
             state.preparing += 1;
             state.context.clone()
         };
-        let decoder = match D::create(&source, &context) {
-            Ok(decoder) => decoder,
+        let decoder = match D::try_create(&source, &context) {
+            Ok(Some(decoder)) => decoder,
+            Ok(None) => {
+                self.state
+                    .lock()
+                    .expect("decoder pool mutex poisoned")
+                    .preparing -= 1;
+                return Ok(false);
+            }
             Err(error) => {
                 self.state
                     .lock()
@@ -430,7 +440,14 @@ where
             return Ok(false);
         }
 
-        let decoder = D::create(source, &self.context)?;
+        let decoder = if allow_overflow {
+            D::create(source, &self.context)?
+        } else {
+            let Some(decoder) = D::try_create(source, &self.context)? else {
+                return Ok(false);
+            };
+            decoder
+        };
         self.decoders.insert(
             owner.clone(),
             TimeEntry {

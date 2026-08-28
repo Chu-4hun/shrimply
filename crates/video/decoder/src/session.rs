@@ -41,6 +41,7 @@ impl DecodeControl {
 }
 
 pub type DecodedVisual = (Time, VisualFrame);
+pub(crate) type DecodeControls<'a> = [Option<&'a DecodeControl>; 2];
 
 pub enum DecodeOutcome {
     Frame(Option<DecodedVisual>),
@@ -145,14 +146,14 @@ impl VideoDecoderSession {
         &mut self,
         position: Time,
         cached: Option<DecodedVisual>,
-        control: Option<&DecodeControl>,
+        controls: DecodeControls<'_>,
         time_accurate: bool,
         continuous: bool,
     ) -> Result<DecodeOutcome, String> {
         if time_accurate {
-            self.frame_at_exact(position, cached, control, continuous)
+            self.frame_at_exact(position, cached, controls, continuous)
         } else {
-            self.frame_at(position, cached, control)
+            self.frame_at(position, cached, controls)
         }
     }
 
@@ -160,10 +161,10 @@ impl VideoDecoderSession {
         &mut self,
         position: Time,
         cached: Option<DecodedVisual>,
-        control: Option<&DecodeControl>,
+        controls: DecodeControls<'_>,
     ) -> Result<DecodeOutcome, String> {
         let _measurement = shrimply_benchmarking::measure("Video decode / Interactive total");
-        if self.cancel_if_superseded(control) {
+        if self.cancel_if_superseded(controls) {
             return Ok(DecodeOutcome::Superseded(cached));
         }
         if let Some(frame) = cached_frame(cached.as_ref(), position, self.frame_duration) {
@@ -202,7 +203,7 @@ impl VideoDecoderSession {
         let mut progress = cached.clone().filter(|frame| frame.0 <= position);
         let _packet_loop = shrimply_benchmarking::measure("Video decode / Interactive packet loop");
         loop {
-            let frame = match self.next_frame(control)? {
+            let frame = match self.next_frame(controls)? {
                 NextFrame::Frame(frame) => frame,
                 NextFrame::EndOfStream => {
                     self.active_request = None;
@@ -236,11 +237,11 @@ impl VideoDecoderSession {
         &mut self,
         position: Time,
         cached: Option<DecodedVisual>,
-        control: Option<&DecodeControl>,
+        controls: DecodeControls<'_>,
         continuous: bool,
     ) -> Result<DecodeOutcome, String> {
         let _measurement = shrimply_benchmarking::measure("Video decode / Exact total");
-        if self.cancel_if_superseded(control) {
+        if self.cancel_if_superseded(controls) {
             return Ok(DecodeOutcome::Superseded(cached));
         }
         if let Some(frame) = cached.as_ref().filter(|frame| frame.0 == position).cloned() {
@@ -285,7 +286,7 @@ impl VideoDecoderSession {
 
         let _fill = shrimply_benchmarking::measure("Video decode / Exact fill");
         loop {
-            let frame = match self.next_frame(control)? {
+            let frame = match self.next_frame(controls)? {
                 NextFrame::Frame(frame) => frame,
                 NextFrame::EndOfStream => {
                     self.finish_exact(position);
@@ -377,8 +378,8 @@ impl VideoDecoderSession {
         position.saturating_add(Time::from_fraction(1, 2_000_000)) >= last_decoded_position
     }
 
-    fn next_frame(&mut self, control: Option<&DecodeControl>) -> Result<NextFrame, String> {
-        let result = self.next_frame_inner(control);
+    fn next_frame(&mut self, controls: DecodeControls<'_>) -> Result<NextFrame, String> {
+        let result = self.next_frame_inner(controls);
         if result.is_err() {
             self.active_request = None;
             self.seek_target = None;
@@ -387,8 +388,8 @@ impl VideoDecoderSession {
         result
     }
 
-    fn next_frame_inner(&mut self, control: Option<&DecodeControl>) -> Result<NextFrame, String> {
-        if self.cancel_if_superseded(control) {
+    fn next_frame_inner(&mut self, controls: DecodeControls<'_>) -> Result<NextFrame, String> {
+        if self.cancel_if_superseded(controls) {
             return Ok(NextFrame::Superseded);
         }
         if let Some(frame) = self.lookahead.take() {
@@ -398,7 +399,7 @@ impl VideoDecoderSession {
         loop {
             match self.receive_frame()? {
                 ReceiveState::Frame(frame) => {
-                    if self.cancel_if_superseded(control) {
+                    if self.cancel_if_superseded(controls) {
                         return Ok(NextFrame::Superseded);
                     }
                     return Ok(NextFrame::Frame(frame));
@@ -414,7 +415,7 @@ impl VideoDecoderSession {
             }
 
             if self.pending_packet.is_none() && !self.input_eof {
-                if self.cancel_if_superseded(control) {
+                if self.cancel_if_superseded(controls) {
                     return Ok(NextFrame::Superseded);
                 }
                 self.pending_packet = self.read_video_packet();
@@ -427,7 +428,7 @@ impl VideoDecoderSession {
                     Ok(()) => {
                         self.pending_packet = None;
                         shrimply_benchmarking::increment("Video decode / Video packets accepted");
-                        if self.cancel_if_superseded(control) {
+                        if self.cancel_if_superseded(controls) {
                             return Ok(NextFrame::Superseded);
                         }
                     }
@@ -673,8 +674,11 @@ impl VideoDecoderSession {
         }
     }
 
-    fn cancel_if_superseded(&mut self, control: Option<&DecodeControl>) -> bool {
-        let superseded = control.is_some_and(DecodeControl::superseded);
+    fn cancel_if_superseded(&mut self, controls: DecodeControls<'_>) -> bool {
+        let superseded = controls
+            .into_iter()
+            .flatten()
+            .any(DecodeControl::superseded);
         if superseded {
             shrimply_benchmarking::increment("Video decode / Superseded requests");
             self.active_request = None;

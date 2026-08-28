@@ -224,7 +224,13 @@ impl VisualElement for VideoElement {
             self.prepared = None;
             let _ = self.decoder.try_latest(
                 mode.request(source_position)
-                    .handoff_from(self.handoff_from.clone()),
+                    .handoff_from(self.handoff_from.clone())
+                    .control(
+                        request
+                            .decode_control
+                            .filter(|_| !mode.continuous())
+                            .cloned(),
+                    ),
                 true,
             )?;
             shrimply_benchmarking::increment("Temporal decoder state / Dropped target");
