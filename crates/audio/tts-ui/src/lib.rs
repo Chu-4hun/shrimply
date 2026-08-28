@@ -671,24 +671,13 @@ fn input_widget(definition: &InputDefinition, input: &InputContext) -> gtk::Widg
                     _ => None,
                 })
                 .unwrap_or(*default);
-            let toggle = gtk::Switch::builder()
-                .active(active)
-                .halign(gtk::Align::End)
-                .build();
             let key = key.clone();
             let input = input.clone();
-            toggle.connect_active_notify(move |toggle| {
-                set_input(
-                    &input,
-                    &key,
-                    TtsValue::Toggle {
-                        value: toggle.is_active(),
-                    },
-                );
+            ui::switch_row(label, None, active, move |active| {
+                set_input(&input, &key, TtsValue::Toggle { value: active });
                 (input.on_commit)();
                 refresh_visibility(&input);
-            });
-            ui::control_row(label, &toggle)
+            })
         }
         InputDefinition::Number { .. } => number_widget(definition, input.clone()),
         InputDefinition::Table {

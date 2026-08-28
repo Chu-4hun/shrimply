@@ -7,8 +7,8 @@ use uuid::Uuid;
 use crate::{
     InspectorContext,
     player_state::{self, ProjectChange},
-    ui::control_row,
 };
+use shrimply_ui_foundation::ui::{control_row, switch_row};
 
 pub fn add_rows(value: &MaskModifier, out: &gtk::Box, id: Uuid, context: &InspectorContext) {
     let source = gtk::Box::new(gtk::Orientation::Horizontal, 4);
@@ -85,12 +85,7 @@ pub fn add_rows(value: &MaskModifier, out: &gtk::Box, id: Uuid, context: &Inspec
         },
     ));
 
-    let invert = gtk::Switch::builder()
-        .active(value.invert)
-        .halign(gtk::Align::End)
-        .valign(gtk::Align::Center)
-        .build();
-    invert.connect_active_notify({
+    out.append(&switch_row("Invert", None, value.invert, {
         let project = context.project.clone();
         let player = context.player_state.clone();
         let key = context.selected_item.clone();
@@ -98,7 +93,7 @@ pub fn add_rows(value: &MaskModifier, out: &gtk::Box, id: Uuid, context: &Inspec
             let Some(key) = &key else {
                 return;
             };
-            update_mask(&project, key, id, |mask| mask.invert = invert.is_active());
+            update_mask(&project, key, id, |mask| mask.invert = invert);
             player_state::refresh_project(
                 &player,
                 ProjectChange {
@@ -107,8 +102,7 @@ pub fn add_rows(value: &MaskModifier, out: &gtk::Box, id: Uuid, context: &Inspec
                 },
             );
         }
-    });
-    out.append(&control_row("Invert", &invert));
+    }));
 }
 
 fn update_mask(

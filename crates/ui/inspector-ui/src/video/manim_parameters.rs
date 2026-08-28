@@ -1,4 +1,5 @@
 use super::*;
+use shrimply_ui_foundation::ui::switch_row;
 
 #[derive(Default)]
 pub(super) struct ManimParameters(Vec<ManimParameter>);
@@ -140,17 +141,12 @@ fn controls(parameters: &ManimParameters, context: &InspectorContext) -> Vec<gtk
                 section.add_wide_control(control.widget());
             }
             (ManimParameterControl::Boolean, ManimParameterValue::Boolean(value)) => {
-                let control = gtk::Switch::builder()
-                    .active(*value)
-                    .halign(gtk::Align::End)
-                    .build();
                 let update = parameter_update(context, item_key.clone(), parameter);
-                control.connect_active_notify(move |control| {
-                    update(ManimParameterValue::Boolean(control.is_active()));
-                });
-                section.add_wide_control(&shrimply_ui_foundation::ui::control_row(
+                section.add_wide_control(&switch_row(
                     &parameter.label,
-                    &control,
+                    None,
+                    *value,
+                    move |value| update(ManimParameterValue::Boolean(value)),
                 ));
             }
             (ManimParameterControl::String, ManimParameterValue::String(value)) => {

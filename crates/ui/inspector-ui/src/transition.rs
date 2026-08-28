@@ -790,11 +790,16 @@ fn visual_rows(
                 |value| &mut value.effect_amount,
             );
             let fade_context = context.detached();
-            let fade = switch_row("Fade opacity", None, transition.effect_fade, move |active| {
-                update_visual(&fade_context, side, true, |value| {
-                    value.effect_fade = active
-                })
-            });
+            let fade = switch_row(
+                "Fade opacity",
+                None,
+                transition.effect_fade,
+                move |active| {
+                    update_visual(&fade_context, side, true, |value| {
+                        value.effect_fade = active
+                    })
+                },
+            );
             section.add_wide_control(&fade);
         }
         VisualTransitionKind::Dissolve => {
@@ -1129,11 +1134,16 @@ fn visual_rows(
                 |value| &mut value.effect_detail,
             );
             let fade_context = context.detached();
-            let fade = switch_row("Fade opacity", None, transition.effect_fade, move |active| {
-                update_visual(&fade_context, side, true, |value| {
-                    value.effect_fade = active
-                })
-            });
+            let fade = switch_row(
+                "Fade opacity",
+                None,
+                transition.effect_fade,
+                move |active| {
+                    update_visual(&fade_context, side, true, |value| {
+                        value.effect_fade = active
+                    })
+                },
+            );
             section.add_wide_control(&fade);
 
             let evolve_context = context.detached();
@@ -1142,9 +1152,9 @@ fn visual_rows(
                 None,
                 transition.effect_evolve_seed,
                 move |active| {
-                update_visual(&evolve_context, side, true, |value| {
-                    value.effect_evolve_seed = active
-                })
+                    update_visual(&evolve_context, side, true, |value| {
+                        value.effect_evolve_seed = active
+                    })
                 },
             );
             section.add_wide_control(&evolve);

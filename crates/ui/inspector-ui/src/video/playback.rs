@@ -10,6 +10,7 @@ use shrimply_project::project::{
     RepeatStrategy, Time, VideoItem, VisualMotionBlur, default_playback_speed, native_playback_fps,
     playback_speed_or_default,
 };
+use shrimply_ui_foundation::ui::switch_row;
 
 use crate::InspectedItem as SelectedItem;
 use crate::player_state::{self, ProjectChange, SharedPlayerState};
@@ -307,18 +308,12 @@ fn motion_blur_controls(
         .build();
     samples.set_sensitive(motion_blur.enabled);
 
-    let enabled = gtk::Switch::builder()
-        .active(motion_blur.enabled)
-        .halign(gtk::Align::End)
-        .valign(gtk::Align::Center)
-        .build();
     let enabled_project = context.project.clone();
     let enabled_player = context.player_state.clone();
     let enabled_angle = angle.clone();
     let enabled_phase = phase.clone();
     let enabled_samples = samples.clone();
-    enabled.connect_active_notify(move |enabled| {
-        let active = enabled.is_active();
+    let enabled = switch_row("Enabled", None, motion_blur.enabled, move |active| {
         enabled_angle.set_sensitive(active);
         enabled_phase.set_sensitive(active);
         enabled_samples.set_sensitive(active);
@@ -337,7 +332,7 @@ fn motion_blur_controls(
         );
     });
 
-    section.add_control_row("Enabled", &enabled);
+    section.add_wide_control(&enabled);
     section.add_control_row("Angle", &angle);
     section.add_control_row("Phase", &phase);
     section.add_control_row("Samples", &samples);

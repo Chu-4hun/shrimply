@@ -5,7 +5,7 @@ use std::{cell::Cell, rc::Rc, time::Duration};
 use gtk::glib;
 use gtk::prelude::*;
 use shrimply_project::project::Project;
-use shrimply_ui_foundation::ui::{ProgressButton, ProgressButtonState, enum_dropdown};
+use shrimply_ui_foundation::ui::{ProgressButton, ProgressButtonState, enum_dropdown, switch_row};
 use shrimply_video_modifiers::{ModifierEffect, RasterModifierEffect, sam2::Sam2Modifier};
 use uuid::Uuid;
 
@@ -222,23 +222,15 @@ pub fn add_rows(value: &Sam2Modifier, out: &gtk::Box, id: Uuid, context: &Inspec
     }
     out.append(analyze.widget());
 
-    let invert = gtk::Switch::builder()
-        .active(value.invert)
-        .halign(gtk::Align::End)
-        .valign(gtk::Align::Center)
-        .build();
-    invert.connect_active_notify({
+    out.append(&switch_row("Invert", None, value.invert, {
         let project = context.project.clone();
         let player = context.player_state.clone();
         let key = context.selected_item.clone();
         move |invert| {
-            update(&project, key.as_ref(), id, |sam2| {
-                sam2.invert = invert.is_active()
-            });
+            update(&project, key.as_ref(), id, |sam2| sam2.invert = invert);
             refresh(&player);
         }
-    });
-    out.append(&control_row("Invert", &invert));
+    }));
 }
 
 fn update_analysis_status(

@@ -876,14 +876,14 @@ fn voice_change_rows(
         None,
         value.maintain_pitch,
         move |maintain_pitch| {
-        update_voice_change(&detached, id, "audio-voice-maintain-pitch", move |value| {
-            if value.maintain_pitch == maintain_pitch {
-                false
-            } else {
-                value.maintain_pitch = maintain_pitch;
-                true
-            }
-        });
+            update_voice_change(&detached, id, "audio-voice-maintain-pitch", move |value| {
+                if value.maintain_pitch == maintain_pitch {
+                    false
+                } else {
+                    value.maintain_pitch = maintain_pitch;
+                    true
+                }
+            });
         },
     );
 

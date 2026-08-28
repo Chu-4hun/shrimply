@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use gtk::prelude::*;
 use shrimply_project::project::{AlphaMaskShape, VisualAlphaMask, VisualAlphaMaskTarget};
+use shrimply_ui_foundation::ui::switch_row;
 
 use crate::{
     InspectorContext,
@@ -78,20 +79,14 @@ pub(crate) fn widget(target: VisualAlphaMaskTarget, context: &InspectorContext) 
         },
     ));
 
-    let invert = gtk::Switch::builder()
-        .active(mask.invert)
-        .halign(gtk::Align::End)
-        .valign(gtk::Align::Center)
-        .build();
-    invert.connect_active_notify({
+    out.append(&switch_row("Invert", None, mask.invert, {
         let context = context.detached();
         move |invert| {
             update(&context, target, "invert-alpha-mask", |mask| {
-                mask.invert = invert.is_active()
+                mask.invert = invert
             });
         }
-    });
-    out.append(&crate::ui::control_row("Invert", &invert));
+    }));
 
     out.append(&vec_control(
         "Center",

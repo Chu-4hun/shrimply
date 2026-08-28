@@ -16,6 +16,7 @@ use shrimply_project::project::{
     AudioItem, AudioSource, AudioSpeedMethod, Project, RepeatStrategy, Time,
     default_playback_speed, playback_speed_or_default,
 };
+use shrimply_ui_foundation::ui::switch_row;
 
 use super::{
     Inspectable, InspectorContext,
@@ -261,17 +262,12 @@ impl Default for AudioOutput {
 }
 
 fn audio_output_controls(output: &AudioOutput, context: &InspectorContext) -> Vec<gtk::Widget> {
-    let toggle = gtk::Switch::builder()
-        .active(output.enabled)
-        .halign(gtk::Align::End)
-        .valign(gtk::Align::Center)
-        .build();
     let enabled_context = context.detached();
-    toggle.connect_active_notify(move |toggle| {
-        update_audio_item_enabled(&enabled_context, toggle.is_active());
+    let toggle = switch_row("Enabled", None, output.enabled, move |enabled| {
+        update_audio_item_enabled(&enabled_context, enabled);
     });
     let section = InspectorSection::controls();
-    section.add_control_row("Enabled", &toggle);
+    section.add_wide_control(&toggle);
     section.add_wide_control(&audio_item_scalar_row(
         "Level",
         &output.gain.decibels,
