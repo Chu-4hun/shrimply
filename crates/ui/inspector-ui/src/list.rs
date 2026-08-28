@@ -114,7 +114,10 @@ fn render_list(items: Vec<InspectorListItem>, context: &InspectorContext) -> gtk
                             .get(&(target.clone(), item.key().to_string()))
                             .copied()
                     })
-                    .unwrap_or(matches!(item.key(), "transform" | "text" | "caption-text"));
+                    .unwrap_or(matches!(
+                        item.key(),
+                        "transform" | "text" | "caption-text" | "tts"
+                    ));
 
                 let row = gtk::Box::new(gtk::Orientation::Vertical, 0);
                 row.add_css_class("card");
