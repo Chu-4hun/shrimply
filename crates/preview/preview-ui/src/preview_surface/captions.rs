@@ -1,10 +1,12 @@
-use crate::project::{CaptionFont, CaptionItem, HorizontalAlign, Project, Time, VerticalAlign};
+use crate::project::{
+    CaptionFont, CaptionItem, HorizontalAlign, ItemAddress, Project, Time, VerticalAlign,
+};
 use crate::timeline::renderer::{Color, Rect, TimelinePainter, Vec2, vec2};
 use skia_safe::{
     FontMgr, FontStyle, Point,
     textlayout::{
-        FontCollection, Paragraph, ParagraphBuilder, ParagraphStyle, TextAlign, TextDecoration,
-        TextStyle,
+        FontCollection, Paragraph, ParagraphBuilder, ParagraphStyle, RectHeightStyle,
+        RectWidthStyle, TextAlign, TextDecoration, TextStyle,
     },
 };
 
@@ -13,6 +15,8 @@ const PREVIEW_CAPTION_BOTTOM_PADDING: f32 = 24.0;
 const PREVIEW_CAPTION_PADDING_X: f32 = 8.0;
 const PREVIEW_CAPTION_PADDING_Y: f32 = 3.0;
 const PARAGRAPH_LAYOUT_EPSILON: f32 = 1.0;
+const CAPTION_SPLIT_CARET_WIDTH: f32 = 2.0;
+const CAPTION_SPLIT_CARET_PADDING: f32 = 2.0;
 
 thread_local! {
     static CAPTION_FONTS: FontCollection = {
@@ -28,6 +32,23 @@ struct CaptionFontId {
     font: CaptionFont,
 }
 
+struct CaptionLayout {
+    paragraph: Paragraph,
+    text: String,
+    text_pos: Vec2,
+    text_size: Vec2,
+    background_rect: Rect,
+    font: CaptionFontId,
+    wrap_width: f32,
+    elapsed_millis: u32,
+    vertical: bool,
+}
+
+struct CaptionSplit {
+    text_byte: usize,
+    caret: Rect,
+}
+
 trait CaptionPainter {
     fn caption_text(
         &self,
@@ -38,15 +59,6 @@ trait CaptionPainter {
         width: f32,
         align: HorizontalAlign,
     );
-
-    fn layout_caption_text(
-        &self,
-        text: &str,
-        font: CaptionFontId,
-        color: Color,
-        width: f32,
-        align: HorizontalAlign,
-    ) -> Vec2;
 }
 
 impl CaptionPainter for TimelinePainter {
@@ -61,18 +73,6 @@ impl CaptionPainter for TimelinePainter {
     ) {
         caption_paragraph(text, font, color, width, align)
             .paint(self.canvas(), Point::new(position.x, position.y));
-    }
-
-    fn layout_caption_text(
-        &self,
-        text: &str,
-        font: CaptionFontId,
-        color: Color,
-        width: f32,
-        align: HorizontalAlign,
-    ) -> Vec2 {
-        let paragraph = caption_paragraph(text, font, color, width, align);
-        Vec2::new(paragraph.max_width(), paragraph.height())
     }
 }
 
@@ -137,11 +137,83 @@ pub(super) fn draw_captions(
     preview_rect: Rect,
     caption_font_size: f32,
     caption_bottom_inset: f32,
+    split: Option<(&ItemAddress, Vec2, Color)>,
 ) {
     if preview_rect.width() <= 1.0 || preview_rect.height() <= 1.0 {
         return;
     }
 
+    let active = active_captions(project, position);
+    let mut bottom_stack = caption_bottom_inset;
+    for item in active {
+        let automatic_bottom = item.h_align == HorizontalAlign::Center
+            && item.v_align == VerticalAlign::Bottom
+            && item.position_x == 50
+            && item.position_y == 90;
+        let layout = caption_layout(
+            &item,
+            position,
+            preview_rect,
+            caption_font_size,
+            automatic_bottom,
+            if automatic_bottom { bottom_stack } else { 0.0 },
+        );
+        let height = layout.as_ref().map_or(0.0, |layout| layout.text_size.y);
+        if let Some(layout) = layout {
+            let split = split
+                .filter(|(address, _, _)| {
+                    address.item_id() == item.id && item.start < position && position < item.end
+                })
+                .and_then(|(_, point, color)| {
+                    split_for_layout(&item, &layout, point).map(|split| (split, color))
+                });
+            draw_caption(painter, &item, layout, split);
+        }
+        if automatic_bottom {
+            bottom_stack += height + PREVIEW_CAPTION_PADDING_Y * 2.0;
+        }
+    }
+}
+
+pub(super) fn split_at_position(
+    project: &Project,
+    address: &ItemAddress,
+    position: Time,
+    preview_rect: Rect,
+    caption_font_size: f32,
+    caption_bottom_inset: f32,
+    point: Vec2,
+) -> Option<usize> {
+    let selected = project.caption_item(address)?;
+    if !(selected.start < position && position < selected.end) {
+        return None;
+    }
+    let mut bottom_stack = caption_bottom_inset;
+    for item in active_captions(project, position) {
+        let automatic_bottom = item.h_align == HorizontalAlign::Center
+            && item.v_align == VerticalAlign::Bottom
+            && item.position_x == 50
+            && item.position_y == 90;
+        let layout = caption_layout(
+            &item,
+            position,
+            preview_rect,
+            caption_font_size,
+            automatic_bottom,
+            if automatic_bottom { bottom_stack } else { 0.0 },
+        );
+        if automatic_bottom {
+            bottom_stack += layout.as_ref().map_or(0.0, |layout| layout.text_size.y)
+                + PREVIEW_CAPTION_PADDING_Y * 2.0;
+        }
+        if item.id == address.item_id() {
+            return split_for_layout(&item, &layout?, point).map(|split| split.text_byte);
+        }
+    }
+    None
+}
+
+fn active_captions(project: &Project, position: Time) -> Vec<CaptionItem> {
     let mut active = project
         .caption_tracks
         .iter()
@@ -149,6 +221,7 @@ pub(super) fn draw_captions(
         .filter(|track| track.enabled)
         .flat_map(|track| &track.items)
         .filter(|item| position >= item.start && position < item.end)
+        .cloned()
         .collect::<Vec<_>>();
     active.sort_by_key(|item| {
         (
@@ -160,59 +233,42 @@ pub(super) fn draw_captions(
             item.start,
         )
     });
-    let mut bottom_stack = caption_bottom_inset;
-    for item in active {
-        let defaults = (!item.styling_enabled || !item.layout_enabled)
-            .then(|| CaptionItem::new(item.start, item.end, item.text.clone()));
-        let effective_item = defaults.as_ref().map(|defaults| {
-            let mut item = item.clone();
-            if !item.styling_enabled {
-                item.text_color = defaults.text_color;
-                item.background_color = defaults.background_color;
-                item.edge_color = defaults.edge_color;
-                item.edge_style = defaults.edge_style;
-                item.font = defaults.font;
-                item.font_scale = defaults.font_scale;
-            }
-            if !item.layout_enabled {
-                item.h_align = defaults.h_align;
-                item.v_align = defaults.v_align;
-                item.position_x = defaults.position_x;
-                item.position_y = defaults.position_y;
+    active
+        .into_iter()
+        .map(|mut item| {
+            let defaults = (!item.styling_enabled || !item.layout_enabled)
+                .then(|| CaptionItem::new(item.start, item.end, item.text.clone()));
+            if let Some(defaults) = defaults {
+                if !item.styling_enabled {
+                    item.text_color = defaults.text_color;
+                    item.background_color = defaults.background_color;
+                    item.edge_color = defaults.edge_color;
+                    item.edge_style = defaults.edge_style;
+                    item.font = defaults.font;
+                    item.font_scale = defaults.font_scale;
+                }
+                if !item.layout_enabled {
+                    item.h_align = defaults.h_align;
+                    item.v_align = defaults.v_align;
+                    item.position_x = defaults.position_x;
+                    item.position_y = defaults.position_y;
+                }
             }
             item
-        });
-        let item = effective_item.as_ref().unwrap_or(item);
-        let automatic_bottom = item.h_align == HorizontalAlign::Center
-            && item.v_align == VerticalAlign::Bottom
-            && item.position_x == 50
-            && item.position_y == 90;
-        let height = draw_caption(
-            painter,
-            item,
-            position,
-            preview_rect,
-            caption_font_size,
-            automatic_bottom,
-            if automatic_bottom { bottom_stack } else { 0.0 },
-        );
-        if automatic_bottom {
-            bottom_stack += height + PREVIEW_CAPTION_PADDING_Y * 2.0;
-        }
-    }
+        })
+        .collect()
 }
 
-fn draw_caption(
-    painter: &TimelinePainter,
+fn caption_layout(
     item: &CaptionItem,
     playback_position: Time,
     preview_rect: Rect,
     caption_font_size: f32,
     automatic_bottom: bool,
     caption_bottom_inset: f32,
-) -> f32 {
+) -> Option<CaptionLayout> {
     if item.text.trim().is_empty() || item.text_color.a == 0 {
-        return 0.0;
+        return None;
     }
 
     let margin = PREVIEW_CAPTION_SAFE_MARGIN;
@@ -228,10 +284,8 @@ fn draw_caption(
     let text_color = item.text_color.into();
     let elapsed_millis =
         (playback_position.as_nanos_i128() - item.start.as_nanos_i128()).max(0) / 1_000_000;
-    let visible_text = crate::caption::markup::visible_text(
-        &item.text,
-        elapsed_millis.min(i128::from(u32::MAX)) as u32,
-    );
+    let elapsed_millis = elapsed_millis.min(i128::from(u32::MAX)) as u32;
+    let visible_text = crate::caption::markup::visible_text(&item.text, elapsed_millis);
     let vertical = item.writing_direction != crate::project::CaptionWritingDirection::Horizontal;
     let text = vertical.then(|| {
         crate::caption::markup::plain_text(&visible_text)
@@ -240,10 +294,10 @@ fn draw_caption(
             .collect::<String>()
     });
     let text = text.as_deref().unwrap_or(&visible_text);
-    let text_size =
-        painter.layout_caption_text(text, font.clone(), text_color, wrap_width, item.h_align);
+    let paragraph = caption_paragraph(text, font.clone(), text_color, wrap_width, item.h_align);
+    let text_size = Vec2::new(paragraph.max_width(), paragraph.height());
     if text_size.x <= 0.0 || text_size.y <= 0.0 {
-        return 0.0;
+        return None;
     }
     let text_pos = caption_position(
         item,
@@ -263,13 +317,107 @@ fn draw_caption(
             text_pos.y + text_size.y + PREVIEW_CAPTION_PADDING_Y,
         ),
     );
+    Some(CaptionLayout {
+        paragraph,
+        text: text.to_string(),
+        text_pos,
+        text_size,
+        background_rect,
+        font,
+        wrap_width,
+        elapsed_millis,
+        vertical,
+    })
+}
+
+fn draw_caption(
+    painter: &TimelinePainter,
+    item: &CaptionItem,
+    layout: CaptionLayout,
+    split: Option<(CaptionSplit, Color)>,
+) {
     if item.background_color.a > 0 {
-        painter.rect_filled(background_rect, 0, item.background_color.into());
+        painter.rect_filled(layout.background_rect, 0, item.background_color.into());
     }
 
-    draw_caption_edge(painter, item, text_pos, text, font.clone(), wrap_width);
-    painter.caption_text(text_pos, text, font, text_color, wrap_width, item.h_align);
-    text_size.y
+    draw_caption_edge(
+        painter,
+        item,
+        layout.text_pos,
+        &layout.text,
+        layout.font,
+        layout.wrap_width,
+    );
+    layout.paragraph.paint(
+        painter.canvas(),
+        Point::new(layout.text_pos.x, layout.text_pos.y),
+    );
+    if let Some((split, color)) = split {
+        painter.rect_filled(split.caret, 0, color);
+    }
+}
+
+fn split_for_layout(
+    item: &CaptionItem,
+    layout: &CaptionLayout,
+    point: Vec2,
+) -> Option<CaptionSplit> {
+    let hit = layout
+        .paragraph
+        .get_glyph_position_at_coordinate(Point::new(
+            point.x - layout.text_pos.x,
+            point.y - layout.text_pos.y,
+        ));
+    let rendered = crate::caption::markup::plain_text(&layout.text);
+    let mut rendered_byte = usize::try_from(hit.position).ok()?.min(rendered.len());
+    while !rendered.is_char_boundary(rendered_byte) {
+        rendered_byte -= 1;
+    }
+    let visible_byte = if layout.vertical {
+        rendered[..rendered_byte]
+            .chars()
+            .filter(|character| *character != '\n')
+            .map(char::len_utf8)
+            .sum()
+    } else {
+        rendered_byte
+    };
+    let text_byte = crate::caption::markup::plain_text_byte_at_visible_byte(
+        &item.text,
+        layout.elapsed_millis,
+        visible_byte,
+    )?;
+    crate::caption::markup::split_at_plain_text_byte(&item.text, text_byte)?;
+
+    let (range, trailing) = if rendered_byte < rendered.len() {
+        let next = rendered[rendered_byte..].chars().next()?.len_utf8();
+        (rendered_byte..rendered_byte + next, false)
+    } else {
+        let previous = rendered[..rendered_byte].char_indices().next_back()?.0;
+        (previous..rendered_byte, true)
+    };
+    let text_box = layout
+        .paragraph
+        .get_rects_for_range(range, RectHeightStyle::Tight, RectWidthStyle::Tight)
+        .into_iter()
+        .next()?;
+    let x = layout.text_pos.x
+        + if trailing {
+            text_box.rect.right()
+        } else {
+            text_box.rect.left()
+        };
+    let top = layout.text_pos.y + text_box.rect.top() - CAPTION_SPLIT_CARET_PADDING;
+    let bottom = layout.text_pos.y + text_box.rect.bottom() + CAPTION_SPLIT_CARET_PADDING;
+    Some(CaptionSplit {
+        text_byte,
+        caret: Rect::from_xywh(
+            x - CAPTION_SPLIT_CARET_WIDTH / 2.0,
+            top,
+            CAPTION_SPLIT_CARET_WIDTH,
+            bottom - top,
+        ),
+    })
 }
 
 fn draw_caption_edge(

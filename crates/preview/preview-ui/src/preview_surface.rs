@@ -28,6 +28,11 @@ use crate::video::gpu::CompositedVideoFrame;
 #[path = "preview_surface/captions.rs"]
 mod captions;
 use captions::draw_captions;
+#[path = "preview_surface/dispatch.rs"]
+mod dispatch;
+use dispatch::{
+    apply_response, attach_frame_scheduler, caption_split_at_pointer, split_caption_at_pointer,
+};
 #[path = "preview_surface/geometry.rs"]
 mod geometry;
 #[path = "preview_surface/guides.rs"]
@@ -87,6 +92,7 @@ struct VideoSurfaceState {
     snap_radius_px: u32,
     caption_bottom_inset: f32,
     caption_font_size: f32,
+    caption_split_hover: Option<GlamVec2>,
     preview_padding_px: u32,
     preview_shadow_size_px: u32,
     preview_upsample_method: preferences_store::PreviewUpsampleMethod,
@@ -184,6 +190,7 @@ impl PreviewController {
             snap_radius_px: preference.timeline_snap_radius_px,
             caption_bottom_inset: 0.0,
             caption_font_size: preference.caption_font_size,
+            caption_split_hover: None,
             preview_padding_px: preference.preview_padding_px,
             preview_shadow_size_px: preference.preview_shadow_size_px,
             preview_upsample_method: preference.preview_upsample_method,
@@ -960,6 +967,8 @@ fn attach_render(
         let player = player_state::snapshot(&player_state);
         let position = player.position;
         let focused_video = selection_state::focused_video_address(&selection_state, &project);
+        let focused_caption = selection_state::focused_item_address(&selection_state, &project)
+            .filter(|address| project.caption_item(address).is_some());
         let focused_preview = preview_focus::snapshot(&preview_focus);
         let mut state = state.borrow_mut();
         let mut controller = controller.borrow_mut();
@@ -1008,6 +1017,7 @@ fn attach_render(
             .then_some(project.preview_guides.as_ref());
         let caption_bottom_inset = state.caption_bottom_inset;
         let caption_font_size = state.caption_font_size;
+        let caption_split_hover = state.caption_split_hover;
         let shadow_size_px = state.preview_shadow_size_px;
         let upsample_method = state.preview_upsample_method;
         let downsample_method = state.preview_downsample_method;
@@ -1052,6 +1062,10 @@ fn attach_render(
                         surface_rect,
                         caption_font_size,
                         caption_bottom_inset,
+                        focused_caption
+                            .as_ref()
+                            .zip(caption_split_hover)
+                            .map(|(address, point)| (address, point, selection_color)),
                     );
                     let canvas_size = GlamVec2::new(
                         project.canvas_size.width.max(1) as f32,
@@ -1409,80 +1423,6 @@ fn cancel_provider(
     set_base_exclusion(&mut controller, None, position);
 }
 
-fn attach_frame_scheduler(
-    area: &gtk::GLArea,
-    player_state: SharedPlayerState,
-    controller: Rc<RefCell<PreviewControllerState>>,
-) {
-    area.add_tick_callback(move |area, _| {
-        let mut controller_state = controller.borrow_mut();
-        let live_base_pending =
-            controller_state.live_base_pending && controller_state.live_base_in_flight.is_none();
-        if live_base_pending {
-            controller_state.live_base_pending = false;
-        }
-        let frame_pending = std::mem::take(&mut controller_state.frame_pending);
-        if !frame_pending && !live_base_pending {
-            return glib::ControlFlow::Continue;
-        }
-        drop(controller_state);
-        if live_base_pending {
-            player_state::refresh_project(
-                &player_state,
-                player_state::ProjectChange {
-                    video: true,
-                    live_preview: true,
-                    ..Default::default()
-                },
-            );
-            let revision = player_state::snapshot(&player_state).revision;
-            let mut controller = controller.borrow_mut();
-            controller.live_base_in_flight = Some(revision);
-            if let Some(provider) = controller.provider.as_mut() {
-                provider.project_revision = revision;
-            }
-        }
-        if frame_pending {
-            area.queue_render();
-        }
-        glib::ControlFlow::Continue
-    });
-}
-
-fn apply_response(
-    area: &gtk::GLArea,
-    project: &Rc<RefCell<Project>>,
-    player_state: &SharedPlayerState,
-    response: PreviewResponse,
-    commit_name: &'static str,
-) {
-    match response.cursor {
-        CursorUpdate::Keep => {}
-        CursorUpdate::Set(value) => area.set_cursor_from_name(Some(cursor_name(value))),
-        CursorUpdate::Clear => area.set_cursor_from_name(None),
-    }
-    if response.edit.commits() {
-        crate::project::commit_edit(&project.borrow(), commit_name);
-    }
-    if response.edit.refresh != shrimply_preview_core::PreviewRefresh::NONE {
-        player_state::refresh_project(
-            player_state,
-            player_state::ProjectChange {
-                video: response
-                    .edit
-                    .refresh
-                    .contains(shrimply_preview_core::PreviewRefresh::PREVIEW),
-                live_preview: response.edit.is_live(),
-                inspector: response
-                    .edit
-                    .refresh
-                    .contains(shrimply_preview_core::PreviewRefresh::INSPECTOR),
-                ..Default::default()
-            },
-        );
-    }
-}
-
 fn attach_input(
     area: &gtk::GLArea,
     project: Rc<RefCell<Project>>,
@@ -1497,6 +1437,7 @@ fn attach_input(
     let sequence_moved = Rc::new(Cell::new(false));
     let guide_drag = Rc::new(Cell::new(None::<guides::GuideDrag>));
     let ruler_hover = Cell::new(false);
+    let caption_hover = Cell::new(false);
 
     let motion = gtk::EventControllerMotion::new();
     let motion_area = area.clone();
@@ -1507,18 +1448,57 @@ fn attach_input(
     let motion_state = state.clone();
     let motion_controller = controller.clone();
     motion.connect_motion(move |source, x, y| {
+        let position = GlamVec2::new(x as f32, y as f32);
         if motion_controller.borrow().sequence != PointerSequence::Idle {
+            if motion_state
+                .borrow_mut()
+                .caption_split_hover
+                .take()
+                .is_some()
+            {
+                motion_area.queue_render();
+            }
             return;
         }
-        let position = GlamVec2::new(x as f32, y as f32);
         if let Some(cursor) =
             guides::hover_cursor(&motion_area, &motion_project, &motion_state, position)
         {
+            if motion_state
+                .borrow_mut()
+                .caption_split_hover
+                .take()
+                .is_some()
+            {
+                motion_area.queue_render();
+            }
+            caption_hover.set(false);
             ruler_hover.set(true);
             motion_area.set_cursor_from_name(Some(cursor));
             return;
         }
         if ruler_hover.replace(false) {
+            motion_area.set_cursor_from_name(None);
+        }
+        let split_active = caption_split_at_pointer(
+            &motion_area,
+            &motion_project,
+            &motion_player,
+            &motion_selection,
+            &motion_state,
+            position,
+        )
+        .is_some();
+        let hover = split_active.then_some(position);
+        if motion_state.borrow().caption_split_hover != hover {
+            motion_state.borrow_mut().caption_split_hover = hover;
+            motion_area.queue_render();
+        }
+        if split_active {
+            caption_hover.set(true);
+            motion_area.set_cursor_from_name(Some("text"));
+            return;
+        }
+        if caption_hover.replace(false) {
             motion_area.set_cursor_from_name(None);
         }
         dispatch_pointer(
@@ -1542,6 +1522,14 @@ fn attach_input(
     let leave_state = state.clone();
     let leave_controller = controller.clone();
     motion.connect_leave(move |_| {
+        if leave_state
+            .borrow_mut()
+            .caption_split_hover
+            .take()
+            .is_some()
+        {
+            leave_area.queue_render();
+        }
         if leave_controller.borrow().sequence != PointerSequence::Idle {
             return;
         }
@@ -1592,6 +1580,18 @@ fn attach_input(
             )
         {
             begin_guide.set(Some(guide));
+            return;
+        }
+        if button == 1
+            && split_caption_at_pointer(
+                &begin_area,
+                &begin_project,
+                &begin_player,
+                &begin_selection,
+                &begin_state,
+                input.sample.position,
+            )
+        {
             return;
         }
         dispatch_pointer(

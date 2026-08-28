@@ -156,6 +156,125 @@ pub fn visible_text(source: &str, millis: u32) -> String {
     output
 }
 
+pub fn plain_text_byte_at_visible_byte(
+    source: &str,
+    millis: u32,
+    visible_byte: usize,
+) -> Option<usize> {
+    let mut source_byte = 0;
+    let mut rendered_byte = 0;
+    for span in parse(source) {
+        let source_len = span
+            .ruby
+            .as_ref()
+            .map_or(span.text.len(), |ruby| ruby.base.len());
+        if span.start_millis <= millis {
+            let rendered_len = span.ruby.as_ref().map_or(span.text.len(), |ruby| {
+                ruby.base.len() + ruby.annotation.len() + 2
+            });
+            if visible_byte <= rendered_byte + rendered_len {
+                let local = visible_byte.saturating_sub(rendered_byte);
+                let local = span
+                    .ruby
+                    .as_ref()
+                    .map_or(local, |ruby| local.min(ruby.base.len()));
+                return Some(source_byte + local.min(source_len));
+            }
+            rendered_byte += rendered_len;
+        }
+        source_byte += source_len;
+    }
+    None
+}
+
+pub fn split_at_plain_text_byte(source: &str, byte: usize) -> Option<(String, String)> {
+    let spans = parse(source);
+    let plain_len = spans
+        .iter()
+        .map(|span| {
+            span.ruby
+                .as_ref()
+                .map_or(span.text.len(), |ruby| ruby.base.len())
+        })
+        .sum::<usize>();
+    if byte == 0 || byte >= plain_len {
+        return None;
+    }
+
+    let mut left = Vec::new();
+    let mut right = Vec::new();
+    let mut offset = 0;
+    for span in spans {
+        let text = span
+            .ruby
+            .as_ref()
+            .map_or(span.text.as_str(), |ruby| ruby.base.as_str());
+        let end = offset + text.len();
+        if byte <= offset {
+            right.push(span);
+        } else if byte >= end {
+            left.push(span);
+        } else {
+            let split = byte - offset;
+            if !text.is_char_boundary(split) {
+                return None;
+            }
+            let left_text = text[..split].to_string();
+            let right_text = text[split..].to_string();
+            let mut left_span = span.clone();
+            left_span.text = left_text;
+            left_span.ruby = None;
+            let mut right_span = span;
+            right_span.text = right_text;
+            right_span.ruby = None;
+            left.push(left_span);
+            right.push(right_span);
+        }
+        offset = end;
+    }
+
+    let encode = |spans: Vec<Span>| {
+        use std::fmt::Write;
+
+        let mut output = String::new();
+        for span in spans {
+            if span.start_millis > 0 {
+                write!(output, "{{{}}}", span.start_millis)
+                    .expect("writing to a string cannot fail");
+            }
+            if span.bold {
+                output.push_str("**");
+            }
+            if span.italic {
+                output.push('*');
+            }
+            if span.underline {
+                output.push_str("__");
+            }
+            if let Some(ruby) = span.ruby {
+                write!(output, "[{}/{}]", ruby.base, ruby.annotation)
+                    .expect("writing to a string cannot fail");
+            } else {
+                output.push_str(&span.text);
+            }
+            if span.underline {
+                output.push_str("__");
+            }
+            if span.italic {
+                output.push('*');
+            }
+            if span.bold {
+                output.push_str("**");
+            }
+        }
+        output
+    };
+    let left = encode(left);
+    let right = encode(right);
+    (!plain_text(&left).trim().is_empty() && !plain_text(&right).trim().is_empty())
+        .then_some((left, right))
+}
+
 fn push(
     spans: &mut Vec<Span>,
     text: &mut String,

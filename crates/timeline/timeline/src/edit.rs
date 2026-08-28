@@ -217,6 +217,43 @@ pub fn set_caption_text(
     }
 }
 
+pub fn split_caption(
+    project: &mut Project,
+    address: &ItemAddress,
+    cut: Time,
+    text_byte: usize,
+) -> Result<(ItemAddress, ItemAddress), String> {
+    let track = address.track();
+    let mut right = project
+        .caption_item(address)
+        .cloned()
+        .ok_or_else(|| "selected caption was not found".to_string())?;
+    let cut = cut.snapped(project.frame_step());
+    if !(right.start < cut && cut < right.end) {
+        return Err("playhead must be inside the selected caption".to_string());
+    }
+    let (left_text, right_text) =
+        shrimply_project::caption::markup::split_at_plain_text_byte(&right.text, text_byte)
+            .ok_or_else(|| "caption text cannot be split at that position".to_string())?;
+    let mut left = right.clone();
+    left.end = cut;
+    left.text = left_text;
+    right.id = Uuid::new_v4();
+    right.start = cut;
+    right.text = right_text;
+
+    project
+        .take_item(address)
+        .expect("validated caption must still exist");
+    let left = project
+        .insert_item(&track, ProjectItem::Caption(left))
+        .expect("split caption must return to its source track");
+    let right = project
+        .insert_item(&track, ProjectItem::Caption(right))
+        .expect("split caption must return to its source track");
+    Ok((left, right))
+}
+
 pub fn set_audio_enabled(
     project: &mut Project,
     address: &ItemAddress,

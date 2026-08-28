@@ -128,9 +128,17 @@ def transcribe_parakeet(
 ) -> Transcription:
     samples = audio_samples(payload)
     inputs = processor(samples, sampling_rate=SAMPLE_RATE)
+    encoder_frames = model.encoder._get_subsampling_output_length(
+        torch.tensor([inputs["input_features"].shape[1]], device=model.device)
+    ).item()
+    max_new_tokens = model.max_symbols_per_step * encoder_frames
     inputs.to(model.device, dtype=model.dtype)
     with torch.inference_mode():
-        output = model.generate(**inputs, return_dict_in_generate=True)
+        output = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            return_dict_in_generate=True,
+        )
     decoded, timestamps = processor.decode(
         output.sequences,
         durations=output.durations,
