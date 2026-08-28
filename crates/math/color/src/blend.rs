@@ -28,6 +28,7 @@ pub enum LayerBlendMode {
     Exclusion,
     Subtract,
     Divide,
+    Reflect,
     Hue,
     Saturation,
     Color,
@@ -224,6 +225,13 @@ fn blend_channel(source: f32, destination: f32, mode: LayerBlendMode) -> f32 {
                 1.0
             } else {
                 (destination / source).min(1.0)
+            }
+        }
+        LayerBlendMode::Reflect => {
+            if source >= 1.0 {
+                1.0
+            } else {
+                (destination * destination / (1.0 - source)).min(1.0)
             }
         }
         LayerBlendMode::DarkerColor

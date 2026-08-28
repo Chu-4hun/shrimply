@@ -1,3 +1,4 @@
+use crate::caption::markup::{self, Span};
 use crate::project::{
     CaptionFont, CaptionItem, HorizontalAlign, ItemAddress, Project, Time, VerticalAlign,
 };
@@ -34,7 +35,8 @@ struct CaptionFontId {
 
 struct CaptionLayout {
     paragraph: Paragraph,
-    text: String,
+    spans: Vec<Span>,
+    rendered: String,
     text_pos: Vec2,
     text_size: Vec2,
     background_rect: Rect,
@@ -49,35 +51,8 @@ struct CaptionSplit {
     caret: Rect,
 }
 
-trait CaptionPainter {
-    fn caption_text(
-        &self,
-        position: Vec2,
-        text: &str,
-        font: CaptionFontId,
-        color: Color,
-        width: f32,
-        align: HorizontalAlign,
-    );
-}
-
-impl CaptionPainter for TimelinePainter {
-    fn caption_text(
-        &self,
-        position: Vec2,
-        text: &str,
-        font: CaptionFontId,
-        color: Color,
-        width: f32,
-        align: HorizontalAlign,
-    ) {
-        caption_paragraph(text, font, color, width, align)
-            .paint(self.canvas(), Point::new(position.x, position.y));
-    }
-}
-
 fn caption_paragraph(
-    text: &str,
+    spans: &[Span],
     font: CaptionFontId,
     color: Color,
     width: f32,
@@ -91,7 +66,7 @@ fn caption_paragraph(
     });
     let mut builder =
         CAPTION_FONTS.with(|fonts| ParagraphBuilder::new(&paragraph_style, fonts.clone()));
-    for span in crate::caption::markup::parse(text) {
+    for span in spans {
         let mut style = TextStyle::new();
         let family = match font.font {
             CaptionFont::Roboto => "Roboto",
@@ -115,9 +90,11 @@ fn caption_paragraph(
         if span.underline {
             style.set_decoration_type(TextDecoration::UNDERLINE);
         }
-        builder
-            .push_style(&style)
-            .add_text(span.ruby.map_or(span.text, |ruby| ruby.base));
+        builder.push_style(&style).add_text(
+            span.ruby
+                .as_ref()
+                .map_or(span.text.as_str(), |ruby| ruby.base.as_str()),
+        );
     }
     let mut paragraph = builder.build();
     paragraph.layout(f32::MAX);
@@ -285,16 +262,29 @@ fn caption_layout(
     let elapsed_millis =
         (playback_position.as_nanos_i128() - item.start.as_nanos_i128()).max(0) / 1_000_000;
     let elapsed_millis = elapsed_millis.min(i128::from(u32::MAX)) as u32;
-    let visible_text = crate::caption::markup::visible_text(&item.text, elapsed_millis);
+    let mut spans = markup::visible_spans(&item.text, elapsed_millis);
+    for span in &mut spans {
+        if let Some(ruby) = span.ruby.take() {
+            span.text = format!("{}({})", ruby.base, ruby.annotation);
+        }
+    }
     let vertical = item.writing_direction != crate::project::CaptionWritingDirection::Horizontal;
-    let text = vertical.then(|| {
-        crate::caption::markup::plain_text(&visible_text)
+    let mut rendered = markup::plain_text_from_spans(&spans);
+    if vertical {
+        rendered = rendered
             .chars()
             .flat_map(|character| [character, '\n'])
-            .collect::<String>()
-    });
-    let text = text.as_deref().unwrap_or(&visible_text);
-    let paragraph = caption_paragraph(text, font.clone(), text_color, wrap_width, item.h_align);
+            .collect();
+        spans = vec![Span {
+            text: rendered.clone(),
+            bold: false,
+            italic: false,
+            underline: false,
+            start_millis: 0,
+            ruby: None,
+        }];
+    }
+    let paragraph = caption_paragraph(&spans, font.clone(), text_color, wrap_width, item.h_align);
     let text_size = Vec2::new(paragraph.max_width(), paragraph.height());
     if text_size.x <= 0.0 || text_size.y <= 0.0 {
         return None;
@@ -319,7 +309,8 @@ fn caption_layout(
     );
     Some(CaptionLayout {
         paragraph,
-        text: text.to_string(),
+        spans,
+        rendered,
         text_pos,
         text_size,
         background_rect,
@@ -344,7 +335,7 @@ fn draw_caption(
         painter,
         item,
         layout.text_pos,
-        &layout.text,
+        &layout.spans,
         layout.font,
         layout.wrap_width,
     );
@@ -368,7 +359,7 @@ fn split_for_layout(
             point.x - layout.text_pos.x,
             point.y - layout.text_pos.y,
         ));
-    let rendered = crate::caption::markup::plain_text(&layout.text);
+    let rendered = &layout.rendered;
     let mut rendered_byte = usize::try_from(hit.position).ok()?.min(rendered.len());
     while !rendered.is_char_boundary(rendered_byte) {
         rendered_byte -= 1;
@@ -424,7 +415,7 @@ fn draw_caption_edge(
     painter: &TimelinePainter,
     item: &CaptionItem,
     position: Vec2,
-    text: &str,
+    spans: &[Span],
     font: CaptionFontId,
     width: f32,
 ) {
@@ -438,13 +429,9 @@ fn draw_caption_edge(
         CaptionEdgeStyle::SoftShadow => &[Vec2::ONE, Vec2::splat(2.0)],
     };
     for &offset in offsets {
-        painter.caption_text(
-            position + offset,
-            text,
-            font.clone(),
-            color,
-            width,
-            item.h_align,
+        caption_paragraph(spans, font.clone(), color, width, item.h_align).paint(
+            painter.canvas(),
+            Point::new(position.x + offset.x, position.y + offset.y),
         );
     }
 }

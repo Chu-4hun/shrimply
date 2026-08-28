@@ -131,6 +131,8 @@ oklab = "1"
 opencv = { version = "0.100", default-features = false, features = ["calib3d", "clang-runtime", "imgproc", "video", "videoio"] }
 pango = "0.22"
 pangocairo = "0.22"
+pest = "2.9"
+pest_derive = "2.9"
 pipewire = { version = "0.10", features = ["v0_3_44"] }
 png = "0.18"
 poppler = { package = "poppler-rs", version = "0.26", features = ["v0_82"] }

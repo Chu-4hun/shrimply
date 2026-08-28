@@ -1,0 +1,29 @@
+caption = { SOI ~ node* ~ EOI }
+
+node = _{ bold | underline | italic | karaoke | ruby | escaped | text | character }
+
+bold = { "**" ~ bold_content+ ~ "**" }
+bold_content = _{
+    !("**") ~ (underline | italic | karaoke | ruby | escaped | text | character)
+}
+
+italic = { "*" ~ italic_content+ ~ italic_close }
+italic_content = _{
+    bold
+    | (!("***") ~ "**")
+    | !("*") ~ (underline | karaoke | ruby | escaped | text | character)
+}
+italic_close = _{ &("***") ~ "*" | !("**") ~ "*" }
+
+underline = { "__" ~ underline_content+ ~ "__" }
+underline_content = _{
+    !("__") ~ (bold | italic | karaoke | ruby | escaped | text | character)
+}
+
+karaoke = @{ "{" ~ ASCII_DIGIT+ ~ "}" }
+ruby = { "[" ~ ruby_base ~ "/" ~ ruby_annotation ~ "]" }
+ruby_base = @{ (!("/" | "]") ~ ANY)* }
+ruby_annotation = @{ (!("]") ~ ANY)* }
+escaped = @{ "\\" ~ ("*" | "_" | "{" | "}" | "[" | "]" | "/" | "\\") }
+text = @{ (!("**" | "__" | "*" | "{" | "[" | "\\") ~ ANY)+ }
+character = @{ ANY }

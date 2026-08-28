@@ -1,3 +1,7 @@
+use pest::Parser as _;
+use pest::iterators::Pair;
+use pest_derive::Parser;
+
 #[derive(Clone, Debug)]
 pub struct Span {
     pub text: String,
@@ -21,139 +25,136 @@ enum Marker {
     Italic,
 }
 
+enum SyntaxNode {
+    Text(String),
+    Styled { marker: Marker, children: Vec<Self> },
+    Karaoke(u32),
+    Ruby(Ruby),
+}
+
+#[derive(Parser)]
+#[grammar = "caption/markup.pest"]
+struct CaptionParser;
+
 pub fn parse(source: &str) -> Vec<Span> {
+    let caption = CaptionParser::parse(Rule::caption, source)
+        .expect("the caption grammar must accept all input")
+        .next()
+        .expect("a successful caption parse must have a root node");
+    let nodes = syntax_nodes(caption);
     let mut spans = Vec::new();
-    let mut text = String::new();
-    let (mut bold, mut italic, mut underline, mut start_millis) = (false, false, false, 0);
-    let mut rest = source;
-    while !rest.is_empty() {
-        let marker = [
-            ("**", Marker::Bold),
-            ("__", Marker::Underline),
-            ("*", Marker::Italic),
-        ]
-        .into_iter()
-        .find(|(token, _)| rest.starts_with(token));
-        if let Some((token, marker)) = marker {
-            push(
-                &mut spans,
-                &mut text,
-                bold,
-                italic,
-                underline,
-                start_millis,
-                None,
-            );
-            match marker {
-                Marker::Bold => bold = !bold,
-                Marker::Underline => underline = !underline,
-                Marker::Italic => italic = !italic,
-            }
-            rest = &rest[token.len()..];
-            continue;
-        }
-        if let Some(after) = rest.strip_prefix('{')
-            && let Some((value, tail)) = after.split_once('}')
-            && let Ok(millis) = value.parse::<u32>()
-        {
-            push(
-                &mut spans,
-                &mut text,
-                bold,
-                italic,
-                underline,
-                start_millis,
-                None,
-            );
-            start_millis = millis;
-            rest = tail;
-            continue;
-        }
-        if let Some(after) = rest.strip_prefix('[')
-            && let Some((value, tail)) = after.split_once(']')
-            && let Some((base, annotation)) = value.split_once('/')
-        {
-            push(
-                &mut spans,
-                &mut text,
-                bold,
-                italic,
-                underline,
-                start_millis,
-                None,
-            );
-            push(
-                &mut spans,
-                &mut String::new(),
-                bold,
-                italic,
-                underline,
-                start_millis,
-                Some(Ruby {
-                    base: base.to_string(),
-                    annotation: annotation.to_string(),
-                }),
-            );
-            rest = tail;
-            continue;
-        }
-        let character = rest.chars().next().unwrap();
-        text.push(character);
-        rest = &rest[character.len_utf8()..];
-    }
-    push(
-        &mut spans,
-        &mut text,
-        bold,
-        italic,
-        underline,
-        start_millis,
-        None,
-    );
+    flatten(&nodes, &mut spans, Style::default(), &mut 0);
     spans
 }
 
+fn syntax_nodes(pair: Pair<'_, Rule>) -> Vec<SyntaxNode> {
+    pair.into_inner().filter_map(syntax_node).collect()
+}
+
+fn syntax_node(pair: Pair<'_, Rule>) -> Option<SyntaxNode> {
+    match pair.as_rule() {
+        Rule::bold => Some(SyntaxNode::Styled {
+            marker: Marker::Bold,
+            children: syntax_nodes(pair),
+        }),
+        Rule::underline => Some(SyntaxNode::Styled {
+            marker: Marker::Underline,
+            children: syntax_nodes(pair),
+        }),
+        Rule::italic => Some(SyntaxNode::Styled {
+            marker: Marker::Italic,
+            children: syntax_nodes(pair),
+        }),
+        Rule::karaoke => {
+            let source = pair.as_str();
+            Some(source[1..source.len() - 1].parse().map_or_else(
+                |_| SyntaxNode::Text(source.to_string()),
+                SyntaxNode::Karaoke,
+            ))
+        }
+        Rule::ruby => {
+            let mut parts = pair.into_inner();
+            Some(SyntaxNode::Ruby(Ruby {
+                base: parts
+                    .next()
+                    .expect("ruby syntax must contain a base node")
+                    .as_str()
+                    .to_string(),
+                annotation: parts
+                    .next()
+                    .expect("ruby syntax must contain an annotation node")
+                    .as_str()
+                    .to_string(),
+            }))
+        }
+        Rule::escaped => Some(SyntaxNode::Text(pair.as_str()[1..].to_string())),
+        Rule::text | Rule::character => Some(SyntaxNode::Text(pair.as_str().to_string())),
+        Rule::EOI => None,
+        Rule::caption
+        | Rule::bold_content
+        | Rule::italic_content
+        | Rule::italic_close
+        | Rule::underline_content
+        | Rule::ruby_base
+        | Rule::ruby_annotation
+        | Rule::node => unreachable!("silent grammar rules cannot produce syntax-tree pairs"),
+    }
+}
+
+#[derive(Clone, Copy, Default)]
+struct Style {
+    bold: bool,
+    italic: bool,
+    underline: bool,
+}
+
+fn flatten(nodes: &[SyntaxNode], spans: &mut Vec<Span>, style: Style, start_millis: &mut u32) {
+    for node in nodes {
+        match node {
+            SyntaxNode::Text(text) => push(spans, text.clone(), style, *start_millis, None),
+            SyntaxNode::Styled { marker, children } => {
+                let mut nested = style;
+                match marker {
+                    Marker::Bold => nested.bold = true,
+                    Marker::Underline => nested.underline = true,
+                    Marker::Italic => nested.italic = true,
+                }
+                flatten(children, spans, nested, start_millis);
+            }
+            SyntaxNode::Karaoke(millis) => *start_millis = *millis,
+            SyntaxNode::Ruby(ruby) => {
+                push(
+                    spans,
+                    String::new(),
+                    style,
+                    *start_millis,
+                    Some(ruby.clone()),
+                );
+            }
+        }
+    }
+}
+
 pub fn plain_text(source: &str) -> String {
-    parse(source)
-        .into_iter()
-        .map(|span| span.ruby.map_or(span.text, |ruby| ruby.base))
+    plain_text_from_spans(&parse(source))
+}
+
+pub fn plain_text_from_spans(spans: &[Span]) -> String {
+    spans
+        .iter()
+        .map(|span| {
+            span.ruby
+                .as_ref()
+                .map_or(span.text.as_str(), |ruby| ruby.base.as_str())
+        })
         .collect()
 }
 
-pub fn visible_text(source: &str, millis: u32) -> String {
-    let mut output = String::new();
-    for span in parse(source)
+pub fn visible_spans(source: &str, millis: u32) -> Vec<Span> {
+    parse(source)
         .into_iter()
         .filter(|span| span.start_millis <= millis)
-    {
-        if span.bold {
-            output.push_str("**");
-        }
-        if span.italic {
-            output.push('*');
-        }
-        if span.underline {
-            output.push_str("__");
-        }
-        if let Some(ruby) = span.ruby {
-            output.push_str(&ruby.base);
-            output.push('(');
-            output.push_str(&ruby.annotation);
-            output.push(')');
-        } else {
-            output.push_str(&span.text);
-        }
-        if span.underline {
-            output.push_str("__");
-        }
-        if span.italic {
-            output.push('*');
-        }
-        if span.bold {
-            output.push_str("**");
-        }
-    }
-    output
+        .collect()
 }
 
 pub fn plain_text_byte_at_visible_byte(
@@ -255,7 +256,12 @@ pub fn split_at_plain_text_byte(source: &str, byte: usize) -> Option<(String, St
                 write!(output, "[{}/{}]", ruby.base, ruby.annotation)
                     .expect("writing to a string cannot fail");
             } else {
-                output.push_str(&span.text);
+                for character in span.text.chars() {
+                    if matches!(character, '\\' | '*' | '_' | '{' | '[') {
+                        output.push('\\');
+                    }
+                    output.push(character);
+                }
             }
             if span.underline {
                 output.push_str("__");
@@ -275,23 +281,26 @@ pub fn split_at_plain_text_byte(source: &str, byte: usize) -> Option<(String, St
         .then_some((left, right))
 }
 
-fn push(
-    spans: &mut Vec<Span>,
-    text: &mut String,
-    bold: bool,
-    italic: bool,
-    underline: bool,
-    start_millis: u32,
-    ruby: Option<Ruby>,
-) {
+fn push(spans: &mut Vec<Span>, text: String, style: Style, start_millis: u32, ruby: Option<Ruby>) {
     if text.is_empty() && ruby.is_none() {
         return;
     }
+    if ruby.is_none()
+        && let Some(previous) = spans.last_mut()
+        && previous.ruby.is_none()
+        && previous.bold == style.bold
+        && previous.italic == style.italic
+        && previous.underline == style.underline
+        && previous.start_millis == start_millis
+    {
+        previous.text.push_str(&text);
+        return;
+    }
     spans.push(Span {
-        text: std::mem::take(text),
-        bold,
-        italic,
-        underline,
+        text,
+        bold: style.bold,
+        italic: style.italic,
+        underline: style.underline,
         start_millis,
         ruby,
     });
@@ -302,7 +311,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parses_markdown_karaoke_and_ruby() {
+    fn parses_caption_markup() {
         let spans = parse("**Bold** *italic* __under__ {1200}[漢/かん]字");
         assert!(spans.iter().any(|span| span.bold && span.text == "Bold"));
         assert!(

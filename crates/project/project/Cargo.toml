@@ -12,6 +12,8 @@ hashbrown.workspace = true
 glam = { workspace = true, features = ["serde"] }
 glib.workspace = true
 libc.workspace = true
+pest.workspace = true
+pest_derive.workspace = true
 rmp-serde.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true

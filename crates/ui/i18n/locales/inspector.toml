@@ -6010,15 +6010,15 @@ ja = "リビングフィル"
 "zh-TW" = "動態填滿"
 "ko" = "리빙 필"
 
-["Markdown: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]"]
-en = "Markdown: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]"
-es = "Markdown: **negrita**, *cursiva*, __subrayado__, {milisegundos} karaoke, [base/ruby]"
-fr = "Markdown : **gras**, *italique*, __souligné__, {millisecondes} karaoké, [base/ruby]"
-de = "Markdown: **fett**, *kursiv*, __unterstrichen__, {Millisekunden} Karaoke, [Basis/Ruby]"
-ja = "Markdown: **太字**、*斜体*、__下線__、{ミリ秒} カラオケ、[親文字/ルビ]"
-"zh-CN" = "Markdown：**粗体**、*斜体*、__下划线__、{milliseconds} 卡拉 OK、[base/ruby]"
-"zh-TW" = "Markdown：**粗體**、*斜體*、__底線__、{milliseconds} 卡拉 OK、[base/ruby]"
-"ko" = "Markdown: **굵게**, *기울임꼴*, __밑줄__, {milliseconds} 노래방, [base/ruby]"
+["Caption markup: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]"]
+en = "Caption markup: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]"
+es = "Marcado de subtítulos: **negrita**, *cursiva*, __subrayado__, {milisegundos} karaoke, [base/ruby]"
+fr = "Balisage des sous-titres : **gras**, *italique*, __souligné__, {millisecondes} karaoké, [base/ruby]"
+de = "Untertitel-Markup: **fett**, *kursiv*, __unterstrichen__, {Millisekunden} Karaoke, [Basis/Ruby]"
+ja = "キャプションマークアップ: **太字**、*斜体*、__下線__、{ミリ秒} カラオケ、[親文字/ルビ]"
+"zh-CN" = "字幕标记：**粗体**、*斜体*、__下划线__、{milliseconds} 卡拉 OK、[base/ruby]"
+"zh-TW" = "字幕標記：**粗體**、*斜體*、__底線__、{milliseconds} 卡拉 OK、[base/ruby]"
+"ko" = "캡션 마크업: **굵게**, *기울임꼴*, __밑줄__, {milliseconds} 노래방, [base/ruby]"
 
 ["Missing item"]
 en = "Missing item"

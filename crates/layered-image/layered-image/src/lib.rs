@@ -314,6 +314,7 @@ fn kra_blend_mode(name: &str) -> Result<BlendMode, String> {
         "exclusion" => Exclusion,
         "subtract" => Subtract,
         "divide" => Divide,
+        "reflect" => Reflect,
         "hue" => Hue,
         "saturation" => Saturation,
         "color" => Color,

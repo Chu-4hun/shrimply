@@ -166,6 +166,7 @@ fn layer_blender(mode: LayerBlendMode) -> skia_safe::Blender {
         LayerBlendMode::Exclusion => 21,
         LayerBlendMode::Subtract => 22,
         LayerBlendMode::Divide => 23,
+        LayerBlendMode::Reflect => 28,
         LayerBlendMode::Hue => 24,
         LayerBlendMode::Saturation => 25,
         LayerBlendMode::Color => 26,

@@ -98,6 +98,9 @@ float channel(float source, float destination) {
     if (mode == 21) return destination + source - 2.0 * destination * source;
     if (mode == 22) return max(destination - source, 0.0);
     if (mode == 23) return source <= 0.0 ? 1.0 : min(destination / source, 1.0);
+    if (mode == 28) return source >= 1.0
+        ? 1.0
+        : min(destination * destination / (1.0 - source), 1.0);
     return source;
 }
 

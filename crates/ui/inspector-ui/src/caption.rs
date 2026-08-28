@@ -449,7 +449,7 @@ fn add_text_editor(
         })
         .build();
     editor.widget().set_tooltip_text(Some(
-        "Markdown: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]",
+        "Caption markup: **bold**, *italic*, __underline__, {milliseconds} karaoke, [base/ruby]",
     ));
     section.add_control_row("Text", editor.widget());
 }
