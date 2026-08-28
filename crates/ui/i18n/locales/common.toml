@@ -40,6 +40,16 @@ ja = "外観"
 "zh-TW" = "外觀"
 "ko" = "외관"
 
+["Apply"]
+en = "Apply"
+es = "Aplicar"
+fr = "Appliquer"
+de = "Anwenden"
+ja = "適用"
+"zh-CN" = "应用"
+"zh-TW" = "套用"
+"ko" = "적용"
+
 ["Audio"]
 en = "Audio"
 es = "Audio"
@@ -189,6 +199,16 @@ ja = "削除"
 "zh-CN" = "删除"
 "zh-TW" = "刪除"
 "ko" = "삭제"
+
+["Discard"]
+en = "Discard"
+es = "Descartar"
+fr = "Ignorer"
+de = "Verwerfen"
+ja = "破棄"
+"zh-CN" = "放弃"
+"zh-TW" = "捨棄"
+"ko" = "버리기"
 
 ["Format"]
 en = "Format"

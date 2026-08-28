@@ -750,6 +750,26 @@ ja = "一度にすべて変更"
 "zh-TW" = "一次變更全部"
 "ko" = "모두 한 번에 변경"
 
+["Change Project Settings?"]
+en = "Change Project Settings?"
+es = "¿Cambiar los ajustes del proyecto?"
+fr = "Modifier les paramètres du projet ?"
+de = "Projekteinstellungen ändern?"
+ja = "プロジェクト設定を変更しますか？"
+"zh-CN" = "更改项目设置？"
+"zh-TW" = "變更專案設定？"
+"ko" = "프로젝트 설정을 변경할까요?"
+
+["Changing the frame rate or resolution can affect timing, visual layout, and rendered output. Existing media and effects may no longer match the project."]
+en = "Changing the frame rate or resolution can affect timing, visual layout, and rendered output. Existing media and effects may no longer match the project."
+es = "Cambiar la frecuencia de fotogramas o la resolución puede afectar a los tiempos, la composición visual y el resultado renderizado. Es posible que los medios y efectos existentes ya no coincidan con el proyecto."
+fr = "La modification de la fréquence d’images ou de la résolution peut affecter la synchronisation, la composition visuelle et le rendu. Les médias et effets existants peuvent ne plus correspondre au projet."
+de = "Eine Änderung der Bildrate oder Auflösung kann Timing, Bildaufbau und Renderausgabe beeinflussen. Vorhandene Medien und Effekte passen möglicherweise nicht mehr zum Projekt."
+ja = "フレームレートや解像度を変更すると、タイミング、表示レイアウト、レンダリング結果に影響する可能性があります。既存のメディアやエフェクトがプロジェクトに合わなくなる場合があります。"
+"zh-CN" = "更改帧率或分辨率可能会影响时间、视觉布局和渲染输出。现有媒体和效果可能不再与项目匹配。"
+"zh-TW" = "變更影格率或解析度可能會影響時間、視覺配置和算繪輸出。現有媒體和效果可能不再符合專案。"
+"ko" = "프레임 속도나 해상도를 변경하면 타이밍, 시각적 레이아웃 및 렌더링 결과에 영향을 줄 수 있습니다. 기존 미디어와 효과가 프로젝트와 더 이상 맞지 않을 수 있습니다."
+
 ["Channel angle offset"]
 en = "Channel angle offset"
 es = "Desfase angular de canales"
