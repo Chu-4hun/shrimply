@@ -1,7 +1,7 @@
 use hashbrown::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, OnceLock};
 
-use shrimply_asset::Asset;
+use shrimply_asset::{Asset, AssetSnapshot};
 
 pub use shrimply_render_core::LayerBlendMode as BlendMode;
 
@@ -41,9 +41,23 @@ pub struct LayerEntry {
     pub group: bool,
 }
 
+type ImageCache = HashMap<Asset, (AssetSnapshot, Arc<LayeredImage>)>;
+static IMAGE_CACHE: OnceLock<Mutex<ImageCache>> = OnceLock::new();
+
 pub fn load(source: impl Into<Asset>) -> Result<Arc<LayeredImage>, String> {
     let asset = source.into();
     let snapshot = asset.snapshot()?;
+    if let Some(image) = IMAGE_CACHE
+        .get_or_init(Mutex::default)
+        .lock()
+        .expect("layered image cache lock poisoned")
+        .get(&asset)
+        .filter(|(cached, _)| cached == &snapshot)
+        .map(|(_, image)| Arc::clone(image))
+    {
+        snapshot.verify_current()?;
+        return Ok(image);
+    }
     let bytes = snapshot.read()?;
     let extension = asset
         .extension()
@@ -61,7 +75,13 @@ pub fn load(source: impl Into<Asset>) -> Result<Arc<LayeredImage>, String> {
         Err(format!("unsupported layered image extension {extension:?}",))
     }?;
     snapshot.verify_current()?;
-    Ok(Arc::new(image))
+    let image = Arc::new(image);
+    IMAGE_CACHE
+        .get_or_init(Mutex::default)
+        .lock()
+        .expect("layered image cache lock poisoned")
+        .insert(asset, (snapshot, Arc::clone(&image)));
+    Ok(image)
 }
 
 fn from_psd(document: psd_parser::Document) -> Result<LayeredImage, String> {
