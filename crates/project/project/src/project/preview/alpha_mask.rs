@@ -126,6 +126,7 @@ impl AlphaMaskHandler {
         edits: &mut dyn PreviewEditSink,
     ) -> bool {
         let Some(drag) = self.drag else { return false };
+        let time = edits.keyframe_time();
         let mask = edits
             .target_mut(self.target)
             .downcast_mut::<VisualAlphaMask>()
@@ -162,13 +163,9 @@ impl AlphaMaskHandler {
                 rotation += (angle - start_angle).to_degrees();
             }
         }
-        let changed = super::visual_item::set_vec2(&mut mask.center, context.local_time(), center)
-            | super::visual_item::set_vec2(&mut mask.size, context.local_time(), size)
-            | super::visual_item::set_scalar(
-                &mut mask.rotation_degrees,
-                context.local_time(),
-                rotation,
-            );
+        let changed = super::visual_item::set_vec2(&mut mask.center, time, center)
+            | super::visual_item::set_vec2(&mut mask.size, time, size)
+            | super::visual_item::set_scalar(&mut mask.rotation_degrees, time, rotation);
         if changed {
             self.center = center;
             self.size = size;

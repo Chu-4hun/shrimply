@@ -97,9 +97,10 @@ impl PreviewProvider for ChromaticPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         let hit = |point| {
             [true, false]
                 .into_iter()
@@ -145,7 +146,7 @@ impl PreviewProvider for ChromaticPreview {
                         .expect("chromatic preview target has wrong type"),
                     &drag,
                     input.sample.position,
-                    context,
+                    time,
                 ) else {
                     return PreviewResponse::IGNORED;
                 };
@@ -190,11 +191,10 @@ fn update_chromatic(
     modifier: &mut ChromaticAberrationModifier,
     drag: &ChromaticDrag,
     point: glam::Vec2,
-    context: &dyn PreviewContext,
+    time: shrimply_core::Time,
 ) -> Option<(bool, bool, glam::Vec2)> {
     let local = preview::inverse_point(drag.map, point)?;
     let value = local - drag.center;
-    let time = context.local_time();
     let changed = if drag.red {
         preview::set_scalar(&mut modifier.red_offset_x, time, value.x)
             | preview::set_scalar(&mut modifier.red_offset_y, time, value.y)

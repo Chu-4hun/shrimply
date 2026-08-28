@@ -533,12 +533,21 @@ fn move_key(
     time: Time,
 ) {
     let mut project = project.borrow_mut();
-    if let Some(value) = text_value_mut(&mut project, key.clone())
+    let changed = if let Some(value) = text_value_mut(&mut project, key.clone())
         && let TimelineBase::Keyframes(keyframes) = &mut value.base
-        && let Some(item) = keyframes.iter_mut().find(|item| item.time.approx_eq(old))
+        && let Some(index) = keyframes.iter().position(|item| item.time.approx_eq(old))
     {
+        let mut item = keyframes.remove(index);
+        keyframes.retain(|other| !other.time.approx_eq(time));
         item.time = time;
+        keyframes.push(item);
         keyframes.sort_by_key(|item| item.time);
+        true
+    } else {
+        false
+    };
+    if changed {
+        shrimply_project::project::commit_coalesced_edit(&project, "move-text-keyframe");
     }
     drop(project);
     player_state::refresh_project(
@@ -594,11 +603,12 @@ fn set_key(
         .iter_mut()
         .find(|keyframe| keyframe_model::same_frame(keyframe.time, time, step))
     {
-        if keyframe.value == value {
+        if keyframe.time == time && keyframe.value == value {
             return false;
         }
         keyframe.time = time;
         keyframe.value = value;
+        keyframes.sort_by_key(|keyframe| keyframe.time);
     } else {
         keyframes.push(String::keyframe(time, value));
         keyframes.sort_by_key(|keyframe| keyframe.time);

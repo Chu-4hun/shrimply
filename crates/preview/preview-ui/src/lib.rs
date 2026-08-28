@@ -1322,7 +1322,6 @@ fn attach_frame_pump(
             match video_rx.try_recv() {
                 Ok(VideoEvent::Loading {
                     position,
-                    retry_settled,
                     show_spinner,
                     render_elapsed,
                     render_generation,
@@ -1330,7 +1329,7 @@ fn attach_frame_pump(
                     if !video_tx.render_generation_is_current(render_generation) {
                         continue;
                     }
-                    loading = Some((position, retry_settled));
+                    loading = Some(position);
                     render_loading.set(show_spinner);
                     latest_render_elapsed = Some(render_elapsed);
                 }
@@ -1563,13 +1562,7 @@ fn attach_frame_pump(
             }
         }
 
-        let fps = project.borrow().fps;
-        let fps_numerator = fraction_numerator(fps);
-        let frame_step = if fps_numerator > 0 {
-            Time::from_fraction(fraction_denominator(fps), fps_numerator)
-        } else {
-            Time::from_fraction(1, 30)
-        };
+        let frame_step = project.borrow().frame_step();
         let playback_frame_step = scaled_time_delta(frame_step, snapshot.playback_speed);
         let playback_lagging = snapshot.playing
             && displayed_position.get().is_none_or(|displayed| {
@@ -1589,7 +1582,7 @@ fn attach_frame_pump(
             .is_some_and(|loading_since| loading_since.elapsed() >= LOADING_SPINNER_DELAY);
         loading_spinner.set_visible(show_loading);
         loading_indicator.set_visible_child_name(if show_loading { "loading" } else { "done" });
-        if let Some((position, true)) = loading {
+        if let Some(position) = loading {
             let retry_state = player_state.clone();
             let retry_video_tx = video_tx.clone();
             glib::timeout_add_local_once(SETTLED_RENDER_RETRY_DELAY, move || {

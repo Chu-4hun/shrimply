@@ -60,9 +60,10 @@ impl PreviewProvider for BulgePinchPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         let handle = self.map.transform_point2(self.point * self.size);
         match event {
             PointerEvent::Hover(input) if super::preview::hit(input.sample.position, handle) => {
@@ -90,7 +91,7 @@ impl PreviewProvider for BulgePinchPreview {
                         .downcast_mut::<BulgePinchModifier>()
                         .expect("bulge preview target has wrong type")
                         .center,
-                    context.local_time(),
+                    time,
                     point,
                 );
                 if changed {

@@ -271,11 +271,11 @@ impl ShapeHandler {
         let Some(local) = self.screen_to_local(point, context) else {
             return false;
         };
+        let time = edits.keyframe_time();
         let shape = edits
             .target_mut(self.target)
             .downcast_mut::<ShapeItem>()
             .expect("shape preview target has the wrong type");
-        let time = context.local_time();
         let changed = match control {
             Control::StarInnerRadius => {
                 let value = (local - self.center()).length()

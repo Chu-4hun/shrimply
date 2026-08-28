@@ -224,9 +224,10 @@ impl PreviewProvider for RepeatPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         let hit = |point| {
             if self.editable[0] && preview::hit(point, self.map.transform_point2(self.step_point()))
             {
@@ -268,7 +269,7 @@ impl PreviewProvider for RepeatPreview {
                         .expect("repeat preview target has wrong type"),
                     &drag,
                     input.sample.position,
-                    context,
+                    time,
                 ) else {
                     return PreviewResponse::IGNORED;
                 };
@@ -316,7 +317,7 @@ fn update_repeat(
     modifier: &mut RepeatModifier,
     drag: &RepeatDrag,
     point: glam::Vec2,
-    context: &dyn PreviewContext,
+    time: shrimply_core::Time,
 ) -> Option<(bool, RepeatValue)> {
     let (map, center) = match *drag {
         RepeatDrag::Step { map, center } | RepeatDrag::Row { map, center, .. } => (map, center),
@@ -325,7 +326,7 @@ fn update_repeat(
     let delta = local - center;
     let (changed, value) = match *drag {
         RepeatDrag::Step { .. } => (
-            preview::set_vec2(&mut modifier.step, context.local_time(), delta),
+            preview::set_vec2(&mut modifier.step, time, delta),
             RepeatValue::Step(delta),
         ),
         RepeatDrag::Row { axis, .. } => {
@@ -335,7 +336,7 @@ fn update_repeat(
                 delta.y
             };
             (
-                preview::set_scalar(&mut modifier.row_offset, context.local_time(), value),
+                preview::set_scalar(&mut modifier.row_offset, time, value),
                 RepeatValue::Row(value),
             )
         }

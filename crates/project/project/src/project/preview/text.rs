@@ -142,21 +142,18 @@ impl TextAppearanceHandler {
         let direction = (offset.length_squared() > f32::EPSILON).then(|| {
             offset.y.atan2(offset.x).to_degrees() + self.geometry.transform.rotation_degrees
         });
+        let time = edits.keyframe_time();
         let text = edits
             .target_mut(self.target)
             .downcast_mut::<TextItem>()
             .expect("text appearance preview target has the wrong type");
         let changed = (self.distance_editable
-            && super::visual_item::set_scalar(
-                &mut text.shadow_distance,
-                context.local_time(),
-                distance,
-            ))
+            && super::visual_item::set_scalar(&mut text.shadow_distance, time, distance))
             | (self.direction_editable
                 && direction.is_some_and(|direction| {
                     super::visual_item::set_scalar(
                         &mut text.shadow_direction_degrees,
-                        context.local_time(),
+                        time,
                         direction,
                     )
                 }));

@@ -102,9 +102,10 @@ impl PreviewProvider for WavePreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) if self.hit(input.sample.position).is_some() => {
                 PreviewResponse {
@@ -142,16 +143,12 @@ impl PreviewProvider for WavePreview {
                     WaveControl::Angle => delta.y.atan2(delta.x).to_degrees(),
                 };
                 let changed = match control {
-                    WaveControl::Amplitude => super::preview::set_scalar(
-                        &mut owner.amplitude,
-                        context.local_time(),
-                        value,
-                    ),
-                    WaveControl::Angle => super::preview::set_scalar(
-                        &mut owner.angle_degrees,
-                        context.local_time(),
-                        value,
-                    ),
+                    WaveControl::Amplitude => {
+                        super::preview::set_scalar(&mut owner.amplitude, time, value)
+                    }
+                    WaveControl::Angle => {
+                        super::preview::set_scalar(&mut owner.angle_degrees, time, value)
+                    }
                 };
                 if changed {
                     match control {

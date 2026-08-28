@@ -49,11 +49,12 @@ impl Inspectable for Project {
                 shrimply_project::project::fraction_as_label(self.fps),
             ));
         }
+        let fps_editable = !self.has_timeline_items();
         let fps_project = context.project.clone();
         let fps_player_state = context.player_state.clone();
         let fps = dropdown(self.fps, fps_options, move |next| {
             let mut project = fps_project.borrow_mut();
-            if project.fps == next {
+            if project.fps == next || project.has_timeline_items() {
                 return;
             }
             project.fps = next;
@@ -70,6 +71,7 @@ impl Inspectable for Project {
                 },
             );
         });
+        fps.set_sensitive(fps_editable);
         config.add_control_row("FPS", &fps);
 
         let width_project = context.project.clone();

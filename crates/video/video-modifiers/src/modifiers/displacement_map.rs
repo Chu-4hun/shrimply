@@ -118,9 +118,10 @@ impl PreviewProvider for DisplacementPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) => {
                 let Some(control) = self.hit(input.sample.position) else {
@@ -166,13 +167,13 @@ impl PreviewProvider for DisplacementPreview {
                 };
                 let changed = match control {
                     DisplacementControl::Amount => {
-                        super::preview::set_scalar(&mut owner.amount, context.local_time(), value)
+                        super::preview::set_scalar(&mut owner.amount, time, value)
                     }
                     DisplacementControl::Scale => {
-                        super::preview::set_scalar(&mut owner.scale, context.local_time(), value)
+                        super::preview::set_scalar(&mut owner.scale, time, value)
                     }
                     DisplacementControl::Phase => {
-                        super::preview::set_scalar(&mut owner.phase, context.local_time(), value)
+                        super::preview::set_scalar(&mut owner.phase, time, value)
                     }
                 };
                 if changed {

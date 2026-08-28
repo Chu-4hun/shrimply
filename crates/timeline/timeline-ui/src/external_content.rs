@@ -78,7 +78,9 @@ pub(super) fn text_preview(
         runtime.view.seconds_per_pixel,
     ));
     let start = runtime.snap_repository.snap(start).unwrap_or(start);
-    let mut end = start.saturating_add(runtime.default_visual_duration);
+    let mut end = start
+        .saturating_add(runtime.default_visual_duration)
+        .snapped(project.frame_step());
     match kind {
         TrackKind::Caption => {
             for item in &project.caption_tracks.get(track_index)?.items {
@@ -417,12 +419,20 @@ fn insert_text(
         }
     };
 
-    let start = preview.as_ref().map_or_else(
-        || player_state::snapshot(player_state).position,
-        |p| p.start,
-    );
+    let frame_step = project.borrow().frame_step();
+    let start = preview
+        .as_ref()
+        .map_or_else(
+            || player_state::snapshot(player_state).position,
+            |p| p.start,
+        )
+        .snapped(frame_step);
     let end = preview.as_ref().map_or_else(
-        || start.saturating_add(runtime.borrow().default_visual_duration),
+        || {
+            start
+                .saturating_add(runtime.borrow().default_visual_duration)
+                .snapped(frame_step)
+        },
         |p| p.end,
     );
     let text = preview.as_ref().map_or(text, |p| p.text.clone());

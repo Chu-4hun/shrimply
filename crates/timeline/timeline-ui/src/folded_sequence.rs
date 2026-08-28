@@ -376,8 +376,12 @@ fn apply_group_drag(
         {
             return None;
         }
-        let first = project.timeline_time_to_sequence(&member.target_track, member.target_start)?;
-        let second = project.timeline_time_to_sequence(&member.target_track, member.target_end)?;
+        let first = project
+            .timeline_time_to_sequence(&member.target_track, member.target_start)?
+            .snapped(project.frame_step());
+        let second = project
+            .timeline_time_to_sequence(&member.target_track, member.target_end)?
+            .snapped(project.frame_step());
         let (start, end) = (first.min(second), first.max(second));
         if start >= end {
             return None;

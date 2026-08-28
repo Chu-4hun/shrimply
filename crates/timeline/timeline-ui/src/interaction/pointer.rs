@@ -361,7 +361,9 @@ pub(super) fn insert_caption_on_double_click(
     if !matches!(kind, TrackKind::Caption) {
         return None;
     }
-    let mut end = snapped_time.saturating_add(default_duration);
+    let mut end = snapped_time
+        .saturating_add(default_duration)
+        .snapped(project_state.frame_step());
     let track = project_state.caption_tracks.get(track_index)?;
     for item in &track.items {
         if item.start <= snapped_time && snapped_time < item.end {

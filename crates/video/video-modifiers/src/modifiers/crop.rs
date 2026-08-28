@@ -209,9 +209,10 @@ impl PreviewProvider for CropPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) => self
                 .hit(input.sample.position)
@@ -235,7 +236,7 @@ impl PreviewProvider for CropPreview {
                         .expect("crop preview target has the wrong type"),
                     drag,
                     input.sample.position,
-                    context,
+                    time,
                 ) else {
                     return PreviewResponse::IGNORED;
                 };
@@ -269,7 +270,7 @@ fn update(
     crop: &mut CropModifier,
     drag: CropDrag,
     point: glam::Vec2,
-    context: &dyn PreviewContext,
+    time: shrimply_core::Time,
 ) -> Option<(bool, [f32; 4])> {
     let local = preview::inverse_point(drag.map, point)?;
     let (x, y) = preview::handle_axes(drag.handle);
@@ -307,7 +308,6 @@ fn update(
                 .clamp(0.0, (99.999 - value[3].max(0.0)).max(0.0));
         }
     }
-    let time = context.local_time();
     let edges = crop.edges_mut();
     let changed = preview::set_scalar(&mut edges.top, time, value[0])
         | preview::set_scalar(&mut edges.right, time, value[1])

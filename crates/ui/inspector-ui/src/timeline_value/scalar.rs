@@ -811,8 +811,11 @@ fn update_keyframe_point(
     if !next.is_finite() {
         return false;
     }
-    keyframes[index].time = time;
-    keyframes[index].value = next;
+    let mut keyframe = keyframes.remove(index);
+    keyframes.retain(|other| !other.time.approx_eq(time));
+    keyframe.time = time;
+    keyframe.value = next;
+    keyframes.push(keyframe);
     keyframes.sort_by_key(|keyframe| keyframe.time);
     target.access.mark_mutated(&mut project, key);
     shrimply_project::project::commit_coalesced_edit(&project, target.commit_name);

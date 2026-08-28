@@ -157,9 +157,10 @@ impl PreviewProvider for TextureBoundsPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         let rect = self.rect();
         let hit = |point| {
             HANDLES.into_iter().find_map(|handle| {
@@ -211,7 +212,7 @@ impl PreviewProvider for TextureBoundsPreview {
                         .expect("texture bounds preview target has wrong type"),
                     &drag,
                     input.sample.position,
-                    context,
+                    time,
                 ) else {
                     return PreviewResponse::IGNORED;
                 };
@@ -257,7 +258,7 @@ fn update_bounds(
     modifier: &mut TextureBoundsModifier,
     drag: &BoundsDrag,
     point: glam::Vec2,
-    context: &dyn PreviewContext,
+    time: shrimply_core::Time,
 ) -> Option<(bool, [f32; 4])> {
     let local = preview::inverse_point(drag.map, point)?;
     let (x, y) = preview::handle_axes(drag.handle);
@@ -274,7 +275,6 @@ fn update_bounds(
     if x < 0 {
         values[3] = -local.x;
     }
-    let time = context.local_time();
     let changed = preview::set_scalar(&mut modifier.edges.top, time, values[0])
         | preview::set_scalar(&mut modifier.edges.right, time, values[1])
         | preview::set_scalar(&mut modifier.edges.bottom, time, values[2])

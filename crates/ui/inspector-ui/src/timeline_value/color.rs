@@ -370,20 +370,25 @@ fn add_keyframe_at_time(
     let TimelineBase::Keyframes(keyframes) = &mut value.base else {
         return false;
     };
-    if keyframes
-        .iter()
-        .any(|keyframe| keyframe.time.approx_eq(time))
+    if let Some(keyframe) = keyframes
+        .iter_mut()
+        .find(|keyframe| keyframe.time.approx_eq(time))
     {
-        return false;
+        if keyframe.time == time {
+            return false;
+        }
+        keyframe.time = time;
+        keyframes.sort_by_key(|keyframe| keyframe.time);
+    } else {
+        let mut next = keyframe(time, next);
+        if let Some(previous) = keyframes.iter().rev().find(|keyframe| keyframe.time < time)
+            && keyframes.iter().any(|keyframe| keyframe.time > time)
+        {
+            next.interpolation_to_next = previous.interpolation_to_next;
+        }
+        keyframes.push(next);
+        keyframes.sort_by_key(|keyframe| keyframe.time);
     }
-    let mut next = keyframe(time, next);
-    if let Some(previous) = keyframes.iter().rev().find(|keyframe| keyframe.time < time)
-        && keyframes.iter().any(|keyframe| keyframe.time > time)
-    {
-        next.interpolation_to_next = previous.interpolation_to_next;
-    }
-    keyframes.push(next);
-    keyframes.sort_by_key(|keyframe| keyframe.time);
     target.access.mark_mutated(&mut project, key);
     shrimply_project::project::commit_edit(&project, target.commit_name);
     drop(project);
@@ -440,7 +445,10 @@ fn update_keyframe_point(
     else {
         return false;
     };
-    keyframes[index].time = time;
+    let mut keyframe = keyframes.remove(index);
+    keyframes.retain(|other| !other.time.approx_eq(time));
+    keyframe.time = time;
+    keyframes.push(keyframe);
     keyframes.sort_by_key(|keyframe| keyframe.time);
     target.access.mark_mutated(&mut project, key);
     shrimply_project::project::commit_coalesced_edit(&project, target.commit_name);

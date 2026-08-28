@@ -407,6 +407,7 @@ impl PreviewProvider for Sam2Preview {
         context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         let hit = |point| {
             for (id, position, _, editable) in &self.points {
                 if *editable
@@ -527,7 +528,7 @@ impl PreviewProvider for Sam2Preview {
                     .target_mut(self.target)
                     .downcast_mut::<Sam2Modifier>()
                     .expect("SAM2 preview target has wrong type");
-                let changed = update_sam2(modifier, &drag, input.sample.position, context);
+                let changed = update_sam2(modifier, &drag, input.sample.position, time);
                 if changed {
                     match drag {
                         Sam2Drag::Point { id, .. } => {
@@ -632,12 +633,7 @@ fn sam2_edit(changed: bool, commit: bool) -> PreviewResponse {
     })
 }
 
-fn update_sam2(
-    modifier: &mut Sam2Modifier,
-    drag: &Sam2Drag,
-    point: Vec2,
-    context: &dyn PreviewContext,
-) -> bool {
+fn update_sam2(modifier: &mut Sam2Modifier, drag: &Sam2Drag, point: Vec2, time: Time) -> bool {
     let (map, size) = match *drag {
         Sam2Drag::Point { map, size, .. } | Sam2Drag::BoxCorner { map, size, .. } => (map, size),
     };
@@ -650,9 +646,7 @@ fn update_sam2(
             .points
             .iter_mut()
             .find(|point| point.id == id)
-            .is_some_and(|point| {
-                preview::set_vec2(&mut point.position, context.local_time(), position)
-            }),
+            .is_some_and(|point| preview::set_vec2(&mut point.position, time, position)),
         Sam2Drag::BoxCorner {
             corner, box_prompt, ..
         } => {

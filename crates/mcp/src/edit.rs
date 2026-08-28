@@ -63,7 +63,8 @@ pub fn apply_non_import(
                 .unwrap_or_else(|| address.sequence_path());
             let local = project
                 .timeline_time_to_sequence_path(model_kind(request.address.kind), path, projected)
-                .ok_or_else(|| "destination scope does not resolve in the project".to_string())?;
+                .ok_or_else(|| "destination scope does not resolve in the project".to_string())?
+                .snapped(project.frame_step());
             let destination = destination.unwrap_or_else(|| address.track());
             let duration = project
                 .item(&address)
@@ -105,6 +106,7 @@ pub fn apply_non_import(
                         address.sequence_path(),
                         time,
                     )
+                    .map(|time| time.snapped(project.frame_step()))
                     .ok_or_else(|| "clip scope does not resolve in the project".to_string())
             })
             .transpose()?;
@@ -122,6 +124,7 @@ pub fn apply_non_import(
                         address.sequence_path(),
                         time,
                     )
+                    .map(|time| time.snapped(project.frame_step()))
                     .ok_or_else(|| "clip scope does not resolve in the project".to_string())
             })
             .transpose()?;

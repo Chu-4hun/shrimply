@@ -323,7 +323,9 @@ pub(crate) fn split_item_address(
     use crate::project::{ItemRef, ProjectItem};
 
     let track = address.track();
-    let cut = project.timeline_time_to_sequence(&track, timeline_cut)?;
+    let cut = project
+        .timeline_time_to_sequence(&track, timeline_cut)?
+        .snapped(project.frame_step());
     let source = match project.item(address)? {
         ItemRef::Caption(item) => ProjectItem::Caption(item.clone()),
         ItemRef::Video(item) => ProjectItem::Video(Box::new(item.clone())),

@@ -370,7 +370,7 @@ impl SceneHandler {
         ) else {
             return false;
         };
-        let time = context.local_time();
+        let time = edits.keyframe_time();
         let changed = match entry.kind {
             TargetKind::Gaussian => {
                 let item = edits
@@ -423,11 +423,11 @@ impl SceneHandler {
         let Some(edit) = drag.control.drag_camera(kind, current - drag.start_canvas) else {
             return false;
         };
+        let time = edits.keyframe_time();
         let item = edits
             .target_mut(self.item_target)
             .downcast_mut::<VisualItem>()
             .expect("3D item preview target has the wrong type");
-        let time = context.local_time();
         let (position, rotation) = if let Some(tracked) = self.tracked_camera {
             let desired_rotation = shrimply_transform_3d::rotation(
                 edit.rotation_degrees,

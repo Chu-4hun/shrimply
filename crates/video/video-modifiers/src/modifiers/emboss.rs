@@ -102,9 +102,10 @@ impl PreviewProvider for EmbossPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) if self.hit(input.sample.position).is_some() => {
                 PreviewResponse {
@@ -146,13 +147,11 @@ impl PreviewProvider for EmbossPreview {
                 };
                 let changed = match control {
                     EmbossControl::Depth => {
-                        super::preview::set_scalar(&mut owner.depth, context.local_time(), value)
+                        super::preview::set_scalar(&mut owner.depth, time, value)
                     }
-                    EmbossControl::Angle => super::preview::set_scalar(
-                        &mut owner.direction_degrees,
-                        context.local_time(),
-                        value,
-                    ),
+                    EmbossControl::Angle => {
+                        super::preview::set_scalar(&mut owner.direction_degrees, time, value)
+                    }
                 };
                 if changed {
                     match control {

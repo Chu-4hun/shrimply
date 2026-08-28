@@ -5,7 +5,7 @@ use ffmpeg_next as ffmpeg;
 use glam::UVec2;
 use serde_json::{Map, Number, Value, json};
 use shrimply_core::timeline_value::TimelineValue;
-use shrimply_math_core::Fraction;
+use shrimply_math_core::{Fraction, time_from_frame};
 use shrimply_project::project::{
     AudioTransition, Background, BackgroundGenerator, CanvasSize, Color, PROJECT_FORMAT_VERSION,
     SolidColor, Time, Transform, TransitionSide, VideoItem, VideoSampleMethod, VisualSource,
@@ -46,6 +46,7 @@ pub fn from_value(
     let mut warnings = Vec::new();
     let mut video_tracks = Vec::new();
     let mut audio_tracks = Vec::new();
+    let frame_step = time_from_frame(1, fps).ok_or_else(|| "invalid project FPS".to_string())?;
 
     for (index, track) in tracks.iter().enumerate() {
         require_schema(track, "Track.1")?;
@@ -57,12 +58,12 @@ pub fn from_value(
         match track.get("kind").and_then(Value::as_str) {
             Some("Video") => video_tracks.push(json!({
                 "enabled": enabled,
-                "items": import_video_items(children, canvas_size, base, &mut warnings)?,
+                "items": import_video_items(children, canvas_size, base, frame_step, &mut warnings)?,
             })),
             Some("Audio") => audio_tracks.push(json!({
                 "enabled": enabled,
                 "gain_db": 0.0,
-                "items": import_audio_items(children, base, &mut warnings)?,
+                "items": import_audio_items(children, base, frame_step, &mut warnings)?,
             })),
             kind => warnings.push(format!(
                 "track {} has unsupported kind {}; it was skipped",
@@ -102,6 +103,7 @@ fn import_video_items(
     children: &[Value],
     canvas_size: CanvasSize,
     base: &Path,
+    frame_step: Time,
     warnings: &mut Vec<String>,
 ) -> Result<Vec<Value>, String> {
     let mut items = Vec::new();
@@ -109,10 +111,17 @@ fn import_video_items(
     let mut pending_intro: Option<Time> = None;
     for child in children {
         match schema(child) {
-            Some("Gap.1") => cursor = cursor.saturating_add(item_duration(child)?),
+            Some("Gap.1") => {
+                cursor = cursor
+                    .saturating_add(item_duration(child)?)
+                    .snapped(frame_step)
+            }
             Some("Clip.2") => {
                 let duration = item_duration(child)?;
-                let end = cursor.saturating_add(duration);
+                let end = cursor
+                    .saturating_add(duration)
+                    .snapped(frame_step)
+                    .max(cursor.saturating_add(frame_step));
                 if child.get("enabled").and_then(Value::as_bool) == Some(false) {
                     warnings.push(format!(
                         "disabled clip {} was preserved as a gap",
@@ -167,6 +176,7 @@ fn import_video_items(
             }
             other => {
                 preserve_unknown_duration(child, &mut cursor)?;
+                cursor = cursor.snapped(frame_step);
                 warnings.push(format!(
                     "unsupported OTIO visual item {} was preserved as a gap",
                     other.unwrap_or("without a schema")
@@ -180,6 +190,7 @@ fn import_video_items(
 fn import_audio_items(
     children: &[Value],
     base: &Path,
+    frame_step: Time,
     warnings: &mut Vec<String>,
 ) -> Result<Vec<Value>, String> {
     let mut items = Vec::new();
@@ -187,10 +198,17 @@ fn import_audio_items(
     let mut pending_intro: Option<Time> = None;
     for child in children {
         match schema(child) {
-            Some("Gap.1") => cursor = cursor.saturating_add(item_duration(child)?),
+            Some("Gap.1") => {
+                cursor = cursor
+                    .saturating_add(item_duration(child)?)
+                    .snapped(frame_step)
+            }
             Some("Clip.2") => {
                 let duration = item_duration(child)?;
-                let end = cursor.saturating_add(duration);
+                let end = cursor
+                    .saturating_add(duration)
+                    .snapped(frame_step)
+                    .max(cursor.saturating_add(frame_step));
                 if child.get("enabled").and_then(Value::as_bool) == Some(false) {
                     warnings.push(format!(
                         "disabled clip {} was preserved as a gap",
@@ -228,6 +246,7 @@ fn import_audio_items(
             }
             other => {
                 preserve_unknown_duration(child, &mut cursor)?;
+                cursor = cursor.snapped(frame_step);
                 warnings.push(format!(
                     "unsupported OTIO audio item {} was preserved as a gap",
                     other.unwrap_or("without a schema")

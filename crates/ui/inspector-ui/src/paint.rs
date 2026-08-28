@@ -611,13 +611,16 @@ fn move_drawing_key(context: &InspectorContext, old: Time, time: Time) {
             let TimelineBase::Keyframes(keyframes) = &mut value.base else {
                 return false;
             };
-            let Some(keyframe) = keyframes
-                .iter_mut()
-                .find(|keyframe| keyframe.time.approx_eq(old))
+            let Some(index) = keyframes
+                .iter()
+                .position(|keyframe| keyframe.time.approx_eq(old))
             else {
                 return false;
             };
+            let mut keyframe = keyframes.remove(index);
+            keyframes.retain(|other| !other.time.approx_eq(time));
             keyframe.time = time;
+            keyframes.push(keyframe);
             keyframes.sort_by_key(|keyframe| keyframe.time);
             true
         },
@@ -955,10 +958,11 @@ impl ScalarKind {
 
 fn local_time(context: &InspectorContext) -> Time {
     let position = player_state::snapshot(&context.player_state).position;
+    let project = context.project.borrow();
     context
         .selected_item
         .clone()
-        .and_then(|key| context.project.borrow().keyframe_time(&key, position))
+        .and_then(|key| crate::video::visual_local_time(&project, key, position))
         .unwrap_or(Time::ZERO)
 }
 

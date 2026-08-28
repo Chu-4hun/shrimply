@@ -102,9 +102,10 @@ impl PreviewProvider for MosaicPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) => {
                 let Some(control) = self.hit(input.sample.position) else {
@@ -147,16 +148,12 @@ impl PreviewProvider for MosaicPreview {
                     MosaicControl::Height => (local.y - self.size.y * 0.5).max(1.0),
                 };
                 let changed = match control {
-                    MosaicControl::Width => super::preview::set_scalar(
-                        &mut owner.block_width,
-                        context.local_time(),
-                        value,
-                    ),
-                    MosaicControl::Height => super::preview::set_scalar(
-                        &mut owner.block_height,
-                        context.local_time(),
-                        value,
-                    ),
+                    MosaicControl::Width => {
+                        super::preview::set_scalar(&mut owner.block_width, time, value)
+                    }
+                    MosaicControl::Height => {
+                        super::preview::set_scalar(&mut owner.block_height, time, value)
+                    }
                 };
                 if changed {
                     match control {

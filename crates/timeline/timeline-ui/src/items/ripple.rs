@@ -43,7 +43,7 @@ pub(crate) fn ripple_delete_item_addresses(
                     &track.items,
                     &selected_indices,
                     &local_intervals,
-                    ripple_total_shift_nanos(&local_intervals),
+                    ripple_total_shift(&local_intervals),
                 );
                 ripple_track_items(
                     &mut track.items,
@@ -61,7 +61,7 @@ pub(crate) fn ripple_delete_item_addresses(
                     &track.items,
                     &selected_indices,
                     &local_intervals,
-                    ripple_total_shift_nanos(&local_intervals),
+                    ripple_total_shift(&local_intervals),
                 );
                 ripple_track_items(
                     &mut track.items,
@@ -79,7 +79,7 @@ pub(crate) fn ripple_delete_item_addresses(
                     &track.items,
                     &selected_indices,
                     &local_intervals,
-                    ripple_total_shift_nanos(&local_intervals),
+                    ripple_total_shift(&local_intervals),
                 );
                 ripple_track_items(
                     &mut track.items,
@@ -100,10 +100,10 @@ pub(crate) fn ripple_delete_item_addresses(
         }
     }
 
-    let shift = ripple_position_shift_nanos(&intervals, position);
+    let shift = ripple_position_shift(&intervals, position);
     Some(AddressRippleResult {
         selection: Vec::new(),
-        shifted_position: Time::from_nanos(position.as_nonnegative_nanos().saturating_sub(shift)),
+        shifted_position: position.saturating_sub(shift),
         captions,
         video,
         audio,
@@ -139,8 +139,11 @@ pub(crate) fn ripple_trim_item_addresses(
     let mut captions = false;
     let mut video = false;
     let mut audio = false;
+    let frame_step = project.frame_step();
     for address in &selected {
-        let local_cut = project.timeline_time_to_sequence(&address.track(), cut)?;
+        let local_cut = project
+            .timeline_time_to_sequence(&address.track(), cut)?
+            .snapped(frame_step);
         match project.item_mut(address)? {
             ItemMut::Caption(item) => {
                 item.trim_start(local_cut);
@@ -162,7 +165,7 @@ pub(crate) fn ripple_trim_item_addresses(
     for track in context.tracks(project) {
         let local_intervals = local_intervals(project, &track, &intervals)?;
         let selected_indices = HashSet::new();
-        let shift = ripple_total_shift_nanos(&local_intervals);
+        let shift = ripple_total_shift(&local_intervals);
         let changed = match project.track_mut(&track)? {
             TrackMut::Caption(track) => ripple_track_items(
                 &mut track.items,
@@ -204,10 +207,7 @@ pub(crate) fn ripple_trim_item_addresses(
 
     Some(AddressRippleResult {
         selection: selected,
-        shifted_position: Time::from_nanos(
-            cut.as_nonnegative_nanos()
-                .saturating_sub(ripple_total_shift_nanos(&intervals)),
-        ),
+        shifted_position: cut.saturating_sub(ripple_total_shift(&intervals)),
         captions,
         video,
         audio,
@@ -219,11 +219,16 @@ fn local_intervals(
     track: &TrackAddress,
     intervals: &[RippleInterval],
 ) -> Option<Vec<RippleInterval>> {
+    let frame_step = project.frame_step();
     let ranges = intervals
         .iter()
         .map(|interval| {
-            let first = project.timeline_time_to_sequence(track, interval.start)?;
-            let second = project.timeline_time_to_sequence(track, interval.end)?;
+            let first = project
+                .timeline_time_to_sequence(track, interval.start)?
+                .snapped(frame_step);
+            let second = project
+                .timeline_time_to_sequence(track, interval.end)?
+                .snapped(frame_step);
             Some((first.min(second), first.max(second)))
         })
         .collect::<Option<Vec<_>>>()?;
@@ -284,10 +289,7 @@ pub(crate) fn delete_track_gap(
     }
 
     let intervals = ripple_intervals_from_ranges(&[(gap.start, gap.end)]);
-    let shift = gap
-        .end
-        .as_nonnegative_nanos()
-        .saturating_sub(gap.start.as_nonnegative_nanos());
+    let shift = gap.end.saturating_sub(gap.start);
     let selected = HashSet::new();
     let changed = match gap.track.kind {
         TrackKind::Caption => ripple_track_items(
@@ -447,10 +449,10 @@ pub(crate) fn remove_ranges_from_items<T: OverwriteItem>(
             });
             item.set_group_id(Some(group_id));
         }
-        let shift = ripple_position_shift_nanos(intervals, item.start());
-        if shift > 0 {
-            let start = Time::from_nanos(item.start().as_nonnegative_nanos().saturating_sub(shift));
-            let end = Time::from_nanos(item.end().as_nonnegative_nanos().saturating_sub(shift));
+        let shift = ripple_position_shift(intervals, item.start());
+        if shift > Time::ZERO {
+            let start = item.start().saturating_sub(shift);
+            let end = item.end().saturating_sub(shift);
             set_times(&mut item, start, end);
         }
         insert_sorted(items, item);
@@ -471,14 +473,9 @@ pub(crate) fn kept_segment_index(intervals: &[RippleInterval], time: Time) -> us
         .count()
 }
 
-pub(crate) fn ripple_total_shift_nanos(intervals: &[RippleInterval]) -> u64 {
-    intervals.iter().fold(0_u64, |shift, interval| {
-        shift.saturating_add(
-            interval
-                .end
-                .as_nonnegative_nanos()
-                .saturating_sub(interval.start.as_nonnegative_nanos()),
-        )
+pub(crate) fn ripple_total_shift(intervals: &[RippleInterval]) -> Time {
+    intervals.iter().fold(Time::ZERO, |shift, interval| {
+        shift.saturating_add(interval.end.saturating_sub(interval.start))
     })
 }
 
@@ -486,27 +483,23 @@ pub(crate) fn ripple_track_shift_limit<T: TimeSlice>(
     items: &[T],
     selected_indices: &HashSet<usize>,
     intervals: &[RippleInterval],
-    max_shift: u64,
-) -> u64 {
+    max_shift: Time,
+) -> Time {
     let mut shift = max_shift;
     let mut ranges = ripple_track_ranges(items, selected_indices);
     ranges.sort_by_key(|range| (range.0, range.1));
-    let mut available_gap = 0_u64;
+    let mut available_gap = Time::ZERO;
     let mut previous_end = None;
 
     for (start, end) in ranges {
-        available_gap = available_gap.saturating_add(previous_end.map_or_else(
-            || start.as_nonnegative_nanos(),
-            |previous_end: Time| {
-                start
-                    .as_nonnegative_nanos()
-                    .saturating_sub(previous_end.as_nonnegative_nanos())
-            },
-        ));
+        available_gap =
+            available_gap.saturating_add(previous_end.map_or(start, |previous_end: Time| {
+                start.saturating_sub(previous_end)
+            }));
 
-        let item_shift = ripple_position_shift_nanos(intervals, start).min(max_shift);
-        if item_shift == 0 {
-            available_gap = 0;
+        let item_shift = ripple_position_shift(intervals, start).min(max_shift);
+        if item_shift == Time::ZERO {
+            available_gap = Time::ZERO;
         } else if item_shift > available_gap {
             shift = shift.min(available_gap);
         }
@@ -534,7 +527,7 @@ pub(crate) fn ripple_track_items<T: TimeSlice>(
     items: &mut Vec<T>,
     selected_indices: &HashSet<usize>,
     intervals: &[RippleInterval],
-    shift_limit: u64,
+    shift_limit: Time,
     set_times: impl Fn(&mut T, Time, Time),
 ) -> bool {
     let original = std::mem::take(items);
@@ -547,7 +540,7 @@ pub(crate) fn ripple_track_items<T: TimeSlice>(
             (
                 item.start(),
                 item.end(),
-                ripple_position_shift_nanos(intervals, item.start()),
+                ripple_position_shift(intervals, item.start()),
             )
         })
         .collect();
@@ -557,14 +550,11 @@ pub(crate) fn ripple_track_items<T: TimeSlice>(
         .collect();
 
     for index in (1..remaining.len()).rev() {
-        let gap = remaining[index]
-            .0
-            .as_nonnegative_nanos()
-            .saturating_sub(remaining[index - 1].1.as_nonnegative_nanos());
+        let gap = remaining[index].0.saturating_sub(remaining[index - 1].1);
         let required_shift = shifts[index].saturating_sub(gap);
         if required_shift > shifts[index - 1] {
             assert!(
-                remaining[index - 1].2 > 0,
+                remaining[index - 1].2 > Time::ZERO,
                 "ripple shift crossed its anchor"
             );
             shifts[index - 1] = required_shift;
@@ -579,14 +569,12 @@ pub(crate) fn ripple_track_items<T: TimeSlice>(
 
         let original_start = item.start();
         let original_end = item.end();
-        let duration = item.duration_nanos();
+        let duration = original_end.saturating_sub(original_start);
         let shift = shifts[remaining_index];
         remaining_index += 1;
-        if shift > 0 {
-            let target_start =
-                Time::from_nanos(original_start.as_nonnegative_nanos().saturating_sub(shift));
-            let target_end =
-                Time::from_nanos(target_start.as_nonnegative_nanos().saturating_add(duration));
+        if shift > Time::ZERO {
+            let target_start = original_start.saturating_sub(shift);
+            let target_end = target_start.saturating_add(duration);
             if target_start != original_start || target_end != original_end {
                 set_times(&mut item, target_start, target_end);
                 changed = true;
@@ -599,18 +587,15 @@ pub(crate) fn ripple_track_items<T: TimeSlice>(
     changed
 }
 
-pub(crate) fn ripple_position_shift_nanos(intervals: &[RippleInterval], position: Time) -> u64 {
-    let mut shift = 0_u64;
-    let position = position.as_nonnegative_nanos();
+pub(crate) fn ripple_position_shift(intervals: &[RippleInterval], position: Time) -> Time {
+    let mut shift = Time::ZERO;
 
     for interval in intervals {
-        let start = interval.start.as_nonnegative_nanos();
-        let end = interval.end.as_nonnegative_nanos();
-        if position <= start {
+        if position <= interval.start {
             break;
         }
-        shift = shift.saturating_add(position.min(end).saturating_sub(start));
-        if position < end {
+        shift = shift.saturating_add(position.min(interval.end).saturating_sub(interval.start));
+        if position < interval.end {
             break;
         }
     }

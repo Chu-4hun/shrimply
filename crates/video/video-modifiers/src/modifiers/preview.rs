@@ -85,11 +85,16 @@ fn set_curve<T: TimelineValueType<Keyframe = TimelineCurveKeyframe<T>>>(
             *current = next;
         }
         TimelineBase::Keyframes(keyframes) => {
-            if let Some(keyframe) = keyframes.iter_mut().find(|keyframe| keyframe.time == time) {
-                if equal(&keyframe.value, &next) {
+            if let Some(keyframe) = keyframes
+                .iter_mut()
+                .find(|keyframe| keyframe.time.approx_eq(time))
+            {
+                if keyframe.time == time && equal(&keyframe.value, &next) {
                     return false;
                 }
+                keyframe.time = time;
                 keyframe.value = next;
+                keyframes.sort_by_key(|keyframe| keyframe.time);
             } else {
                 let mut keyframe = TimelineCurveKeyframe {
                     id: Uuid::new_v4(),

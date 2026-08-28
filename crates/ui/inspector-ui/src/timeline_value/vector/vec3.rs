@@ -604,12 +604,16 @@ fn mutation(
 
 fn add_key(value: &mut TimelineValue<Vec3>, time: Time, _: Time) {
     let current = value.value_at(time);
-    if let TimelineBase::Keyframes(keyframes) = &mut value.base
-        && !keyframes
-            .iter()
-            .any(|keyframe| keyframe.time.approx_eq(time))
-    {
-        insert_keyframe(keyframes, Vec3::keyframe(time, current));
+    if let TimelineBase::Keyframes(keyframes) = &mut value.base {
+        if let Some(keyframe) = keyframes
+            .iter_mut()
+            .find(|keyframe| keyframe.time.approx_eq(time))
+        {
+            keyframe.time = time;
+            keyframes.sort_by_key(|keyframe| keyframe.time);
+        } else {
+            insert_keyframe(keyframes, Vec3::keyframe(time, current));
+        }
     }
 }
 
@@ -646,7 +650,10 @@ fn update_point(
     let Some(index) = keyframes.iter().position(|value| value.time.approx_eq(old)) else {
         return;
     };
-    keyframes[index].time = time;
+    let mut keyframe = keyframes.remove(index);
+    keyframes.retain(|other| !other.time.approx_eq(time));
+    keyframe.time = time;
+    keyframes.push(keyframe);
     keyframes.sort_by_key(|value| value.time);
     shrimply_project::project::commit_coalesced_edit(&project, "edit-scene-3d-vec3");
     drop(project);

@@ -246,6 +246,7 @@ pub(super) fn detect_ranges(
         &audible,
         config.min_silence.as_secs_f64().max(0.0),
         config.padding.as_secs_f64().max(0.0),
+        project.frame_step(),
     ))
 }
 
@@ -257,20 +258,17 @@ pub(super) fn apply_ranges(
 }
 
 pub(super) fn shifted_position(position: Time, ranges: &[(Time, Time)]) -> Time {
-    let mut shift = 0_u64;
-    let position_nanos = position.as_nonnegative_nanos();
+    let mut shift = Time::ZERO;
     for (start, end) in ranges {
-        let start_nanos = start.as_nonnegative_nanos();
-        let end_nanos = end.as_nonnegative_nanos();
-        if position_nanos <= start_nanos {
+        if position <= *start {
             break;
         }
-        shift = shift.saturating_add(position_nanos.min(end_nanos).saturating_sub(start_nanos));
-        if position_nanos < end_nanos {
+        shift = shift.saturating_add(position.min(*end).saturating_sub(*start));
+        if position < *end {
             break;
         }
     }
-    Time::from_nanos(position_nanos.saturating_sub(shift))
+    position.saturating_sub(shift)
 }
 
 fn remove_silences(
@@ -493,22 +491,39 @@ fn silence_gaps(
     audible: &[(f64, f64)],
     min_silence: f64,
     padding: f64,
+    frame_step: Time,
 ) -> Vec<(Time, Time)> {
     let mut ranges = Vec::new();
     let mut cursor = start;
     for &(audible_start, audible_end) in audible {
         let silence_start = cursor;
         let silence_end = (audible_start - padding).max(silence_start);
-        push_gap(&mut ranges, silence_start, silence_end, min_silence);
+        push_gap(
+            &mut ranges,
+            silence_start,
+            silence_end,
+            min_silence,
+            frame_step,
+        );
         cursor = (audible_end + padding).min(end).max(cursor);
     }
-    push_gap(&mut ranges, cursor, end, min_silence);
+    push_gap(&mut ranges, cursor, end, min_silence, frame_step);
     ranges
 }
 
-fn push_gap(ranges: &mut Vec<(Time, Time)>, start: f64, end: f64, min_silence: f64) {
+fn push_gap(
+    ranges: &mut Vec<(Time, Time)>,
+    start: f64,
+    end: f64,
+    min_silence: f64,
+    frame_step: Time,
+) {
     if end - start >= min_silence {
-        ranges.push((Time::from_seconds_f64(start), Time::from_seconds_f64(end)));
+        let start = Time::from_seconds_f64(start).snapped(frame_step);
+        let end = Time::from_seconds_f64(end).snapped(frame_step);
+        if end > start {
+            ranges.push((start, end));
+        }
     }
 }
 

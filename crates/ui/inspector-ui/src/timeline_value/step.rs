@@ -466,11 +466,14 @@ fn move_key<T: TimelineStep>(
         return;
     };
     if let TimelineBase::Keyframes(keyframes) = &mut value.base
-        && let Some(keyframe) = keyframes
-            .iter_mut()
-            .find(|keyframe| keyframe.time.approx_eq(old))
+        && let Some(index) = keyframes
+            .iter()
+            .position(|keyframe| keyframe.time.approx_eq(old))
     {
+        let mut keyframe = keyframes.remove(index);
+        keyframes.retain(|other| !other.time.approx_eq(time));
         keyframe.time = time;
+        keyframes.push(keyframe);
         keyframes.sort_by_key(|keyframe| keyframe.time);
         target.did_mutate(&mut project, key);
         shrimply_project::project::commit_coalesced_edit(&project, target.commit_name);

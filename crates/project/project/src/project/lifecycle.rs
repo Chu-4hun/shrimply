@@ -41,6 +41,30 @@ impl Project {
             .expect("project frame rate must be positive")
     }
 
+    pub fn has_timeline_items(&self) -> bool {
+        self.caption_tracks
+            .iter()
+            .any(|track| !track.items.is_empty())
+            || self
+                .video_tracks
+                .iter()
+                .any(|track| !track.items.is_empty())
+            || self
+                .audio_tracks
+                .iter()
+                .any(|track| !track.items.is_empty())
+            || self.folded_sequences.iter().any(|sequence| {
+                sequence
+                    .video_tracks
+                    .iter()
+                    .any(|track| !track.items.is_empty())
+                    || sequence
+                        .audio_tracks
+                        .iter()
+                        .any(|track| !track.items.is_empty())
+            })
+    }
+
     pub fn normalize_clip_transitions(&mut self) {
         for track in &mut self.video_tracks {
             normalize_visual_clip_transitions(&mut track.items);
@@ -263,6 +287,7 @@ impl Project {
             validate_folded_sequence(sequence)?;
         }
         validate_sequence_references(self)?;
+        validate_project_frame_alignment(self)?;
         Ok(())
     }
 
@@ -744,6 +769,86 @@ fn validate_track_times(
             ));
         }
         previous_end = Some(end);
+    }
+    Ok(())
+}
+
+fn validate_project_frame_alignment(project: &Project) -> Result<(), String> {
+    let frame_step = project.frame_step();
+    for (track_index, track) in project.caption_tracks.iter().enumerate() {
+        for (item_index, item) in track.items.iter().enumerate() {
+            validate_frame_aligned_times(
+                "caption",
+                track_index,
+                item_index,
+                item.start,
+                item.end,
+                frame_step,
+            )?;
+        }
+    }
+
+    for (track_index, track) in project
+        .video_tracks
+        .iter()
+        .chain(
+            project
+                .folded_sequences
+                .iter()
+                .flat_map(|sequence| &sequence.video_tracks),
+        )
+        .enumerate()
+    {
+        for (item_index, item) in track.items.iter().enumerate() {
+            validate_frame_aligned_times(
+                "visual",
+                track_index,
+                item_index,
+                item.start,
+                item.end,
+                frame_step,
+            )?;
+        }
+    }
+    for (track_index, track) in project
+        .audio_tracks
+        .iter()
+        .chain(
+            project
+                .folded_sequences
+                .iter()
+                .flat_map(|sequence| &sequence.audio_tracks),
+        )
+        .enumerate()
+    {
+        for (item_index, item) in track.items.iter().enumerate() {
+            validate_frame_aligned_times(
+                "audio",
+                track_index,
+                item_index,
+                item.start,
+                item.end,
+                frame_step,
+            )?;
+        }
+    }
+    Ok(())
+}
+
+fn validate_frame_aligned_times(
+    kind: &str,
+    track_index: usize,
+    item_index: usize,
+    start: Time,
+    end: Time,
+    frame_step: Time,
+) -> Result<(), String> {
+    if start != start.snapped(frame_step) || end != end.snapped(frame_step) {
+        return Err(format!(
+            "{kind} track {}, item {} is not aligned to the project frame grid",
+            track_index + 1,
+            item_index + 1,
+        ));
     }
     Ok(())
 }

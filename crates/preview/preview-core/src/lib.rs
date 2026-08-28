@@ -627,6 +627,7 @@ pub trait PreviewBuilder: PreviewContext {
 /// downcast the returned value with `Any::downcast_mut` and panic on a type
 /// mismatch so an invalid edit cannot leave a partially changed project.
 pub trait PreviewEditSink {
+    fn keyframe_time(&self) -> Time;
     fn target_mut(&mut self, target: PreviewTarget) -> &mut dyn Any;
 
     fn updated_geometry(&self, _target: PreviewTarget) -> Option<PreviewItemGeometry> {

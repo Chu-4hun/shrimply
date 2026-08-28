@@ -417,21 +417,18 @@ impl TransformHandler {
             let mut constraints = None;
             let mut previous_sample = None;
             for snap_pass in 0..DIRECT_RESIZE_SNAP_PASSES {
+                let time = edits.keyframe_time();
                 let item = edits
                     .target_mut(self.target)
                     .downcast_mut::<VisualItem>()
                     .expect("visual preview target has the wrong type");
                 changed |= match (self.resize, &mut item.content) {
-                    (ResizeTarget::Text { font_size, .. }, VisualSource::Text(text)) => set_scalar(
-                        &mut text.font_size,
-                        context.local_time(),
-                        (font_size * factor).max(1.0),
-                    ),
-                    (ResizeTarget::Shape { size, .. }, VisualSource::Shape(shape)) => set_vec2(
-                        &mut shape.size,
-                        context.local_time(),
-                        (size * factor).max(Vec2::ONE),
-                    ),
+                    (ResizeTarget::Text { font_size, .. }, VisualSource::Text(text)) => {
+                        set_scalar(&mut text.font_size, time, (font_size * factor).max(1.0))
+                    }
+                    (ResizeTarget::Shape { size, .. }, VisualSource::Shape(shape)) => {
+                        set_vec2(&mut shape.size, time, (size * factor).max(Vec2::ONE))
+                    }
                     _ => unreachable!(),
                 };
                 let resized = edits
@@ -515,22 +512,17 @@ impl TransformHandler {
                 factor = corrected.max(MIN_SCALE);
             }
         }
+        let time = edits.keyframe_time();
         let item = edits
             .target_mut(self.target)
             .downcast_mut::<VisualItem>()
             .expect("visual preview target has the wrong type");
-        changed |= set_vec2(
-            &mut item.transform.position,
-            context.local_time(),
-            next.position,
-        ) | set_vec2(
-            &mut item.transform.anchor,
-            context.local_time(),
-            next.anchor,
-        ) | set_vec2(&mut item.transform.scale, context.local_time(), next.scale)
+        changed |= set_vec2(&mut item.transform.position, time, next.position)
+            | set_vec2(&mut item.transform.anchor, time, next.anchor)
+            | set_vec2(&mut item.transform.scale, time, next.scale)
             | set_scalar(
                 &mut item.transform.rotation_degrees,
-                context.local_time(),
+                time,
                 next.rotation_degrees,
             );
         if changed {
@@ -1193,11 +1185,16 @@ fn set_curve<T: TimelineValueType<Keyframe = TimelineCurveKeyframe<T>>>(
             *current = next;
         }
         TimelineBase::Keyframes(keyframes) => {
-            if let Some(keyframe) = keyframes.iter_mut().find(|keyframe| keyframe.time == time) {
-                if equal(&keyframe.value, &next) {
+            if let Some(keyframe) = keyframes
+                .iter_mut()
+                .find(|keyframe| keyframe.time.approx_eq(time))
+            {
+                if keyframe.time == time && equal(&keyframe.value, &next) {
                     return false;
                 }
+                keyframe.time = time;
                 keyframe.value = next;
+                keyframes.sort_by_key(|keyframe| keyframe.time);
             } else {
                 keyframes.push(TimelineCurveKeyframe {
                     id: Uuid::new_v4(),

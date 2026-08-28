@@ -266,9 +266,10 @@ impl PreviewProvider for TransformPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) => {
                 let Some(kind) = self.hit(input.sample.position) else {
@@ -311,7 +312,7 @@ impl PreviewProvider for TransformPreview {
                     &drag,
                     input.sample.position,
                     input.modifiers,
-                    context,
+                    time,
                 ) else {
                     return PreviewResponse::IGNORED;
                 };
@@ -365,11 +366,10 @@ fn update_transform(
     drag: &TransformDrag,
     point: glam::Vec2,
     modifiers: Modifiers,
-    context: &dyn PreviewContext,
+    time: shrimply_core::Time,
 ) -> Option<(bool, ResolvedTransform2D)> {
     let parent = preview::inverse_point(drag.canvas_to_screen, point)?;
     let start = drag.start;
-    let time = context.local_time();
     let mut resolved = start;
     let changed = match drag.kind {
         TransformDragKind::Move => {

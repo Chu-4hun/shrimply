@@ -835,6 +835,20 @@ impl CudaVideoCompositor {
         Ok(())
     }
 
+    pub(crate) fn relieve_all_gpu_pressure(
+        &mut self,
+        allocation_description: &str,
+    ) -> Result<(), String> {
+        self.relieve_gpu_pressure(MIGRATE_ALL_REQUIRED_BYTES, allocation_description)
+    }
+
+    pub(crate) fn relieve_decoder_gpu_pressure(
+        &mut self,
+        startup_bytes: u64,
+    ) -> Result<(), String> {
+        self.relieve_gpu_pressure(startup_bytes, "speculative video decoder startup")
+    }
+
     fn release_after_reported_gpu_oom(&mut self) -> Result<(), String> {
         self.fail_if_superseded()?;
         let generation = gpu_oom_generation();

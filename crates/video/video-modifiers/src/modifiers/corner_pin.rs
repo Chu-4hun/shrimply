@@ -198,9 +198,10 @@ impl PreviewProvider for CornerPinPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         let hit = |point| {
             for (index, corner) in self.local_corners().into_iter().enumerate() {
                 if self.editable[index] && preview::hit(point, self.map.transform_point2(corner)) {
@@ -255,7 +256,7 @@ impl PreviewProvider for CornerPinPreview {
                         .expect("corner pin preview target has wrong type"),
                     &drag,
                     input.sample.position,
-                    context,
+                    time,
                 ) else {
                     return PreviewResponse::IGNORED;
                 };
@@ -303,7 +304,7 @@ fn update_corner_pin(
     modifier: &mut CornerPinModifier,
     drag: &CornerPinDrag,
     point: glam::Vec2,
-    context: &dyn PreviewContext,
+    time: shrimply_core::Time,
 ) -> Option<(bool, CornerPinValue)> {
     let (map, local) = match *drag {
         CornerPinDrag::Corner { map, .. } | CornerPinDrag::Perspective { map, .. } => {
@@ -312,7 +313,6 @@ fn update_corner_pin(
         }
     };
     let _ = map;
-    let time = context.local_time();
     let (changed, value) = match *drag {
         CornerPinDrag::Corner { size, index, .. } => {
             let value =

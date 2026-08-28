@@ -1,14 +1,15 @@
 use std::fs;
 use std::path::Path;
 
-use shrimply_math_core::Fraction;
+use shrimply_math_core::{Fraction, time_from_frame};
 use shrimply_project::{
     CaptionEdgeStyle, CaptionFont, CaptionItem, Color, HorizontalAlign, VerticalAlign,
 };
 
 use crate::math;
 
-pub fn read(path: &Path) -> Result<Vec<CaptionItem>, String> {
+pub fn read(path: &Path, fps: Fraction) -> Result<Vec<CaptionItem>, String> {
+    let frame_step = time_from_frame(1, fps).ok_or_else(|| "invalid project FPS".to_string())?;
     let source = fs::read_to_string(path)
         .map_err(|error| format!("could not read subtitles {}: {error}", path.display()))?;
     let mut events = false;
@@ -32,8 +33,11 @@ pub fn read(path: &Path) -> Result<Vec<CaptionItem>, String> {
         if fields.len() != 10 {
             return Err(format!("invalid ASS dialogue in {}", path.display()));
         }
-        let start = math::time(ass_centiseconds(fields[1])?, Fraction::from(100u32));
-        let end = math::time(ass_centiseconds(fields[2])?, Fraction::from(100u32));
+        let start =
+            math::time(ass_centiseconds(fields[1])?, Fraction::from(100u32)).snapped(frame_step);
+        let end = math::time(ass_centiseconds(fields[2])?, Fraction::from(100u32))
+            .snapped(frame_step)
+            .max(start.saturating_add(frame_step));
         let mut item = CaptionItem::new(
             start,
             end,

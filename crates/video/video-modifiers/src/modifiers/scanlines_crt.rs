@@ -106,9 +106,10 @@ impl PreviewProvider for CrtPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) => {
                 let Some(control) = self.hit(input.sample.position) else {
@@ -155,13 +156,11 @@ impl PreviewProvider for CrtPreview {
                 };
                 let changed = match control {
                     CrtControl::Spacing => {
-                        super::preview::set_scalar(&mut owner.spacing, context.local_time(), value)
+                        super::preview::set_scalar(&mut owner.spacing, time, value)
                     }
-                    CrtControl::Curvature => super::preview::set_scalar(
-                        &mut owner.curvature,
-                        context.local_time(),
-                        value,
-                    ),
+                    CrtControl::Curvature => {
+                        super::preview::set_scalar(&mut owner.curvature, time, value)
+                    }
                 };
                 if changed {
                     self.values[index] = value;

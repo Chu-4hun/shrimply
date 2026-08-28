@@ -225,7 +225,10 @@ pub(super) fn update_clip_transition_drag(
             view.seconds_per_pixel,
         ));
         let target = snap_repository.snap(target).unwrap_or(target);
-        let Some(target) = project.timeline_time_to_sequence(&track, target) else {
+        let Some(target) = project
+            .timeline_time_to_sequence(&track, target)
+            .map(|target| target.snapped(project.frame_step()))
+        else {
             return;
         };
         let Some((minimum, maximum)) =
@@ -242,7 +245,10 @@ pub(super) fn update_clip_transition_drag(
     let target = Time::from_seconds_f64(x_to_time(x, view.scroll_seconds, view.seconds_per_pixel));
     let target = snap_repository.snap(target).unwrap_or(target);
     let track = drag.outgoing.track();
-    let Some(target) = project.timeline_time_to_sequence(&track, target) else {
+    let Some(target) = project
+        .timeline_time_to_sequence(&track, target)
+        .map(|target| target.snapped(project.frame_step()))
+    else {
         return;
     };
     let distance = match handle {
@@ -397,7 +403,10 @@ pub(super) fn update_transition_drag(
     let Some((item_start, item_end)) = project.item(&drag.key).map(|item| item.times()) else {
         return;
     };
-    let Some(target) = project.timeline_time_to_sequence(&drag.key.track(), target) else {
+    let Some(target) = project
+        .timeline_time_to_sequence(&drag.key.track(), target)
+        .map(|target| target.snapped(project.frame_step()))
+    else {
         return;
     };
     let item_duration = item_end.saturating_sub(item_start);

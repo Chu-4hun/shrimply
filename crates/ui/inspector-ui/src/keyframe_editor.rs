@@ -191,16 +191,13 @@ pub(crate) fn project_frame_keyframe_time(
     project: &Project,
     item: Option<&ItemAddress>,
     time: Time,
-) -> Time {
+) -> Option<Time> {
     let Some(item) = item else {
-        return time.snapped(project.frame_step());
-    };
-    let Some(timeline_time) = project.keyframe_timeline_time(item, time) else {
-        return time.snapped(project.frame_step());
+        return Some(time.snapped(project.frame_step()));
     };
     project
-        .keyframe_time(item, timeline_time.snapped(project.frame_step()))
-        .unwrap_or(time)
+        .keyframe_timeline_time(item, time)
+        .and_then(|timeline_time| project.keyframe_time(item, timeline_time))
 }
 
 pub(crate) fn build(
@@ -589,11 +586,12 @@ pub(crate) fn build(
                     time_at_x(x, graph.width().max(1) as f64, domain),
                     item_range,
                 );
-                select_time(project_frame_keyframe_time(
-                    &project.borrow(),
-                    selected_item.as_ref(),
-                    time,
-                ));
+                let Some(time) =
+                    project_frame_keyframe_time(&project.borrow(), selected_item.as_ref(), time)
+                else {
+                    return;
+                };
+                select_time(time);
                 graph.queue_render();
             }
         });
@@ -723,11 +721,16 @@ pub(crate) fn build(
             if let Some(target) = target {
                 let time = match target {
                     DragTarget::Point(point) => point.time,
-                    DragTarget::Cursor => project_frame_keyframe_time(
-                        &project.borrow(),
-                        selected_item.as_ref(),
-                        clamp_graph_time(time_at_x(x, width, domain), item_range),
-                    ),
+                    DragTarget::Cursor => {
+                        let Some(time) = project_frame_keyframe_time(
+                            &project.borrow(),
+                            selected_item.as_ref(),
+                            clamp_graph_time(time_at_x(x, width, domain), item_range),
+                        ) else {
+                            return;
+                        };
+                        time
+                    }
                     DragTarget::SelectBox => return,
                     DragTarget::SliderMove => return,
                 };
@@ -830,11 +833,13 @@ pub(crate) fn build(
                     let item_range = view.item_range();
                     let (time, edge) =
                         drag_cursor_time(&mut view, item_range, width, start_x + offset_x);
-                    let time = project_frame_keyframe_time(
+                    let Some(time) = project_frame_keyframe_time(
                         &project.borrow(),
                         selected_item.as_ref(),
                         time,
-                    );
+                    ) else {
+                        return;
+                    };
                     select_time(time);
                     edge
                 };
@@ -897,8 +902,11 @@ pub(crate) fn build(
                     graph_duration_seconds(domain) / graph_plot_width(width),
                     playhead(),
                 );
-                let time =
-                    project_frame_keyframe_time(&project.borrow(), selected_item.as_ref(), time);
+                let Some(time) =
+                    project_frame_keyframe_time(&project.borrow(), selected_item.as_ref(), time)
+                else {
+                    return;
+                };
                 let value = graph_edit_value(
                     &graph_data,
                     value_at_y(start_y + offset_y, content_height, range),
@@ -1219,11 +1227,13 @@ pub(crate) fn build(
         let selected_item = selected_item.clone();
         button.connect_clicked(move |_| {
             let logical_playhead = playhead();
-            let actual_playhead = project_frame_keyframe_time(
+            let Some(actual_playhead) = project_frame_keyframe_time(
                 &project.borrow(),
                 selected_item.as_ref(),
                 logical_playhead,
-            );
+            ) else {
+                return;
+            };
             let times = graph_data.borrow().key_times();
             if let Some(time) = keyframe_model::key_at(&times, actual_playhead, frame_step) {
                 delete_graph_key(&mut graph_data.borrow_mut(), time);

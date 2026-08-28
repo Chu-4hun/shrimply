@@ -196,9 +196,7 @@ impl ShrimplyServer {
         .map_err(mcp_error)
     }
 
-    #[tool(
-        description = "Seek the visible editor playhead to a frame, clamped to project duration"
-    )]
+    #[tool(description = "Seek the visible editor playhead to a project frame")]
     async fn seek_playhead(
         &self,
         Parameters(request): Parameters<SeekPlayheadRequest>,

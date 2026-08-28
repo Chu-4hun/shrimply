@@ -360,11 +360,8 @@ impl PaintHandler {
         if self.state.selected.is_empty() {
             return PreviewResponse::IGNORED;
         }
-        let changed = delete_selected(
-            paint_mut(edits, self.target),
-            context.local_time(),
-            &self.state.selected,
-        );
+        let time = edits.keyframe_time();
+        let changed = delete_selected(paint_mut(edits, self.target), time, &self.state.selected);
         if !changed {
             return PreviewResponse::IGNORED;
         }
@@ -927,7 +924,7 @@ impl PaintGesture {
     fn pen(
         &mut self,
         samples: &[PointerSample],
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> bool {
         let points: Vec<_> = samples
@@ -939,8 +936,9 @@ impl PaintGesture {
                 })
             })
             .collect();
+        let time = edits.keyframe_time();
         let paint = paint_mut(edits, self.target);
-        let (drawing, revision) = editable_drawing_mut(paint, context.local_time());
+        let (drawing, revision) = editable_drawing_mut(paint, time);
         let result = append_samples(
             drawing,
             revision,
@@ -967,12 +965,13 @@ impl PaintGesture {
     fn erase(
         &mut self,
         samples: &[PointerSample],
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> bool {
         let mut changed = false;
+        let time = edits.keyframe_time();
         let paint = paint_mut(edits, self.target);
-        let (drawing, revision) = editable_drawing_mut(paint, context.local_time());
+        let (drawing, revision) = editable_drawing_mut(paint, time);
         for sample in samples {
             let Some(raw) = self.mapping.screen_to_raw(sample.position) else {
                 continue;
@@ -1005,7 +1004,7 @@ impl PaintGesture {
     fn fill(
         &mut self,
         samples: &[PointerSample],
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> bool {
         if self.acted {
@@ -1015,10 +1014,11 @@ impl PaintGesture {
         let Some(raw) = self.mapping.screen_to_raw(samples[0].position) else {
             return false;
         };
+        let time = edits.keyframe_time();
         let paint = paint_mut(edits, self.target);
         let transform = self.mapping.stroke;
         let source_size = self.mapping.source_size;
-        let (drawing, revision) = editable_drawing_mut(paint, context.local_time());
+        let (drawing, revision) = editable_drawing_mut(paint, time);
         let geometry = shrimply_paint_geometry::prepare_geometry(
             drawing,
             *revision,
@@ -1056,7 +1056,7 @@ impl PaintGesture {
 
     fn finish_object_erase(
         &mut self,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> bool {
         if self.object_erase_path.is_empty() {
@@ -1064,8 +1064,9 @@ impl PaintGesture {
         }
         let transform = self.mapping.stroke;
         let source_size = self.mapping.source_size;
+        let time = edits.keyframe_time();
         let paint = paint_mut(edits, self.target);
-        let (drawing, revision) = editable_drawing_mut(paint, context.local_time());
+        let (drawing, revision) = editable_drawing_mut(paint, time);
         let geometry = shrimply_paint_geometry::prepare_geometry(
             drawing,
             *revision,
@@ -1160,15 +1161,16 @@ impl PaintGesture {
                 } => fills.push((fill_id, boundary_index, point_index, position + delta)),
             }
         }
+        let time = edits.keyframe_time();
         let paint = paint_mut(edits, self.target);
-        let (drawing, revision) = editable_drawing_mut(paint, context.local_time());
+        let (drawing, revision) = editable_drawing_mut(paint, time);
         move_samples(drawing, revision, &strokes, &fills)
     }
 
     fn transform(
         &mut self,
         samples: &[PointerSample],
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> bool {
         let sample = samples.last().expect("paint samples are empty");
@@ -1184,13 +1186,14 @@ impl PaintGesture {
                 .unwrap_or(item);
             (drag, start, start_item)
         });
+        let time = edits.keyframe_time();
         let paint = paint_mut(edits, self.target);
         let mut changed = false;
         match drag {
             StrokeTransformDrag::Move => {
                 changed |= set_timeline_value(
                     &mut paint.stroke_transform.position,
-                    context.local_time(),
+                    time,
                     start.position + item - start_item,
                 );
             }
@@ -1203,14 +1206,10 @@ impl PaintGesture {
                     .rotate(Vec2::from_angle(start.rotation_degrees.to_radians()));
                 changed |= set_timeline_value(
                     &mut paint.stroke_transform.position,
-                    context.local_time(),
+                    time,
                     start.position + moved,
                 );
-                changed |= set_timeline_value(
-                    &mut paint.stroke_transform.anchor,
-                    context.local_time(),
-                    anchor,
-                );
+                changed |= set_timeline_value(&mut paint.stroke_transform.anchor, time, anchor);
             }
             StrokeTransformDrag::Scale { x, y } => {
                 let rotation = Vec2::from_angle(-start.rotation_degrees.to_radians());
@@ -1228,11 +1227,7 @@ impl PaintGesture {
                         start.scale.y
                     },
                 );
-                changed |= set_timeline_value(
-                    &mut paint.stroke_transform.scale,
-                    context.local_time(),
-                    scale,
-                );
+                changed |= set_timeline_value(&mut paint.stroke_transform.scale, time, scale);
             }
             StrokeTransformDrag::Rotate { start_angle } => {
                 let Some(angle) = vector_angle_degrees(item - start.position) else {
@@ -1240,7 +1235,7 @@ impl PaintGesture {
                 };
                 changed |= set_timeline_value(
                     &mut paint.stroke_transform.rotation_degrees,
-                    context.local_time(),
+                    time,
                     start.rotation_degrees + normalized_angle_degrees(angle - start_angle),
                 );
             }
@@ -1480,17 +1475,16 @@ fn editable_drawing_mut(paint: &mut PaintItem, time: Time) -> (&mut PaintDrawing
     let drawing = match &mut paint.drawing.base {
         TimelineBase::Const(drawing) => drawing,
         TimelineBase::Keyframes(keyframes) => {
+            if let Some(key) = keyframes.iter_mut().find(|key| key.time().approx_eq(time)) {
+                *key.time_mut() = time;
+            } else {
+                keyframes.push(PaintDrawing::keyframe(time, PaintDrawing::default()));
+            }
+            keyframes.sort_by_key(|keyframe| keyframe.time());
             let index = keyframes
                 .iter()
                 .position(|keyframe| keyframe.time() == time)
-                .unwrap_or_else(|| {
-                    keyframes.push(PaintDrawing::keyframe(time, PaintDrawing::default()));
-                    keyframes.sort_by_key(|keyframe| keyframe.time());
-                    keyframes
-                        .iter()
-                        .position(|keyframe| keyframe.time() == time)
-                        .expect("inserted paint drawing keyframe is missing")
-                });
+                .expect("paint drawing keyframe is missing");
             keyframes[index].value_mut()
         }
     };
@@ -1502,27 +1496,27 @@ fn set_timeline_value<T: TimelineValueType + PartialEq>(
     time: Time,
     value: T,
 ) -> bool {
-    let mut inserted = false;
+    let mut changed_time = false;
     let current = match &mut timeline.base {
         TimelineBase::Const(current) => current,
         TimelineBase::Keyframes(keyframes) => {
+            if let Some(key) = keyframes.iter_mut().find(|key| key.time().approx_eq(time)) {
+                changed_time = key.time() != time;
+                *key.time_mut() = time;
+            } else {
+                changed_time = true;
+                keyframes.push(T::keyframe(time, value.clone()));
+            }
+            keyframes.sort_by_key(|keyframe| keyframe.time());
             let index = keyframes
                 .iter()
                 .position(|keyframe| keyframe.time() == time)
-                .unwrap_or_else(|| {
-                    inserted = true;
-                    keyframes.push(T::keyframe(time, value.clone()));
-                    keyframes.sort_by_key(|keyframe| keyframe.time());
-                    keyframes
-                        .iter()
-                        .position(|keyframe| keyframe.time() == time)
-                        .expect("inserted transform keyframe is missing")
-                });
+                .expect("transform keyframe is missing");
             keyframes[index].value_mut()
         }
     };
     if *current == value {
-        return inserted;
+        return changed_time;
     }
     *current = value;
     true

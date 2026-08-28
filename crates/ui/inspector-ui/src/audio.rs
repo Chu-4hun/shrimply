@@ -399,6 +399,14 @@ fn tts_editor(
                 .iter()
                 .filter_map(|item| (item.id != item_id && item.start > start).then_some(item.start))
                 .min();
+            let generated_end = start
+                .saturating_add(source_duration)
+                .snapped(project.frame_step());
+            if generated_end <= start {
+                drop(project);
+                let _ = std::fs::remove_file(path);
+                return;
+            }
             let Some(item) = project.audio_item_mut(&key) else {
                 drop(project);
                 let _ = std::fs::remove_file(path);
@@ -413,9 +421,7 @@ fn tts_editor(
             item.track_id = 0;
             item.time_offset = Time::ZERO;
             item.source_duration = source_duration;
-            item.end = next_start
-                .map(|next| start.saturating_add(source_duration).min(next))
-                .unwrap_or_else(|| start.saturating_add(source_duration));
+            item.end = next_start.map_or(generated_end, |next| generated_end.min(next));
             let duration = project.duration();
             shrimply_project::project::commit_edit(&project, "generate-tts");
             drop(project);

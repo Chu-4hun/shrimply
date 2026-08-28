@@ -99,9 +99,10 @@ impl PreviewProvider for DirectionalBlurPreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) if self.hit(input.sample.position).is_some() => {
                 PreviewResponse {
@@ -140,13 +141,11 @@ impl PreviewProvider for DirectionalBlurPreview {
                 };
                 let changed = match control {
                     DirectionalBlurControl::Radius => {
-                        super::preview::set_scalar(&mut owner.radius, context.local_time(), value)
+                        super::preview::set_scalar(&mut owner.radius, time, value)
                     }
-                    DirectionalBlurControl::Angle => super::preview::set_scalar(
-                        &mut owner.angle_degrees,
-                        context.local_time(),
-                        value,
-                    ),
+                    DirectionalBlurControl::Angle => {
+                        super::preview::set_scalar(&mut owner.angle_degrees, time, value)
+                    }
                 };
                 if changed {
                     match control {

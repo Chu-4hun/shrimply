@@ -110,9 +110,10 @@ impl PreviewProvider for VignettePreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) => {
                 let Some(control) = self.hit(input.sample.position) else {
@@ -161,10 +162,10 @@ impl PreviewProvider for VignettePreview {
                 };
                 let changed = match control {
                     VignetteControl::Midpoint => {
-                        super::preview::set_scalar(&mut owner.midpoint, context.local_time(), value)
+                        super::preview::set_scalar(&mut owner.midpoint, time, value)
                     }
                     VignetteControl::Softness => {
-                        super::preview::set_scalar(&mut owner.softness, context.local_time(), value)
+                        super::preview::set_scalar(&mut owner.softness, time, value)
                     }
                 };
                 if changed {

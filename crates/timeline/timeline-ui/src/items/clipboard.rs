@@ -201,7 +201,12 @@ pub(crate) fn paste_caption_items(
             item.id = uuid::Uuid::new_v4();
             item.group_id = remap_item_group_id(next_group_id, group_map, item.group_id);
             let item_start = start.saturating_add(start_offset);
-            (track_index, item_start, item_start.saturating_add(duration), item)
+            (
+                track_index,
+                item_start,
+                item_start.saturating_add(duration),
+                item,
+            )
         })
         .collect();
     if items.is_empty() {
@@ -282,20 +287,21 @@ fn paste_video_items(
             }
             let timeline_item_start = timeline_start.saturating_add(start_offset);
             let timeline_item_end = timeline_item_start.saturating_add(duration);
-            Some((
-                track_index,
-                project.timeline_time_to_sequence_path(
+            let first = project
+                .timeline_time_to_sequence_path(
                     crate::project::ItemKind::Video,
                     &sequence_path,
                     timeline_item_start,
-                )?,
-                project.timeline_time_to_sequence_path(
+                )?
+                .snapped(project.frame_step());
+            let second = project
+                .timeline_time_to_sequence_path(
                     crate::project::ItemKind::Video,
                     &sequence_path,
                     timeline_item_end,
-                )?,
-                item,
-            ))
+                )?
+                .snapped(project.frame_step());
+            (first != second).then_some((track_index, first.min(second), first.max(second), item))
         })
         .collect();
     for (_, _, _, item) in &mut items {
@@ -387,20 +393,21 @@ fn paste_audio_items(
             }
             let timeline_item_start = timeline_start.saturating_add(start_offset);
             let timeline_item_end = timeline_item_start.saturating_add(duration);
-            Some((
-                track_index,
-                project.timeline_time_to_sequence_path(
+            let first = project
+                .timeline_time_to_sequence_path(
                     crate::project::ItemKind::Audio,
                     &sequence_path,
                     timeline_item_start,
-                )?,
-                project.timeline_time_to_sequence_path(
+                )?
+                .snapped(project.frame_step());
+            let second = project
+                .timeline_time_to_sequence_path(
                     crate::project::ItemKind::Audio,
                     &sequence_path,
                     timeline_item_end,
-                )?,
-                item,
-            ))
+                )?
+                .snapped(project.frame_step());
+            (first != second).then_some((track_index, first.min(second), first.max(second), item))
         })
         .collect();
     for (_, _, _, item) in &mut items {

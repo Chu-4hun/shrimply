@@ -1,7 +1,8 @@
 use shrimply_math_core::{Fraction, last_frame_time};
 use shrimply_project::project::{Time, VideoItem};
 pub use shrimply_video_decoder::{
-    DEFAULT_VIDEO_DECODER_POOL_SIZE, DecodeControl, VideoDecoderOwner, VideoDecoderPool, VideoPlane,
+    DEFAULT_VIDEO_DECODER_POOL_SIZE, DecodeControl, VideoDecoderOwner, VideoDecoderPool,
+    VideoPlane, is_decoder_startup_pressure, take_decoder_pressure,
 };
 use shrimply_video_decoder::{
     DecodeOutcome, DecodeRequest, DecodedVisual, PendingDecode, VideoDecoderHandle,
@@ -69,28 +70,6 @@ impl MediaDecodeMode {
     }
 }
 
-fn media_decode_mode(item: &VideoItem, accuracy: CompositeAccuracy) -> MediaDecodeMode {
-    let mode = MediaDecodeMode::for_accuracy(accuracy);
-    if mode.realtime()
-        && item.modifiers.iter().any(|modifier| {
-            modifier.enabled
-                && matches!(
-                    &modifier.effect,
-                    shrimply_video_modifiers::ModifierEffect::Raster(effect)
-                        if matches!(
-                            &**effect,
-                            shrimply_video_modifiers::RasterModifierEffect::TransparentFill(fill)
-                                if !fill.points.is_empty() && fill.analysis_generation > 0
-                        )
-                )
-        })
-    {
-        MediaDecodeMode::Accurate
-    } else {
-        mode
-    }
-}
-
 fn decodable_source_position(item: &VideoItem, position: Time, frame_duration: Time) -> Time {
     if position < item.source_duration || frame_duration <= Time::ZERO {
         return position;
@@ -141,7 +120,7 @@ impl VisualElement for VideoElement {
         };
         let source_position =
             decodable_source_position(request.item, source_position, self.decoder.frame_duration());
-        let mode = media_decode_mode(request.item, request.accuracy);
+        let mode = MediaDecodeMode::for_accuracy(request.accuracy);
         let foreground = !request.prefetch;
         if foreground {
             self.decoder.touch_foreground();
@@ -222,7 +201,7 @@ impl VisualElement for VideoElement {
         };
         let source_position =
             decodable_source_position(request.item, source_position, self.decoder.frame_duration());
-        let mode = media_decode_mode(request.item, request.accuracy);
+        let mode = MediaDecodeMode::for_accuracy(request.accuracy);
         self.decoder.touch_foreground();
         let current = self.decoder.current();
         if let Some(frame) = usable_cached_frame(

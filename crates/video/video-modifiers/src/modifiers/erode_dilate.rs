@@ -72,9 +72,10 @@ impl PreviewProvider for ErodeDilatePreview {
     fn on_pointer(
         &mut self,
         event: PointerEvent<'_>,
-        context: &dyn PreviewContext,
+        _context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         let handle = self.points().1;
         match event {
             PointerEvent::Hover(input) if super::preview::hit(input.sample.position, handle) => {
@@ -101,7 +102,7 @@ impl PreviewProvider for ErodeDilatePreview {
                         .downcast_mut::<ErodeDilateModifier>()
                         .expect("erode preview target has wrong type")
                         .radius,
-                    context.local_time(),
+                    time,
                     radius,
                 );
                 if changed {

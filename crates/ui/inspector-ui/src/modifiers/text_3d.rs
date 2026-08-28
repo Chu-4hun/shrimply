@@ -403,11 +403,16 @@ fn update_text_value(context: &InspectorContext, id: Uuid, next: String) -> bool
             true
         }
         shrimply_core::timeline_value::TimelineBase::Keyframes(keyframes) => {
-            if let Some(keyframe) = keyframes.iter_mut().find(|keyframe| keyframe.time == time) {
-                if keyframe.value == next {
+            if let Some(keyframe) = keyframes
+                .iter_mut()
+                .find(|keyframe| keyframe.time.approx_eq(time))
+            {
+                if keyframe.time == time && keyframe.value == next {
                     false
                 } else {
+                    keyframe.time = time;
                     keyframe.value = next;
+                    keyframes.sort_by_key(|keyframe| keyframe.time);
                     true
                 }
             } else {

@@ -51,7 +51,6 @@ use render::{FrameItemRenderer, render_project_frame};
 
 const MAX_RENDER_DIMENSION: f32 = 16_384.0;
 const PREVIEW_DISPLAY_SURFACES: usize = 2;
-const LOADING_PLACEHOLDER_POLL_INTERVAL: Duration = Duration::from_millis(100);
 const BEST_EFFORT_MOTION_BLUR_SAMPLE_CAP: u32 = 8;
 
 fn manim_source_revision(item: &VideoItem) -> u64 {
@@ -277,7 +276,6 @@ enum WorkerCommand {
 pub enum VideoEvent {
     Loading {
         position: Time,
-        retry_settled: bool,
         show_spinner: bool,
         render_elapsed: Duration,
         render_generation: u64,
@@ -1003,29 +1001,9 @@ fn video_compositor_worker(
     let mut project_revision = 0;
     let mut project_generation = 0;
     let mut preview_exclusion = None;
-    let mut loading_placeholder_retry: Option<(Instant, Time, CompositeAccuracy, u64, u64)> = None;
     loop {
-        let command = if let Some((deadline, position, accuracy, request_id, render_generation)) =
-            loading_placeholder_retry
-        {
-            match command_rx.recv_timeout(deadline.saturating_duration_since(Instant::now())) {
-                Ok(command) => command,
-                Err(mpsc::RecvTimeoutError::Timeout) => {
-                    loading_placeholder_retry = None;
-                    WorkerCommand::Render {
-                        position,
-                        accuracy,
-                        request_id,
-                        cancel_generation: render_generation,
-                    }
-                }
-                Err(mpsc::RecvTimeoutError::Disconnected) => return,
-            }
-        } else {
-            let Ok(command) = command_rx.recv() else {
-                return;
-            };
-            command
+        let Ok(command) = command_rx.recv() else {
+            return;
         };
         match command {
             WorkerCommand::SetProject => {
@@ -1052,7 +1030,6 @@ fn video_compositor_worker(
                 request_id,
                 cancel_generation: render_generation,
             } => {
-                loading_placeholder_retry = None;
                 let coalesced = {
                     let _measurement = shrimply_benchmarking::measure("Video / Coalesce commands");
                     coalesce_pending_commands(
@@ -1115,33 +1092,66 @@ fn video_compositor_worker(
                     sam2::spawn_analysis(project.clone(), job, event_tx.clone());
                 }
                 let render_started = Instant::now();
-                let rendered = {
-                    let _measurement = shrimply_benchmarking::measure("Video / Render request");
-                    let audio_analysis = {
-                        let _measurement =
-                            shrimply_benchmarking::measure("Video / Volume sampling");
-                        let volume_revision = sessions.volume_revision;
-                        FrameAudioAnalysis {
-                            volume: sessions.volume.sample(&project, position, volume_revision),
-                            mouth: sessions.mouth.sample(&project, position, volume_revision),
-                        }
-                    };
-                    render_project_frame(
-                        &project,
-                        position,
-                        &mut sessions,
-                        &mut render_cache,
-                        compositor,
-                        RenderMode::Preview { accuracy },
-                        &audio_analysis,
-                        None,
-                        None,
-                        preview_exclusion,
-                        Some(&decode_control),
-                    )
+                let _measurement = shrimply_benchmarking::measure("Video / Render request");
+                let audio_analysis = {
+                    let _measurement = shrimply_benchmarking::measure("Video / Volume sampling");
+                    let volume_revision = sessions.volume_revision;
+                    FrameAudioAnalysis {
+                        volume: sessions.volume.sample(&project, position, volume_revision),
+                        mouth: sessions.mouth.sample(&project, position, volume_revision),
+                    }
                 };
+                let mut rendered = render_project_frame(
+                    &project,
+                    position,
+                    &mut sessions,
+                    &mut render_cache,
+                    compositor,
+                    RenderMode::Preview { accuracy },
+                    &audio_analysis,
+                    None,
+                    None,
+                    preview_exclusion,
+                    Some(&decode_control),
+                );
+                if accuracy.time_accurate()
+                    && !accuracy.continuous_playback()
+                    && rendered
+                        .errors
+                        .iter()
+                        .any(|error| crate::decode::is_decoder_startup_pressure(error))
+                    && !decode_control.superseded()
+                {
+                    compositor.set_render_control(Some(decode_control.clone()));
+                    let _ = crate::decode::take_decoder_pressure();
+                    sessions.decoders.reclaim_idle();
+                    match compositor.relieve_all_gpu_pressure("video decoder startup retry") {
+                        Ok(()) if !decode_control.superseded() => {
+                            shrimply_benchmarking::increment(
+                                "Temporal decoder / Accurate starts retried after GPU relief",
+                            );
+                            rendered = render_project_frame(
+                                &project,
+                                position,
+                                &mut sessions,
+                                &mut render_cache,
+                                compositor,
+                                RenderMode::Preview { accuracy },
+                                &audio_analysis,
+                                None,
+                                None,
+                                preview_exclusion,
+                                Some(&decode_control),
+                            );
+                        }
+                        Ok(()) => {}
+                        Err(error) => rendered.errors.push(format!(
+                            "Could not relieve GPU pressure for video decoder retry: {error}"
+                        )),
+                    }
+                    compositor.set_render_control(None);
+                }
                 let render_elapsed = render_started.elapsed();
-                let loading_placeholder = rendered.loading_placeholder;
                 // Parameter reflection is consumed from the Manim renderer only once. A newer
                 // preview request (for example, deselecting the item while it first loads) may
                 // supersede this frame after that happens, so publish the metadata independently
@@ -1244,8 +1254,6 @@ fn video_compositor_worker(
                                 &event_tx,
                                 VideoEvent::Loading {
                                     position,
-                                    retry_settled: accuracy.content_accurate()
-                                        && !rendered.loading_placeholder,
                                     show_spinner: !rendered.loading_placeholder,
                                     render_elapsed,
                                     render_generation,
@@ -1259,8 +1267,6 @@ fn video_compositor_worker(
                             &event_tx,
                             VideoEvent::Loading {
                                 position,
-                                retry_settled: accuracy.content_accurate()
-                                    && !rendered.loading_placeholder,
                                 show_spinner: !rendered.loading_placeholder,
                                 render_elapsed,
                                 render_generation,
@@ -1284,14 +1290,19 @@ fn video_compositor_worker(
                     }
                     None => {}
                 }
-                if loading_placeholder && !accuracy.continuous_playback() {
-                    loading_placeholder_retry = Some((
-                        Instant::now() + LOADING_PLACEHOLDER_POLL_INTERVAL,
-                        position,
-                        accuracy,
-                        request_id,
-                        render_generation,
-                    ));
+                if (accuracy.continuous_playback() || accuracy.local_scrub())
+                    && let Some(startup_bytes) = crate::decode::take_decoder_pressure()
+                {
+                    compositor.set_render_control(Some(decode_control.clone()));
+                    sessions.decoders.reclaim_idle();
+                    if let Err(error) = compositor.relieve_decoder_gpu_pressure(startup_bytes) {
+                        tracing::warn!(
+                            %error,
+                            startup_bytes,
+                            "could not relieve speculative video decoder GPU pressure",
+                        );
+                    }
+                    compositor.set_render_control(None);
                 }
             }
             WorkerCommand::Stop => return,

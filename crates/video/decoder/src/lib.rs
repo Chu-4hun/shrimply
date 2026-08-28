@@ -1,14 +1,28 @@
-use std::sync::atomic::AtomicU64;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 mod pool;
 mod session;
 mod track;
 
-pub use pool::{DecodeRequest, PendingDecode, VideoDecoderHandle, VideoDecoderPool};
+pub use pool::{
+    DecodeRequest, PendingDecode, VideoDecoderHandle, VideoDecoderPool, is_decoder_startup_pressure,
+};
 pub use session::{DecodeControl, DecodeOutcome, DecodedVisual};
 pub use track::{VideoDecoderOwner, VideoPlane};
 
 pub const DEFAULT_VIDEO_DECODER_POOL_SIZE: usize = 16;
+
+pub fn take_decoder_pressure() -> Option<u64> {
+    match DECODER_PRESSURE_BYTES.swap(0, Ordering::AcqRel) {
+        0 => None,
+        u64::MAX => Some(u64::MAX),
+        bytes => Some(bytes - 1),
+    }
+}
+
+fn report_decoder_pressure(startup_bytes: u64) {
+    DECODER_PRESSURE_BYTES.fetch_max(startup_bytes.saturating_add(1), Ordering::Release);
+}
 
 const LOCAL_FORWARD_DECODE_SECONDS: i64 = 1;
 const MAX_LATEST_REQUEST_DISTANCE_FRAMES: i64 = 4;
@@ -20,6 +34,7 @@ static NEXT_DECODER_WORKER_ID: AtomicU64 = AtomicU64::new(0);
 static NEXT_TEMPORAL_CONSUMER_ID: AtomicU64 = AtomicU64::new(1);
 static TEMPORAL_CURRENT_BYTES: AtomicU64 = AtomicU64::new(0);
 static TEMPORAL_CURRENT_FRAMES: AtomicU64 = AtomicU64::new(0);
+static DECODER_PRESSURE_BYTES: AtomicU64 = AtomicU64::new(0);
 
 #[cfg(test)]
 mod tests {

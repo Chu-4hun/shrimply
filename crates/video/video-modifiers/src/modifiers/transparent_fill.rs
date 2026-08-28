@@ -225,6 +225,7 @@ impl PreviewProvider for TransparentFillPreview {
         context: &dyn PreviewContext,
         edits: &mut dyn PreviewEditSink,
     ) -> PreviewResponse {
+        let time = edits.keyframe_time();
         match event {
             PointerEvent::Hover(input) if self.hit(input.sample.position).is_some() => {
                 PreviewResponse {
@@ -280,8 +281,7 @@ impl PreviewProvider for TransparentFillPreview {
                 let Some(point) = modifier.points.iter_mut().find(|point| point.id == id) else {
                     return PreviewResponse::IGNORED;
                 };
-                let changed =
-                    preview::set_vec2(&mut point.position, context.local_time(), position);
+                let changed = preview::set_vec2(&mut point.position, time, position);
                 if changed {
                     self.points
                         .iter_mut()

@@ -218,7 +218,9 @@ fn imported_video_setting_changes(
             height: size.y,
         })
         .filter(|canvas_size| *canvas_size != project.canvas_size);
-    let fps = info.video_fps.filter(|fps| *fps != project.fps);
+    let fps = info
+        .video_fps
+        .filter(|fps| !project.has_timeline_items() && *fps != project.fps);
     (canvas_size.is_some() || fps.is_some()).then_some((canvas_size, fps))
 }
 

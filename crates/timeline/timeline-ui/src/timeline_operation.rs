@@ -414,10 +414,12 @@ pub(crate) trait TimelineOperationContext {
         let parent_scope = self.scope().parent()?;
         let parent_path = project.sequence_path_for_scope(address.kind(), &parent_scope)?;
         let (timeline_start, timeline_end) = project.timeline_item_times(address)?;
-        let first =
-            project.timeline_time_to_sequence_path(address.kind(), &parent_path, timeline_start)?;
-        let second =
-            project.timeline_time_to_sequence_path(address.kind(), &parent_path, timeline_end)?;
+        let first = project
+            .timeline_time_to_sequence_path(address.kind(), &parent_path, timeline_start)?
+            .snapped(project.frame_step());
+        let second = project
+            .timeline_time_to_sequence_path(address.kind(), &parent_path, timeline_end)?
+            .snapped(project.frame_step());
         project.move_item_to_new_top_track(
             address,
             &parent_path,

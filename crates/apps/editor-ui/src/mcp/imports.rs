@@ -858,6 +858,7 @@ fn import_start(
     };
     project
         .timeline_time_to_sequence_path(item_kind, &path, projected)
+        .map(|time| time.snapped(project.frame_step()))
         .map(Some)
         .ok_or_else(|| format!("{kind:?} import scope cannot map the projected anchor frame"))
 }

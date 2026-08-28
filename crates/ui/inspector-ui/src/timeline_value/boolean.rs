@@ -771,12 +771,21 @@ fn move_key(
     let Some(value) = target.get_mut(&mut project, key.clone(), source) else {
         return;
     };
-    if let TimelineBase::Keyframes(keys) = &mut value.base
-        && let Some(item) = keys.iter_mut().find(|item| item.time.approx_eq(old))
+    let changed = if let TimelineBase::Keyframes(keys) = &mut value.base
+        && let Some(index) = keys.iter().position(|item| item.time.approx_eq(old))
     {
+        let mut item = keys.remove(index);
+        keys.retain(|other| !other.time.approx_eq(time));
         item.time = time;
+        keys.push(item);
         keys.sort_by_key(|item| item.time);
         target.did_mutate(&mut project, key);
+        true
+    } else {
+        false
+    };
+    if changed {
+        shrimply_project::project::commit_coalesced_edit(&project, "move-bool-keyframe");
     }
     drop(project);
     player_state::refresh_project(

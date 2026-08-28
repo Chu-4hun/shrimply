@@ -1004,7 +1004,9 @@ fn video_generation_editor(
                         .then_some(candidate.start)
                 })
                 .min();
-            let mut end = start.saturating_add(source_duration);
+            let mut end = start
+                .saturating_add(source_duration)
+                .snapped(project.frame_step());
             if let Some(next) = next_video_start {
                 end = end.min(next);
             }

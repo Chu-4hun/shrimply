@@ -12,8 +12,11 @@ pub(super) fn create_generated_item_at_playhead(
     if key.kind != TrackKind::Video {
         return;
     }
-    let start = player_state::snapshot(player_state).position;
     let mut project_state = project.borrow_mut();
+    let frame_step = project_state.frame_step();
+    let start = player_state::snapshot(player_state)
+        .position
+        .snapped(frame_step);
     let canvas_size = project_state.canvas_size;
     let Some(track) = project_state.video_tracks.get_mut(key.track_index) else {
         return;
@@ -32,7 +35,7 @@ pub(super) fn create_generated_item_at_playhead(
         .filter_map(|item| (item.start > start).then_some(item.start))
         .min();
     let default_duration = runtime.borrow().default_visual_duration;
-    let mut end = start.saturating_add(default_duration);
+    let mut end = start.saturating_add(default_duration).snapped(frame_step);
     if let Some(next_start) = next_start {
         end = end.min(next_start);
     }
@@ -88,8 +91,11 @@ pub(super) fn create_tts_item_at_playhead(
     if key.kind != TrackKind::Audio {
         return;
     }
-    let start = player_state::snapshot(player_state).position;
     let mut project_state = project.borrow_mut();
+    let frame_step = project_state.frame_step();
+    let start = player_state::snapshot(player_state)
+        .position
+        .snapped(frame_step);
     let Some(track) = project_state.audio_tracks.get_mut(key.track_index) else {
         return;
     };
@@ -106,7 +112,9 @@ pub(super) fn create_tts_item_at_playhead(
         .iter()
         .filter_map(|item| (item.start > start).then_some(item.start))
         .min();
-    let mut end = start.saturating_add(runtime.borrow().default_visual_duration);
+    let mut end = start
+        .saturating_add(runtime.borrow().default_visual_duration)
+        .snapped(frame_step);
     if let Some(next_start) = next_start {
         end = end.min(next_start);
     }
@@ -153,8 +161,11 @@ pub(super) fn create_video_generation_item_at_playhead(
     if key.kind != TrackKind::Video {
         return;
     }
-    let start = player_state::snapshot(player_state).position;
     let mut project_state = project.borrow_mut();
+    let frame_step = project_state.frame_step();
+    let start = player_state::snapshot(player_state)
+        .position
+        .snapped(frame_step);
     let canvas_size = project_state.canvas_size;
     let Some(track) = project_state.video_tracks.get_mut(key.track_index) else {
         return;
@@ -171,7 +182,9 @@ pub(super) fn create_video_generation_item_at_playhead(
         .iter()
         .filter_map(|item| (item.start > start).then_some(item.start))
         .min();
-    let mut end = start.saturating_add(runtime.borrow().default_visual_duration);
+    let mut end = start
+        .saturating_add(runtime.borrow().default_visual_duration)
+        .snapped(frame_step);
     if let Some(next_start) = next_start {
         end = end.min(next_start);
     }
@@ -217,8 +230,11 @@ pub(super) fn create_audio_generator_item_at_playhead(
     if key.kind != TrackKind::Audio {
         return;
     }
-    let start = player_state::snapshot(player_state).position;
     let mut project_state = project.borrow_mut();
+    let frame_step = project_state.frame_step();
+    let start = player_state::snapshot(player_state)
+        .position
+        .snapped(frame_step);
     let Some(track) = project_state.audio_tracks.get_mut(key.track_index) else {
         return;
     };
@@ -235,7 +251,9 @@ pub(super) fn create_audio_generator_item_at_playhead(
         .iter()
         .filter_map(|item| (item.start > start).then_some(item.start))
         .min();
-    let mut end = start.saturating_add(runtime.borrow().default_visual_duration);
+    let mut end = start
+        .saturating_add(runtime.borrow().default_visual_duration)
+        .snapped(frame_step);
     if let Some(next_start) = next_start {
         end = end.min(next_start);
     }
@@ -293,15 +311,20 @@ pub(super) fn handle_audio_recording(
         }
     }
 
-    let start = player_state::snapshot(player_state).position;
-    if project.borrow().audio_tracks.get(key.track_index).is_none() {
-        interaction::show_error_dialog(
-            area,
-            "Could not record audio",
-            "Audio track no longer exists",
-        );
-        return false;
-    }
+    let start = {
+        let project = project.borrow();
+        if project.audio_tracks.get(key.track_index).is_none() {
+            interaction::show_error_dialog(
+                area,
+                "Could not record audio",
+                "Audio track no longer exists",
+            );
+            return false;
+        }
+        player_state::snapshot(player_state)
+            .position
+            .snapped(project.frame_step())
+    };
     match crate::audio::recording::MicRecording::start() {
         Ok(recording) => {
             ensure_recording_duration(player_state, start);
@@ -338,9 +361,10 @@ pub(super) fn handle_video_recording(
         return true;
     }
 
-    let start = player_state::snapshot(player_state).position;
-    let (fps, stop_at) = {
+    let position = player_state::snapshot(player_state).position;
+    let (start, fps, stop_at) = {
         let project = project.borrow();
+        let start = position.snapped(project.frame_step());
         let Some(track) = project.video_tracks.get(key.track_index) else {
             interaction::show_error_dialog(
                 area,
@@ -362,6 +386,7 @@ pub(super) fn handle_video_recording(
             return false;
         }
         (
+            start,
             project.fps,
             track
                 .items
@@ -497,7 +522,10 @@ fn finish_video_recording(
         return Ok(());
     }
     let mut project_state = project.borrow_mut();
-    let recorded_end = active.start.saturating_add(finished.duration);
+    let recorded_end = active
+        .start
+        .saturating_add(finished.duration)
+        .snapped(project_state.frame_step());
     let end = active
         .stop_at
         .map_or(recorded_end, |stop_at| recorded_end.min(stop_at));
@@ -628,12 +656,20 @@ pub(super) fn finish_audio_recording(
     }
 
     let mut project_state = project.borrow_mut();
+    let end = active
+        .start
+        .saturating_add(finished.duration)
+        .snapped(project_state.frame_step());
+    if end <= active.start {
+        drop(project_state);
+        let _ = std::fs::remove_file(&finished.path);
+        return Err("The recording is shorter than one project frame".to_string());
+    }
     let Some(track) = project_state.audio_tracks.get_mut(active.key.track_index) else {
         drop(project_state);
         let _ = std::fs::remove_file(&finished.path);
         return Err("Audio track no longer exists".to_string());
     };
-    let end = active.start.saturating_add(finished.duration);
     let item = crate::project::AudioItem::builder(active.start, end)
         .source_duration(finished.duration)
         .file(finished.path)

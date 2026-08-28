@@ -735,7 +735,7 @@ impl<'a> Converter<'a> {
         for file in files {
             tracks.push(CaptionTrack {
                 enabled: !disabled,
-                items: ass::read(&resolve_path(&self.root_dir, file)).map_err(invalid)?,
+                items: ass::read(&resolve_path(&self.root_dir, file), self.fps).map_err(invalid)?,
                 ..CaptionTrack::default()
             });
             self.warnings.insert(

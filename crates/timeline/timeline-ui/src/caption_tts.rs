@@ -426,13 +426,15 @@ fn apply_result(
     mut result: RunResult,
 ) {
     let original_successes = result.generated.len();
+    let frame_step = project.borrow().frame_step();
     let mut items = result
         .generated
         .drain(..)
         .map(|speech| {
+            let start = speech.job.start.snapped(frame_step);
             AudioItem::builder(
-                speech.job.start,
-                speech.job.start.saturating_add(speech.duration),
+                start,
+                start.saturating_add(speech.duration).snapped(frame_step),
             )
             .source_duration(speech.duration)
             .source(AudioSource::Tts(Box::new(speech.settings)))
@@ -440,7 +442,7 @@ fn apply_result(
             .build()
         })
         .collect::<Vec<_>>();
-    resolve_overlaps(&mut items);
+    resolve_overlaps(&mut items, frame_step);
     items.retain(|item| item.end > item.start && item.time_offset < item.source_duration);
     let collision_failures = original_successes.saturating_sub(items.len());
     let summary = result_summary(&result, items.len(), collision_failures);
@@ -503,7 +505,7 @@ fn apply_result(
     }
 }
 
-fn resolve_overlaps(items: &mut Vec<AudioItem>) {
+fn resolve_overlaps(items: &mut Vec<AudioItem>, frame_step: Time) {
     loop {
         items.sort_by_key(|item| (item.start, item.end, item.id));
         let Some(index) = items
@@ -516,7 +518,8 @@ fn resolve_overlaps(items: &mut Vec<AudioItem>) {
         let overlap_end = items[index].end.min(items[index + 1].end);
         let cut = Time {
             seconds: overlap_start.seconds + (overlap_end.seconds - overlap_start.seconds) / 2,
-        };
+        }
+        .snapped(frame_step);
         items[index].end = cut;
         let trim = cut.saturating_sub(items[index + 1].start);
         items[index + 1].start = cut;

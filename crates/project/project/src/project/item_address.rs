@@ -1021,6 +1021,7 @@ impl Project {
     }
 
     pub fn keyframe_time(&self, address: &ItemAddress, timeline_time: Time) -> Option<Time> {
+        let timeline_time = timeline_time.snapped(self.frame_step());
         let sequence_time = self.timeline_time_to_sequence(&address.track(), timeline_time)?;
         if let Some(item) = self.video_item(address) {
             return Some(super::generated_item_animation_time(item, sequence_time));

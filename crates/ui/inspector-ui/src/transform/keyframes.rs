@@ -441,29 +441,45 @@ fn add_keyframe_at_time(
             let Some(keyframes) = vec2_keyframes_mut(transform, field) else {
                 return false;
             };
-            if has_keyframe(keyframes, time) {
-                return false;
+            if let Some(keyframe) = keyframes
+                .iter_mut()
+                .find(|keyframe| keyframe.time.approx_eq(time))
+            {
+                if keyframe.time == time {
+                    return false;
+                }
+                keyframe.time = time;
+                keyframes.sort_by_key(|keyframe| keyframe.time);
+            } else {
+                let mut value = raw_vec2_value(current, field);
+                if matches!(field, Vec2Field::Scale) {
+                    value = value.max(Vec2::ZERO);
+                }
+                insert_vec2_keyframe(keyframes, vec2_keyframe(time, value));
             }
-            let mut value = raw_vec2_value(current, field);
-            if matches!(field, Vec2Field::Scale) {
-                value = value.max(Vec2::ZERO);
-            }
-            insert_vec2_keyframe(keyframes, vec2_keyframe(time, value));
         }
         TransformField::Scalar(field) => {
             let Some(keyframes) = scalar_keyframes_mut(transform, field) else {
                 return false;
             };
-            if has_keyframe(keyframes, time) {
-                return false;
+            if let Some(keyframe) = keyframes
+                .iter_mut()
+                .find(|keyframe| keyframe.time.approx_eq(time))
+            {
+                if keyframe.time == time {
+                    return false;
+                }
+                keyframe.time = time;
+                keyframes.sort_by_key(|keyframe| keyframe.time);
+            } else {
+                insert_scalar_keyframe(
+                    keyframes,
+                    scalar_keyframe(
+                        time,
+                        clamp_scalar_value(field, raw_scalar_value(current, field)) as f32,
+                    ),
+                );
             }
-            insert_scalar_keyframe(
-                keyframes,
-                scalar_keyframe(
-                    time,
-                    clamp_scalar_value(field, raw_scalar_value(current, field)) as f32,
-                ),
-            );
         }
     }
 
@@ -963,12 +979,6 @@ fn delete_keyframe<T: TransformKeyframe>(keyframes: &mut Vec<T>, time: Time) -> 
     };
     keyframes.remove(index);
     true
-}
-
-fn has_keyframe<T: TransformKeyframe>(keyframes: &[T], time: Time) -> bool {
-    keyframes
-        .iter()
-        .any(|keyframe| keyframe.time().approx_eq(time))
 }
 
 trait TransformKeyframe {

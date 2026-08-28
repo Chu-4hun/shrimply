@@ -826,7 +826,12 @@ fn apply_transcription(
     }
 
     snap_segments_to_cuts(&mut segments, cut_points, snap_tolerance);
-    let overlap_count = sanitize_transcribed_segments(&mut segments);
+    let frame_step = project.borrow().frame_step();
+    for segment in &mut segments {
+        segment.start = segment.start.snapped(frame_step);
+        segment.end = segment.end.snapped(frame_step);
+    }
+    let overlap_count = sanitize_transcribed_segments(&mut segments, frame_step);
     if overlap_count > 0 {
         tracing::warn!(
             overlap_count,
@@ -889,7 +894,10 @@ fn snap_segments_to_cuts(
     }
 }
 
-fn sanitize_transcribed_segments(segments: &mut Vec<TranscribedSegment>) -> usize {
+fn sanitize_transcribed_segments(
+    segments: &mut Vec<TranscribedSegment>,
+    frame_step: Time,
+) -> usize {
     segments.retain(|segment| !segment.text.trim().is_empty() && segment.end > segment.start);
     let mut overlap_count = 0;
     loop {
@@ -902,7 +910,8 @@ fn sanitize_transcribed_segments(segments: &mut Vec<TranscribedSegment>) -> usiz
         };
         let overlap_start = segments[index].start.max(segments[index + 1].start);
         let overlap_end = segments[index].end.min(segments[index + 1].end);
-        let boundary = shrimply_math_media::time_midpoint(overlap_start, overlap_end);
+        let boundary =
+            shrimply_math_media::time_midpoint(overlap_start, overlap_end).snapped(frame_step);
         segments[index].end = boundary;
         segments[index + 1].start = boundary;
         overlap_count += 1;

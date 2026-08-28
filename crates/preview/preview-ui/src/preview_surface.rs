@@ -497,6 +497,7 @@ struct PreparedProvider {
 struct PreparedContext {
     evaluation: VisualEvaluation,
     timeline_position: Time,
+    keyframe_time: Time,
     viewport: PreviewViewport,
     geometry: PreviewItemGeometry,
     source_sizes: HashMap<uuid::Uuid, GlamVec2>,
@@ -610,10 +611,15 @@ struct Edits<'a> {
     project: &'a mut Project,
     extensions: &'a mut HashMap<PreviewExtensionKey, Box<dyn Any>>,
     item: &'a ItemAddress,
+    keyframe_time: Time,
     context: HandlerContext<'a>,
 }
 
 impl PreviewEditSink for Edits<'_> {
+    fn keyframe_time(&self) -> Time {
+        self.keyframe_time
+    }
+
     fn target_mut(&mut self, target: PreviewTarget) -> &mut dyn Any {
         self.project
             .preview_target_mut(target)
@@ -700,6 +706,7 @@ fn prepare_target(
         return None;
     }
     let sequence_position = project.timeline_time_to_sequence(&key.track(), position)?;
+    let keyframe_time = project.keyframe_time(key, position)?;
     let evaluation = VisualEvaluation::for_item_with_audio(
         project,
         item,
@@ -793,6 +800,7 @@ fn prepare_target(
         context: PreparedContext {
             evaluation,
             timeline_position: position,
+            keyframe_time,
             viewport,
             geometry,
             source_sizes,
@@ -1259,6 +1267,7 @@ fn dispatch_pointer(surface: ProviderDispatch<'_>, event: PointerEvent<'_>) -> P
                 project: &mut project,
                 extensions: &mut controller.extensions,
                 item: &prepared.item,
+                keyframe_time: prepared.context.keyframe_time,
                 context,
             },
         )
@@ -1328,6 +1337,7 @@ fn dispatch_keyboard(surface: ProviderDispatch<'_>, event: KeyboardEvent) -> Pre
                 project: &mut project,
                 extensions: &mut controller.extensions,
                 item: &prepared.item,
+                keyframe_time: prepared.context.keyframe_time,
                 context,
             },
         )
@@ -1381,6 +1391,7 @@ fn cancel_provider(
                 project: &mut project,
                 extensions: &mut controller.extensions,
                 item: &prepared.item,
+                keyframe_time: prepared.context.keyframe_time,
                 context,
             },
         )

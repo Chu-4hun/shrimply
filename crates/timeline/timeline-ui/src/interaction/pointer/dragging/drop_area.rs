@@ -87,8 +87,12 @@ impl DropDestination {
     ) -> Option<ItemAddress> {
         match self {
             Self::Track(track) => {
-                let start = project.timeline_time_to_sequence(track, start)?;
-                let end = project.timeline_time_to_sequence(track, end)?;
+                let start = project
+                    .timeline_time_to_sequence(track, start)?
+                    .snapped(project.frame_step());
+                let end = project
+                    .timeline_time_to_sequence(track, end)?
+                    .snapped(project.frame_step());
                 let (start, end) = ordered_times(start, end);
                 crate::folded_sequence::move_item_with_collision(
                     project,
@@ -100,8 +104,12 @@ impl DropDestination {
                 )
             }
             Self::NewTrack(path) => {
-                let start = project.timeline_time_to_sequence_path(source.kind(), path, start)?;
-                let end = project.timeline_time_to_sequence_path(source.kind(), path, end)?;
+                let start = project
+                    .timeline_time_to_sequence_path(source.kind(), path, start)?
+                    .snapped(project.frame_step());
+                let end = project
+                    .timeline_time_to_sequence_path(source.kind(), path, end)?
+                    .snapped(project.frame_step());
                 let (start, end) = ordered_times(start, end);
                 let moved = project.move_item_to_new_track(source, path, start, end)?;
                 if !project.expanded_sequence_paths.contains(path) {

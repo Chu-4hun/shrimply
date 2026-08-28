@@ -26,6 +26,10 @@ use crate::{
 const DECODER_STARTUP_MEMORY_EXHAUSTED: &str =
     "not enough free CUDA memory to initialize video decoder";
 
+pub fn is_decoder_startup_pressure(error: &str) -> bool {
+    error.contains(DECODER_STARTUP_MEMORY_EXHAUSTED)
+}
+
 #[derive(Clone, Default)]
 struct VideoDecoderContext {
     startup: Arc<DecoderStartupGate>,
@@ -41,12 +45,12 @@ struct DecoderStartupGate {
 struct DecoderStartupState {
     active: bool,
     observed_bytes: u64,
-    failed_free_bytes: Option<u64>,
 }
 
 struct DecoderStartupMeasurement {
     startup: Arc<DecoderStartupGate>,
     free_before: u64,
+    speculative: bool,
     finished: bool,
 }
 
@@ -65,36 +69,11 @@ impl Drop for DecoderStartupMeasurement {
 }
 
 impl VideoDecoderContext {
-    fn has_startup_capacity(&self, source: &VideoSource) -> Result<bool, String> {
-        let state = self
-            .startup
-            .state
-            .lock()
-            .expect("video decoder startup mutex poisoned");
-        if state.active {
-            return Ok(false);
-        }
-        let (free, total) = cuda_memory_info()?;
-        let free = u64::try_from(free).map_err(|_| "CUDA free memory exceeds u64".to_string())?;
-        let total =
-            u64::try_from(total).map_err(|_| "CUDA total memory exceeds u64".to_string())?;
-        let required = (total / DECODER_FREE_MEMORY_RESERVE_DIVISOR as u64)
-            .checked_add(state.observed_bytes)
-            .ok_or_else(|| "video decoder startup memory requirement overflowed".to_string())?;
-        let available = free >= required
-            && state
-                .failed_free_bytes
-                .is_none_or(|failed_free| free > failed_free);
-        if !available {
-            trace_startup_throttled(source, free, total, required, &state);
-        }
-        Ok(available)
-    }
-
     fn begin_startup(
         &self,
         source: &VideoSource,
         required: bool,
+        control: Option<&DecodeControl>,
     ) -> Result<Option<DecoderStartupMeasurement>, String> {
         let mut state = self
             .startup
@@ -102,7 +81,7 @@ impl VideoDecoderContext {
             .lock()
             .expect("video decoder startup mutex poisoned");
         while state.active {
-            if !required {
+            if !required || control.is_some_and(DecodeControl::superseded) {
                 return Ok(None);
             }
             state = self
@@ -111,6 +90,9 @@ impl VideoDecoderContext {
                 .wait(state)
                 .expect("video decoder startup mutex poisoned");
         }
+        if control.is_some_and(DecodeControl::superseded) {
+            return Ok(None);
+        }
         let (free, total) = cuda_memory_info()?;
         let free = u64::try_from(free).map_err(|_| "CUDA free memory exceeds u64".to_string())?;
         let total =
@@ -118,23 +100,21 @@ impl VideoDecoderContext {
         let required_free = (total / DECODER_FREE_MEMORY_RESERVE_DIVISOR as u64)
             .checked_add(state.observed_bytes)
             .ok_or_else(|| "video decoder startup memory requirement overflowed".to_string())?;
-        if free < required_free
-            || state
-                .failed_free_bytes
-                .is_some_and(|failed_free| free <= failed_free)
-        {
+        if free < required_free {
             trace_startup_throttled(source, free, total, required_free, &state);
             if required {
                 return Err(format!(
                     "{DECODER_STARTUP_MEMORY_EXHAUSTED}: free={free}, required={required_free}"
                 ));
             }
+            crate::report_decoder_pressure(state.observed_bytes);
             return Ok(None);
         }
         state.active = true;
         Ok(Some(DecoderStartupMeasurement {
             startup: self.startup.clone(),
             free_before: free,
+            speculative: !required,
             finished: false,
         }))
     }
@@ -176,21 +156,11 @@ impl DecoderStartupMeasurement {
                     state.observed_bytes,
                 );
             }
-            if state
-                .failed_free_bytes
-                .is_some_and(|failed_free| self.free_before > failed_free)
-            {
-                state.failed_free_bytes = None;
-            }
         } else if pressure_failure {
-            state.failed_free_bytes = Some(
-                state
-                    .failed_free_bytes
-                    .map_or(self.free_before, |failed_free| {
-                        failed_free.max(self.free_before)
-                    }),
-            );
             shrimply_benchmarking::increment("Temporal decoder / Starts failed under GPU pressure");
+        }
+        if pressure_failure && self.speculative {
+            crate::report_decoder_pressure(u64::MAX);
         }
         state.active = false;
         self.finished = true;
@@ -214,7 +184,6 @@ fn trace_startup_throttled(
         total_vram_bytes = total,
         required_vram_bytes = required,
         observed_startup_bytes = state.observed_bytes,
-        failed_free_bytes = state.failed_free_bytes,
         "throttled video decoder startup under GPU pressure",
     );
 }
@@ -354,9 +323,6 @@ impl TemporalDecoder<VideoSource> for PooledVideoDecoder {
         source: &VideoSource,
         context: &Self::Context,
     ) -> Result<Option<Self>, Self::Error> {
-        if !context.has_startup_capacity(source)? {
-            return Ok(None);
-        }
         Self::spawn(source.clone(), context.clone()).map(Some)
     }
 
@@ -413,31 +379,7 @@ impl PooledVideoDecoder {
                 source.media_track_id
             ))
             .spawn(move || {
-                let mut decoder = match VideoDecoderSession::open(&worker_source) {
-                    Ok(decoder) => decoder,
-                    Err(error) => {
-                        tracing::error!(
-                            worker_id,
-                            file = %worker_source.asset.path().display(),
-                            media_track_id = worker_source.media_track_id,
-                            %error,
-                            "video decoder worker initialization failed",
-                        );
-                        let mut state = worker_inbox
-                            .state
-                            .lock()
-                            .expect("video decoder inbox mutex poisoned");
-                        state.failed = Some(error.clone());
-                        fail_pending_work(&mut state, &error);
-                        worker_inbox.ready.notify_all();
-                        return;
-                    }
-                };
-                let mut initializing = true;
-                worker_metadata
-                    .lock()
-                    .expect("video decoder metadata mutex poisoned")
-                    .update(&decoder);
+                let mut decoder = None;
                 loop {
                     let work = {
                         let mut state = worker_inbox
@@ -505,19 +447,68 @@ impl PooledVideoDecoder {
                             )
                         }
                     };
-                    let startup =
-                        initializing.then(|| worker_context.begin_startup(&worker_source, !latest));
+                    let startup = decoder.is_none().then(|| {
+                        worker_context.begin_startup(
+                            &worker_source,
+                            !latest,
+                            control.as_ref().or(latest_control.as_ref()),
+                        )
+                    });
                     let (mut result, startup) = match startup {
-                        None => (decode(&mut decoder, cached), None),
-                        Some(Ok(Some(startup))) => (decode(&mut decoder, cached), Some(startup)),
+                        None => (
+                            decode(
+                                decoder
+                                    .as_mut()
+                                    .expect("initialized video decoder session missing"),
+                                cached,
+                            ),
+                            None,
+                        ),
+                        Some(Ok(Some(startup)))
+                            if controls
+                                .into_iter()
+                                .flatten()
+                                .any(DecodeControl::superseded) =>
+                        {
+                            (Ok(DecodeOutcome::Superseded(cached)), Some(startup))
+                        }
+                        Some(Ok(Some(startup))) => {
+                            match VideoDecoderSession::open(&worker_source) {
+                                Ok(mut opened) => {
+                                    worker_metadata
+                                        .lock()
+                                        .expect("video decoder metadata mutex poisoned")
+                                        .update(&opened);
+                                    let result = decode(&mut opened, cached);
+                                    decoder = Some(opened);
+                                    (result, Some(startup))
+                                }
+                                Err(error) => (Err(error), Some(startup)),
+                            }
+                        }
                         Some(Ok(None)) => (Ok(DecodeOutcome::Superseded(cached)), None),
                         Some(Err(error)) => (Err(error), None),
                     };
-                    let initialized = matches!(result, Ok(DecodeOutcome::Frame(_)));
+                    let startup_superseded =
+                        startup.is_some() && matches!(result, Ok(DecodeOutcome::Superseded(_)));
+                    let initialized =
+                        startup.is_some() && matches!(result, Ok(DecodeOutcome::Frame(_)));
                     let startup_pressure_failure =
                         startup.is_some_and(|startup| startup.finish(&result, initialized));
-                    if initialized {
-                        initializing = false;
+                    if startup_pressure_failure
+                        && let Err(error) = &result
+                        && !error.starts_with(DECODER_STARTUP_MEMORY_EXHAUSTED)
+                    {
+                        result = Err(format!("{DECODER_STARTUP_MEMORY_EXHAUSTED}: {error}"));
+                    }
+                    if startup_pressure_failure || startup_superseded {
+                        decoder = None;
+                        *worker_metadata
+                            .lock()
+                            .expect("video decoder metadata mutex poisoned") = DecoderMetadata {
+                            position: None,
+                            frame_duration: Time::from_fraction(1, 30),
+                        };
                     }
                     if controls
                         .into_iter()
@@ -532,10 +523,12 @@ impl PooledVideoDecoder {
                             Err(error) => Err(error),
                         };
                     }
-                    worker_metadata
-                        .lock()
-                        .expect("video decoder metadata mutex poisoned")
-                        .update(&decoder);
+                    if let Some(decoder) = &decoder {
+                        worker_metadata
+                            .lock()
+                            .expect("video decoder metadata mutex poisoned")
+                            .update(decoder);
+                    }
                     if let Ok(
                         DecodeOutcome::Frame(Some(frame)) | DecodeOutcome::Superseded(Some(frame)),
                     ) = &result
@@ -552,7 +545,7 @@ impl PooledVideoDecoder {
                     });
                     if let Err(error) = &result {
                         if startup_pressure_failure {
-                            tracing::error!(
+                            tracing::warn!(
                                 worker_id,
                                 file = %worker_source.asset.path().display(),
                                 media_track_id = worker_source.media_track_id,
@@ -563,7 +556,7 @@ impl PooledVideoDecoder {
                                     .or(latest_control.as_ref())
                                     .map(DecodeControl::generation),
                                 %error,
-                                "video decoder initialization failed under GPU pressure",
+                                "video decoder initialization hit GPU pressure and can be retried",
                             );
                         } else if recoverable_oom {
                             tracing::warn!(
@@ -869,9 +862,6 @@ impl VideoDecoderPool {
         owner: VideoDecoderOwner,
     ) -> Result<VideoDecoderHandle, String> {
         let source = VideoSource::for_item(item)?;
-        if !self.decoders.contains_owner(&source, &owner) {
-            self.ensure_memory()?;
-        }
         Ok(VideoDecoderHandle {
             decoders: self.decoders.clone(),
             frame_size: CanvasSize {
@@ -943,7 +933,6 @@ impl VideoDecoderPool {
         if self.decoders.contains_owner(&source, &owner) {
             return Ok(true);
         }
-        self.ensure_memory()?;
         let prepared = self.decoders.prepare(source, owner, 1)?;
         shrimply_benchmarking::increment(if prepared {
             "Temporal decoder / Prewarm accepted"
@@ -988,13 +977,8 @@ impl VideoDecoderPool {
         self.decoders.len()
     }
 
-    fn ensure_memory(&mut self) -> Result<(), String> {
-        let (free, total) = cuda_memory_info()?;
-        if free >= total / DECODER_FREE_MEMORY_RESERVE_DIVISOR {
-            return Ok(());
-        }
+    pub fn reclaim_idle(&mut self) {
         self.decoders.reclaim_idle();
-        Ok(())
     }
 }
 
