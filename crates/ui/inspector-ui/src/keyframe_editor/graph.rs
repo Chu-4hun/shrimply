@@ -16,7 +16,7 @@ pub(crate) fn connect_graph_refresh_impl(
         move |event| {
             if matches!(
                 event,
-                player_state::PlayerEvent::State | player_state::PlayerEvent::Project(_)
+                player_state::PlayerEvent::State(_) | player_state::PlayerEvent::Project(_)
             ) && let Some(graph) = graph()
             {
                 update_graph(graph);
@@ -140,19 +140,10 @@ pub(super) fn drag_cursor_time(
 }
 
 pub(super) fn snap_graph_time(time: Time, frame_step: Time, item_range: GraphDomain) -> Time {
-    let step = frame_step.as_nonnegative_nanos();
-    if step == 0 {
+    if frame_step <= Time::ZERO {
         return clamp_graph_time(time, item_range);
     }
-
-    let nanos = time.as_nanos_i128();
-    let step = step as i128;
-    let snapped = if nanos >= 0 {
-        ((nanos + step / 2) / step) * step
-    } else {
-        ((nanos - step / 2) / step) * step
-    };
-    clamp_graph_time(Time::from_nanos_i128(snapped), item_range)
+    clamp_graph_time(time.snapped(frame_step), item_range)
 }
 
 pub(super) fn snap_keyframe_time(

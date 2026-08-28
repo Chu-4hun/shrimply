@@ -545,10 +545,9 @@ impl VolumePeakCache {
     }
 
     fn set_project(&self, project: Arc<Project>, revision: u64) {
-        let frame_count =
-            shrimply_math_media::timeline_frame_count(project.duration(), project.fps)
-                .and_then(|count| usize::try_from(count).ok())
-                .unwrap_or(0);
+        let frame_count = shrimply_math_core::frame_count(project.duration(), project.fps)
+            .and_then(|count| usize::try_from(count).ok())
+            .unwrap_or(0);
         *self.state.lock().expect("volume peak cache mutex poisoned") = VolumePeakCacheState {
             revision: Some(revision),
             frame_count,
@@ -657,12 +656,9 @@ impl FrameVolumeSampler {
             return mixer.clone();
         }
 
-        let frame_index = shrimply_math_media::frame_index_at_nanoseconds(
-            position.as_nonnegative_nanos(),
-            project.fps,
-        )
-        .and_then(|index| usize::try_from(index).ok())
-        .unwrap_or(0);
+        let frame_index = shrimply_math_core::frame_index(position, project.fps)
+            .and_then(|index| usize::try_from(index).ok())
+            .unwrap_or(0);
         let end_frame = spans[0].1;
         let track_count = project.audio_tracks.len();
         let peaks = Arc::clone(&self.peaks);
@@ -791,9 +787,8 @@ fn cache_project_volume_peaks(
     requested_frame: usize,
     sample_rate: u32,
 ) {
-    let Some(frame_count) =
-        shrimply_math_media::timeline_frame_count(project.duration(), project.fps)
-            .and_then(|count| usize::try_from(count).ok())
+    let Some(frame_count) = shrimply_math_core::frame_count(project.duration(), project.fps)
+        .and_then(|count| usize::try_from(count).ok())
     else {
         return;
     };
@@ -814,8 +809,7 @@ fn cache_project_volume_peaks(
             return;
         }
         let chunk_frames = (frame_count - first_frame).min(VOLUME_PEAK_CACHE_CHUNK_FRAMES);
-        let Some(position) =
-            shrimply_math_media::timeline_frame_position(first_frame as u64, project.fps)
+        let Some(position) = shrimply_math_core::time_from_frame(first_frame as u64, project.fps)
         else {
             return;
         };

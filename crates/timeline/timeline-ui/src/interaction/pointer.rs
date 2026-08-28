@@ -163,7 +163,6 @@ pub(crate) fn handle_timeline_input(
             selection_state,
             pos.x as f64,
             pos.y as f64,
-            frame_step_seconds,
         );
     } else {
         runtime.cut_preview = None;
@@ -264,7 +263,6 @@ pub(crate) fn handle_timeline_input(
             timeline_width,
             height,
             track_content_height,
-            frame_step_seconds,
         );
     }
 
@@ -302,7 +300,6 @@ fn update_cut_preview(
     selection_state: &SharedSelectionState,
     x: f64,
     y: f64,
-    frame_step_seconds: f64,
 ) {
     if !runtime.cut_enabled || !matches!(runtime.view.drag_mode, DragMode::None | DragMode::Cut) {
         runtime.cut_preview = None;
@@ -327,22 +324,17 @@ fn update_cut_preview(
         return;
     }
 
-    runtime.cut_preview = cut_time_for_address(
-        project,
-        runtime.view,
-        &hit,
-        x,
-        frame_step_seconds,
-        &runtime.snap_repository,
-    )
-    .map(|time| {
-        timeline_cut(
-            project,
-            &selection_state::selected_item_addresses(selection_state, project),
-            hit,
-            time,
-        )
-    });
+    runtime.cut_preview =
+        cut_time_for_address(project, runtime.view, &hit, x, &runtime.snap_repository).map(
+            |time| {
+                timeline_cut(
+                    project,
+                    &selection_state::selected_item_addresses(selection_state, project),
+                    hit,
+                    time,
+                )
+            },
+        );
 }
 
 pub(super) fn insert_caption_on_double_click(

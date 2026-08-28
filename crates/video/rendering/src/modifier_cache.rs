@@ -412,7 +412,7 @@ fn bake_inner(
             if context.is_cancelled() {
                 return Err("visual cache bake cancelled".to_string());
             }
-            let position = shrimply_math_media::timeline_frame_position(
+            let position = shrimply_math_core::time_from_frame(
                 first_frame.saturating_add(frame_index),
                 project.fps,
             )
@@ -548,9 +548,9 @@ const fn even(value: u32) -> u32 {
 }
 
 fn frame_range(start: Time, duration: Time, fps: Fraction) -> Result<(u64, u64), String> {
-    let first = shrimply_math_media::timeline_frame_count(start, fps)
-        .ok_or("cache frame rate must be positive")?;
-    let end = shrimply_math_media::timeline_frame_count(start.saturating_add(duration), fps)
+    let first =
+        shrimply_math_core::frame_count(start, fps).ok_or("cache frame rate must be positive")?;
+    let end = shrimply_math_core::frame_count(start.saturating_add(duration), fps)
         .ok_or("cache frame rate must be positive")?;
     if first >= end {
         return Err("cannot cache an item shorter than one project frame".to_string());

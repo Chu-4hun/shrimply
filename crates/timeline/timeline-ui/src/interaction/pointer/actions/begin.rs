@@ -99,7 +99,7 @@ pub(in crate::interaction::pointer) fn begin_pointer_action(
         );
         let position = runtime.snap_repository.snap(position).unwrap_or(position);
         crate::recording::stop_before_backward_seek(runtime, player_state, position);
-        player_state::set_position(player_state, position);
+        player_state::seek_time(player_state, position);
         DragMode::Seek
     } else if let Some(hit) = hit_clip_transition_at(project, runtime.view, x, y) {
         let context = SequenceTimeline::for_item(project, &hit.outgoing)
@@ -213,7 +213,6 @@ pub(in crate::interaction::pointer) fn begin_pointer_action(
                     runtime.view,
                     &hit.key,
                     x,
-                    frame_step_seconds,
                     &runtime.snap_repository,
                 )
                 .map(|time| timeline_cut(project, &selected, hit.key, time));
@@ -272,14 +271,8 @@ pub(in crate::interaction::pointer) fn begin_pointer_action(
             let address = selection_state::item_address(project, hit)
                 .expect("hit-tested root item must have an address");
             let cut_started = Instant::now();
-            let time = cut_time_for_address(
-                project,
-                runtime.view,
-                &address,
-                x,
-                frame_step_seconds,
-                &runtime.snap_repository,
-            );
+            let time =
+                cut_time_for_address(project, runtime.view, &address, x, &runtime.snap_repository);
             let cut_time_us = cut_started.elapsed().as_micros();
             tracing::debug!(
                 "timeline cut begin hit={}#{}:{} x={:.1} y={:.1} time={} hit_us={} cut_time_us={}",

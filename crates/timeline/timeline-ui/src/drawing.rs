@@ -124,14 +124,23 @@ pub(super) fn draw_timeline(input: TimelineInput<'_, '_>) {
             .audio_tracks
             .iter()
             .all(|track| track.items.is_empty());
-    draw_ruler(
+    ruler::draw(
         painter,
-        view,
-        timeline_empty,
-        timeline_x,
-        timeline_width,
-        content_height,
-        frame_step_seconds,
+        ruler::RulerDraw {
+            scale: ruler_scale(view),
+            timeline_x,
+            timeline_width,
+            content_height,
+            frame_step_seconds,
+            frame_rate: project.fps,
+            hide_zero_label: timeline_empty,
+            style: ruler::RulerStyle {
+                height: RULER_HEIGHT,
+                frame_tick_min_width: FRAME_TICK_MIN_WIDTH,
+                grid_color: Color::SIDEBAR_SHADE_DARK,
+                label_color: Color::LIGHT5,
+            },
+        },
     );
     draw_performance_ranges(
         painter,
@@ -203,7 +212,6 @@ pub(super) fn draw_timeline(input: TimelineInput<'_, '_>) {
                 view,
                 timeline_width,
                 content_height,
-                frame_step_seconds,
             );
         }
 
@@ -248,11 +256,7 @@ pub(super) fn draw_timeline(input: TimelineInput<'_, '_>) {
         }
     }
 
-    let playhead_x = time_to_x(
-        snap_seconds(current_time.as_secs_f64(), frame_step_seconds),
-        timeline_x,
-        view,
-    );
+    let playhead_x = time_to_x(current_time.as_secs_f64(), timeline_x, view);
     let playhead_clip = rect(timeline_x, 0.0, timeline_width, content_height);
     {
         let playhead_painter = painter.with_clip_rect(playhead_clip);
@@ -394,34 +398,6 @@ fn draw_timeline_overscroll(
         edge,
         distance,
         Color::<f32>::WHITE,
-    );
-}
-
-fn draw_ruler(
-    painter: &TimelinePainter,
-    view: TimelineViewState,
-    hide_zero_label: bool,
-    timeline_x: f64,
-    timeline_width: f64,
-    height: f64,
-    frame_step_seconds: f64,
-) {
-    ruler::draw(
-        painter,
-        ruler::RulerDraw {
-            scale: ruler_scale(view),
-            timeline_x,
-            timeline_width,
-            content_height: height,
-            frame_step_seconds,
-            hide_zero_label,
-            style: ruler::RulerStyle {
-                height: RULER_HEIGHT,
-                frame_tick_min_width: FRAME_TICK_MIN_WIDTH,
-                grid_color: Color::SIDEBAR_SHADE_DARK,
-                label_color: Color::LIGHT5,
-            },
-        },
     );
 }
 

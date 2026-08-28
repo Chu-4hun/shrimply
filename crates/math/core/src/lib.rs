@@ -295,6 +295,19 @@ pub fn fraction_round_nonnegative_u64(value: Fraction) -> u64 {
         .min(u128::from(u64::MAX)) as u64
 }
 
+pub fn fraction_floor_i64(value: Fraction) -> Option<i64> {
+    let (numerator, denominator) = fraction_ratio_i128(value)?;
+    i64::try_from(numerator.div_euclid(denominator)).ok()
+}
+
+pub fn fraction_rem_euclid(value: Fraction, modulus: Fraction) -> Option<Fraction> {
+    if modulus <= FRACTION_ZERO {
+        return None;
+    }
+    let quotient = fraction_floor_i64(value / modulus)?;
+    Some(value - modulus * fraction_from_integer(quotient))
+}
+
 pub fn frame_rate_from_duration(duration: Duration) -> Option<Fraction> {
     let nanoseconds = duration.as_nanos();
     if nanoseconds == 0 {
@@ -308,21 +321,87 @@ pub fn frame_rate_from_duration(duration: Duration) -> Option<Fraction> {
 
 /// Converts a zero-based frame to an exact time using checked rational math.
 pub fn time_from_frame(frame: u64, frame_rate: Fraction) -> Option<Time> {
+    time_from_signed_frame(i64::try_from(frame).ok()?, frame_rate)
+}
+
+/// Converts a signed frame index to an exact time using checked rational math.
+pub fn time_from_signed_frame(frame: i64, frame_rate: Fraction) -> Option<Time> {
     let GenericFraction::Rational(Sign::Plus, rate) = frame_rate else {
         return None;
     };
     if *rate.numer() == 0 {
         return None;
     }
-    let numerator = u128::from(frame).checked_mul(u128::from(*rate.denom()))?;
-    let denominator = u128::from(*rate.numer());
-    let divisor = gcd_u128(numerator, denominator);
-    let numerator = numerator / divisor;
-    let denominator = denominator / divisor;
+    let numerator = i128::from(frame).checked_mul(i128::from(*rate.denom()))?;
+    let denominator = i128::from(*rate.numer());
+    let divisor = gcd_u128(numerator.unsigned_abs(), denominator as u128);
+    let numerator = numerator / divisor as i128;
+    let denominator = denominator / divisor as i128;
     Some(Time::from_fraction(
         i64::try_from(numerator).ok()?,
         i64::try_from(denominator).ok()?,
     ))
+}
+
+/// Returns the signed index of the frame whose half-open interval contains `time`.
+pub fn frame_index(time: Time, frame_rate: Fraction) -> Option<i64> {
+    let (time_numerator, time_denominator) = fraction_ratio_i128(time.seconds)?;
+    let (rate_numerator, rate_denominator) = fraction_ratio_i128(frame_rate)?;
+    if rate_numerator <= 0 {
+        return None;
+    }
+    let numerator = time_numerator.checked_mul(rate_numerator)?;
+    let denominator = time_denominator.checked_mul(rate_denominator)?;
+    i64::try_from(numerator.div_euclid(denominator)).ok()
+}
+
+/// Returns the zero-based containing frame, clamping negative time to frame zero.
+pub fn nonnegative_frame_index(time: Time, frame_rate: Fraction) -> Option<u64> {
+    u64::try_from(frame_index(time, frame_rate)?.max(0)).ok()
+}
+
+/// Returns the number of half-open frames needed to cover a nonnegative duration.
+pub fn frame_count(duration: Time, frame_rate: Fraction) -> Option<u64> {
+    if duration <= Time::ZERO {
+        return Some(0);
+    }
+    let (time_numerator, time_denominator) = fraction_ratio_i128(duration.seconds)?;
+    let (rate_numerator, rate_denominator) = fraction_ratio_i128(frame_rate)?;
+    if time_numerator <= 0 || rate_numerator <= 0 {
+        return None;
+    }
+    let numerator = time_numerator.checked_mul(rate_numerator)?;
+    let denominator = time_denominator.checked_mul(rate_denominator)?;
+    u64::try_from(numerator.checked_add(denominator.checked_sub(1)?)? / denominator).ok()
+}
+
+pub fn frame_span(position: Time, frame_rate: Fraction) -> Option<(Time, Time)> {
+    let frame = nonnegative_frame_index(position, frame_rate)?;
+    Some((
+        time_from_frame(frame, frame_rate)?,
+        time_from_frame(frame.checked_add(1)?, frame_rate)?,
+    ))
+}
+
+pub fn last_frame_time(duration: Time, frame_rate: Fraction) -> Option<Time> {
+    time_from_frame(
+        frame_count(duration, frame_rate)?.checked_sub(1)?,
+        frame_rate,
+    )
+}
+
+pub fn frame_range(start: Time, end: Time, frame_rate: Fraction) -> Option<std::ops::Range<u64>> {
+    let start = nonnegative_frame_index(start, frame_rate)?;
+    let end = frame_count(end, frame_rate)?.max(start);
+    Some(start..end)
+}
+
+pub fn time_from_sample_frame(frame: u64, sample_rate: u32) -> Time {
+    assert!(sample_rate > 0, "sample rate must be positive");
+    Time::from_fraction(
+        i64::try_from(frame).expect("sample frame exceeds the exact time range"),
+        i64::from(sample_rate),
+    )
 }
 
 pub fn fit_nonnegative_fraction_pair(
@@ -343,6 +422,22 @@ fn gcd_u128(mut left: u128, mut right: u128) -> u128 {
         (left, right) = (right, left % right);
     }
     left.max(1)
+}
+
+/// Returns the exact signed numerator and positive denominator of a finite fraction.
+pub fn fraction_ratio_i128(value: Fraction) -> Option<(i128, i128)> {
+    let GenericFraction::Rational(sign, ratio) = value else {
+        return None;
+    };
+    let numerator = i128::from(*ratio.numer());
+    Some((
+        if sign == Sign::Minus {
+            -numerator
+        } else {
+            numerator
+        },
+        i128::from(*ratio.denom()),
+    ))
 }
 
 impl Time {
@@ -416,34 +511,19 @@ impl Time {
     }
 
     pub fn as_sample_frame(self, sample_rate: u32) -> u64 {
-        ((self.as_nonnegative_nanos() as u128 * sample_rate as u128 / 1_000_000_000)
-            .min(u64::MAX as u128)) as u64
+        let GenericFraction::Rational(Sign::Plus, value) = self.seconds else {
+            return 0;
+        };
+        (u128::from(*value.numer()) * u128::from(sample_rate) / u128::from(*value.denom()))
+            .min(u128::from(u64::MAX)) as u64
     }
 
     pub fn as_frame(self, frame_rate: Fraction) -> u64 {
-        self.frame_at_rate(frame_rate, false)
+        nonnegative_frame_index(self, frame_rate).unwrap_or(0)
     }
 
     pub fn as_frame_ceil(self, frame_rate: Fraction) -> u64 {
-        self.frame_at_rate(frame_rate, true)
-    }
-
-    fn frame_at_rate(self, frame_rate: Fraction, round_up: bool) -> u64 {
-        let GenericFraction::Rational(Sign::Plus, time) = self.seconds else {
-            return 0;
-        };
-        let GenericFraction::Rational(Sign::Plus, rate) = frame_rate else {
-            return 0;
-        };
-        let numerator = u128::from(*time.numer()).saturating_mul(u128::from(*rate.numer()));
-        let denominator =
-            u128::from(*time.denom()).saturating_mul(u128::from(*rate.denom()).max(1));
-        let frames = if round_up {
-            numerator.div_ceil(denominator)
-        } else {
-            numerator / denominator
-        };
-        frames.min(u128::from(u64::MAX)) as u64
+        frame_count(self, frame_rate).unwrap_or(0)
     }
 
     pub fn saturating_add(self, other: Self) -> Self {
@@ -477,11 +557,29 @@ impl Time {
     }
 
     pub fn snapped(self, step: Self) -> Self {
-        let step = step.as_nanos_i128();
-        if step <= 0 {
+        let Some((step_numerator, step_denominator)) = fraction_ratio_i128(step.seconds) else {
+            return self;
+        };
+        if step_numerator <= 0 {
             return self;
         }
-        Self::from_nanos_i128((self.as_nanos_i128() + step / 2).div_euclid(step) * step)
+        let Some((time_numerator, time_denominator)) = fraction_ratio_i128(self.seconds) else {
+            return self;
+        };
+        let numerator = time_numerator
+            .checked_mul(step_denominator)
+            .expect("time snap numerator overflow");
+        let denominator = time_denominator
+            .checked_mul(step_numerator)
+            .expect("time snap denominator overflow");
+        let ticks = numerator
+            .checked_add(denominator / 2)
+            .expect("time snap rounding overflow")
+            .div_euclid(denominator);
+        Self {
+            seconds: step.seconds
+                * fraction_from_integer(i64::try_from(ticks).expect("time snap exceeds i64")),
+        }
     }
 
     pub fn from_duration(duration: Duration) -> Self {

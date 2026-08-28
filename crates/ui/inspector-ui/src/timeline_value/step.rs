@@ -257,7 +257,7 @@ fn actions<T: TimelineStep>(
                 if let Some(global) =
                     crate::video::visual_global_time(&project.borrow(), key.clone(), time)
                 {
-                    player_state::set_position(&player, global);
+                    player_state::seek_time(&player, global);
                 }
             })
         },

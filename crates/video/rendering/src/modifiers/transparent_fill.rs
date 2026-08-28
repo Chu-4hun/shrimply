@@ -338,7 +338,7 @@ pub(crate) fn cache_key(
 }
 
 pub(crate) fn frame_count(project: &Project, item: &VideoItem) -> Option<u64> {
-    let range = shrimply_math_media::timeline_frame_range(item.start, item.end, project.fps)?;
+    let range = shrimply_math_core::frame_range(item.start, item.end, project.fps)?;
     Some(range.end.saturating_sub(range.start))
 }
 
@@ -358,9 +358,9 @@ pub(crate) fn render_position(project: &Project, item: &VideoItem, position: Tim
     if !active {
         return position;
     }
-    shrimply_math_media::timeline_frame_index(position, project.fps)
+    shrimply_math_core::frame_index(position, project.fps)
         .and_then(|frame| u64::try_from(frame).ok())
-        .and_then(|frame| shrimply_math_media::timeline_frame_position(frame, project.fps))
+        .and_then(|frame| shrimply_math_core::time_from_frame(frame, project.fps))
         .map(|position| position.max(item.start))
         .unwrap_or(position)
 }
@@ -461,9 +461,8 @@ impl RasterModifierRuntime for TransparentFillModifier {
         if self.points.is_empty() {
             return Ok(input);
         }
-        let frame =
-            shrimply_math_media::timeline_frame_index(context.position, context.project.fps)
-                .ok_or("project frame rate must be positive for transparent fill")?;
+        let frame = shrimply_math_core::frame_index(context.position, context.project.fps)
+            .ok_or("project frame rate must be positive for transparent fill")?;
         input.push_pixel(Box::new(Resolved {
             cache_key: cache_key(
                 context.project,
@@ -596,11 +595,9 @@ mod tests {
         fs::create_dir_all(&fixture.rendered).expect("create rendered fixture directory");
         let mut renderer = VideoExportRenderer::new(48_000).expect("create export renderer");
         for frame_index in E2E_FIRST_PROJECT_FRAME..E2E_FIRST_PROJECT_FRAME + E2E_PROJECT_FRAMES {
-            let position = shrimply_math_media::timeline_frame_position(
-                frame_index,
-                fraction_new(E2E_PROJECT_FPS, 1),
-            )
-            .expect("end-to-end project frame position");
+            let position =
+                shrimply_math_core::time_from_frame(frame_index, fraction_new(E2E_PROJECT_FPS, 1))
+                    .expect("end-to-end project frame position");
             let composited = renderer
                 .render(&project, position, 0)
                 .unwrap_or_else(|error| panic!("render project frame {frame_index}: {error}"));
@@ -802,7 +799,7 @@ mod tests {
 
         let (commands, events) = spawn_worker(project);
         for frame in [5_897, 5_895, 5_899, 5_896, 5_902, 5_898, 5_909, 5_900] {
-            let position = shrimply_math_media::timeline_frame_position(frame, fraction_new(30, 1))
+            let position = shrimply_math_core::time_from_frame(frame, fraction_new(30, 1))
                 .expect("project frame position")
                 .saturating_add(Time::from_fraction(1, 180));
             commands
@@ -930,10 +927,9 @@ mod tests {
             CompositeAccuracy::CONTINUOUS_TIME_ACCURATE,
         ] {
             for frame in order {
-                let position =
-                    shrimply_math_media::timeline_frame_position(frame, fraction_new(30, 1))
-                        .expect("project frame position")
-                        .saturating_add(Time::from_fraction(1, 180));
+                let position = shrimply_math_core::time_from_frame(frame, fraction_new(30, 1))
+                    .expect("project frame position")
+                    .saturating_add(Time::from_fraction(1, 180));
                 commands
                     .send(VideoCommand::Render { position, accuracy })
                     .expect("request preview frame");
@@ -1101,20 +1097,16 @@ mod tests {
     }
 
     fn assert_transparent_fill_frame(pixels: &[u8], project_frame: u64) {
-        let project_position = shrimply_math_media::timeline_frame_position(
-            project_frame,
-            fraction_new(E2E_PROJECT_FPS, 1),
-        )
-        .expect("end-to-end assertion project position");
+        let project_position =
+            shrimply_math_core::time_from_frame(project_frame, fraction_new(E2E_PROJECT_FPS, 1))
+                .expect("end-to-end assertion project position");
         let source_position =
             Time::from_fraction(E2E_SOURCE_OFFSET_NUMERATOR, E2E_SOURCE_OFFSET_DENOMINATOR)
                 .saturating_add(project_position.saturating_sub(Time::from_fraction(393, 2)));
-        let source_frame = shrimply_math_media::timeline_frame_index(
-            source_position,
-            fraction_new(E2E_SOURCE_FPS, 1),
-        )
-        .and_then(|frame| u64::try_from(frame).ok())
-        .expect("end-to-end assertion source frame");
+        let source_frame =
+            shrimply_math_core::frame_index(source_position, fraction_new(E2E_SOURCE_FPS, 1))
+                .and_then(|frame| u64::try_from(frame).ok())
+                .expect("end-to-end assertion source frame");
         let square_x = ((source_frame as u32 + 1) * E2E_SQUARE_STEP) % E2E_SQUARE_RANGE;
         let alpha = |x: u32, y: u32| pixels[((y * E2E_WIDTH + x) * 4 + 3) as usize];
         assert_eq!(

@@ -33,10 +33,10 @@ use crate::player_state::SharedPlayerState;
 use crate::preferences::store as preferences_store;
 use crate::project::{
     AudioItem, CaptionItem, FontFamily, Project, RepeatStrategy, Time, Transform, TransitionSide,
-    VideoItem, VideoItemContent, VideoSampleMethod, default_playback_speed, fraction_denominator,
-    fraction_numerator, generated_item_keyframe_span, generated_item_natural_end_position,
-    generated_item_natural_span, media_item_natural_end_position, media_natural_end_interval,
-    media_real_span, scaled_time_delta, video_natural_end_interval,
+    VideoItem, VideoItemContent, VideoSampleMethod, default_playback_speed,
+    generated_item_keyframe_span, generated_item_natural_end_position, generated_item_natural_span,
+    media_item_natural_end_position, media_natural_end_interval, media_real_span,
+    scaled_time_delta, video_natural_end_interval,
 };
 use crate::selection_state::SharedSelectionState;
 use adw::prelude::*;
@@ -223,7 +223,7 @@ pub fn new(
     let waveform_reload_request = Rc::new(Cell::new(0_u64));
     let redraw_playhead_visibility_requested = playhead_visibility_requested.clone();
     player_state::connect_named(&player_state, "timeline redraw", move |event| {
-        if matches!(event, player_state::PlayerEvent::State) {
+        if matches!(event, player_state::PlayerEvent::State(_)) {
             redraw_playhead_visibility_requested.set(true);
         }
         if let player_state::PlayerEvent::Project(change) = event
@@ -261,7 +261,7 @@ pub fn new(
     let recording_player_state = player_state.clone();
     let recording_player_state_for_snapshot = player_state.clone();
     player_state::connect_named(&player_state, "timeline recording refresh", move |event| {
-        if !matches!(event, player_state::PlayerEvent::State) {
+        if !matches!(event, player_state::PlayerEvent::State(_)) {
             return;
         }
         let recording_area = recording_area.clone();

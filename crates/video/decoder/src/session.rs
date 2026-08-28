@@ -7,6 +7,7 @@ use std::time::Instant;
 use cuda_core::sys as cuda_sys;
 use ffmpeg::sys;
 use ffmpeg_next as ffmpeg;
+use shrimply_math_core::{Fraction, fraction_ratio_i128};
 use shrimply_project::project::Time;
 use shrimply_visual_frame::{GPU_FRAME_ALLOCATION_EXHAUSTED, VisualFrame, ffmpeg_cuda_context};
 
@@ -375,7 +376,7 @@ impl VideoDecoderSession {
         let Some(last_decoded_position) = self.last_decoded_position else {
             return true;
         };
-        position.saturating_add(Time::from_fraction(1, 2_000_000)) >= last_decoded_position
+        position >= last_decoded_position
     }
 
     fn next_frame(&mut self, controls: DecodeControls<'_>) -> Result<NextFrame, String> {
@@ -813,12 +814,12 @@ fn frame_time(
                 "NVDEC returned a frame without a timestamp after random access".to_string(),
             );
         }
-        let frame_index = frame_index.min(i64::MAX as usize) as i64;
-        return Ok(Time::from_nanos_i128(
-            frame_duration
-                .as_nanos_i128()
-                .saturating_mul(i128::from(frame_index)),
-        ));
+        return Ok(Time {
+            seconds: frame_duration.seconds
+                * Fraction::from(
+                    u64::try_from(frame_index).expect("decoded frame index exceeds u64"),
+                ),
+        });
     };
     let start_time = if stream_start_time == sys::AV_NOPTS_VALUE {
         0
@@ -838,10 +839,10 @@ fn source_time_to_stream_timestamp(
     time_base: ffmpeg::Rational,
     stream_start_time: i64,
 ) -> i64 {
-    let numerator = position
-        .as_nanos_i128()
-        .saturating_mul(i128::from(time_base.denominator()));
-    let denominator = 1_000_000_000i128.saturating_mul(i128::from(time_base.numerator()));
+    let (position_numerator, position_denominator) =
+        fraction_ratio_i128(position.seconds).expect("decoder position must be finite");
+    let numerator = position_numerator.saturating_mul(i128::from(time_base.denominator()));
+    let denominator = position_denominator.saturating_mul(i128::from(time_base.numerator()));
     let timestamp = if denominator == 0 {
         0
     } else {

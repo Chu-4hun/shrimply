@@ -314,7 +314,7 @@ fn connect_display(
         "inspector vec3 display",
         move || alive.upgrade().is_some(),
         move |event| {
-            if !matches!(event, player_state::PlayerEvent::State) {
+            if !matches!(event, player_state::PlayerEvent::State(_)) {
                 return;
             }
             let snapshot = player_state::snapshot(&player);
@@ -508,7 +508,7 @@ fn expression_output(
         "inspector vec3 expression output",
         move || alive.upgrade().is_some(),
         move |event| {
-            if matches!(event, player_state::PlayerEvent::State) {
+            if matches!(event, player_state::PlayerEvent::State(_)) {
                 refresh();
             }
         },
@@ -545,7 +545,7 @@ fn actions(
                 if let Some(position) =
                     crate::video::visual_global_time(&project.borrow(), key.clone(), time)
                 {
-                    player_state::set_position(&player, position);
+                    player_state::seek_time(&player, position);
                 }
             })
         },

@@ -5,6 +5,7 @@ pub use shrimply_math_color::{Color, LayerBlendMode};
 pub use shrimply_math_core::{
     Fraction, GenericFraction, Sign, Time, fraction_denominator, fraction_numerator,
 };
+use shrimply_math_core::{nonnegative_frame_index, time_from_frame};
 pub use shrimply_math_geometry::{
     EllipseSegment, Rect, arrow_vertices, cross_vertices, ellipse_segment, fit_vertices,
     regular_polygon_vertices, star_vertices,
@@ -254,23 +255,6 @@ pub fn duration_for_frames_at_millifps(frames: u64, fps_milli: u64) -> std::time
     std::time::Duration::from_nanos(nanoseconds as u64)
 }
 
-pub fn timeline_frame_span(position: Time, fps: Fraction) -> Option<(Time, Time)> {
-    let numerator = fraction_numerator(fps);
-    let denominator = fraction_denominator(fps);
-    if numerator <= 0 || denominator <= 0 {
-        return None;
-    }
-    let frame = (u128::from(position.as_nonnegative_nanos()) * numerator as u128
-        / (1_000_000_000_u128 * denominator as u128))
-        .min(i64::MAX as u128);
-    let start = (frame * denominator as u128).min(i64::MAX as u128) as i64;
-    let end = ((frame + 1) * denominator as u128).min(i64::MAX as u128) as i64;
-    Some((
-        Time::from_fraction(start, numerator),
-        Time::from_fraction(end, numerator),
-    ))
-}
-
 pub fn motion_blur_sample_positions(
     position: Time,
     item_start: Time,
@@ -309,87 +293,21 @@ pub fn timeline_sample_frame_spans(
     sample_rate: u32,
     count: usize,
 ) -> Option<Vec<(u64, u64)>> {
-    let numerator = fraction_numerator(fps);
-    let denominator = fraction_denominator(fps);
-    if numerator <= 0 || denominator <= 0 {
-        return None;
-    }
-    let first_frame = u128::from(position.as_nonnegative_nanos()) * numerator as u128
-        / (1_000_000_000_u128 * denominator as u128);
+    let first_frame = nonnegative_frame_index(position, fps)?;
     Some(
         (0..count)
             .map(|offset| {
-                let frame = first_frame.saturating_add(offset as u128);
-                let start = (frame * denominator as u128).min(i64::MAX as u128) as i64;
-                let end = ((frame + 1) * denominator as u128).min(i64::MAX as u128) as i64;
+                let frame = first_frame.saturating_add(offset as u64);
                 (
-                    Time::from_fraction(start, numerator).as_sample_frame(sample_rate),
-                    Time::from_fraction(end, numerator).as_sample_frame(sample_rate),
+                    time_from_frame(frame, fps)
+                        .expect("valid frame rate must produce a sample span")
+                        .as_sample_frame(sample_rate),
+                    time_from_frame(frame.saturating_add(1), fps)
+                        .expect("valid frame rate must produce a sample span")
+                        .as_sample_frame(sample_rate),
                 )
             })
             .collect(),
-    )
-}
-
-pub fn timeline_frame_count(duration: Time, fps: Fraction) -> Option<u64> {
-    let numerator = fraction_numerator(fps);
-    let denominator = fraction_denominator(fps);
-    if numerator <= 0 || denominator <= 0 {
-        return None;
-    }
-    let frame_denominator = 1_000_000_000_u128 * denominator as u128;
-    Some(
-        (u128::from(duration.as_nonnegative_nanos()) * numerator as u128
-            + frame_denominator.saturating_sub(1))
-        .checked_div(frame_denominator)
-        .unwrap_or(0)
-        .min(u64::MAX as u128) as u64,
-    )
-}
-
-pub fn timeline_frame_position(frame_index: u64, fps: Fraction) -> Option<Time> {
-    let numerator = fraction_numerator(fps);
-    let denominator = fraction_denominator(fps);
-    if numerator <= 0 || denominator <= 0 {
-        return None;
-    }
-    let scaled = (u128::from(frame_index) * denominator as u128).min(i64::MAX as u128) as i64;
-    Some(Time::from_fraction(scaled, numerator))
-}
-
-pub fn timeline_frame_index(position: Time, fps: Fraction) -> Option<i64> {
-    let fps_numerator = fraction_numerator(fps);
-    let fps_denominator = fraction_denominator(fps);
-    if fps_numerator <= 0 || fps_denominator <= 0 {
-        return None;
-    }
-    let position_numerator = fraction_numerator(position.seconds);
-    let position_denominator = fraction_denominator(position.seconds);
-    if position_numerator <= 0 || position_denominator <= 0 {
-        return Some(0);
-    }
-    Some(
-        ((position_numerator as u128 * fps_numerator as u128)
-            / (position_denominator as u128 * fps_denominator as u128))
-            .min(i64::MAX as u128) as i64,
-    )
-}
-
-pub fn timeline_frame_range(start: Time, end: Time, fps: Fraction) -> Option<std::ops::Range<u64>> {
-    let first = u64::try_from(timeline_frame_index(start, fps)?).ok()?;
-    let end = timeline_frame_count(end, fps)?.max(first);
-    Some(first..end)
-}
-
-pub fn frame_index_at_nanoseconds(nanoseconds: u64, fps: Fraction) -> Option<i64> {
-    let numerator = fraction_numerator(fps);
-    let denominator = fraction_denominator(fps);
-    if numerator <= 0 || denominator <= 0 {
-        return None;
-    }
-    Some(
-        (u128::from(nanoseconds) * numerator as u128 / (1_000_000_000_u128 * denominator as u128))
-            .min(i64::MAX as u128) as i64,
     )
 }
 

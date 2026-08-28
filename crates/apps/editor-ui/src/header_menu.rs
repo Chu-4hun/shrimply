@@ -386,11 +386,15 @@ fn change_history(
     if !change(&mut project.borrow_mut()) {
         return;
     }
-    let duration = project.borrow().duration();
+    let (duration, frame_rate) = {
+        let project = project.borrow();
+        (project.duration(), project.fps)
+    };
     player_state::refresh_project(
         player_state,
         player_state::ProjectChange {
             duration: Some(duration),
+            frame_rate: Some(frame_rate),
             audio: true,
             audio_beats: true,
             audio_waveforms: true,

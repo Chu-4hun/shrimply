@@ -12,7 +12,7 @@ use std::time::{Duration, Instant};
 
 use gtk::{gdk, glib, prelude::*};
 use serde_json::{Value, json};
-use shrimply_math_core::{Time, time_from_frame};
+use shrimply_math_core::{Time, frame_count, time_from_frame};
 use shrimply_mcp::protocol::{
     ActiveScopeSnapshot, BridgeCommand, BridgeRequest, BridgeResponse, EditRequest, EditResponse,
     LiveSnapshot, PlayerSnapshot, ScopeRef, ViewFrameResponse,
@@ -382,10 +382,8 @@ fn handle_command(
         BridgeCommand::Seek { frame } => {
             let state = player_state::snapshot(player);
             let project = project.borrow();
-            let actual_frame = frame.min(state.duration.as_frame(project.fps));
-            let actual = time_from_frame(actual_frame, project.fps)
-                .ok_or_else(|| "seek frame exceeds the supported exact range".to_string())?;
-            player_state::set_position(player, actual);
+            let actual_frame = frame.min(state.frame_count);
+            player_state::seek_frame(player, actual_frame);
             serde_json::to_value(shrimply_mcp::query::frame_time(actual_frame, project.fps)?)
                 .map_err(|error| format!("could not serialize playhead: {error}"))
         }
@@ -402,7 +400,9 @@ async fn view_frame(
     canceled: Arc<AtomicBool>,
 ) -> Result<Value, String> {
     let project = live.borrow().clone();
-    let frame = frame.min(project.duration().as_frame(project.fps));
+    let count = frame_count(project.duration(), project.fps)
+        .ok_or_else(|| "project frame rate must be positive".to_string())?;
+    let frame = frame.min(count.saturating_sub(1));
     let position = time_from_frame(frame, project.fps)
         .ok_or_else(|| "frame exceeds the supported exact range".to_string())?;
     let fps = project.fps;
@@ -505,7 +505,7 @@ fn snapshot(
         .to_string(),
         project: project.clone(),
         player: PlayerSnapshot {
-            position: player_snapshot.position,
+            frame: player_snapshot.frame,
             duration: player_snapshot.duration,
             playing: player_snapshot.playing,
             revision: player_snapshot.revision,
@@ -565,7 +565,7 @@ async fn apply_edit(
     );
     let project = live.borrow().clone();
     let original = project_content_fingerprint(&project)?;
-    let playhead_frame = player_state::current_time(player).as_frame(project.fps);
+    let playhead_frame = player_state::current_frame(player);
     let active_scope = selection_state::active_scope(selection);
     let history_label = request.history_label.clone();
     let worker_path = project_path.clone();
@@ -617,6 +617,7 @@ async fn apply_edit(
         prepared.project.expanded_sequence_paths = current.expanded_sequence_paths.clone();
     }
     let duration = prepared.project.duration();
+    let frame_rate = prepared.project.fps;
     let duration_frame =
         shrimply_mcp::query::frame_time_from_time(duration, prepared.project.fps, true);
     let results = prepared.results()?;
@@ -645,6 +646,7 @@ async fn apply_edit(
         player,
         ProjectChange {
             duration: Some(duration),
+            frame_rate: Some(frame_rate),
             audio: true,
             audio_beats: true,
             audio_waveforms: true,

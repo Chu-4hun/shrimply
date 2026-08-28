@@ -283,7 +283,7 @@ fn ripple_trim_selected_timeline_items(
     );
     drop(project_state);
     player_state::refresh_project(player_state, change);
-    player_state::set_position(player_state, shifted_position);
+    player_state::seek_time(player_state, shifted_position);
     area.queue_render();
 }
 

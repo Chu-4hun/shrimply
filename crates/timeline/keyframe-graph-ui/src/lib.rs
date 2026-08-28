@@ -3,7 +3,7 @@ use skia_safe::PathBuilder;
 
 use shrimply_interpolation::Interpolation;
 use shrimply_math_color::Color;
-use shrimply_math_core::Time;
+use shrimply_math_core::{Fraction, Time, fraction_floor_i64};
 use shrimply_ui_foundation::canvas::TimelinePainter;
 use shrimply_ui_foundation::cursor;
 use uuid::Uuid;
@@ -428,18 +428,26 @@ struct GraphTimeTick {
 }
 
 fn graph_time_ticks(width: f64, domain: GraphDomain, frame_step: Time) -> Vec<GraphTimeTick> {
-    let start = domain.0.as_secs_f64().max(0.0);
-    let end = domain.1.as_secs_f64().max(start);
+    let start_time = domain.0.max(Time::ZERO);
+    let end_time = domain.1.max(start_time);
+    let start = start_time.as_secs_f64();
+    let end = end_time.as_secs_f64();
     let seconds_per_pixel = graph_seconds_per_pixel(width, domain);
     let frame_step_seconds = frame_step.as_secs_f64();
     if frame_step_seconds.is_finite() && frame_step_seconds > 0.0 {
         let frame_width = frame_step_seconds / seconds_per_pixel;
         if frame_width >= FRAME_TICK_MIN_WIDTH {
-            let start_frame = (start / frame_step_seconds).floor().max(0.0) as u64;
-            let end_frame = (end / frame_step_seconds).ceil().max(0.0) as u64;
+            let start_frame = fraction_floor_i64(start_time.seconds / frame_step.seconds)
+                .expect("visible frame index must fit i64")
+                .max(0) as u64;
+            let end_frame = (-fraction_floor_i64(-(end_time.seconds / frame_step.seconds))
+                .expect("visible frame index must fit i64"))
+            .max(0) as u64;
             return (start_frame..=end_frame)
                 .map(|frame| GraphTimeTick {
-                    time: Time::from_seconds_f64(frame as f64 * frame_step_seconds),
+                    time: Time {
+                        seconds: frame_step.seconds * Fraction::from(frame),
+                    },
                     frame: true,
                 })
                 .collect();
@@ -891,10 +899,5 @@ pub fn segment_speed_at(segment: &SpeedSegment, progress: f64) -> Option<f64> {
 }
 
 fn same_frame(left: Time, right: Time, frame_step: Time) -> bool {
-    let step = frame_step.as_nonnegative_nanos().max(1) as i128;
-    rounded_frame(left, step) == rounded_frame(right, step)
-}
-
-fn rounded_frame(time: Time, step: i128) -> i128 {
-    (time.as_nanos_i128() + step / 2).div_euclid(step)
+    left.snapped(frame_step) == right.snapped(frame_step)
 }

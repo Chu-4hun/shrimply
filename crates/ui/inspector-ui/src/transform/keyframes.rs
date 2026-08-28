@@ -907,7 +907,7 @@ fn seek_to_local_time(
     let Some(position) = project.sequence_time_to_timeline(&key.track(), position) else {
         return;
     };
-    player_state::set_position(player_state, position);
+    player_state::seek_time(player_state, position);
 }
 
 fn keyframe_edit_context(

@@ -9,7 +9,6 @@ struct DragUpdate<'a> {
     project: &'a Project,
     view: TimelineViewState,
     position: glam::DVec2,
-    frame_step_seconds: f64,
 }
 
 struct DragFinish<'a> {
@@ -18,7 +17,6 @@ struct DragFinish<'a> {
     selection_state: &'a SharedSelectionState,
     view: TimelineViewState,
     position: glam::DVec2,
-    frame_step_seconds: f64,
     moved: bool,
 }
 
@@ -35,13 +33,11 @@ pub(super) fn update(
     runtime: &mut TimelineRuntime,
     project: &Project,
     position: glam::DVec2,
-    frame_step_seconds: f64,
 ) -> bool {
     let update = DragUpdate {
         project,
         view: runtime.view,
         position,
-        frame_step_seconds,
     };
     let handlers: [&dyn Draggable; 3] = [&NestedItem, &RootItems, &RootResize];
     handlers
@@ -55,7 +51,6 @@ pub(super) fn finish(
     player_state: &SharedPlayerState,
     selection_state: &SharedSelectionState,
     position: glam::DVec2,
-    frame_step_seconds: f64,
 ) -> bool {
     let finish = DragFinish {
         project,
@@ -63,7 +58,6 @@ pub(super) fn finish(
         selection_state,
         view: runtime.view,
         position,
-        frame_step_seconds,
         moved: runtime.view.drag_moved,
     };
     let handlers: [&dyn Draggable; 3] = [&NestedItem, &RootItems, &RootResize];
@@ -121,7 +115,7 @@ impl Draggable for NestedItem {
         crate::folded_sequence::update_drag(
             drag,
             target,
-            Time::from_seconds_f64(update.frame_step_seconds),
+            crate::geometry::frame_step(update.project),
         );
         if matches!(drag.kind, crate::folded_sequence::FoldedDragKind::Move) {
             let drop = drop_area::ItemDrop::at(
@@ -199,7 +193,7 @@ impl Draggable for NestedItem {
         crate::folded_sequence::update_drag(
             &mut drag,
             target,
-            Time::from_seconds_f64(finish.frame_step_seconds),
+            crate::geometry::frame_step(&finish.project.borrow()),
         );
         if matches!(drag.kind, crate::folded_sequence::FoldedDragKind::Move) {
             let item_drop = {
@@ -443,7 +437,6 @@ impl Draggable for RootResize {
             update.project,
             update.view,
             update.position.x,
-            update.frame_step_seconds,
             &runtime.snap_repository,
         );
         true
@@ -462,7 +455,6 @@ impl Draggable for RootResize {
             &project,
             finish.view,
             finish.position.x,
-            finish.frame_step_seconds,
             &runtime.snap_repository,
         );
         drop(project);

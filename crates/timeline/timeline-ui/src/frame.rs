@@ -62,12 +62,7 @@ pub(super) fn timeline_ui(
         let project = project.borrow();
         let player = player_state::snapshot(player_state);
         let beats = if runtime.beat_grid_enabled {
-            crate::beat_grid::snap_targets(
-                &project,
-                &runtime.beats,
-                runtime.view,
-                frame_step_seconds,
-            )
+            crate::beat_grid::snap_targets(&project, &runtime.beats, runtime.view)
         } else {
             Vec::new()
         };
@@ -76,7 +71,7 @@ pub(super) fn timeline_ui(
             runtime,
             beats,
             player.position,
-            Time::from_seconds_f64(frame_step_seconds),
+            frame_step(&project),
         ));
     }
 

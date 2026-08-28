@@ -454,7 +454,7 @@ fn keyframe_actions(
         select_time: Rc::new(move |time| {
             let project = select_project.borrow();
             if let Some(position) = (target.global_time)(&project, select_key.clone(), time) {
-                player_state::set_position(&select_player, position);
+                player_state::seek_time(&select_player, position);
             }
         }),
         add_at_time: Rc::new(move |time| {
@@ -743,7 +743,7 @@ fn expression_output(
         move || alive.upgrade().is_some(),
         move |event| {
             let refresh = match event {
-                player_state::PlayerEvent::State => true,
+                player_state::PlayerEvent::State(_) => true,
                 player_state::PlayerEvent::Project(change) => change.video || change.audio,
             };
             if !refresh {

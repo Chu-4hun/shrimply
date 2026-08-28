@@ -444,7 +444,7 @@ fn drawing_graph_actions(
                 if let Some(position) =
                     crate::video::visual_global_time(&project.borrow(), key.clone(), time)
                 {
-                    player_state::set_position(&player, position);
+                    player_state::seek_time(&player, position);
                 }
             })
         },

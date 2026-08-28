@@ -299,7 +299,7 @@ fn keyframe_actions(
         select_time: Rc::new(move |time| {
             let project = select_project.borrow();
             if let Some(position) = (target.global_time)(&project, select_key.clone(), time) {
-                player_state::set_position(&select_player, position);
+                player_state::seek_time(&select_player, position);
             }
         }),
         add_at_time: Rc::new(move |time| {

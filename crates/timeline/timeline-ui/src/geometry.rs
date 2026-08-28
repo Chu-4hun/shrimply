@@ -88,24 +88,13 @@ pub(super) fn time_to_x(time_seconds: f64, x: f64, view: TimelineViewState) -> f
     ruler_scale(view).time_to_x(time_seconds, x)
 }
 
-pub(super) fn snap_seconds(seconds: f64, frame_step_seconds: f64) -> f64 {
-    if !seconds.is_finite() || seconds <= 0.0 {
-        return 0.0;
-    }
-    if !frame_step_seconds.is_finite() || frame_step_seconds <= 0.0 {
-        return seconds;
-    }
-    (seconds / frame_step_seconds).round() * frame_step_seconds
+pub(super) fn frame_step_seconds(project: &Project) -> f64 {
+    frame_step(project).as_secs_f64()
 }
 
-pub(super) fn frame_step_seconds(project: &Project) -> f64 {
-    let numerator = fraction_numerator(project.fps);
-    let denominator = fraction_denominator(project.fps);
-    if numerator > 0 && denominator > 0 {
-        denominator as f64 / numerator as f64
-    } else {
-        1.0 / 30.0
-    }
+pub(super) fn frame_step(project: &Project) -> Time {
+    shrimply_math_core::time_from_frame(1, project.fps)
+        .expect("project frame rate must be positive")
 }
 
 pub(crate) fn waveform_chunks_per_second_from_frame_step(frame_step_seconds: f64) -> u32 {

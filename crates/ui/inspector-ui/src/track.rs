@@ -100,6 +100,7 @@ impl Inspectable for TrackInspection {
                 &player_state,
                 ProjectChange {
                     duration: Some(duration),
+                    frame_rate: None,
                     audio: kind == ItemKind::Audio,
                     audio_beats: kind == ItemKind::Audio,
                     audio_waveforms: kind == ItemKind::Audio,

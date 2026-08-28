@@ -271,16 +271,7 @@ fn player(
         },
     );
 
-    let (duration, fps_numerator, fps_denominator) = (
-        initial_project.duration(),
-        fraction_numerator(initial_project.fps),
-        fraction_denominator(initial_project.fps),
-    );
-    let frame_step = if fps_numerator > 0 {
-        Time::from_fraction(fps_denominator, fps_numerator)
-    } else {
-        Time::from_fraction(1, 30)
-    };
+    let duration = initial_project.duration();
     let progress_scale = gtk::Scale::with_range(
         gtk::Orientation::Horizontal,
         0.0,
@@ -752,7 +743,7 @@ fn player(
         &player_state,
         "preview paint palette colors",
         move |event| match event {
-            player_state::PlayerEvent::State => palette_player_tools.queue_draw(),
+            player_state::PlayerEvent::State(_) => palette_player_tools.queue_draw(),
             player_state::PlayerEvent::Project(_) => rebuild_paint_palette_buttons(
                 &palette_player_tools,
                 &palette_player_project,
@@ -861,9 +852,6 @@ fn player(
         video_project_revision.clone(),
     );
 
-    let clock_base_position = Rc::new(Cell::new(player_state::snapshot(&player_state).position));
-    let clock_started_at = Rc::new(Cell::new(None::<Instant>));
-    let updating_from_clock = Rc::new(Cell::new(false));
     let step_direction = Rc::new(Cell::new(None::<StepDirection>));
 
     let media_state = player_state.clone();
@@ -871,9 +859,6 @@ fn player(
     let media_video_project_revision = video_project_revision;
     let media_video_tx = video_tx.clone();
     let media_audio_player = audio_player.clone();
-    let media_clock_base = clock_base_position.clone();
-    let media_clock_started_at = clock_started_at.clone();
-    let media_updating_from_clock = updating_from_clock.clone();
     let media_step_direction = step_direction.clone();
     let media_performance = playback_performance.clone();
     let last_position = Rc::new(Cell::new(player_state::snapshot(&player_state).position));
@@ -890,10 +875,6 @@ fn player(
     let preview_generation_for_media = preview_generation.clone();
     player_state::connect_named(&player_state, "video player media sync", move |event| {
         let _measurement = shrimply_benchmarking::measure("Preview / Media sync listener");
-        if media_updating_from_clock.get() {
-            return;
-        }
-
         let snapshot = player_state::snapshot(&media_state);
         let position_changed = last_position_for_media.get() != snapshot.position;
         let playing_changed = last_playing_for_media.get() != snapshot.playing;
@@ -907,8 +888,15 @@ fn player(
 
         let project_change = match event {
             player_state::PlayerEvent::Project(change) => Some(change),
-            player_state::PlayerEvent::State => None,
+            player_state::PlayerEvent::State(_) => None,
         };
+        let natural_playback = matches!(
+            event,
+            player_state::PlayerEvent::State(player_state::StateChange {
+                position: Some(player_state::PositionChange::Playback),
+                ..
+            })
+        );
         if playing_changed {
             if snapshot.playing {
                 playback_performance::begin_playback(&media_performance, snapshot.position);
@@ -942,17 +930,21 @@ fn player(
             }
         }
 
-        let audio_changed = position_changed
+        let project_audio_changed = project_change.is_some_and(|change| change.audio);
+        let audio_changed = (position_changed && !natural_playback)
             || playing_changed
             || playback_speed_changed
-            || project_change.is_some_and(|change| change.audio);
+            || project_audio_changed;
         if audio_changed {
-            media_audio_player.seek(snapshot.position);
+            if (position_changed && !natural_playback)
+                || (playing_changed && snapshot.playing)
+                || project_audio_changed
+            {
+                media_audio_player.seek(snapshot.position);
+            }
             media_audio_player.set_playback_speed(snapshot.playback_speed);
             media_audio_player.set_playing(snapshot.playing);
-            if (position_changed || project_change.is_some_and(|change| change.audio))
-                && !snapshot.playing
-            {
+            if (position_changed || project_audio_changed) && !snapshot.playing {
                 media_audio_player.preview_from(snapshot.position);
             }
         }
@@ -1030,8 +1022,6 @@ fn player(
         }
 
         if position_changed || playing_changed || playback_speed_changed {
-            media_clock_base.set(snapshot.position);
-            media_clock_started_at.set(snapshot.playing.then(Instant::now));
             last_position_for_media.set(snapshot.position);
             last_playing_for_media.set(snapshot.playing);
             last_playback_speed_for_media.set(snapshot.playback_speed);
@@ -1044,7 +1034,7 @@ fn player(
     let caption_surface = video_surface.clone();
     player_state::connect_named(&player_state, "video player caption render", move |event| {
         match event {
-            player_state::PlayerEvent::State => caption_surface.queue_render(),
+            player_state::PlayerEvent::State(_) => caption_surface.queue_render(),
             player_state::PlayerEvent::Project(change) if change.captions => {
                 caption_surface.queue_render();
             }
@@ -1076,7 +1066,7 @@ fn player(
             return;
         }
 
-        player_state::set_position(&progress_state, Time::from_seconds_f64(scale.value()));
+        player_state::seek_time(&progress_state, Time::from_seconds_f64(scale.value()));
     });
 
     let play_state = player_state.clone();
@@ -1096,14 +1086,12 @@ fn player(
         &step_back_button,
         player_state.clone(),
         step_direction.clone(),
-        frame_step,
         StepDirection::Backward,
     );
     attach_step_button(
         &step_forward_button,
         player_state.clone(),
         step_direction.clone(),
-        frame_step,
         StepDirection::Forward,
     );
     fullscreen::attach(
@@ -1119,17 +1107,7 @@ fn player(
         player_state.clone(),
     );
 
-    attach_position_clock(
-        &layout,
-        player_state,
-        audio_player.clone(),
-        video_tx.clone(),
-        clock_base_position,
-        clock_started_at,
-        updating_from_clock,
-        last_position,
-        last_playback_speed,
-    );
+    attach_position_clock(&layout, player_state, audio_player.clone());
 
     let stop_video_tx = video_tx.clone();
     let stop_audio_player = audio_player.clone();
@@ -1600,8 +1578,6 @@ fn attach_frame_pump(
             Time::from_fraction(1, 30)
         };
         let playback_frame_step = scaled_time_delta(frame_step, snapshot.playback_speed);
-        let playback_frame_step =
-            Time::from_nanos_i128(playback_frame_step.as_nanos_i128().saturating_abs());
         let playback_lagging = snapshot.playing
             && displayed_position.is_none_or(|displayed| {
                 displayed
@@ -1645,12 +1621,6 @@ fn attach_position_clock(
     layout: &gtk::Box,
     player_state: SharedPlayerState,
     audio_player: Rc<AudioPlayer>,
-    video_tx: VideoCommandSender,
-    clock_base_position: Rc<Cell<Time>>,
-    clock_started_at: Rc<Cell<Option<Instant>>>,
-    updating_from_clock: Rc<Cell<bool>>,
-    last_position: Rc<Cell<Time>>,
-    last_playback_speed: Rc<Cell<Fraction>>,
 ) {
     let layout_weak = layout.downgrade();
     glib::timeout_add_local(POSITION_TICK, move || {
@@ -1671,40 +1641,7 @@ fn attach_position_clock(
             return glib::ControlFlow::Continue;
         }
 
-        let snapshot = player_state::snapshot(&player_state);
-        if !snapshot.playing {
-            clock_started_at.set(None);
-            return glib::ControlFlow::Continue;
-        }
-
-        let Some(started_at) = clock_started_at.get() else {
-            clock_base_position.set(snapshot.position);
-            clock_started_at.set(Some(Instant::now()));
-            return glib::ControlFlow::Continue;
-        };
-
-        let elapsed =
-            Time::from_nanos(started_at.elapsed().as_nanos().min(u64::MAX as u128) as u64);
-        let position = clock_base_position
-            .get()
-            .saturating_add(scaled_time_delta(elapsed, snapshot.playback_speed))
-            .clamp(Time::ZERO, snapshot.duration);
-        updating_from_clock.set(true);
-        player_state::set_position(&player_state, position);
-        updating_from_clock.set(false);
-        last_position.set(position);
-        last_playback_speed.set(snapshot.playback_speed);
-        send_video_command(
-            &video_tx,
-            VideoCommand::Render {
-                position,
-                accuracy: CompositeAccuracy::CONTINUOUS_TIME_ACCURATE,
-            },
-        );
-
-        if position >= snapshot.duration {
-            player_state::set_playing(&player_state, false);
-        }
+        player_state::tick(&player_state);
 
         glib::ControlFlow::Continue
     });
@@ -1904,7 +1841,6 @@ fn attach_step_button(
     button: &gtk::Button,
     player_state: SharedPlayerState,
     step_direction: Rc<Cell<Option<StepDirection>>>,
-    frame_step: Time,
     direction: StepDirection,
 ) {
     let press_generation = Rc::new(Cell::new(0u64));
@@ -1918,12 +1854,7 @@ fn attach_step_button(
     click.connect_pressed(move |_, _, _, _| {
         let generation = pressed_generation.get().wrapping_add(1);
         pressed_generation.set(generation);
-        step_by_frame(
-            &pressed_state,
-            &pressed_step_direction,
-            frame_step,
-            direction,
-        );
+        step_by_frame(&pressed_state, &pressed_step_direction, direction);
 
         let repeat_state = pressed_state.clone();
         let repeat_step_direction = pressed_step_direction.clone();
@@ -1933,7 +1864,7 @@ fn attach_step_button(
                 return glib::ControlFlow::Break;
             }
 
-            step_by_frame(&repeat_state, &repeat_step_direction, frame_step, direction);
+            step_by_frame(&repeat_state, &repeat_step_direction, direction);
             glib::ControlFlow::Continue
         });
     });
@@ -1954,23 +1885,17 @@ fn attach_step_button(
 fn step_by_frame(
     player_state: &SharedPlayerState,
     step_direction: &Rc<Cell<Option<StepDirection>>>,
-    frame_step: Time,
     direction: StepDirection,
 ) {
+    player_state::set_playing(player_state, false);
     let snapshot = player_state::snapshot(player_state);
-    let position = match direction {
-        StepDirection::Backward => snapshot.position.saturating_sub(frame_step),
-        StepDirection::Forward => snapshot.position.saturating_add(frame_step),
-    }
-    .clamp(Time::ZERO, snapshot.duration);
-    if position != snapshot.position {
+    let frame = match direction {
+        StepDirection::Backward => snapshot.frame.saturating_sub(1),
+        StepDirection::Forward => snapshot.frame.saturating_add(1).min(snapshot.frame_count),
+    };
+    if frame != snapshot.frame {
         step_direction.set(Some(direction));
     }
-    player_state::set_playing(player_state, false);
-    player_state::set_position(player_state, position);
-    tracing::debug!(
-        "Exact frame step to {} from {}",
-        position.as_label(),
-        snapshot.position.as_label()
-    );
+    player_state::seek_frame(player_state, frame);
+    tracing::debug!("Exact frame step to {frame} from {}", snapshot.frame);
 }

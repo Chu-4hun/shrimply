@@ -8,7 +8,7 @@ use ffmpeg_next as ffmpeg;
 use ffmpeg_next::format::Pixel;
 use libc::EAGAIN;
 use serde::Serialize;
-use shrimply_math_core::Fraction;
+use shrimply_math_core::{Fraction, frame_count, time_from_frame};
 
 use shrimply_audio::streaming;
 use shrimply_project::project::{self, Project, Time};
@@ -739,7 +739,8 @@ fn encode_video_packets(
     assets: &[project::AssetSnapshot],
     progress: &mut dyn FnMut(ExportProgress),
 ) -> Result<Vec<ExportFrameBenchmark>, String> {
-    let frame_count = video_frame_count(export_duration(project), settings.fps)?;
+    let frame_count = frame_count(export_duration(project), settings.fps)
+        .ok_or_else(|| "export duration and frame rate exceed the exact range".to_string())?;
     let encoder_time_base = encoder.time_base();
     tracing::debug!(
         "export video encode start: frames={frame_count} time_base={}/{} stream_time_base={}/{}",
@@ -760,7 +761,8 @@ fn encode_video_packets(
         check_cancelled(cancelled)?;
         crate::ensure_assets_current(assets)?;
         let frame_started = Instant::now();
-        let position = frame_position(frame_index, settings.fps)?;
+        let position = time_from_frame(frame_index, settings.fps)
+            .ok_or_else(|| "export frame exceeds the exact range".to_string())?;
         let render_started = Instant::now();
         let composited = loop {
             match renderer.render(project, position, settings.background_alpha) {
@@ -1244,32 +1246,6 @@ fn video_gop(settings: &ExportSettings) -> u32 {
     ((settings.keyframe_interval_seconds as u128 * fps_num) / fps_den)
         .max(1)
         .min(u32::MAX as u128) as u32
-}
-
-fn video_frame_count(duration: Time, fps: Fraction) -> Result<u64, String> {
-    let nanos = duration.as_nonnegative_nanos() as u128;
-    let numerator = project::fraction_numerator(fps);
-    let denominator = project::fraction_denominator(fps);
-    if numerator <= 0 || denominator <= 0 {
-        return Err("frame rate must be positive".to_string());
-    }
-    let frames = nanos.saturating_mul(numerator as u128).saturating_add(
-        1_000_000_000_u128
-            .saturating_mul(denominator as u128)
-            .saturating_sub(1),
-    ) / (1_000_000_000_u128 * denominator as u128);
-    Ok(frames.min(u64::MAX as u128) as u64)
-}
-
-fn frame_position(frame_index: u64, fps: Fraction) -> Result<Time, String> {
-    let numerator = project::fraction_numerator(fps);
-    let denominator = project::fraction_denominator(fps);
-    if numerator <= 0 || denominator <= 0 {
-        return Err("frame rate must be positive".to_string());
-    }
-    let scaled = (frame_index as u128).saturating_mul(denominator as u128);
-    let scaled = scaled.min(i64::MAX as u128) as i64;
-    Ok(Time::from_fraction(scaled, numerator))
 }
 
 fn output_needs_global_header(output: &ffmpeg::format::context::Output) -> bool {

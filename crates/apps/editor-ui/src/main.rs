@@ -90,8 +90,11 @@ fn build_ui(window: &adw::ApplicationWindow, project: project::Project) {
         .borrow()
         .watch_assets()
         .unwrap_or_else(|error| panic!("could not watch project assets: {error}"));
-    let duration = project.borrow().duration();
-    let player_state = player_state::new(duration);
+    let (duration, frame_rate) = {
+        let project = project.borrow();
+        (project.duration(), project.fps)
+    };
+    let player_state = player_state::new(duration, frame_rate);
     let asset_changes = shrimply_asset::subscribe();
     let asset_player_state = player_state.clone();
     let asset_project = project.clone();
@@ -135,14 +138,14 @@ fn build_ui(window: &adw::ApplicationWindow, project: project::Project) {
         }
     });
     if let Some(position) = project.borrow().cursor_position {
-        player_state::set_position(&player_state, position.clamp(project::Time::ZERO, duration));
+        player_state::seek_time(&player_state, position.clamp(project::Time::ZERO, duration));
     }
     let cursor_project = project.clone();
     let cursor_player_state = player_state.clone();
     let pending_cursor = Rc::new(Cell::new(None));
     let cursor_update_scheduled = Rc::new(Cell::new(false));
     player_state::connect_named(&player_state, "persist project cursor", move |event| {
-        if !matches!(event, player_state::PlayerEvent::State) {
+        if !matches!(event, player_state::PlayerEvent::State(_)) {
             return;
         }
         let snapshot = player_state::snapshot(&cursor_player_state);

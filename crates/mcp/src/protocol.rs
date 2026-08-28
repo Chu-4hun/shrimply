@@ -56,7 +56,7 @@ pub struct ClipAddress {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerSnapshot {
-    pub position: Time,
+    pub frame: u64,
     pub duration: Time,
     pub playing: bool,
     pub revision: u64,

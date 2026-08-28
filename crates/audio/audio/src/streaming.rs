@@ -5,7 +5,7 @@ use ffmpeg_next as ffmpeg;
 use hashbrown::{HashMap, HashSet, hash_map::Entry};
 use libc::EAGAIN;
 use shrimply_asset::AssetSnapshot;
-use shrimply_math_core::Fraction;
+use shrimply_math_core::{Fraction, fraction_floor_i64, time_from_sample_frame};
 use shrimply_project::project::{
     AUDIO_TRACK_GAIN_MAX_DB, AUDIO_TRACK_GAIN_MIN_DB, AudioClipTransitionCurve, AudioGenerator,
     AudioItem, AudioSource, AudioSpeedMethod, AudioWaveform, Project, RepeatStrategy,
@@ -20,7 +20,7 @@ mod analysis;
 
 pub use analysis::{FrameAudioSampler, FrameMouthSampler, FrameVolumeSampler};
 
-const AV_TIME_BASE: f64 = 1_000_000.0;
+const AV_TIME_BASE: u128 = 1_000_000;
 const BUFFER_LOOKBEHIND_FRAMES: u64 = 48_000;
 const OFFLINE_MIX_CHUNK_FRAMES: u64 = 48_000;
 
@@ -1133,8 +1133,9 @@ impl AudioDecoderSession {
     fn seek(&mut self, frame: u64) -> Result<(), String> {
         shrimply_benchmarking::increment("Volume decoder / Seek");
         let _measurement = shrimply_benchmarking::measure("Volume sampling / Seek");
-        let seconds = frame as f64 / self.sample_rate as f64;
-        let target_timestamp = (seconds * AV_TIME_BASE).round() as i64;
+        assert!(self.sample_rate > 0, "decoder sample rate must be positive");
+        let target_timestamp = (u128::from(frame) * AV_TIME_BASE / u128::from(self.sample_rate))
+            .min(i64::MAX as u128) as i64;
         self.input
             .seek(target_timestamp, ..target_timestamp)
             .map_err(|error| error.to_string())?;
@@ -1303,12 +1304,21 @@ impl AudioDecoderSession {
     fn decoded_start_frame(&self, frame: &ffmpeg::frame::Audio) -> Option<u64> {
         let timestamp = frame.timestamp()?;
         let start_time = self.stream_start_time.max(0);
-        let seconds = (timestamp - start_time) as f64 * self.stream_time_base.numerator() as f64
-            / self.stream_time_base.denominator() as f64;
-        if !seconds.is_finite() {
+        let timestamp = timestamp.saturating_sub(start_time).max(0) as u128;
+        let time_numerator = u128::try_from(self.stream_time_base.numerator()).ok()?;
+        let time_denominator = u128::try_from(self.stream_time_base.denominator()).ok()?;
+        if time_denominator == 0 {
             return None;
         }
-        Some((seconds.max(0.0) * self.sample_rate as f64).round() as u64)
+        let numerator = timestamp
+            .checked_mul(time_numerator)?
+            .checked_mul(u128::from(self.sample_rate))?;
+        u64::try_from(
+            numerator
+                .saturating_add(time_denominator / 2)
+                .checked_div(time_denominator)?,
+        )
+        .ok()
     }
 }
 
@@ -1349,13 +1359,6 @@ pub fn pitch_preserving_speed(
     output_frames: usize,
 ) -> Result<Vec<f32>, String> {
     tempo_adjust_samples(samples, playback_speed, sample_rate, output_frames)
-}
-
-fn time_from_sample_frame(frame: u64, sample_rate: u32) -> Time {
-    Time::from_fraction(
-        frame.min(i64::MAX as u64) as i64,
-        i64::from(sample_rate.max(1)),
-    )
 }
 
 fn is_default_speed(playback_speed: Fraction) -> bool {
@@ -1401,12 +1404,14 @@ fn naive_speed_samples(
         return output;
     }
 
-    let speed = fraction_as_f64(playback_speed_or_default(playback_speed)).max(f64::EPSILON);
+    let speed = playback_speed_or_default(playback_speed);
     for frame in 0..output_frames {
-        let source = frame as f64 * speed;
-        let left = source.floor() as usize;
+        let source = Fraction::from(frame as u64) * speed;
+        let left = fraction_floor_i64(source)
+            .expect("audio source sample exceeds the exact range")
+            .max(0) as usize;
         let right = left.saturating_add(1).min(input_frames - 1);
-        let mix = (source - left as f64).clamp(0.0, 1.0) as f32;
+        let mix = fraction_as_f64(source - Fraction::from(left as u64)).clamp(0.0, 1.0) as f32;
         let destination = frame * CHANNELS;
         let left_source = left.min(input_frames - 1) * CHANNELS;
         let right_source = right * CHANNELS;

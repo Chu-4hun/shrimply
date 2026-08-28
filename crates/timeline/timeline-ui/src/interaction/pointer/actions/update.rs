@@ -36,7 +36,7 @@ pub(in crate::interaction::pointer) fn update_pointer_action(
             );
             let position = runtime.snap_repository.snap(position).unwrap_or(position);
             crate::recording::stop_before_backward_seek(runtime, player_state, position);
-            player_state::set_position(player_state, position);
+            player_state::seek_time(player_state, position);
         }
         DragMode::Select => {
             let end = Time::from_seconds_f64(
@@ -62,7 +62,7 @@ pub(in crate::interaction::pointer) fn update_pointer_action(
             );
         }
         DragMode::Item => {
-            dragging::update(runtime, project, glam::DVec2::new(x, y), frame_step_seconds);
+            dragging::update(runtime, project, glam::DVec2::new(x, y));
             runtime.view.clamp(
                 duration_seconds,
                 timeline_width,
@@ -72,7 +72,7 @@ pub(in crate::interaction::pointer) fn update_pointer_action(
             );
         }
         DragMode::ResizeItem => {
-            dragging::update(runtime, project, glam::DVec2::new(x, y), frame_step_seconds);
+            dragging::update(runtime, project, glam::DVec2::new(x, y));
         }
         DragMode::Transition => {
             if let Some(mut drag) = runtime.clip_transition_drag.take() {
@@ -114,7 +114,6 @@ pub(in crate::interaction::pointer) fn update_pointer_action(
                         project,
                         runtime.view,
                         x,
-                        frame_step_seconds,
                         &runtime.snap_repository,
                     );
                     runtime.clip_transition_drag = Some(drag);
@@ -142,22 +141,16 @@ pub(in crate::interaction::pointer) fn update_pointer_action(
             let hit_us = hit_started.elapsed().as_micros();
             if let Some(key) = hit {
                 let cut_started = Instant::now();
-                runtime.cut_preview = cut_time_for_address(
-                    project,
-                    runtime.view,
-                    &key,
-                    x,
-                    frame_step_seconds,
-                    &runtime.snap_repository,
-                )
-                .map(|time| {
-                    timeline_cut(
-                        project,
-                        &selection_state::selected_item_addresses(selection_state, project),
-                        key.clone(),
-                        time,
-                    )
-                });
+                runtime.cut_preview =
+                    cut_time_for_address(project, runtime.view, &key, x, &runtime.snap_repository)
+                        .map(|time| {
+                            timeline_cut(
+                                project,
+                                &selection_state::selected_item_addresses(selection_state, project),
+                                key.clone(),
+                                time,
+                            )
+                        });
                 tracing::debug!(
                     "timeline cut update hit={:?}:{} x={:.1} y={:.1} preview={} hit_us={} cut_update_us={}",
                     key.kind(),
@@ -217,7 +210,6 @@ pub(super) fn update_clip_transition_drag(
     project: &Project,
     view: TimelineViewState,
     x: f64,
-    frame_step_seconds: f64,
     snap_repository: &SnapRepo,
 ) {
     if drag.center_resize {
@@ -236,11 +228,9 @@ pub(super) fn update_clip_transition_drag(
         let Some(target) = project.timeline_time_to_sequence(&track, target) else {
             return;
         };
-        let Some((minimum, maximum)) = clip_transition_cut_range(
-            drag,
-            project,
-            Time::from_seconds_f64(frame_step_seconds.max(0.001)),
-        ) else {
+        let Some((minimum, maximum)) =
+            clip_transition_cut_range(drag, project, crate::geometry::frame_step(project))
+        else {
             return;
         };
         drag.target_cut = target.max(minimum).min(maximum);

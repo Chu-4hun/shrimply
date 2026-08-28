@@ -62,6 +62,7 @@ impl Inspectable for Project {
             player_state::refresh_project(
                 &fps_player_state,
                 ProjectChange {
+                    frame_rate: Some(next),
                     video: true,
                     captions: true,
                     inspector: true,

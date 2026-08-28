@@ -302,6 +302,7 @@ pub(super) fn delete_selected_gap(
             player_state,
             ProjectChange {
                 duration: Some(duration),
+                frame_rate: None,
                 audio,
                 video,
                 captions,
@@ -384,6 +385,7 @@ pub(super) fn delete_selected_addressed_items(
             player_state,
             ProjectChange {
                 duration: Some(duration),
+                frame_rate: None,
                 audio: has_audio,
                 audio_beats: has_audio,
                 audio_waveforms: has_audio,
@@ -394,7 +396,7 @@ pub(super) fn delete_selected_addressed_items(
             },
         );
         if let Some(position) = shifted_position {
-            player_state::set_position(player_state, position.min(duration));
+            player_state::seek_time(player_state, position.min(duration));
         }
     }
     area.queue_render();
@@ -534,6 +536,7 @@ fn delete_selected_tracks_now(
         player_state,
         ProjectChange {
             duration: Some(duration),
+            frame_rate: None,
             audio: has_audio,
             audio_beats: has_audio,
             audio_waveforms: has_audio,

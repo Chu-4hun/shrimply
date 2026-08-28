@@ -1,5 +1,5 @@
 use shrimply_math_color::Color;
-use shrimply_math_core::Time;
+use shrimply_math_core::{Time, fraction_floor_i64, fraction_from_integer};
 use shrimply_ui_foundation::canvas::{FontId, Rect, Stroke, StrokeKind, TimelinePainter, vec2};
 
 pub const CONTENT_HEIGHT: i32 = 52;
@@ -76,26 +76,32 @@ pub fn draw(draw: Draw<'_>) {
 }
 
 fn draw_frame_cells(draw: &Draw<'_>) {
-    let frame_nanos = draw.frame_step.as_nonnegative_nanos() as i128;
-    if frame_nanos <= 0 {
+    if draw.frame_step <= Time::ZERO {
         return;
     }
     let frame_width = draw.frame_step.as_secs_f64() / seconds_per_pixel(draw.width, draw.domain);
     let minimum_stride = (FRAME_CELL_MIN_WIDTH / frame_width).ceil().max(1.0) as u64;
-    let stride = minimum_stride.next_power_of_two() as i128;
+    let stride = minimum_stride.next_power_of_two() as i64;
 
-    let first_visible_frame = draw.domain.0.as_nanos_i128().div_euclid(frame_nanos);
+    let first_visible_frame = fraction_floor_i64(draw.domain.0.seconds / draw.frame_step.seconds)
+        .expect("visible keyframe domain exceeds the exact frame range");
     let first_frame = first_visible_frame.div_euclid(stride) * stride;
-    let last_frame = draw.domain.1.as_nanos_i128().div_euclid(frame_nanos) + 1;
-    let minimum_label_stride = (FRAME_LABEL_MIN_WIDTH / frame_width).ceil().max(5.0) as i128;
+    let last_frame = fraction_floor_i64(draw.domain.1.seconds / draw.frame_step.seconds)
+        .expect("visible keyframe domain exceeds the exact frame range")
+        + 1;
+    let minimum_label_stride = (FRAME_LABEL_MIN_WIDTH / frame_width).ceil().max(5.0) as i64;
     let label_stride = (minimum_label_stride + 4).div_euclid(5) * 5;
     let top = draw.ruler_height;
     let height = (draw.content_height - top).max(0.0);
     let border = Stroke::new(1.0, Color::SIDEBAR_BORDER_DARK);
     let mut frame = first_frame;
     while frame <= last_frame {
-        let start = Time::from_nanos_i128(frame * frame_nanos);
-        let end = Time::from_nanos_i128((frame + stride) * frame_nanos);
+        let start = Time {
+            seconds: draw.frame_step.seconds * fraction_from_integer(frame),
+        };
+        let end = Time {
+            seconds: draw.frame_step.seconds * fraction_from_integer(frame + stride),
+        };
         let left = time_x(start, draw.width, draw.domain).max(GRAPH_PAD);
         let right = time_x(end, draw.width, draw.domain).min(draw.width - GRAPH_PAD);
         if right <= left {
@@ -160,10 +166,5 @@ fn seconds_per_pixel(width: f64, domain: (Time, Time)) -> f64 {
 }
 
 fn same_frame(left: Time, right: Time, frame_step: Time) -> bool {
-    let step = frame_step.as_nonnegative_nanos().max(1) as i128;
-    rounded_frame(left, step) == rounded_frame(right, step)
-}
-
-fn rounded_frame(time: Time, step: i128) -> i128 {
-    (time.as_nanos_i128() + step / 2).div_euclid(step)
+    left.snapped(frame_step) == right.snapped(frame_step)
 }

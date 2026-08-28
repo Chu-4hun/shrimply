@@ -283,7 +283,7 @@ fn connect_display_refresh(
         move |event| {
             if !matches!(
                 event,
-                player_state::PlayerEvent::State | player_state::PlayerEvent::Project(_)
+                player_state::PlayerEvent::State(_) | player_state::PlayerEvent::Project(_)
             ) || alive.upgrade().is_none()
             {
                 return;
@@ -398,7 +398,7 @@ fn expression_editor(
         "inspector bool expression feedback",
         move || alive_for_prune.upgrade().is_some(),
         move |event| {
-            if matches!(event, player_state::PlayerEvent::State) && alive.upgrade().is_some() {
+            if matches!(event, player_state::PlayerEvent::State(_)) && alive.upgrade().is_some() {
                 refresh_during_playback();
             }
         },
@@ -482,7 +482,7 @@ fn actions(
                 if let Some(global) =
                     crate::video::visual_global_time(&project.borrow(), key.clone(), time)
                 {
-                    player_state::set_position(&player, global)
+                    player_state::seek_time(&player, global)
                 }
             })
         },

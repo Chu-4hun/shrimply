@@ -25,7 +25,8 @@ pub fn project_duration(time: Time) -> String {
 }
 
 pub fn playback_time(time: Time) -> String {
-    let centiseconds = (time.as_secs_f64().max(0.0) * 100.0).round() as u64;
+    let centiseconds =
+        shrimply_math_core::fraction_round_nonnegative_u64(time.seconds * Fraction::from(100_u64));
     let hours = centiseconds / 360_000;
     let minutes = (centiseconds / 6_000) % 60;
     let seconds = (centiseconds / 100) % 60;

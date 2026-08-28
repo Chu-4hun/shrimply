@@ -1,4 +1,7 @@
 use super::*;
+use shrimply_math_core::{
+    fraction_floor_i64, fraction_rem_euclid, frame_index, time_from_signed_frame,
+};
 
 pub fn default_playback_speed() -> Fraction {
     fraction_from_integer(1)
@@ -55,7 +58,6 @@ pub fn video_source_time_at(item: &VideoItem, position: Time) -> Option<Time> {
         )),
         item.repeat_strategy,
     )
-    .map(|time| clamp_media_source_time(time, item.source_duration))
 }
 
 pub fn generated_source_time_at(item: &VideoItem, position: Time) -> Option<Time> {
@@ -71,7 +73,6 @@ pub fn generated_source_time_at(item: &VideoItem, position: Time) -> Option<Time
         )),
         item.repeat_strategy,
     )
-    .map(|time| clamp_media_source_time(time, item.source_duration))
 }
 
 pub fn audio_source_time(item: &AudioItem, position: Time) -> Time {
@@ -91,7 +92,6 @@ pub fn audio_source_time_at(item: &AudioItem, position: Time) -> Option<Time> {
         )),
         item.repeat_strategy,
     )
-    .map(|time| clamp_media_source_time(time, item.source_duration))
 }
 
 pub fn repeat_source_time(
@@ -100,19 +100,17 @@ pub fn repeat_source_time(
     elapsed: Time,
     strategy: RepeatStrategy,
 ) -> Option<Time> {
-    let start_nanos = start.as_nanos_i128();
-    let end_nanos = end.as_nanos_i128();
-    let span = end_nanos - start_nanos;
-    if span == 0 {
+    let span = end.seconds - start.seconds;
+    if span == FRACTION_ZERO {
         return (strategy != RepeatStrategy::Empty).then_some(start);
     }
     repeat_span_time(
-        start_nanos,
-        end_nanos,
-        start_nanos + elapsed.as_nanos_i128(),
+        start.seconds,
+        end.seconds,
+        start.seconds + elapsed.seconds,
         strategy,
     )
-    .map(Time::from_nanos_i128)
+    .map(|seconds| Time { seconds })
 }
 
 pub fn generated_item_time(item: &VideoItem, position: Time) -> Option<Time> {
@@ -134,22 +132,11 @@ pub fn generated_item_animation_time(item: &VideoItem, position: Time) -> Time {
 }
 
 fn quantize_playback_time(time: Time, fps: Fraction) -> Time {
-    let fps_numerator = i128::from(fraction_numerator(fps));
-    if fps_numerator <= 0 {
+    let Some(frame) = frame_index(time, fps) else {
         return time;
-    }
-    let fps_denominator = i128::from(fraction_denominator(fps)).max(1);
-    let time_numerator = i128::from(fraction_numerator(time.seconds));
-    let time_denominator = i128::from(fraction_denominator(time.seconds)).max(1);
-    let frame = time_numerator
-        .saturating_mul(fps_numerator)
-        .div_euclid(time_denominator.saturating_mul(fps_denominator));
-    Time::from_fraction(
-        frame
-            .saturating_mul(fps_denominator)
-            .clamp(i64::MIN as i128, i64::MAX as i128) as i64,
-        fps_numerator.min(i64::MAX as i128) as i64,
-    )
+    };
+    time_from_signed_frame(frame, fps)
+        .expect("validated playback FPS and frame must produce an exact time")
 }
 
 pub fn generated_item_keyframe_span(item: &VideoItem) -> Option<(Time, Time)> {
@@ -465,23 +452,24 @@ fn next_natural_end_delta(
     offset: Time,
     repeat_strategy: RepeatStrategy,
 ) -> Option<Time> {
-    let duration = natural_duration.as_nanos_i128();
-    if duration <= 0 {
+    let duration = natural_duration.seconds;
+    if duration <= FRACTION_ZERO {
         return None;
     }
-    let offset = offset.as_nanos_i128();
+    let offset = offset.seconds;
     let target = if offset < duration {
         duration
     } else {
         match repeat_strategy {
             RepeatStrategy::Repeat | RepeatStrategy::PingPong => {
-                ((offset / duration) + 1) * duration
+                duration
+                    * fraction_from_integer(fraction_floor_i64(offset / duration)?.checked_add(1)?)
             }
             RepeatStrategy::Hold | RepeatStrategy::Empty => return None,
         }
     };
     let delta = target - offset;
-    (delta > 0).then(|| Time::from_nanos_i128(delta))
+    (delta > FRACTION_ZERO).then_some(Time { seconds: delta })
 }
 
 fn previous_natural_start_delta(
@@ -489,85 +477,57 @@ fn previous_natural_start_delta(
     offset: Time,
     repeat_strategy: RepeatStrategy,
 ) -> Option<Time> {
-    let duration = natural_duration.as_nanos_i128();
-    if duration <= 0 {
+    let duration = natural_duration.seconds;
+    if duration <= FRACTION_ZERO {
         return None;
     }
-    let offset = offset.as_nanos_i128();
+    let offset = offset.seconds;
     let target = match repeat_strategy {
         RepeatStrategy::Repeat | RepeatStrategy::PingPong => {
-            let boundary = offset.div_euclid(duration) * duration;
+            let boundary = duration * fraction_from_integer(fraction_floor_i64(offset / duration)?);
             if boundary == offset {
                 boundary - duration
             } else {
                 boundary
             }
         }
-        RepeatStrategy::Hold | RepeatStrategy::Empty if offset > 0 => 0,
+        RepeatStrategy::Hold | RepeatStrategy::Empty if offset > FRACTION_ZERO => FRACTION_ZERO,
         RepeatStrategy::Hold | RepeatStrategy::Empty => return None,
     };
     let delta = target - offset;
-    (delta < 0).then(|| Time::from_nanos_i128(delta))
+    (delta < FRACTION_ZERO).then_some(Time { seconds: delta })
 }
 
 fn repeat_local_time(start: Time, end: Time, time: Time, strategy: RepeatStrategy) -> Option<Time> {
-    repeat_span_time(
-        start.as_nanos_i128(),
-        end.as_nanos_i128(),
-        time.as_nanos_i128(),
-        strategy,
-    )
-    .map(Time::from_nanos_i128)
+    repeat_span_time(start.seconds, end.seconds, time.seconds, strategy)
+        .map(|seconds| Time { seconds })
 }
 
-fn clamp_media_source_time(time: Time, source_duration: Time) -> Time {
-    let duration_nanos = source_duration.as_nonnegative_nanos();
-    if duration_nanos == 0 || time.as_nonnegative_nanos() < duration_nanos {
-        return time;
-    }
-    Time::from_nanos(duration_nanos.saturating_sub(1))
-}
-
-fn repeat_span_time(start: i128, end: i128, time: i128, strategy: RepeatStrategy) -> Option<i128> {
+fn repeat_span_time(
+    start: Fraction,
+    end: Fraction,
+    time: Fraction,
+    strategy: RepeatStrategy,
+) -> Option<Fraction> {
     if end <= start {
         return (strategy != RepeatStrategy::Empty).then_some(start);
     }
-    if time >= start && time <= end {
+    if time >= start && time < end {
         return Some(time);
-    }
-    if time < start {
-        return match strategy {
-            RepeatStrategy::Empty => None,
-            RepeatStrategy::Hold => Some(start),
-            RepeatStrategy::Repeat => Some(start + (time - start).rem_euclid(end - start)),
-            RepeatStrategy::PingPong => {
-                let span = end - start;
-                let cycle = span * 2;
-                let offset = (time - start).rem_euclid(cycle);
-                if offset <= span {
-                    Some(start + offset)
-                } else {
-                    Some(end - (offset - span))
-                }
-            }
-        };
     }
     let span = end - start;
     match strategy {
-        RepeatStrategy::Repeat => Some(start + (time - start) % span),
+        RepeatStrategy::Repeat => Some(start + fraction_rem_euclid(time - start, span)?),
         RepeatStrategy::PingPong => {
-            let cycle = span.saturating_mul(2);
-            if cycle == 0 {
-                return Some(start);
-            }
-            let offset = (time - start) % cycle;
+            let cycle = span * fraction_from_integer(2);
+            let offset = fraction_rem_euclid(time - start, cycle)?;
             if offset <= span {
                 Some(start + offset)
             } else {
                 Some(end - (offset - span))
             }
         }
-        RepeatStrategy::Hold => Some(end),
+        RepeatStrategy::Hold => Some(if time < start { start } else { end }),
         RepeatStrategy::Empty => None,
     }
 }

@@ -1291,7 +1291,7 @@ fn expression_error_summary(error: &str) -> String {
 
 fn transform_display_refresh_event(event: player_state::PlayerEvent) -> bool {
     match event {
-        player_state::PlayerEvent::State => true,
+        player_state::PlayerEvent::State(_) => true,
         player_state::PlayerEvent::Project(change) => change.video || change.audio,
     }
 }

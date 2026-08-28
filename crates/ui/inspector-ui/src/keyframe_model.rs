@@ -81,52 +81,38 @@ pub(crate) fn key_at(times: &[Time], playhead: Time, frame_step: Time) -> Option
 }
 
 pub(crate) fn previous_key(times: &[Time], playhead: Time, frame_step: Time) -> Option<Time> {
-    let step = frame_step.as_nonnegative_nanos();
-    if step == 0 {
+    if frame_step <= Time::ZERO {
         return times.iter().copied().rev().find(|time| *time < playhead);
     }
-    let playhead_frame = rounded_frame(playhead, step);
+    let playhead_frame = playhead.snapped(frame_step);
     times
         .iter()
         .copied()
         .rev()
-        .find(|time| rounded_frame(*time, step) < playhead_frame)
+        .find(|time| time.snapped(frame_step) < playhead_frame)
 }
 
 pub(crate) fn next_key(times: &[Time], playhead: Time, frame_step: Time) -> Option<Time> {
-    let step = frame_step.as_nonnegative_nanos();
-    if step == 0 {
+    if frame_step <= Time::ZERO {
         return times.iter().copied().find(|time| *time > playhead);
     }
-    let playhead_frame = rounded_frame(playhead, step);
+    let playhead_frame = playhead.snapped(frame_step);
     times
         .iter()
         .copied()
-        .find(|time| rounded_frame(*time, step) > playhead_frame)
+        .find(|time| time.snapped(frame_step) > playhead_frame)
 }
 
 pub(crate) fn same_frame(left: Time, right: Time, frame_step: Time) -> bool {
-    let step = frame_step.as_nonnegative_nanos();
-    if step == 0 {
+    if frame_step <= Time::ZERO {
         return left.approx_eq(right);
     }
-    rounded_frame(left, step) == rounded_frame(right, step)
+    left.snapped(frame_step) == right.snapped(frame_step)
 }
 
 pub(crate) fn snap_to_frame(time: Time, frame_step: Time) -> Time {
-    let step = frame_step.as_nonnegative_nanos();
-    if step == 0 {
+    if frame_step <= Time::ZERO {
         return time;
     }
-    Time::from_nanos_i128(rounded_frame(time, step) * step as i128)
-}
-
-fn rounded_frame(time: Time, step: u64) -> i128 {
-    let step = step as i128;
-    let nanos = time.as_nanos_i128();
-    if nanos >= 0 {
-        (nanos + step / 2) / step
-    } else {
-        (nanos - step / 2) / step
-    }
+    time.snapped(frame_step)
 }

@@ -11,7 +11,6 @@ pub(in crate::interaction::pointer) fn end_pointer_action(
     _timeline_width: f64,
     _height: f64,
     _track_content_height: f64,
-    frame_step_seconds: f64,
 ) {
     let x = pos.x as f64;
     let y = pos.y as f64;
@@ -48,7 +47,6 @@ pub(in crate::interaction::pointer) fn end_pointer_action(
         player_state,
         selection_state,
         glam::DVec2::new(x, y),
-        frame_step_seconds,
     ) {
         runtime.view.drag_mode = DragMode::None;
     }
@@ -122,7 +120,6 @@ pub(in crate::interaction::pointer) fn end_pointer_action(
                         &project_ref,
                         runtime.view,
                         x,
-                        frame_step_seconds,
                         &runtime.snap_repository,
                     );
                 }

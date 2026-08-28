@@ -52,10 +52,9 @@ pub(crate) fn update_resize_drag(
     project: &Project,
     view: TimelineViewState,
     x: f64,
-    frame_step_seconds: f64,
     snap_repository: &SnapRepo,
 ) {
-    let minimum_duration = Time::from_seconds_f64(frame_step_seconds.max(0.001));
+    let minimum_duration = crate::geometry::frame_step(project);
     let target = Time::from_seconds_f64(x_to_time(x, view.scroll_seconds, view.seconds_per_pixel));
     let target = snap_repository.snap(target).unwrap_or(target);
 
@@ -106,18 +105,12 @@ pub(crate) fn update_resize_drag(
 pub(crate) fn resize_item_times(drag: &ResizeDrag, item: &ResizeDragItem) -> Option<(Time, Time)> {
     let (start, end) = match drag.edge {
         ItemEdge::Start => {
-            let delta = drag.target_start.as_secs_f64() - drag.start.as_secs_f64();
-            (
-                Time::from_seconds_f64(item.start.as_secs_f64() + delta),
-                item.end,
-            )
+            let delta = drag.target_start.signed_sub(drag.start);
+            (item.start.saturating_add(delta), item.end)
         }
         ItemEdge::End => {
-            let delta = drag.target_end.as_secs_f64() - drag.end.as_secs_f64();
-            (
-                item.start,
-                Time::from_seconds_f64(item.end.as_secs_f64() + delta),
-            )
+            let delta = drag.target_end.signed_sub(drag.end);
+            (item.start, item.end.saturating_add(delta))
         }
     };
     (start < end).then_some((start, end))
@@ -308,14 +301,13 @@ pub(crate) fn cut_time_for_address(
     view: TimelineViewState,
     address: &crate::project::ItemAddress,
     x: f64,
-    frame_step_seconds: f64,
     snap_repository: &SnapRepo,
 ) -> Option<Time> {
     use crate::timeline_operation::{SequenceTimeline, TimelineOperationContext};
 
     let context = SequenceTimeline::for_item(project, address)?;
     let (start, end) = context.timeline_item_times(project, address)?;
-    let minimum_duration = Time::from_seconds_f64(frame_step_seconds.max(0.001));
+    let minimum_duration = crate::geometry::frame_step(project);
     let cut = Time::from_seconds_f64(x_to_time(x, view.scroll_seconds, view.seconds_per_pixel));
     let cut = snap_repository.snap(cut).unwrap_or(cut);
     (start.saturating_add(minimum_duration)..=end.saturating_sub(minimum_duration))

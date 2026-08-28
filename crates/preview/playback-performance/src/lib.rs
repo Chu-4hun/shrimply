@@ -425,14 +425,13 @@ fn classify(elapsed: Duration, fps: Fraction) -> PerformanceLevel {
 }
 
 fn frame_at(position: Time, fps: Fraction) -> u64 {
-    shrimply_math_media::timeline_frame_index(position, fps)
+    shrimply_math_core::frame_index(position, fps)
         .and_then(|frame| u64::try_from(frame).ok())
         .expect("project frame rate and playback position must be positive")
 }
 
 fn frame_position(frame: u64, fps: Fraction) -> Time {
-    shrimply_math_media::timeline_frame_position(frame, fps)
-        .expect("project frame rate must be positive")
+    shrimply_math_core::time_from_frame(frame, fps).expect("project frame rate must be positive")
 }
 
 fn visual_elements(project: &Project) -> BTreeMap<Uuid, VisualElement> {
@@ -616,7 +615,7 @@ fn frame_ranges(ranges: &[TimeRange], fps: Fraction) -> RangeSet<u64> {
     let mut result = RangeSet::new();
     for range in ranges {
         let start = frame_at(range.start, fps);
-        if let Some(end) = shrimply_math_media::timeline_frame_count(range.end, fps)
+        if let Some(end) = shrimply_math_core::frame_count(range.end, fps)
             && end > start
         {
             result.insert(start..end);

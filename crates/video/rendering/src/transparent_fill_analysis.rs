@@ -255,9 +255,8 @@ fn analyze_inner(input: Input, cancelled: &AtomicBool) -> Result<(), String> {
     let result = (|| {
         let width = input.project.canvas_size.width.max(1);
         let height = input.project.canvas_size.height.max(1);
-        let frames =
-            shrimply_math_media::timeline_frame_range(input.start, input.end, input.project.fps)
-                .ok_or("project frame rate must be positive for transparent fill")?;
+        let frames = shrimply_math_core::frame_range(input.start, input.end, input.project.fps)
+            .ok_or("project frame rate must be positive for transparent fill")?;
         let total = frames.end.saturating_sub(frames.start);
         let mut renderer = VideoExportRenderer::new(48_000)?;
         let item = input
@@ -346,10 +345,9 @@ fn analyze_inner(input: Input, cancelled: &AtomicBool) -> Result<(), String> {
                 if cancelled.load(Ordering::Acquire) {
                     return Err("transparent fill analysis cancelled".to_string());
                 }
-                let position =
-                    shrimply_math_media::timeline_frame_position(frame_index, input.project.fps)
-                        .ok_or("project frame rate must be positive for transparent fill")?
-                        .max(input.start);
+                let position = shrimply_math_core::time_from_frame(frame_index, input.project.fps)
+                    .ok_or("project frame rate must be positive for transparent fill")?
+                    .max(input.start);
                 let composited = loop {
                     match renderer.render_cache_item(&input.project, position, input.item_id) {
                         Ok(frame) => break frame,
@@ -432,7 +430,7 @@ fn update_progress(modifier_id: Uuid, signature: u64, cache_key: &str, completed
 }
 
 fn frame_total(start: Time, end: Time, fps: shrimply_math_core::Fraction) -> Result<u64, String> {
-    let frames = shrimply_math_media::timeline_frame_range(start, end, fps)
+    let frames = shrimply_math_core::frame_range(start, end, fps)
         .ok_or("project frame rate must be positive for transparent fill")?;
     if frames.is_empty() {
         return Err("cannot analyze an item shorter than one project frame".to_string());

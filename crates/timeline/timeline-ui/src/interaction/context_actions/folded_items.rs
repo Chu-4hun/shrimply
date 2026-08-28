@@ -183,6 +183,7 @@ fn move_item_out_of_sequence(
         player_state,
         ProjectChange {
             duration: Some(duration),
+            frame_rate: None,
             audio: kind == crate::project::ItemKind::Audio,
             audio_beats: kind == crate::project::ItemKind::Audio,
             audio_waveforms: kind == crate::project::ItemKind::Audio,

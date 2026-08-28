@@ -43,6 +43,7 @@ pub(crate) struct RulerDraw {
     pub(crate) timeline_width: f64,
     pub(crate) content_height: f64,
     pub(crate) frame_step_seconds: f64,
+    pub(crate) frame_rate: crate::Fraction,
     pub(crate) hide_zero_label: bool,
     pub(crate) style: RulerStyle,
 }
@@ -52,6 +53,7 @@ pub(crate) fn draw(painter: &TimelinePainter, draw: RulerDraw) {
         draw.scale,
         draw.timeline_width,
         draw.frame_step_seconds,
+        draw.frame_rate,
         draw.hide_zero_label,
         draw.style.frame_tick_min_width,
     ) {
@@ -89,6 +91,7 @@ fn visible_ticks(
     scale: TimelineScale,
     timeline_width: f64,
     frame_step_seconds: f64,
+    frame_rate: crate::Fraction,
     hide_zero_label: bool,
     frame_tick_min_width: f64,
 ) -> Vec<RulerTick> {
@@ -96,13 +99,7 @@ fn visible_ticks(
     let end = (scale.scroll_seconds + timeline_width * scale.seconds_per_pixel).max(start);
     let frame_pixels = scale.frame_width(frame_step_seconds);
     if frame_pixels >= frame_tick_min_width {
-        return visible_frame_ticks(
-            start,
-            end,
-            frame_step_seconds,
-            frame_pixels,
-            hide_zero_label,
-        );
+        return visible_frame_ticks(start, end, frame_rate, frame_pixels, hide_zero_label);
     }
 
     let step = nice_tick_step(scale.seconds_per_pixel * 120.0);
@@ -124,17 +121,24 @@ fn visible_ticks(
 fn visible_frame_ticks(
     start: f64,
     end: f64,
-    frame_step_seconds: f64,
+    frame_rate: crate::Fraction,
     frame_pixels: f64,
     hide_zero_label: bool,
 ) -> Vec<RulerTick> {
-    let start_frame = (start / frame_step_seconds).floor().max(0.0) as u64;
-    let end_frame = (end / frame_step_seconds).ceil().max(0.0) as u64;
+    let start_frame = shrimply_math_core::nonnegative_frame_index(
+        crate::project::Time::from_seconds_f64(start),
+        frame_rate,
+    )
+    .expect("project frame rate must be positive");
+    let end_frame =
+        shrimply_math_core::frame_count(crate::project::Time::from_seconds_f64(end), frame_rate)
+            .expect("project frame rate must be positive");
     let label_every = (48.0 / frame_pixels.max(1.0)).ceil().max(1.0) as u64;
     let mut ticks = Vec::new();
     for frame in start_frame..=end_frame {
         ticks.push(RulerTick {
-            time: crate::project::Time::from_seconds_f64(frame as f64 * frame_step_seconds),
+            time: shrimply_math_core::time_from_frame(frame, frame_rate)
+                .expect("visible project frame must have an exact time"),
             label: ((!hide_zero_label || frame > 0) && frame % label_every == 0)
                 .then(|| frame.to_string()),
         });

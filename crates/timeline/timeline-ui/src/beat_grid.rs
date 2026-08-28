@@ -3,7 +3,7 @@ use crate::project::{Project, Time, fraction_as_f64, playback_speed_or_default};
 
 use super::items::{TrackKind, row_for_track};
 use super::renderer::{Align2, Color, FontId, Stroke, TimelinePainter, vec2};
-use super::{RULER_HEIGHT, TimelineViewState, row_screen_y, snap_seconds, time_to_x, timeline_x};
+use super::{RULER_HEIGHT, TimelineViewState, row_screen_y, time_to_x, timeline_x};
 
 const BEAT_MIN_SPACING_PX: f64 = 12.0;
 const BAR_MIN_SPACING_PX: f64 = 6.0;
@@ -19,9 +19,8 @@ pub(super) fn snap_targets(
     project: &Project,
     beats: &BeatMap,
     view: TimelineViewState,
-    frame_step_seconds: f64,
 ) -> Vec<Time> {
-    markers(project, beats, view, frame_step_seconds, None)
+    markers(project, beats, view, None)
         .into_iter()
         .map(|marker| marker.time)
         .collect()
@@ -34,19 +33,12 @@ pub(super) fn draw(
     view: TimelineViewState,
     timeline_width: f64,
     content_height: f64,
-    frame_step_seconds: f64,
 ) {
     let visible_start = Time::from_seconds_f64(view.scroll_seconds.max(0.0));
     let visible_end = Time::from_seconds_f64(
         view.scroll_seconds + timeline_width.max(0.0) * view.seconds_per_pixel,
     );
-    let markers = markers(
-        project,
-        beats,
-        view,
-        frame_step_seconds,
-        Some((visible_start, visible_end)),
-    );
+    let markers = markers(project, beats, view, Some((visible_start, visible_end)));
     let left = timeline_x();
     let right = left + timeline_width;
     for marker in markers {
@@ -87,10 +79,11 @@ fn markers(
     project: &Project,
     beats: &BeatMap,
     view: TimelineViewState,
-    frame_step_seconds: f64,
     visible_range: Option<(Time, Time)>,
 ) -> Vec<GridMarker> {
     let mut markers = Vec::new();
+    let frame_step = shrimply_math_core::time_from_frame(1, project.fps)
+        .expect("project frame rate must be positive");
     for (track_index, track) in project.audio_tracks.iter().enumerate() {
         for item in &track.items {
             if !item.beat_detection {
@@ -118,10 +111,7 @@ fn markers(
                     continue;
                 }
                 markers.push(GridMarker {
-                    time: Time::from_seconds_f64(snap_seconds(
-                        marker.time.as_secs_f64(),
-                        frame_step_seconds,
-                    )),
+                    time: marker.time.snapped(frame_step),
                     kind: marker.kind,
                     track_index,
                 });

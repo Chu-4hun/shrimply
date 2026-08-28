@@ -146,12 +146,14 @@ fn finish_media_import(
         return;
     }
     let mut project_state = project.borrow_mut();
+    let mut frame_rate = None;
     if let Some((canvas_size, fps)) = settings {
         if let Some(canvas_size) = canvas_size {
             project_state.canvas_size = canvas_size;
         }
         if let Some(fps) = fps {
             project_state.fps = fps;
+            frame_rate = Some(fps);
         }
     }
     let collision_mode = runtime.borrow().drag_collision_mode;
@@ -180,6 +182,7 @@ fn finish_media_import(
         player_state,
         ProjectChange {
             duration: Some(duration),
+            frame_rate,
             audio: result.audio,
             audio_beats: result.audio,
             audio_waveforms: result.audio,
@@ -412,6 +415,7 @@ fn finish_track_import(
         player_state,
         ProjectChange {
             duration: Some(duration),
+            frame_rate: None,
             audio: result.audio,
             audio_beats: result.audio,
             audio_waveforms: result.audio,

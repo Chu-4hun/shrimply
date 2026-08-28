@@ -91,9 +91,8 @@ mod tests {
             else {
                 panic!("exact decode returned no frame");
             };
-            let source_frame =
-                shrimply_math_media::timeline_frame_index(requested, fraction_new(24, 1))
-                    .expect("map requested source time to source frame");
+            let source_frame = shrimply_math_core::frame_index(requested, fraction_new(24, 1))
+                .expect("map requested source time to source frame");
             assert_eq!(
                 decoded,
                 Time::from_fraction(source_frame, 24),

@@ -319,12 +319,10 @@ impl RasterModifierRuntime for Sam2Modifier {
         if self.points.is_empty() && self.box_prompt.is_none() {
             return Ok(input);
         }
-        let frame =
-            shrimply_math_media::timeline_frame_index(context.position, context.project.fps)
-                .ok_or("project frame rate must be positive for SAM2 video tracking")?;
-        let frame_position =
-            shrimply_math_media::timeline_frame_position(frame as u64, context.project.fps)
-                .ok_or("project frame rate must be positive for SAM2 video tracking")?;
+        let frame = shrimply_math_core::frame_index(context.position, context.project.fps)
+            .ok_or("project frame rate must be positive for SAM2 video tracking")?;
+        let frame_position = shrimply_math_core::time_from_frame(frame as u64, context.project.fps)
+            .ok_or("project frame rate must be positive for SAM2 video tracking")?;
         let prompt_time =
             shrimply_project::project::generated_item_time(context.item, frame_position)
                 .unwrap_or(Time::ZERO);

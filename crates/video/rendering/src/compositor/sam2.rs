@@ -99,18 +99,18 @@ fn analyze_clip(
     compositor: &mut CudaVideoCompositor,
     mask_cache: &crate::modifiers::sam2::Sam2MaskCache,
 ) -> Result<bool, String> {
-    let first_frame = shrimply_math_media::timeline_frame_count(job.start, project.fps)
+    let first_frame = shrimply_math_core::frame_count(job.start, project.fps)
         .ok_or("project frame rate must be positive for SAM2 analysis")?;
-    let end_frame = shrimply_math_media::timeline_frame_count(job.end, project.fps)
+    let end_frame = shrimply_math_core::frame_count(job.end, project.fps)
         .ok_or("project frame rate must be positive for SAM2 analysis")?;
     let total_frames = end_frame.saturating_sub(first_frame);
     if total_frames == 0 {
         return Ok(true);
     }
-    let seed_frame = shrimply_math_media::timeline_frame_count(job.seed, project.fps)
+    let seed_frame = shrimply_math_core::frame_count(job.seed, project.fps)
         .ok_or("project frame rate must be positive for SAM2 analysis")?
         .clamp(first_frame, end_frame - 1);
-    let seed_position = shrimply_math_media::timeline_frame_position(seed_frame, project.fps)
+    let seed_position = shrimply_math_core::time_from_frame(seed_frame, project.fps)
         .ok_or("project frame rate must be positive for SAM2 analysis")?;
     let prompt_time =
         shrimply_project::project::generated_item_time(job_item(project, job)?, seed_position)
@@ -311,7 +311,7 @@ fn analyze_frame(
     render_cache: &mut RenderCache,
     compositor: &mut CudaVideoCompositor,
 ) -> Result<(), String> {
-    let position = shrimply_math_media::timeline_frame_position(frame, project.fps)
+    let position = shrimply_math_core::time_from_frame(frame, project.fps)
         .ok_or("project frame rate must be positive for SAM2 analysis")?;
     let volume_revision = sessions.volume_revision;
     let audio_analysis = FrameAudioAnalysis {

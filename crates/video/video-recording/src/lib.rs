@@ -940,7 +940,7 @@ impl VideoWriter {
                 .as_nanos()
                 .min(u128::from(u64::MAX)) as u64,
         };
-        let pts = shrimply_math_media::frame_index_at_nanoseconds(elapsed_nanos, self.fps)
+        let pts = shrimply_math_core::frame_index(Time::from_nanos(elapsed_nanos), self.fps)
             .ok_or_else(|| "Invalid recording frame rate".to_string())?;
         if self.last_pts.is_some_and(|last| pts <= last) {
             return Ok(());

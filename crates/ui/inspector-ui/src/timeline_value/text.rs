@@ -125,7 +125,7 @@ fn connect_text_refresh(context: &InspectorContext, key: SelectedItem, set_text:
         move |event| {
             if !matches!(
                 event,
-                player_state::PlayerEvent::State | player_state::PlayerEvent::Project(_)
+                player_state::PlayerEvent::State(_) | player_state::PlayerEvent::Project(_)
             ) || alive.upgrade().is_none()
             {
                 return;
@@ -194,7 +194,7 @@ fn expression_editor(context: &InspectorContext, key: SelectedItem) -> gtk::Widg
         "inspector text expression feedback",
         move || alive_for_prune.upgrade().is_some(),
         move |event| {
-            if matches!(event, player_state::PlayerEvent::State) && alive.upgrade().is_some() {
+            if matches!(event, player_state::PlayerEvent::State(_)) && alive.upgrade().is_some() {
                 refresh_feedback();
             }
         },
@@ -301,7 +301,7 @@ fn actions(context: &InspectorContext, key: SelectedItem) -> KeyframeEditorActio
             let player = player.clone();
             Rc::new(move |time| {
                 if let Some(position) = global_time(&project.borrow(), key.clone(), time) {
-                    player_state::set_position(&player, position);
+                    player_state::seek_time(&player, position);
                 }
             })
         },
