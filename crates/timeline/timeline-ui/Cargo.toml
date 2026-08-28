@@ -6,10 +6,10 @@ edition = "2024"
 [dependencies]
 async-channel.workspace = true
 hashbrown.workspace = true
-adw = { workspace = true, features = ["v1_9"] }
+adw.workspace = true
 ffmpeg-next.workspace = true
 glam.workspace = true
-gtk = { workspace = true, features = ["v4_10"] }
+gtk.workspace = true
 reqwest = { workspace = true, features = ["blocking"] }
 shrimply-3dgs = { path = "../../3d/3dgs" }
 shrimply-audio = { path = "../../audio/audio" }

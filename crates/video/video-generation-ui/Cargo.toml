@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 async-channel.workspace = true
-gtk = { workspace = true, features = ["v4_10"] }
+gtk.workspace = true
 shrimply-math-core = { path = "../../math/core" }
 shrimply-project = { path = "../../project/project" }
 shrimply-server-client = { path = "../../server-client" }

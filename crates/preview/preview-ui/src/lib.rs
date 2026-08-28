@@ -1743,8 +1743,8 @@ fn attach_preview_context_menu(
         actions.add_action(&save);
 
         let parent = area.parent().expect("preview GLArea must have a parent");
-        let (x, y) = area
-            .translate_coordinates(&parent, x, y)
+        let point = area
+            .compute_point(&parent, &gtk::graphene::Point::new(x as f32, y as f32))
             .expect("preview coordinates must translate to its parent");
         let popover = gtk::PopoverMenu::from_model(Some(&menu));
         popover.set_has_arrow(false);
@@ -1752,7 +1752,12 @@ fn attach_preview_context_menu(
         popover.set_halign(gtk::Align::Start);
         popover.insert_action_group("preview", Some(&actions));
         popover.set_parent(&parent);
-        popover.set_pointing_to(Some(&gdk::Rectangle::new(x as i32, y as i32, 1, 1)));
+        popover.set_pointing_to(Some(&gdk::Rectangle::new(
+            point.x() as i32,
+            point.y() as i32,
+            1,
+            1,
+        )));
         popover.popup();
     });
     video_surface.widget().add_controller(click);

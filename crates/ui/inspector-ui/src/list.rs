@@ -339,7 +339,7 @@ fn install_expander_css(display: &gtk::gdk::Display) {
             return;
         }
         let provider = gtk::CssProvider::new();
-        provider.load_from_data(
+        provider.load_from_string(
             ".inspector-expander-icon { \
                  -gtk-icon-transform: rotate(0deg); \
                  transition: 180ms ease; \

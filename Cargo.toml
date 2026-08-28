@@ -90,7 +90,7 @@ default-members = ["crates/apps/editor-ui", "crates/apps/launcher-ui"]
 exclude = ["external/cuda-oxide", "external/vtracer"]
 
 [workspace.dependencies]
-adw = { package = "libadwaita", version = "0.9" }
+adw = { package = "libadwaita", version = "0.9", features = ["v1_9"] }
 ash = "0.38"
 async-channel = "2"
 autodiff = "0.7"
@@ -112,10 +112,10 @@ good_lp = { version = "1", default-features = false, features = ["highs"] }
 glam = "0.33"
 gltf = { version = "1", features = ["KHR_texture_transform"] }
 glib = "0.22"
-gdk = { package = "gdk4", version = "0.11" }
+gdk = { package = "gdk4", version = "0.11", features = ["v4_22"] }
 gdk-pixbuf = "0.22"
 glow = "0.18"
-gtk = { package = "gtk4", version = "0.11" }
+gtk = { package = "gtk4", version = "0.11", features = ["v4_22"] }
 half = "2"
 hashbrown = { version = "0.17", features = ["serde"] }
 libc = "0.2"

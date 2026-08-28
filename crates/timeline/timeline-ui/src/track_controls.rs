@@ -351,14 +351,17 @@ pub(super) fn show_track_add_menu(
     }
     let button_y = track_label_button_y(row_screen_y(row, view));
     let parent = area.parent().expect("timeline GLArea must have a parent");
-    let (x, y) = area
-        .translate_coordinates(&parent, TRACK_LABEL_ADD_X, button_y)
+    let point = area
+        .compute_point(
+            &parent,
+            &gtk::graphene::Point::new(TRACK_LABEL_ADD_X as f32, button_y as f32),
+        )
         .expect("timeline coordinates must translate to its parent");
     popover.set_halign(gtk::Align::Center);
     popover.set_parent(&parent);
     popover.set_pointing_to(Some(&gdk::Rectangle::new(
-        x as i32,
-        y as i32,
+        point.x() as i32,
+        point.y() as i32,
         TRACK_LABEL_BUTTON_SIZE as i32,
         TRACK_LABEL_BUTTON_SIZE as i32,
     )));

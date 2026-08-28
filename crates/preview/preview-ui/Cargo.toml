@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-adw = { workspace = true, features = ["v1_9"] }
+adw.workspace = true
 cuda-core.workspace = true
 glam.workspace = true
 glow.workspace = true
-gtk = { workspace = true, features = ["v4_10"] }
+gtk.workspace = true
 libc.workspace = true
 shrimply-audio = { path = "../../audio/audio" }
 shrimply-benchmarking = { path = "../../benchmarking" }

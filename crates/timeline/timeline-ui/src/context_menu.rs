@@ -10,8 +10,8 @@ pub(super) fn popup(
     y: f64,
 ) -> gtk::PopoverMenu {
     let parent = area.parent().expect("timeline GLArea must have a parent");
-    let (x, y) = area
-        .translate_coordinates(&parent, x, y)
+    let point = area
+        .compute_point(&parent, &gtk::graphene::Point::new(x as f32, y as f32))
         .expect("timeline coordinates must translate to its parent");
     let popover = gtk::PopoverMenu::from_model(Some(menu));
     if let Some(child) = custom_child {
@@ -22,7 +22,12 @@ pub(super) fn popup(
     popover.set_halign(gtk::Align::Start);
     popover.insert_action_group("timeline", Some(actions));
     popover.set_parent(&parent);
-    popover.set_pointing_to(Some(&gdk::Rectangle::new(x as i32, y as i32, 1, 1)));
+    popover.set_pointing_to(Some(&gdk::Rectangle::new(
+        point.x() as i32,
+        point.y() as i32,
+        1,
+        1,
+    )));
     popover.popup();
     popover
 }

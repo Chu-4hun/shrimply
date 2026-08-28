@@ -8,8 +8,8 @@ name = "shrimply"
 path = "src/main.rs"
 
 [dependencies]
-adw = { workspace = true, features = ["v1_9"] }
-gtk = { workspace = true, features = ["v4_10"] }
+adw.workspace = true
+gtk.workspace = true
 shrimply-support = { path = "../../support" }
 shrimply-project = { path = "../../project/project" }
 shrimply-ui-foundation = { path = "../../ui/ui-foundation" }

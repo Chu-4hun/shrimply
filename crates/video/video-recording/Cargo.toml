@@ -7,7 +7,7 @@ edition = "2024"
 hashbrown.workspace = true
 async-channel.workspace = true
 ffmpeg-next.workspace = true
-gtk = { workspace = true, features = ["v4_10"] }
+gtk.workspace = true
 pipewire.workspace = true
 shrimply-math-media = { path = "../../math/media" }
 shrimply-math-core = { path = "../../math/core" }

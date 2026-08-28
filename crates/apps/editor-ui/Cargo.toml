@@ -9,11 +9,11 @@ name = "shrimply-editor"
 path = "src/main.rs"
 
 [dependencies]
-adw = { workspace = true, features = ["v1_9"] }
+adw.workspace = true
 async-channel.workspace = true
 ffmpeg-next.workspace = true
 gdk-pixbuf.workspace = true
-gtk = { workspace = true, features = ["v4_10"] }
+gtk.workspace = true
 libc.workspace = true
 num-traits.workspace = true
 pango = { workspace = true, features = ["v1_56"] }

@@ -433,7 +433,7 @@ pub(super) fn install_css() {
         return;
     };
     let provider = gtk::CssProvider::new();
-    provider.load_from_data(CONTROLS_CSS);
+    provider.load_from_string(CONTROLS_CSS);
     gtk::style_context_add_provider_for_display(
         &display,
         &provider,

@@ -32,7 +32,7 @@ impl ProgressButton {
                 return;
             }
             let provider = gtk::CssProvider::new();
-            provider.load_from_data(
+            provider.load_from_string(
                 "@keyframes progress-button-unknown-move { \
                      0% { background-position: 0%; } \
                      50% { background-position: 100%; } \
@@ -104,17 +104,17 @@ impl ProgressButton {
             ProgressButtonState::Idle => {
                 self.button.remove_css_class("progress-button");
                 self.button.remove_css_class("indeterminate");
-                self.progress_css.load_from_data("");
+                self.progress_css.load_from_string("");
             }
             ProgressButtonState::Indeterminate => {
                 self.button.add_css_class("progress-button");
                 self.button.add_css_class("indeterminate");
-                self.progress_css.load_from_data("");
+                self.progress_css.load_from_string("");
             }
             ProgressButtonState::Progress(value) => {
                 self.button.add_css_class("progress-button");
                 self.button.remove_css_class("indeterminate");
-                self.progress_css.load_from_data(&format!(
+                self.progress_css.load_from_string(&format!(
                     "#{} {{ background-size: {:.3}%; animation: none; }}",
                     self.button.widget_name(),
                     value.clamp(0.0, 1.0) * 100.0

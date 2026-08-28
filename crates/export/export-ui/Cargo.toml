@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-adw = { workspace = true, features = ["v1_9"] }
+adw.workspace = true
 glam.workspace = true
-gtk = { workspace = true, features = ["v4_10"] }
+gtk.workspace = true
 shrimply-export = { path = "../export" }
 shrimply-math-core = { path = "../../math/core" }
 shrimply-math-media = { path = "../../math/media" }
