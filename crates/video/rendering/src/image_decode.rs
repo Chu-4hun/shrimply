@@ -1,3 +1,4 @@
+use std::io::Cursor;
 use std::path::Path;
 use std::rc::Rc;
 use std::sync::mpsc::{Receiver, TryRecvError, sync_channel};
@@ -34,8 +35,9 @@ pub struct ImageDecodeSession {
     height: u32,
     kind: ImageDecodeKind,
     raster: Option<RasterDecoder>,
-    gif_previous_frame: Option<(Time, Rc<VisualFrame>)>,
-    gif_frame: Option<(Time, Rc<VisualFrame>)>,
+    gif_pending: Option<Receiver<Result<DecodedGif, String>>>,
+    gif_frames: Vec<GifFrame>,
+    gif_error: Option<String>,
     vectorize_request: Option<VectorizeRequest>,
     vectorize_pending: Option<VectorizePending>,
     vectorized: Option<VectorizedImage>,
@@ -79,15 +81,23 @@ struct DecodedRgba {
     height: u32,
 }
 
+struct DecodedGif {
+    frames: Vec<(Time, VisualFrame)>,
+    width: u32,
+    height: u32,
+}
+
+struct GifFrame {
+    position: Time,
+    source: VisualFrame,
+    gpu: Option<Rc<VisualFrame>>,
+}
+
 struct RasterDecoder {
     input: format::context::Input,
     stream_index: usize,
-    time_base: ffmpeg::Rational,
-    stream_start_time: i64,
     decoder: ffmpeg::decoder::Video,
     scaler: ffmpeg::software::scaling::context::Context,
-    frame_index: usize,
-    last_decoded: Option<Time>,
     eof: bool,
 }
 
@@ -142,8 +152,9 @@ impl ImageDecodeSession {
             height: item.source_height.max(1),
             kind,
             raster: None,
-            gif_previous_frame: None,
-            gif_frame: None,
+            gif_pending: None,
+            gif_frames: Vec::new(),
+            gif_error: None,
             vectorize_request: None,
             vectorize_pending: None,
             vectorized: None,
@@ -338,59 +349,116 @@ impl ImageDecodeSession {
         compositor: &mut CudaVideoCompositor,
     ) -> Result<Option<Rc<VisualFrame>>, String> {
         match self.kind {
-            ImageDecodeKind::Image => self.raster_frame_at(Time::ZERO, compositor),
-            ImageDecodeKind::Gif => self.raster_frame_at(source_position, compositor),
+            ImageDecodeKind::Image => self.raster_frame_at(compositor),
+            ImageDecodeKind::Gif => self.gif_frame_at(source_position, compositor),
         }
     }
 
-    fn raster_frame_at(
+    fn request_gif(&mut self) {
+        if self.gif_pending.is_some() || !self.gif_frames.is_empty() || self.gif_error.is_some() {
+            return;
+        }
+        let snapshot = self.snapshot.clone();
+        let (sender, result) = sync_channel(1);
+        self.gif_pending = Some(result);
+        rayon::spawn(move || {
+            let _ = sender.send(decode_gif(snapshot));
+        });
+        shrimply_benchmarking::increment("GIF decode / Prepared requests submitted");
+    }
+
+    fn poll_gif(&mut self) {
+        let Some(pending) = &self.gif_pending else {
+            return;
+        };
+        let result = match pending.try_recv() {
+            Ok(result) => result,
+            Err(TryRecvError::Empty) => return,
+            Err(TryRecvError::Disconnected) => Err("GIF decoder stopped unexpectedly".to_string()),
+        };
+        self.gif_pending = None;
+        match result {
+            Ok(decoded) => {
+                self.width = decoded.width;
+                self.height = decoded.height;
+                self.gif_frames = decoded
+                    .frames
+                    .into_iter()
+                    .map(|(position, source)| GifFrame {
+                        position,
+                        source,
+                        gpu: None,
+                    })
+                    .collect();
+            }
+            Err(error) => self.gif_error = Some(error),
+        }
+    }
+
+    fn gif_frame_at(
         &mut self,
         target: Time,
         compositor: &mut CudaVideoCompositor,
     ) -> Result<Option<Rc<VisualFrame>>, String> {
-        if self.kind == ImageDecodeKind::Image {
-            if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.gpu_image_key())? {
-                shrimply_benchmarking::increment("Image GPU residency / Hit");
-                compositor.prepare_host_backed_frame(&frame, "cached still image preview")?;
-                return Ok(Some(Rc::new((*frame).clone())));
-            }
-            shrimply_benchmarking::increment("Image GPU residency / Miss");
-            if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.image_key())? {
-                return self.upload_still_frame(&frame, compositor).map(Some);
-            }
-            if gpu_memory().contains_resource(&self.image_key()) {
-                return Ok(None);
-            }
+        self.poll_gif();
+        if let Some(error) = &self.gif_error {
+            return Err(error.clone());
         }
-        if self
-            .raster
-            .as_ref()
-            .and_then(|raster| raster.last_decoded)
-            .is_some_and(|decoded| decoded > target)
-            && let Some(frame) = self.frame_at_or_before(target)
-        {
-            return Ok(Some(frame));
+        if self.gif_frames.is_empty() {
+            self.request_gif();
+            return Ok(None);
         }
+        let Some(index) = self
+            .gif_frames
+            .partition_point(|frame| frame.position <= target)
+            .checked_sub(1)
+        else {
+            return Ok(None);
+        };
+        let frame = &mut self.gif_frames[index];
+        if frame.gpu.is_none() {
+            shrimply_benchmarking::increment("GIF frame GPU residency / Miss");
+            frame.gpu = Some(Rc::new(compositor.upload_frame(&frame.source)?));
+        } else {
+            shrimply_benchmarking::increment("GIF frame GPU residency / Hit");
+        }
+        let frame = frame.gpu.as_ref().expect("GIF frame was just uploaded");
+        compositor.prepare_host_backed_frame(frame, "resident GIF frame")?;
+        Ok(Some(frame.clone()))
+    }
 
-        if self.raster.is_none() || !self.can_decode_forward(target) {
+    fn raster_frame_at(
+        &mut self,
+        compositor: &mut CudaVideoCompositor,
+    ) -> Result<Option<Rc<VisualFrame>>, String> {
+        if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.gpu_image_key())? {
+            shrimply_benchmarking::increment("Image GPU residency / Hit");
+            compositor.prepare_host_backed_frame(&frame, "cached still image preview")?;
+            return Ok(Some(Rc::new((*frame).clone())));
+        }
+        shrimply_benchmarking::increment("Image GPU residency / Miss");
+        if let Some(frame) = gpu_memory().get_resource::<VisualFrame>(&self.image_key())? {
+            return self.upload_still_frame(&frame, compositor).map(Some);
+        }
+        if gpu_memory().contains_resource(&self.image_key()) {
+            return Ok(None);
+        }
+        if self.raster.is_none() {
             self.open_raster_decoder()?;
         }
 
         loop {
-            if self.receive_frames(target, compositor)? {
-                if self.kind == ImageDecodeKind::Image {
-                    let frame = gpu_memory()
-                        .get_resource::<VisualFrame>(&self.image_key())?
-                        .ok_or_else(|| "decoded image source disappeared".to_string())?;
-                    return self.upload_still_frame(&frame, compositor).map(Some);
-                }
-                return Ok(self.frame_at_or_before(target));
+            if self.receive_frame()? {
+                let frame = gpu_memory()
+                    .get_resource::<VisualFrame>(&self.image_key())?
+                    .ok_or_else(|| "decoded image source disappeared".to_string())?;
+                return self.upload_still_frame(&frame, compositor).map(Some);
             }
             let Some(raster) = &mut self.raster else {
                 return Ok(None);
             };
             if raster.eof {
-                return Ok(self.frame_at_or_before(target));
+                return Ok(None);
             }
             let mut sent_packet = false;
             for (stream, packet) in raster.input.packets() {
@@ -417,17 +485,12 @@ impl ImageDecodeSession {
         ffmpeg::init().map_err(|error| error.to_string())?;
         let input = format::input(&self.file)
             .map_err(|error| format!("could not open {}: {error}", self.file.display()))?;
-        let (stream_index, time_base, stream_start_time, parameters) = {
+        let (stream_index, parameters) = {
             let stream = input
                 .streams()
                 .find(|stream| stream.parameters().medium() == media::Type::Video)
                 .ok_or_else(|| format!("{} has no video stream", self.file.display()))?;
-            (
-                stream.index(),
-                stream.time_base(),
-                stream.start_time(),
-                stream.parameters(),
-            )
+            (stream.index(), stream.parameters())
         };
         let context = ffmpeg::codec::context::Context::from_parameters(parameters)
             .map_err(|error| error.to_string())?;
@@ -450,91 +513,30 @@ impl ImageDecodeSession {
         self.raster = Some(RasterDecoder {
             input,
             stream_index,
-            time_base,
-            stream_start_time,
             decoder,
             scaler,
-            frame_index: 0,
-            last_decoded: None,
             eof: false,
         });
-        self.gif_previous_frame = None;
-        self.gif_frame = None;
         Ok(())
     }
 
-    fn receive_frames(
-        &mut self,
-        target: Time,
-        compositor: &mut CudaVideoCompositor,
-    ) -> Result<bool, String> {
-        let mut frames = Vec::new();
-        {
-            let Some(raster) = &mut self.raster else {
-                return Ok(false);
-            };
-            let mut decoded = ffmpeg::frame::Video::empty();
-            while raster.decoder.receive_frame(&mut decoded).is_ok() {
-                let position = frame_time(
-                    &decoded,
-                    raster.time_base,
-                    raster.stream_start_time,
-                    raster.frame_index,
-                );
-                raster.frame_index += 1;
-                raster.last_decoded = Some(position);
-
-                let mut rgba = ffmpeg::frame::Video::empty();
-                raster
-                    .scaler
-                    .run(&decoded, &mut rgba)
-                    .map_err(|error| error.to_string())?;
-                frames.push((
-                    position,
-                    tight_rgba_from_rows(rgba.data(0), rgba.stride(0), self.width, self.height)?,
-                ));
-                if self.kind == ImageDecodeKind::Image || position > target {
-                    break;
-                }
-            }
-        }
-        let reached_target = !frames.is_empty()
-            && (self.kind == ImageDecodeKind::Image
-                || frames
-                    .last()
-                    .is_some_and(|(position, _)| *position > target));
-        for (position, pixels) in frames {
-            let layer = Rc::new(compositor.upload_rgba_layer(self.width, self.height, &pixels)?);
-            match self.kind {
-                ImageDecodeKind::Image => {
-                    let source = VisualFrame::from_rgba_bytes(self.width, self.height, pixels)?;
-                    gpu_memory().insert_resource(self.image_key(), source.bytes(), source)?;
-                }
-                ImageDecodeKind::Gif => {
-                    self.gif_previous_frame = self.gif_frame.replace((position, layer));
-                }
-            }
-        }
-        Ok(reached_target)
-    }
-
-    fn can_decode_forward(&self, target: Time) -> bool {
-        let Some(raster) = &self.raster else {
-            return false;
+    fn receive_frame(&mut self) -> Result<bool, String> {
+        let Some(raster) = &mut self.raster else {
+            return Ok(false);
         };
-        raster.last_decoded.is_some_and(|decoded| decoded <= target)
-    }
-
-    fn frame_at_or_before(&self, target: Time) -> Option<Rc<VisualFrame>> {
-        self.gif_frame
-            .as_ref()
-            .filter(|(position, _)| *position <= target)
-            .or_else(|| {
-                self.gif_previous_frame
-                    .as_ref()
-                    .filter(|(position, _)| *position <= target)
-            })
-            .map(|(_, frame)| frame.clone())
+        let mut decoded = ffmpeg::frame::Video::empty();
+        if raster.decoder.receive_frame(&mut decoded).is_err() {
+            return Ok(false);
+        }
+        let mut rgba = ffmpeg::frame::Video::empty();
+        raster
+            .scaler
+            .run(&decoded, &mut rgba)
+            .map_err(|error| error.to_string())?;
+        let pixels = tight_rgba_from_rows(rgba.data(0), rgba.stride(0), self.width, self.height)?;
+        let source = VisualFrame::from_rgba_bytes(self.width, self.height, pixels)?;
+        gpu_memory().insert_resource(self.image_key(), source.bytes(), source)?;
+        Ok(true)
     }
 }
 
@@ -559,7 +561,8 @@ impl VisualElement for ImageDecodeSession {
         _track_id: Uuid,
         _cache: &mut VisualSourceCache,
     ) -> Result<(), String> {
-        if self.kind != ImageDecodeKind::Image {
+        if self.kind == ImageDecodeKind::Gif {
+            self.request_gif();
             return Ok(());
         }
         if self.request_vectorization(request.item)?.is_some() {
@@ -618,6 +621,99 @@ impl VisualElement for ImageDecodeSession {
             )),
         }
     }
+}
+
+fn decode_gif(snapshot: AssetSnapshot) -> Result<DecodedGif, String> {
+    ffmpeg::init().map_err(|error| error.to_string())?;
+    let source = snapshot.read()?;
+    let io = format::context::StreamIo::from_read_seek(Cursor::new(source))
+        .map_err(|error| error.to_string())?;
+    let filename = snapshot.path().to_string_lossy();
+    let mut input = format::input_from_stream(io, Some(&filename), None).map_err(|error| {
+        format!(
+            "could not open {} from memory: {error}",
+            snapshot.path().display()
+        )
+    })?;
+    let (stream_index, time_base, stream_start_time, parameters) = {
+        let stream = input
+            .streams()
+            .find(|stream| stream.parameters().medium() == media::Type::Video)
+            .ok_or_else(|| format!("{} has no video stream", snapshot.path().display()))?;
+        (
+            stream.index(),
+            stream.time_base(),
+            stream.start_time(),
+            stream.parameters(),
+        )
+    };
+    let context = ffmpeg::codec::context::Context::from_parameters(parameters)
+        .map_err(|error| error.to_string())?;
+    let mut decoder = context
+        .decoder()
+        .video()
+        .map_err(|error| error.to_string())?;
+    let width = decoder.width().max(1);
+    let height = decoder.height().max(1);
+    let mut scaler = ffmpeg::software::scaling::context::Context::get(
+        decoder.format(),
+        width,
+        height,
+        format::Pixel::RGBA,
+        width,
+        height,
+        ffmpeg::software::scaling::flag::Flags::BILINEAR,
+    )
+    .map_err(|error| error.to_string())?;
+    let mut packets = input.packets();
+    let mut frames = Vec::new();
+    let mut frame_index = 0;
+    loop {
+        let eof = match packets.find(|(stream, _)| stream.index() == stream_index) {
+            Some((_, packet)) => {
+                decoder
+                    .send_packet(&packet)
+                    .map_err(|error| error.to_string())?;
+                false
+            }
+            None => {
+                match decoder.send_eof() {
+                    Ok(()) | Err(ffmpeg::Error::Eof) => {}
+                    Err(error) => return Err(error.to_string()),
+                }
+                true
+            }
+        };
+        let mut decoded = ffmpeg::frame::Video::empty();
+        while decoder.receive_frame(&mut decoded).is_ok() {
+            let position = frame_time(&decoded, time_base, stream_start_time, frame_index);
+            frame_index += 1;
+            let mut rgba = ffmpeg::frame::Video::empty();
+            scaler
+                .run(&decoded, &mut rgba)
+                .map_err(|error| error.to_string())?;
+            let pixels = tight_rgba_from_rows(rgba.data(0), rgba.stride(0), width, height)?;
+            frames.push((
+                position,
+                VisualFrame::from_rgba_bytes(width, height, pixels)?,
+            ));
+        }
+        if eof {
+            break;
+        }
+    }
+    snapshot.verify_current()?;
+    if frames.is_empty() {
+        return Err(format!(
+            "{} contains no GIF frames",
+            snapshot.path().display()
+        ));
+    }
+    Ok(DecodedGif {
+        frames,
+        width,
+        height,
+    })
 }
 
 fn decode_still_image(
