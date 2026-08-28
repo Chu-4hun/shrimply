@@ -395,6 +395,44 @@ pub fn get_clip(
     })
 }
 
+pub fn get_track(
+    snapshot: &LiveSnapshot,
+    request: &GetTrackRequest,
+) -> Result<TrackMetadata, String> {
+    let track = track_summary(&snapshot.project, &request.address)?;
+    let offset = request.offset.unwrap_or(0);
+    let limit = request
+        .limit
+        .unwrap_or(MAX_QUERY_LIMIT)
+        .min(MAX_QUERY_LIMIT);
+    let mut clips = presentations(&snapshot.project)?
+        .into_iter()
+        .filter(|clip| clip.summary.address.kind == request.address.kind)
+        .filter(|clip| clip.summary.address.sequence_path == request.address.sequence_path)
+        .filter(|clip| clip.summary.address.track_id == request.address.track_id)
+        .collect::<Vec<_>>();
+    clips.sort_by_key(|clip| {
+        (
+            clip.projected_start.as_frame(snapshot.project.fps),
+            clip.summary.address.item_id.clone(),
+        )
+    });
+    let total = clips.len();
+    let clips = clips
+        .into_iter()
+        .skip(offset)
+        .take(limit)
+        .map(|clip| clip.summary)
+        .collect();
+    Ok(TrackMetadata {
+        track,
+        clips,
+        offset,
+        limit,
+        total,
+    })
+}
+
 pub fn presentations_affected_by_items(
     project: &Project,
     item_ids: &HashSet<Uuid>,

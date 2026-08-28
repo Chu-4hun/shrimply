@@ -27,6 +27,7 @@ then use set_expression with the owning clip address and expression ID. Expressi
 included in run_edit_script for one atomic, undoable history action.
 insert_captions bulk-inserts exact frame ranges into an existing caption track, or creates a new
 track when track is omitted. It can set the track language and copy styling from source captions.
+get_track returns one fully addressed track and up to 500 timeline-ordered clips in one call.
 
 Example direct move:
 {"address":{"kind":"video","sequence_path":[],"track_id":"…","item_id":"…"},"start_frame":120}
@@ -199,6 +200,20 @@ impl ShrimplyServer {
         )
         .map(Json)
         .map_err(mcp_error)
+    }
+
+    #[tool(
+        description = "Return one fully addressed track and up to 500 of its clips in projected timeline order",
+        annotations(read_only_hint = true)
+    )]
+    async fn get_track(
+        &self,
+        Parameters(request): Parameters<GetTrackRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<TrackMetadata>, McpError> {
+        query::get_track(&self.snapshot(&context).await?, &request)
+            .map(Json)
+            .map_err(mcp_error)
     }
 
     #[tool(

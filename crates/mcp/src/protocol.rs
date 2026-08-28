@@ -160,6 +160,13 @@ pub struct GetClipRequest {
     pub item_id: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct GetTrackRequest {
+    pub address: TrackAddress,
+    pub offset: Option<usize>,
+    pub limit: Option<usize>,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct QueryExpressionsRequest {
     pub address: Option<ClipAddress>,
@@ -372,6 +379,15 @@ pub struct TrackSummary {
     /// Set only for caption tracks.
     pub language: Option<String>,
     pub clip_count: usize,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct TrackMetadata {
+    pub track: TrackSummary,
+    pub clips: Vec<ClipSummary>,
+    pub offset: usize,
+    pub limit: usize,
+    pub total: usize,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
