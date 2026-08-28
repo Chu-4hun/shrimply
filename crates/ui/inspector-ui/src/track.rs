@@ -5,7 +5,10 @@ use shrimply_ui_foundation::{
 };
 
 use crate::player_state::{self, ProjectChange};
-use shrimply_project::project::{ItemKind, Project, TrackAddress, TrackMut, TrackRef};
+use shrimply_project::project::{
+    ItemKind, Project, TrackAddress, TrackMut, TrackRef, caption_languages,
+    supported_caption_language,
+};
 
 use super::{Inspectable, InspectorContext, item::flat, list, section::InspectorSection};
 
@@ -21,7 +24,11 @@ pub(super) struct TrackInspection {
 impl TrackInspection {
     pub(super) fn resolve(project: &Project, address: TrackAddress) -> Option<Self> {
         let (enabled, language, item_count) = match project.track(&address)? {
-            TrackRef::Caption(track) => (track.enabled, track.language.clone(), track.items.len()),
+            TrackRef::Caption(track) => (
+                track.enabled,
+                supported_caption_language(&track.language),
+                track.items.len(),
+            ),
             TrackRef::Video(track) => (track.enabled, None, track.items.len()),
             TrackRef::Audio(track) => (track.enabled, None, track.items.len()),
         };
@@ -120,14 +127,10 @@ impl Inspectable for TrackInspection {
                     value: String::new(),
                     label: tr!("None").into_owned(),
                 })
-                .chain(
-                    num_format::Locale::available_names()
-                        .iter()
-                        .map(|language| StringChoice {
-                            value: (*language).to_owned(),
-                            label: (*language).to_owned(),
-                        }),
-                )
+                .chain(caption_languages().iter().map(|language| StringChoice {
+                    value: language.clone(),
+                    label: language.clone(),
+                }))
                 .collect(),
                 {
                     let project = context.project.clone();

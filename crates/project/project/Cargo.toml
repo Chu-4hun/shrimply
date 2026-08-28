@@ -9,6 +9,7 @@ editor = []
 
 [dependencies]
 hashbrown.workspace = true
+icu_locale.workspace = true
 glam = { workspace = true, features = ["serde"] }
 glib.workspace = true
 libc.workspace = true

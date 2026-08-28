@@ -7,7 +7,7 @@ use shrimply_math_core::{
 };
 use shrimply_project::project::{
     AudioSource, ItemAddress as ModelItemAddress, ItemKind, Project,
-    TrackAddress as ModelTrackAddress, TrackRef, VideoItemContent,
+    TrackAddress as ModelTrackAddress, TrackRef, VideoItemContent, supported_caption_language,
 };
 use uuid::Uuid;
 
@@ -508,7 +508,7 @@ fn scope_tracks(project: &Project, scope: &ScopeRef) -> Result<Vec<TrackSummary>
                 track_id: track.id.to_string(),
             },
             enabled: track.enabled,
-            language: track.language.clone(),
+            language: supported_caption_language(&track.language),
             clip_count: track.items.len(),
         }));
     }
@@ -553,7 +553,7 @@ fn track_summary(project: &Project, address: &TrackAddress) -> Result<TrackSumma
         TrackRef::Caption(track) => Ok(TrackSummary {
             address: address.clone(),
             enabled: track.enabled,
-            language: track.language.clone(),
+            language: supported_caption_language(&track.language),
             clip_count: track.items.len(),
         }),
         TrackRef::Video(track) => Ok(TrackSummary {

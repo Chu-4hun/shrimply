@@ -118,6 +118,7 @@ glow = "0.18"
 gtk = { package = "gtk4", version = "0.11", features = ["v4_22"] }
 half = "2"
 hashbrown = { version = "0.17", features = ["serde"] }
+icu_locale = "2.3"
 libc = "0.2"
 lyon_tessellation = "1"
 lzf = "1"
@@ -126,7 +127,6 @@ nalgebra = "0.35"
 ndarray = "0.17"
 nnnoiseless = "0.5"
 notify = "8"
-num-format = "0.4"
 num-traits = "0.2"
 oklab = "1"
 opencv = { version = "0.100", default-features = false, features = ["calib3d", "clang-runtime", "imgproc", "video", "videoio"] }

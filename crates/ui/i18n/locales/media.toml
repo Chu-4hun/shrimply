@@ -1450,6 +1450,16 @@ ja = "選択した音声を書き出す"
 "zh-TW" = "匯出選定的音訊"
 "ko" = "선택한 오디오 내보내기"
 
+["Exporting Audio"]
+en = "Exporting Audio"
+es = "Exportando audio"
+fr = "Exportation de l’audio"
+de = "Audio wird exportiert"
+ja = "音声を書き出しています"
+"zh-CN" = "正在导出音频"
+"zh-TW" = "正在匯出音訊"
+"ko" = "오디오 내보내는 중"
+
 ["The selected items will be mixed into one audio file."]
 en = "The selected items will be mixed into one audio file."
 es = "Los elementos seleccionados se mezclarán en un solo archivo de audio."

@@ -17,7 +17,6 @@ default = ["server"]
 server = ["dep:rmcp", "dep:tokio"]
 
 [dependencies]
-num-format.workspace = true
 rmcp = { workspace = true, optional = true }
 schemars.workspace = true
 serde = { workspace = true, features = ["derive"] }

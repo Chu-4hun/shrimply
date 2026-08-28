@@ -1,4 +1,5 @@
 use hashbrown::HashSet;
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{OnceLock, RwLock};
@@ -169,6 +170,58 @@ pub struct CaptionTrack {
     #[serde(default)]
     pub language: Option<String>,
     pub items: Vec<CaptionItem>,
+}
+
+pub fn caption_languages() -> &'static BTreeSet<String> {
+    static LANGUAGES: OnceLock<BTreeSet<String>> = OnceLock::new();
+    LANGUAGES.get_or_init(|| {
+        let languages =
+            icu_locale::fallback::provider::Baked::SINGLETON_LOCALE_LIKELY_SUBTAGS_LANGUAGE_V1;
+        let subtags = icu_locale::provider::Baked::SINGLETON_LOCALE_LIKELY_SUBTAGS_SCRIPT_REGION_V1;
+        let extended = icu_locale::provider::Baked::SINGLETON_LOCALE_LIKELY_SUBTAGS_EXTENDED_V1;
+        let mut options = BTreeSet::new();
+
+        for (language, (_, region)) in languages
+            .language
+            .iter_copied()
+            .chain(extended.language.iter_copied())
+        {
+            let Ok(language) = language.try_into_tinystr() else {
+                continue;
+            };
+            options.insert(format!("{}_{}", language.as_str(), region.as_str()));
+        }
+        for (region, (language, _)) in subtags
+            .region
+            .iter_copied()
+            .chain(extended.region.iter_copied())
+        {
+            let Ok(region) = region.try_into_tinystr() else {
+                continue;
+            };
+            options.insert(format!("{}_{}", language.as_str(), region.as_str()));
+        }
+        for ((language, region), _) in languages
+            .language_region
+            .iter_copied()
+            .chain(extended.language_region.iter_copied())
+        {
+            let (Ok(language), Ok(region)) =
+                (language.try_into_tinystr(), region.try_into_tinystr())
+            else {
+                continue;
+            };
+            options.insert(format!("{}_{}", language.as_str(), region.as_str()));
+        }
+        options
+    })
+}
+
+pub fn supported_caption_language(language: &Option<String>) -> Option<String> {
+    language
+        .as_ref()
+        .filter(|language| caption_languages().contains(language.as_str()))
+        .cloned()
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use shrimply_math_core::{Fraction, Time, fraction_new, time_from_frame};
 use shrimply_project::project::{
-    Project, RepeatStrategy, SequenceScopeId, Time as ProjectTime, TrackRef,
+    Project, RepeatStrategy, SequenceScopeId, Time as ProjectTime, TrackRef, caption_languages,
 };
 use shrimply_timeline::edit::{self, CollisionBehavior as ModelCollision};
 use uuid::Uuid;
@@ -198,11 +198,9 @@ pub fn apply_non_import(
         }
         EditOperation::SetCaptionTrackLanguage(request) => {
             if let Some(language) = &request.language
-                && num_format::Locale::from_name(language).is_err()
+                && !caption_languages().contains(language)
             {
-                return Err(format!(
-                    "{language} is not a supported CLDR locale identifier"
-                ));
+                return Err(format!("{language} is not a supported caption language"));
             }
             let address = model_track_address(&request.address)?;
             edit::set_caption_track_language(project, &address, request.language.clone())?;

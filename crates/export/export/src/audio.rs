@@ -19,6 +19,18 @@ pub enum Format {
     Opus,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum ExportProgress {
+    Mixing {
+        completed_frames: u64,
+        total_frames: u64,
+    },
+    Encoding {
+        completed_frames: u64,
+        total_frames: u64,
+    },
+}
+
 impl Format {
     pub fn from_index(index: u32) -> Self {
         match index {
@@ -42,10 +54,26 @@ impl Format {
 }
 
 pub fn export(project: &Project, path: &Path, format: Format) -> Result<(), String> {
+    export_with_progress(project, path, format, |_| true)
+}
+
+pub fn export_with_progress(
+    project: &Project,
+    path: &Path,
+    format: Format,
+    mut progress: impl FnMut(ExportProgress) -> bool,
+) -> Result<(), String> {
     crate::ensure_output_is_not_an_asset(project, path)?;
     let assets = crate::snapshot_assets(project)?;
     let mut output_opened = false;
-    let result = export_inner(project, path, format, &assets, &mut output_opened);
+    let result = export_inner(
+        project,
+        path,
+        format,
+        &assets,
+        &mut output_opened,
+        &mut progress,
+    );
     if result.is_err() && output_opened {
         let _ = std::fs::remove_file(path);
     }
@@ -58,6 +86,7 @@ fn export_inner(
     format: Format,
     assets: &[shrimply_project::project::AssetSnapshot],
     output_opened: &mut bool,
+    progress: &mut impl FnMut(ExportProgress) -> bool,
 ) -> Result<(), String> {
     ffmpeg::init().map_err(|error| format!("Could not initialize FFmpeg: {error}"))?;
     let total_frames = project.duration().as_sample_frame(SAMPLE_RATE);
@@ -65,8 +94,21 @@ fn export_inner(
         return Err("The selected audio has no duration.".to_string());
     }
 
-    let samples = streaming::mix_project_offline(project, SAMPLE_RATE, |_, _| true)?;
+    let samples =
+        streaming::mix_project_offline(project, SAMPLE_RATE, |completed_frames, total_frames| {
+            progress(ExportProgress::Mixing {
+                completed_frames,
+                total_frames,
+            })
+        })?;
     crate::ensure_assets_current(assets)?;
+
+    if !progress(ExportProgress::Encoding {
+        completed_frames: 0,
+        total_frames,
+    }) {
+        return Err("Export cancelled".to_string());
+    }
 
     let encoder_name = match format {
         Format::Wav => "pcm_s16le",
@@ -171,6 +213,12 @@ fn export_inner(
         )?;
         offset += frames;
         pts += frame_size as i64;
+        if !progress(ExportProgress::Encoding {
+            completed_frames: offset as u64,
+            total_frames,
+        }) {
+            return Err("Export cancelled".to_string());
+        }
     }
     encoder
         .send_eof()
