@@ -70,8 +70,11 @@ Shrimply recognizes these source types:
 
    * - Type
      - Formats
-   * - Video
+   * - Video containers
      - MP4, MOV, MKV, and WebM
+   * - Video codecs
+     - H.264/AVC, H.265/HEVC, AV1, VP8, VP9, and other codecs with FFmpeg
+       CUDA decoding
    * - Images and documents
      - JPEG, PNG, WebP, AVIF, GIF, SVG, and PDF
    * - Audio
@@ -87,6 +90,9 @@ Shrimply recognizes these source types:
 
 Project opening additionally accepts native Shrimply projects, Shrimply JSON,
 OpenTimelineIO, and :doc:`Kdenlive projects <kdenlive-import>`.
+
+Video decoding requires both a matching FFmpeg CUDA decoder and codec support
+from the installed NVIDIA GPU.
 
 Create media
 ------------
