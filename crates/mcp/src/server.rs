@@ -22,6 +22,11 @@ copy into media/imported/<uuid> by default; set link=true explicitly to retain e
 Imports without targets use an existing compatible track with room and do not create tracks.
 Use create_track explicitly, or collision=new_track to allow insertion to create one as a fallback.
 Undo removes imported clips while retaining their durable project-media files so redo remains valid.
+Caption text is the text field of set_clip_properties. Query expressions to obtain their stable IDs,
+then use set_expression with the owning clip address and expression ID. Expression edits can also be
+included in run_edit_script for one atomic, undoable history action.
+insert_captions bulk-inserts exact frame ranges into an existing caption track, or creates a new
+track when track is omitted. It can set the track language and copy styling from source captions.
 
 Example direct move:
 {"address":{"kind":"video","sequence_path":[],"track_id":"…","item_id":"…"},"start_frame":120}
@@ -196,6 +201,20 @@ impl ShrimplyServer {
         .map_err(mcp_error)
     }
 
+    #[tool(
+        description = "Query expression IDs, property paths, enabled state, and source across live clip metadata",
+        annotations(read_only_hint = true)
+    )]
+    async fn query_expressions(
+        &self,
+        Parameters(request): Parameters<QueryExpressionsRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<QueryExpressionsResponse>, McpError> {
+        query::query_expressions(&self.snapshot(&context).await?, &request)
+            .map(Json)
+            .map_err(mcp_error)
+    }
+
     #[tool(description = "Seek the visible editor playhead to a project frame")]
     async fn seek_playhead(
         &self,
@@ -287,6 +306,24 @@ impl ShrimplyServer {
     }
 
     #[tool(
+        description = "Bulk-insert captions into an existing root caption track or create a new one, with exact frame ranges, optional language, collision handling, and source style copying"
+    )]
+    async fn insert_captions(
+        &self,
+        Parameters(request): Parameters<InsertCaptionsRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single(
+                "MCP insert captions",
+                EditOperation::InsertCaptions(request),
+            ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
         description = "Move a fully addressed clip to a projected frame and optional compatible track/scope"
     )]
     async fn move_clip(
@@ -332,7 +369,9 @@ impl ShrimplyServer {
         .await
     }
 
-    #[tool(description = "Set validated type-specific caption, audio, or playback properties")]
+    #[tool(
+        description = "Set typed clip properties: caption text, audio enabled/gain, or video/audio playback speed/repeat strategy"
+    )]
     async fn set_clip_properties(
         &self,
         Parameters(request): Parameters<SetClipPropertiesRequest>,
@@ -343,6 +382,21 @@ impl ShrimplyServer {
                 "MCP set clip properties",
                 EditOperation::SetClipProperties(request),
             ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "Set an expression's source and/or enabled state by stable ID on its owning video or audio clip"
+    )]
+    async fn set_expression(
+        &self,
+        Parameters(request): Parameters<SetExpressionRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single("MCP set expression", EditOperation::SetExpression(request)),
             &context,
         )
         .await

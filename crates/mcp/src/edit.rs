@@ -2,14 +2,15 @@ use std::collections::HashSet;
 
 use shrimply_math_core::{Fraction, Time, fraction_new, time_from_frame};
 use shrimply_project::project::{
-    Project, RepeatStrategy, SequenceScopeId, Time as ProjectTime, TrackRef, caption_languages,
+    CaptionItem, ItemKind, Project, ProjectItem, RepeatStrategy, SequenceScopeId,
+    Time as ProjectTime, TrackAddress as ModelTrackAddress, TrackRef, caption_languages,
 };
 use shrimply_timeline::edit::{self, CollisionBehavior as ModelCollision};
 use uuid::Uuid;
 
 use crate::protocol::{
     ClipAddress, ClipSummary, CollisionBehavior, EditOperation, ExactFraction,
-    SetClipPropertiesRequest, TrackAddress,
+    InsertCaptionsRequest, SetClipPropertiesRequest, TrackAddress,
 };
 use crate::query::{model_item_address, model_kind, model_track_address};
 
@@ -31,6 +32,7 @@ pub fn apply_non_import(
         EditOperation::InsertFiles(_) => {
             Err("insert_files must be handled by the native importer".to_string())
         }
+        EditOperation::InsertCaptions(request) => insert_captions(project, request),
         EditOperation::CreateTrack(request) => {
             let id = edit::create_track(
                 project,
@@ -182,6 +184,9 @@ pub fn apply_non_import(
             })
         }
         EditOperation::SetClipProperties(request) => set_properties(project, request),
+        EditOperation::SetExpression(request) => {
+            Ok(changed(crate::expression::set(project, request)?))
+        }
         EditOperation::SetTrackEnabled(request) => {
             let address = model_track_address(&request.address)?;
             edit::set_track_enabled(project, &address, request.enabled)?;
@@ -239,6 +244,149 @@ pub fn apply_non_import(
             })
         }
     }
+}
+
+fn insert_captions(
+    project: &mut Project,
+    request: &InsertCaptionsRequest,
+) -> Result<MutationResult, String> {
+    if request.captions.is_empty() {
+        return Err("insert_captions requires at least one caption".to_string());
+    }
+    if let Some(language) = &request.language
+        && !caption_languages().contains(language)
+    {
+        return Err(format!("{language} is not a supported caption language"));
+    }
+
+    let mut captions = request
+        .captions
+        .iter()
+        .map(|cue| {
+            let start = frame(project, cue.start_frame)?;
+            let end = frame(project, cue.end_frame)?;
+            if end <= start {
+                return Err(format!(
+                    "caption end_frame {} must be after start_frame {}",
+                    cue.end_frame, cue.start_frame
+                ));
+            }
+            let mut caption = if let Some(source) = &cue.copy_style_from {
+                let source = model_item_address(source)?;
+                project
+                    .caption_item(&source)
+                    .cloned()
+                    .ok_or_else(|| "copy_style_from must address a caption clip".to_string())?
+            } else {
+                CaptionItem::new(start, end, cue.text.clone())
+            };
+            caption.id = Uuid::new_v4();
+            caption.start = start;
+            caption.end = end;
+            caption.text = cue.text.clone();
+            caption.group_id = None;
+            Ok(caption)
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    captions.sort_by_key(|caption| (caption.start, caption.end));
+    if captions.windows(2).any(|pair| pair[0].end > pair[1].start) {
+        return Err("inserted captions cannot overlap each other".to_string());
+    }
+
+    let requested_track = request
+        .track
+        .as_ref()
+        .map(model_track_address)
+        .transpose()?;
+    if requested_track
+        .as_ref()
+        .is_some_and(|track| track.kind() != ItemKind::Caption)
+    {
+        return Err("insert_captions requires a caption track".to_string());
+    }
+    let mut target = if let Some(track) = requested_track {
+        if project.track(&track).is_none() {
+            return Err("caption track was not found".to_string());
+        }
+        track
+    } else {
+        create_caption_track(project, request.enabled.unwrap_or(true))?
+    };
+
+    let mut collisions = Vec::new();
+    for caption in &captions {
+        collisions.extend(edit::collision_addresses(
+            project,
+            &target,
+            caption.start,
+            caption.end,
+        )?);
+    }
+    collisions.sort_by_key(|address| address.item_id());
+    collisions.dedup_by_key(|address| address.item_id());
+    let deleted_presentations = match request.collision {
+        CollisionBehavior::Reject if !collisions.is_empty() => {
+            return Err("caption insertion collides with an existing clip".to_string());
+        }
+        CollisionBehavior::NewTrack if !collisions.is_empty() => {
+            let (enabled, language) = match project
+                .track(&target)
+                .expect("validated caption track must exist")
+            {
+                TrackRef::Caption(track) => (track.enabled, track.language.clone()),
+                TrackRef::Video(_) | TrackRef::Audio(_) => unreachable!(),
+            };
+            target = create_caption_track(project, request.enabled.unwrap_or(enabled))?;
+            edit::set_caption_track_language(
+                project,
+                &target,
+                request.language.clone().or(language),
+            )?;
+            Vec::new()
+        }
+        CollisionBehavior::Overwrite => {
+            let item_ids = collisions.iter().map(|address| address.item_id()).collect();
+            let presentations = crate::query::presentations_affected_by_items(project, &item_ids)?;
+            edit::delete_items(project, &collisions)?;
+            presentations
+        }
+        CollisionBehavior::Reject | CollisionBehavior::NewTrack => Vec::new(),
+    };
+
+    if let Some(enabled) = request.enabled {
+        edit::set_track_enabled(project, &target, enabled)?;
+    }
+    if let Some(language) = &request.language {
+        edit::set_caption_track_language(project, &target, Some(language.clone()))?;
+    }
+    let mut changed_item_ids = Vec::with_capacity(captions.len());
+    for caption in captions {
+        changed_item_ids.push(caption.id);
+        project
+            .insert_item(&target, ProjectItem::Caption(caption))
+            .expect("validated caption track must accept caption items");
+    }
+    let track_ids = HashSet::from([target.track_id()]);
+    Ok(MutationResult {
+        changed_item_ids,
+        deleted_addresses: deleted_presentations
+            .iter()
+            .map(|caption| caption.address.clone())
+            .collect(),
+        deleted_presentations,
+        changed_tracks: crate::query::addresses_for_tracks(project, &track_ids)?,
+    })
+}
+
+fn create_caption_track(project: &mut Project, enabled: bool) -> Result<ModelTrackAddress, String> {
+    Ok(ModelTrackAddress::Caption {
+        track_id: edit::create_track(
+            project,
+            &SequenceScopeId::root(),
+            ItemKind::Caption,
+            enabled,
+        )?,
+    })
 }
 
 fn set_properties(

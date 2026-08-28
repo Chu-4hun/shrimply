@@ -1135,11 +1135,13 @@ fn sanitized_name(name: &str) -> String {
 fn operation_name(operation: &EditOperation) -> &'static str {
     match operation {
         EditOperation::InsertFiles(_) => "insert_files",
+        EditOperation::InsertCaptions(_) => "insert_captions",
         EditOperation::CreateTrack(_) => "create_track",
         EditOperation::MoveClip(_) => "move_clip",
         EditOperation::TrimClip(_) => "trim_clip",
         EditOperation::DeleteClips(_) => "delete_clips",
         EditOperation::SetClipProperties(_) => "set_clip_properties",
+        EditOperation::SetExpression(_) => "set_expression",
         EditOperation::SetTrackEnabled(_) => "set_track_enabled",
         EditOperation::SetCaptionTrackLanguage(_) => "set_caption_track_language",
         EditOperation::DeleteTrack(_) => "delete_track",

@@ -160,6 +160,14 @@ pub struct GetClipRequest {
     pub item_id: Option<String>,
 }
 
+#[derive(Clone, Debug, Default, Serialize, Deserialize, JsonSchema)]
+pub struct QueryExpressionsRequest {
+    pub address: Option<ClipAddress>,
+    pub source_contains: Option<String>,
+    pub offset: Option<usize>,
+    pub limit: Option<usize>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct SeekPlayheadRequest {
     pub frame: u64,
@@ -220,6 +228,28 @@ pub struct InsertFilesRequest {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct CaptionCueInput {
+    pub start_frame: u64,
+    pub end_frame: u64,
+    pub text: String,
+    /// Optional caption whose styling and layout should be copied.
+    pub copy_style_from: Option<ClipAddress>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct InsertCaptionsRequest {
+    /// Existing root caption track. Omit to create a new caption track.
+    pub track: Option<TrackAddress>,
+    pub captions: Vec<CaptionCueInput>,
+    /// CLDR locale identifier such as en_US, zh_CN, or ja_JP.
+    pub language: Option<String>,
+    /// Sets the resolved track state. New tracks default to enabled.
+    pub enabled: Option<bool>,
+    #[serde(default)]
+    pub collision: CollisionBehavior,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct MoveClipRequest {
     pub address: ClipAddress,
     /// Absolute projected frame. Provide exactly one of this and offset_frames.
@@ -260,6 +290,14 @@ pub struct SetClipPropertiesRequest {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct SetExpressionRequest {
+    pub address: ClipAddress,
+    pub expression_id: String,
+    pub source: Option<String>,
+    pub enabled: Option<bool>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct SetTrackEnabledRequest {
     pub address: TrackAddress,
     pub enabled: bool,
@@ -294,11 +332,13 @@ pub struct CreateTrackOperation {
 #[serde(rename_all = "snake_case", tag = "type", content = "args")]
 pub enum EditOperation {
     InsertFiles(InsertFilesRequest),
+    InsertCaptions(InsertCaptionsRequest),
     CreateTrack(CreateTrackOperation),
     MoveClip(MoveClipRequest),
     TrimClip(TrimClipRequest),
     DeleteClips(DeleteClipsRequest),
     SetClipProperties(SetClipPropertiesRequest),
+    SetExpression(SetExpressionRequest),
     SetTrackEnabled(SetTrackEnabledRequest),
     SetCaptionTrackLanguage(SetCaptionTrackLanguageRequest),
     DeleteTrack(DeleteTrackRequest),
@@ -410,6 +450,24 @@ pub struct ListScopesResponse {
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct QueryClipsResponse {
     pub clips: Vec<ClipSummary>,
+    pub offset: usize,
+    pub limit: usize,
+    pub total: usize,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ExpressionSummary {
+    pub address: ClipAddress,
+    pub expression_id: String,
+    /// JSON Pointer into the clip metadata returned by get_clip.
+    pub property_path: String,
+    pub enabled: bool,
+    pub source: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct QueryExpressionsResponse {
+    pub expressions: Vec<ExpressionSummary>,
     pub offset: usize,
     pub limit: usize,
     pub total: usize,

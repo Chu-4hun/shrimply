@@ -277,6 +277,58 @@ pub fn query_clips(
     })
 }
 
+pub fn query_expressions(
+    snapshot: &LiveSnapshot,
+    request: &QueryExpressionsRequest,
+) -> Result<QueryExpressionsResponse, String> {
+    if let Some(address) = &request.address {
+        let address = model_item_address(address)?;
+        if snapshot.project.item(&address).is_none() {
+            return Err("clip was not found in the live project".to_string());
+        }
+    }
+    let offset = request.offset.unwrap_or(0);
+    let limit = request
+        .limit
+        .unwrap_or(DEFAULT_QUERY_LIMIT)
+        .min(MAX_QUERY_LIMIT);
+    let mut seen = HashSet::new();
+    let mut expressions = presentations(&snapshot.project)?
+        .into_iter()
+        .filter(|clip| {
+            request
+                .address
+                .as_ref()
+                .is_none_or(|address| clip.summary.address == *address)
+        })
+        .flat_map(|clip| crate::expression::summaries(&clip.metadata, &clip.summary.address))
+        .filter(|expression| seen.insert(expression.expression_id.clone()))
+        .filter(|expression| {
+            request
+                .source_contains
+                .as_ref()
+                .is_none_or(|needle| expression.source.contains(needle))
+        })
+        .collect::<Vec<_>>();
+    expressions.sort_by_key(|expression| {
+        (
+            expression.address.kind as u8,
+            expression.address.sequence_path.clone(),
+            expression.address.track_id.clone(),
+            expression.address.item_id.clone(),
+            expression.property_path.clone(),
+        )
+    });
+    let total = expressions.len();
+    let expressions = expressions.into_iter().skip(offset).take(limit).collect();
+    Ok(QueryExpressionsResponse {
+        expressions,
+        offset,
+        limit,
+        total,
+    })
+}
+
 pub fn all_clips(snapshot: &LiveSnapshot) -> Result<ProjectClipsResource, String> {
     let mut clips = presentations(&snapshot.project)?
         .into_iter()

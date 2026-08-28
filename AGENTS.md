@@ -45,3 +45,7 @@ Use builder pattern where it fits. Avoid crazy long function arguments.
 Only bump project version when there is a need for it.
 
 Never implement placeholder of any kind. It either works or it just fails entirely.
+
+Avoid editing the shrimply file directly, and instead opt to use the shrimply MCP.
+Inform the user when the MCP is missing certain features that are needed
+instead of writing the file directly.
