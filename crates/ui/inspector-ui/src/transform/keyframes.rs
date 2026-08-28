@@ -7,8 +7,6 @@ struct TransformKeyframeEditorInput {
     refresh_graph: Rc<dyn Fn() -> KeyframeGraph>,
     visible_area: (Time, Time),
     view_state_scope: &'static str,
-    playhead: Rc<dyn Fn() -> Time>,
-    select_time: Rc<dyn Fn(Time)>,
     add_at_time: Rc<dyn Fn(Time)>,
     delete_at_time: Rc<dyn Fn(Time)>,
     update_point: Rc<dyn Fn(Time, Time, f64)>,
@@ -133,8 +131,6 @@ pub(super) fn vec2_keyframe_body_editor(
             }),
             visible_area: selected_video_visible_area(context, key.clone()),
             view_state_scope: transform_graph_view_scope(TransformField::Vec2(field)),
-            playhead: playhead_callback(context, key.clone()),
-            select_time: select_time_callback(context, key.clone()),
             add_at_time: add_time_callback(context, key.clone(), TransformField::Vec2(field)),
             delete_at_time: delete_time_callback(context, key.clone(), TransformField::Vec2(field)),
             update_point: point_callback(context, key.clone(), TransformField::Vec2(field)),
@@ -212,8 +208,6 @@ pub(super) fn scalar_keyframe_body_editor(
             }),
             visible_area: selected_video_visible_area(context, key.clone()),
             view_state_scope: transform_graph_view_scope(TransformField::Scalar(field)),
-            playhead: playhead_callback(context, key.clone()),
-            select_time: select_time_callback(context, key.clone()),
             add_at_time: add_time_callback(context, key.clone(), TransformField::Scalar(field)),
             delete_at_time: delete_time_callback(
                 context,
@@ -256,8 +250,6 @@ fn build_transform_keyframe_editor(
         input.visible_area,
         input.view_state_scope,
         keyframe_editor::KeyframeEditorActions {
-            playhead: input.playhead,
-            select_time: input.select_time,
             add_at_time: input.add_at_time,
             delete_at_time: input.delete_at_time,
             update_point: input.update_point,
@@ -325,7 +317,9 @@ fn update_vec2_keyframe(
         .iter_mut()
         .find(|keyframe| keyframe.time.approx_eq(local_time))
     {
+        keyframe.time = local_time;
         keyframe.value = stored;
+        keyframes.sort_by_key(|keyframe| keyframe.time);
     } else {
         insert_vec2_keyframe(keyframes, vec2_keyframe(local_time, stored));
     }
@@ -358,7 +352,9 @@ fn update_scalar_keyframe(
         .iter_mut()
         .find(|keyframe| keyframe.time.approx_eq(local_time))
     {
+        keyframe.time = local_time;
         keyframe.value = value;
+        keyframes.sort_by_key(|keyframe| keyframe.time);
     } else {
         insert_scalar_keyframe(keyframes, scalar_keyframe(local_time, value));
     }
@@ -582,24 +578,6 @@ fn selected_video_visible_area(context: &InspectorContext, key: SelectedItem) ->
         .unwrap_or((Time::ZERO, Time::ZERO))
 }
 
-fn playhead_callback(context: &InspectorContext, key: SelectedItem) -> Rc<dyn Fn() -> Time> {
-    let project = context.project.clone();
-    let player_state = context.player_state.clone();
-    Rc::new(move || {
-        let position = player_state::snapshot(&player_state).position;
-        let project = project.borrow();
-        transform_local_time(&project, key.clone(), position).unwrap_or(Time::ZERO)
-    })
-}
-
-fn select_time_callback(context: &InspectorContext, key: SelectedItem) -> Rc<dyn Fn(Time)> {
-    let project = context.project.clone();
-    let player_state = context.player_state.clone();
-    Rc::new(move |time| {
-        seek_to_local_time(&project, &player_state, key.clone(), time);
-    })
-}
-
 fn delete_time_callback(
     context: &InspectorContext,
     key: SelectedItem,
@@ -679,21 +657,14 @@ fn paste_keyframes_callback(
     let player_state = context.player_state.clone();
     Rc::new(move |clipboard, time| {
         let mut project = project.borrow_mut();
-        let frame_step = keyframe_editor::project_frame_step(&project);
         let transform = selected_transform_mut(&mut project, key.clone())?;
         let times = match field {
-            TransformField::Vec2(field) => keyframe_model::paste_keyframes(
-                vec2_field_mut(transform, field),
-                clipboard,
-                time,
-                frame_step,
-            ),
-            TransformField::Scalar(field) => keyframe_model::paste_keyframes(
-                scalar_field_mut(transform, field),
-                clipboard,
-                time,
-                frame_step,
-            ),
+            TransformField::Vec2(field) => {
+                keyframe_model::paste_keyframes(vec2_field_mut(transform, field), clipboard, time)
+            }
+            TransformField::Scalar(field) => {
+                keyframe_model::paste_keyframes(scalar_field_mut(transform, field), clipboard, time)
+            }
         }?;
         shrimply_project::project::commit_edit(&project, "paste-transform-keyframes");
         drop(project);
@@ -883,31 +854,9 @@ pub(super) fn stored_vec2_value(field: Vec2Field, value: Vec2) -> Vec2 {
     }
 }
 
-fn transform_local_time(project: &Project, key: SelectedItem, position: Time) -> Option<Time> {
-    let position = project.timeline_time_to_sequence(&key.track(), position)?;
-    shrimply_project::project::generated_item_time(project.video_item(&key)?, position)
-}
-
 fn sequence_position_for_local_time(item: &VideoItem, time: Time) -> Time {
     item.start
         .saturating_add(time.signed_sub(item.animation_time_offset))
-}
-
-fn seek_to_local_time(
-    project: &Rc<RefCell<Project>>,
-    player_state: &SharedPlayerState,
-    key: SelectedItem,
-    time: Time,
-) {
-    let project = project.borrow();
-    let Some(item) = project.video_item(&key) else {
-        return;
-    };
-    let position = sequence_position_for_local_time(item, time);
-    let Some(position) = project.sequence_time_to_timeline(&key.track(), position) else {
-        return;
-    };
-    player_state::seek_time(player_state, position);
 }
 
 fn keyframe_edit_context(
@@ -918,7 +867,7 @@ fn keyframe_edit_context(
     let project = project.borrow();
     let item = project.video_item(&key)?;
     let sequence_position = project.timeline_time_to_sequence(&key.track(), position)?;
-    let local_time = shrimply_project::project::generated_item_time(item, sequence_position)?;
+    let local_time = project.keyframe_time(&key, position)?;
     Some((
         local_time,
         transform_eval::resolve_item_base_transform(&project, item, sequence_position),

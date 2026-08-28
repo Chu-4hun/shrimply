@@ -959,7 +959,6 @@ fn audio_scalar_row_with_access(
             access,
             scope_id: Some(value.id),
             local_time: audio_local_time,
-            global_time: audio_global_time,
             duration: audio_duration,
             refresh: ProjectChange {
                 audio: true,
@@ -1066,7 +1065,6 @@ fn scalar_row_for<M: ScalarMode>(
             },
             scope_id: Some(value.id),
             local_time: visual_local_time,
-            global_time: visual_global_time,
             duration: visual_duration,
             refresh: ProjectChange {
                 video: true,
@@ -1093,9 +1091,6 @@ fn scalar_row_for<M: ScalarMode>(
 fn visual_local_time(p: &Project, k: SelectedItem, t: Time) -> Option<Time> {
     crate::video::visual_local_time(p, k, t)
 }
-fn visual_global_time(p: &Project, k: SelectedItem, t: Time) -> Option<Time> {
-    crate::video::visual_global_time(p, k, t)
-}
 fn visual_duration(p: &Project, k: SelectedItem) -> Option<Time> {
     crate::video::visual_duration(p, k)
 }
@@ -1104,11 +1099,6 @@ fn audio_local_time(p: &Project, k: SelectedItem, t: Time) -> Option<Time> {
     let t = p.timeline_time_to_sequence(&k.track(), t)?;
     let item = p.audio_item(&k)?;
     Some(t.saturating_sub(item.start))
-}
-
-fn audio_global_time(p: &Project, k: SelectedItem, t: Time) -> Option<Time> {
-    let item = p.audio_item(&k)?;
-    p.sequence_time_to_timeline(&k.track(), item.start.saturating_add(t))
 }
 
 fn audio_duration(p: &Project, k: SelectedItem) -> Option<Time> {
@@ -1173,7 +1163,6 @@ pub(crate) fn vec_row(
             },
             scope_id: Some(value.id),
             local_time: visual_local_time,
-            global_time: visual_global_time,
             duration: visual_duration,
             refresh: ProjectChange {
                 video: true,
@@ -1211,7 +1200,6 @@ pub(crate) fn color_row(
             },
             scope_id: Some(value.id),
             local_time: visual_local_time,
-            global_time: visual_global_time,
             duration: visual_duration,
             refresh: ProjectChange {
                 video: true,

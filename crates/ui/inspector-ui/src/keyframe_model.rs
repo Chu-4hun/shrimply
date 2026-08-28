@@ -10,6 +10,7 @@ use uuid::Uuid;
 #[derive(Clone)]
 pub(crate) struct KeyframeClipboard {
     values: Rc<dyn Any>,
+    pub(crate) times: Vec<Time>,
     len: usize,
 }
 
@@ -33,6 +34,7 @@ pub(crate) fn copy_keyframes<T: TimelineValueType>(
         .collect();
     (!copied.is_empty()).then(|| KeyframeClipboard {
         len: copied.len(),
+        times: copied.iter().map(TimelineKeyframe::time).collect(),
         values: Rc::new(copied),
     })
 }
@@ -40,24 +42,24 @@ pub(crate) fn copy_keyframes<T: TimelineValueType>(
 pub(crate) fn paste_keyframes<T: TimelineValueType>(
     value: &mut TimelineValue<T>,
     clipboard: &KeyframeClipboard,
-    time: Time,
-    frame_step: Time,
+    times: &[Time],
 ) -> Option<Vec<Time>> {
     let source = clipboard.values.downcast_ref::<Vec<T::Keyframe>>()?;
+    if source.len() != times.len() {
+        return None;
+    }
     let TimelineBase::Keyframes(keyframes) = &mut value.base else {
         return None;
     };
-    let source_start = source.first()?.time();
-    let paste_start = snap_to_frame(time, frame_step);
     let mut pasted = source.clone();
-    for keyframe in &mut pasted {
+    for (keyframe, time) in pasted.iter_mut().zip(times) {
         *keyframe.id_mut() = Uuid::new_v4();
-        keyframe.time_mut().seconds =
-            paste_start.seconds + keyframe.time().seconds - source_start.seconds;
+        *keyframe.time_mut() = *time;
     }
-    let paste_end = pasted.last()?.time();
+    let paste_start = *times.iter().min()?;
+    let paste_end = *times.iter().max()?;
     if paste_start == paste_end {
-        keyframes.retain(|keyframe| !same_frame(keyframe.time(), paste_start, frame_step));
+        keyframes.retain(|keyframe| keyframe.time() != paste_start);
     } else {
         keyframes.retain(|keyframe| keyframe.time() < paste_start || keyframe.time() > paste_end);
     }
@@ -73,46 +75,25 @@ pub(crate) fn live_refresh(mut refresh: ProjectChange) -> ProjectChange {
     refresh
 }
 
-pub(crate) fn key_at(times: &[Time], playhead: Time, frame_step: Time) -> Option<Time> {
-    times
-        .iter()
-        .copied()
-        .find(|time| same_frame(*time, playhead, frame_step))
+pub(crate) fn key_at(times: &[Time], playhead: Time, _frame_step: Time) -> Option<Time> {
+    times.iter().copied().find(|time| time.approx_eq(playhead))
 }
 
-pub(crate) fn previous_key(times: &[Time], playhead: Time, frame_step: Time) -> Option<Time> {
-    if frame_step <= Time::ZERO {
-        return times.iter().copied().rev().find(|time| *time < playhead);
-    }
-    let playhead_frame = playhead.snapped(frame_step);
+pub(crate) fn previous_key(times: &[Time], playhead: Time, _frame_step: Time) -> Option<Time> {
     times
         .iter()
         .copied()
         .rev()
-        .find(|time| time.snapped(frame_step) < playhead_frame)
+        .find(|time| *time < playhead && !time.approx_eq(playhead))
 }
 
-pub(crate) fn next_key(times: &[Time], playhead: Time, frame_step: Time) -> Option<Time> {
-    if frame_step <= Time::ZERO {
-        return times.iter().copied().find(|time| *time > playhead);
-    }
-    let playhead_frame = playhead.snapped(frame_step);
+pub(crate) fn next_key(times: &[Time], playhead: Time, _frame_step: Time) -> Option<Time> {
     times
         .iter()
         .copied()
-        .find(|time| time.snapped(frame_step) > playhead_frame)
+        .find(|time| *time > playhead && !time.approx_eq(playhead))
 }
 
-pub(crate) fn same_frame(left: Time, right: Time, frame_step: Time) -> bool {
-    if frame_step <= Time::ZERO {
-        return left.approx_eq(right);
-    }
-    left.snapped(frame_step) == right.snapped(frame_step)
-}
-
-pub(crate) fn snap_to_frame(time: Time, frame_step: Time) -> Time {
-    if frame_step <= Time::ZERO {
-        return time;
-    }
-    time.snapped(frame_step)
+pub(crate) fn same_frame(left: Time, right: Time, _frame_step: Time) -> bool {
+    left.approx_eq(right)
 }

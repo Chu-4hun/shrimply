@@ -461,31 +461,6 @@ fn actions(
     let refresh_add = context.refresh.clone();
     let refresh_delete = context.refresh.clone();
     KeyframeEditorActions {
-        playhead: {
-            let key = key.clone();
-            let project = project.clone();
-            let player = player.clone();
-            Rc::new(move || {
-                bool_local_time(
-                    &project.borrow(),
-                    key.clone(),
-                    player_state::snapshot(&player).position,
-                )
-                .unwrap_or(Time::ZERO)
-            })
-        },
-        select_time: {
-            let key = key.clone();
-            let project = project.clone();
-            let player = player.clone();
-            Rc::new(move |time| {
-                if let Some(global) =
-                    crate::video::visual_global_time(&project.borrow(), key.clone(), time)
-                {
-                    player_state::seek_time(&player, global)
-                }
-            })
-        },
         add_at_time: {
             let key = key.clone();
             let project = project.clone();
@@ -540,9 +515,8 @@ fn actions(
             let target = target.clone();
             Rc::new(move |clipboard, time| {
                 let mut project = project.borrow_mut();
-                let frame_step = keyframe_editor::project_frame_step(&project);
                 let value = target.get_mut(&mut project, key.clone(), source_value)?;
-                let times = keyframe_model::paste_keyframes(value, clipboard, time, frame_step)?;
+                let times = keyframe_model::paste_keyframes(value, clipboard, time)?;
                 target.did_mutate(&mut project, key.clone());
                 shrimply_project::project::commit_edit(&project, "paste-bool-keyframes");
                 drop(project);
@@ -573,9 +547,10 @@ fn update_value(
 ) {
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let time = bool_local_time(&project, key.clone(), position).unwrap_or(Time::ZERO);
+    let Some(time) = project.keyframe_time(&key, position) else {
+        return;
+    };
     let frame_step = keyframe_editor::project_frame_step(&project);
-    let time = keyframe_model::snap_to_frame(time, frame_step);
     let Some(value) = target.get_mut(&mut project, key.clone(), source_value) else {
         return;
     };
@@ -606,16 +581,18 @@ fn toggle_keyframes(
 ) -> bool {
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let time = bool_local_time(&project, key.clone(), position).unwrap_or(Time::ZERO);
-    let time = keyframe_model::snap_to_frame(time, keyframe_editor::project_frame_step(&project));
+    let evaluation_time = bool_local_time(&project, key.clone(), position).unwrap_or(Time::ZERO);
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
+        return false;
+    };
     let Some(value) = target.get_mut(&mut project, key.clone(), source_value) else {
         return false;
     };
-    let current = value.value_at(time);
+    let current = value.value_at(evaluation_time);
     match (&mut value.base, enabled) {
         (TimelineBase::Const(_), false) | (TimelineBase::Keyframes(_), true) => return false,
         (base @ TimelineBase::Const(_), true) => {
-            *base = TimelineBase::Keyframes(vec![new_key(time, current)])
+            *base = TimelineBase::Keyframes(vec![new_key(keyframe_time, current)])
         }
         (base @ TimelineBase::Keyframes(_), false) => *base = TimelineBase::Const(current),
     }

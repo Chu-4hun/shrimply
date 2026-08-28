@@ -52,8 +52,6 @@ use gtk::{gdk, gio, glib};
 use shrimply_paint_edit::{PAINT_PREVIEW_STATE, PaintPreviewMode as PaintMode, PaintPreviewState};
 use shrimply_playback_performance as playback_performance;
 
-const VIDEO_CLOCK_TICK: Duration = Duration::from_millis(16);
-const POSITION_TICK: Duration = Duration::from_millis(33);
 const STEP_REPEAT_TICK: Duration = Duration::from_millis(200);
 const FINAL_PREVIEW_DELAY: Duration = Duration::from_millis(450);
 const SETTLED_RENDER_RETRY_DELAY: Duration = Duration::from_millis(100);
@@ -904,7 +902,7 @@ fn player(
                 playback_performance::end_playback(&media_performance, snapshot.position);
             }
         }
-        if position_changed && snapshot.playing && !playing_changed {
+        if position_changed && snapshot.playing && !playing_changed && !natural_playback {
             playback_performance::seek_playback(&media_performance, snapshot.position);
         }
         if let Some(change) = project_change
@@ -963,7 +961,7 @@ fn player(
                     .saturating_sub(snapshot.position.min(previous_position))
                     <= Time::from_seconds(LOCAL_SCRUB_WINDOW_SECONDS);
             let accuracy = if snapshot.playing {
-                if position_changed {
+                if position_changed && !natural_playback && !playing_changed {
                     CompositeAccuracy::TIME_ACCURATE
                 } else {
                     CompositeAccuracy::CONTINUOUS_TIME_ACCURATE
@@ -1313,15 +1311,10 @@ fn attach_frame_pump(
         loading_indicator,
         frame_rate_label,
     } = widgets;
-    let preview_area_weak = preview_area.downgrade();
-    let mut displayed_position = None;
-    let mut render_loading = false;
-    let mut loading_since = None::<Instant>;
-    glib::timeout_add_local(VIDEO_CLOCK_TICK, move || {
-        if preview_area_weak.upgrade().is_none() {
-            return glib::ControlFlow::Break;
-        }
-
+    let displayed_position = Cell::new(None);
+    let render_loading = Cell::new(false);
+    let loading_since = Cell::new(None::<Instant>);
+    preview_area.add_tick_callback(move |_, _| {
         let mut latest_visual = None;
         let mut loading = None;
         let mut latest_render_elapsed = None;
@@ -1338,7 +1331,7 @@ fn attach_frame_pump(
                         continue;
                     }
                     loading = Some((position, retry_settled));
-                    render_loading = show_spinner;
+                    render_loading.set(show_spinner);
                     latest_render_elapsed = Some(render_elapsed);
                 }
                 Ok(
@@ -1354,7 +1347,7 @@ fn attach_frame_pump(
                     }
                     latest_visual = Some(event);
                     loading = None;
-                    render_loading = !settled;
+                    render_loading.set(!settled);
                     latest_render_elapsed = Some(render_elapsed);
                 }
                 Ok(
@@ -1369,7 +1362,7 @@ fn attach_frame_pump(
                     }
                     latest_visual = Some(event);
                     loading = None;
-                    render_loading = false;
+                    render_loading.set(false);
                     latest_render_elapsed = Some(render_elapsed);
                 }
                 Ok(VideoEvent::ManimDuration {
@@ -1499,7 +1492,7 @@ fn attach_frame_pump(
                 Ok(VideoEvent::Error(error)) => {
                     tracing::error!("Video compositor error: {error}");
                     loading = None;
-                    render_loading = false;
+                    render_loading.set(false);
                 }
                 Ok(VideoEvent::ManimStatus {
                     item_id,
@@ -1545,7 +1538,7 @@ fn attach_frame_pump(
                     render_generation: _,
                 } => {
                     if revision == video_project_revision.get() {
-                        displayed_position = Some(position);
+                        displayed_position.set(Some(position));
                         video_surface.set_frame(frame, audio_analysis, revision, excluded_item_id);
                     }
                 }
@@ -1558,7 +1551,7 @@ fn attach_frame_pump(
                     render_generation: _,
                 } => {
                     if revision == video_project_revision.get() {
-                        displayed_position = Some(position);
+                        displayed_position.set(Some(position));
                         video_surface.clear_frame(audio_analysis, revision, excluded_item_id);
                     }
                 }
@@ -1579,19 +1572,20 @@ fn attach_frame_pump(
         };
         let playback_frame_step = scaled_time_delta(frame_step, snapshot.playback_speed);
         let playback_lagging = snapshot.playing
-            && displayed_position.is_none_or(|displayed| {
+            && displayed_position.get().is_none_or(|displayed| {
                 displayed
                     .max(snapshot.position)
                     .saturating_sub(displayed.min(snapshot.position))
                     > playback_frame_step
             });
-        let is_loading = render_loading || playback_lagging;
+        let is_loading = render_loading.get() || playback_lagging;
         if !is_loading {
-            loading_since = None;
-        } else if loading_since.is_none() {
-            loading_since = Some(Instant::now());
+            loading_since.set(None);
+        } else if loading_since.get().is_none() {
+            loading_since.set(Some(Instant::now()));
         }
         let show_loading = loading_since
+            .get()
             .is_some_and(|loading_since| loading_since.elapsed() >= LOADING_SPINNER_DELAY);
         loading_spinner.set_visible(show_loading);
         loading_indicator.set_visible_child_name(if show_loading { "loading" } else { "done" });
@@ -1622,21 +1616,11 @@ fn attach_position_clock(
     player_state: SharedPlayerState,
     audio_player: Rc<AudioPlayer>,
 ) {
-    let layout_weak = layout.downgrade();
-    glib::timeout_add_local(POSITION_TICK, move || {
-        if layout_weak.upgrade().is_none() {
-            return glib::ControlFlow::Break;
-        }
+    layout.add_tick_callback(move |layout, _| {
         if let Some(error) = audio_player.take_failure() {
             player_state::set_playing(&player_state, false);
             let dialog = adw::AlertDialog::new(Some("Audio playback stopped"), Some(&error));
-            dialog.present(
-                layout_weak
-                    .upgrade()
-                    .and_then(|layout| layout.root())
-                    .and_downcast::<gtk::Window>()
-                    .as_ref(),
-            );
+            dialog.present(layout.root().and_downcast::<gtk::Window>().as_ref());
             return glib::ControlFlow::Continue;
         }
 

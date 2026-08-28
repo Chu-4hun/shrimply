@@ -67,7 +67,7 @@ impl SnapRepo {
             )
             .min()
             .filter(|(candidate_distance, _)| *candidate_distance <= distance)
-            .map(|(_, candidate)| candidate)
+            .map(|(_, candidate)| candidate.snapped(self.frame_step))
             .or(Some(time))
     }
 }

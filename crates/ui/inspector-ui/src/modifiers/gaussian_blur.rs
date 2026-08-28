@@ -1,6 +1,4 @@
-use super::{
-    InspectorContext, deferred_context, visual_duration, visual_global_time, visual_local_time,
-};
+use super::{InspectorContext, deferred_context, visual_duration, visual_local_time};
 use crate::player_state::ProjectChange;
 use crate::timeline_value::vector::vec2::{VecAccess, VecSpec, VecTarget, vec_control_with_lock};
 use gtk::prelude::*;
@@ -25,7 +23,6 @@ pub fn add_rows(
             },
             scope_id: Some(value.radius.id),
             local_time: visual_local_time,
-            global_time: visual_global_time,
             duration: visual_duration,
             refresh: ProjectChange {
                 video: true,

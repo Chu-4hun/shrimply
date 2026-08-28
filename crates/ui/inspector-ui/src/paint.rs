@@ -116,7 +116,6 @@ fn palette_controls(value: &PaintPalette, context: &InspectorContext) -> Vec<gtk
                 access: ColorAccess::PaintPalette { value_id: color.id },
                 scope_id: Some(color.id),
                 local_time: crate::video::visual_local_time,
-                global_time: crate::video::visual_global_time,
                 duration: crate::video::visual_duration,
                 refresh: paint_refresh(),
                 commit_name: "paint-palette-color",
@@ -426,28 +425,6 @@ fn drawing_graph_actions(
     let project = context.project.clone();
     let player = context.player_state.clone();
     crate::keyframe_editor::KeyframeEditorActions {
-        playhead: {
-            let project = project.clone();
-            let player = player.clone();
-            let key = key.clone();
-            Rc::new(move || {
-                let position = player_state::snapshot(&player).position;
-                crate::video::visual_animation_time(&project.borrow(), key.clone(), position)
-                    .unwrap_or(Time::ZERO)
-            })
-        },
-        select_time: {
-            let project = project.clone();
-            let player = player.clone();
-            let key = key.clone();
-            Rc::new(move |time| {
-                if let Some(position) =
-                    crate::video::visual_global_time(&project.borrow(), key.clone(), time)
-                {
-                    player_state::seek_time(&player, position);
-                }
-            })
-        },
         add_at_time: {
             let context = context.detached();
             Rc::new(move |time| add_drawing_key_at(&context, time))
@@ -474,14 +451,9 @@ fn drawing_graph_actions(
             let key = key.clone();
             Rc::new(move |clipboard, time| {
                 let mut project = project.borrow_mut();
-                let step = crate::keyframe_editor::project_frame_step(&project);
                 let paint = selected_paint_mut(&mut project, key.clone())?;
-                let times = crate::keyframe_model::paste_keyframes(
-                    &mut paint.drawing,
-                    clipboard,
-                    time,
-                    step,
-                )?;
+                let times =
+                    crate::keyframe_model::paste_keyframes(&mut paint.drawing, clipboard, time)?;
                 if let TimelineBase::Keyframes(keyframes) = &mut paint.drawing.base {
                     for keyframe in keyframes
                         .iter_mut()
@@ -535,10 +507,15 @@ fn drawing_expression_editor(
 }
 
 fn toggle_drawing_keyframes(context: &InspectorContext, enabled: bool) {
-    let step = crate::keyframe_editor::project_frame_step(&context.project.borrow());
-    let time = crate::keyframe_model::snap_to_frame(local_time(context), step);
+    let evaluation_time = local_time(context);
+    let position = player_state::snapshot(&context.player_state).position;
+    let time = context
+        .selected_item
+        .as_ref()
+        .and_then(|key| context.project.borrow().keyframe_time(key, position))
+        .unwrap_or(Time::ZERO);
     update_drawing(context, "paint-drawing-keyframes", true, move |value| {
-        let current = value.value_at(time);
+        let current = value.value_at(evaluation_time);
         match (&mut value.base, enabled) {
             (TimelineBase::Const(_), false) | (TimelineBase::Keyframes(_), true) => false,
             (base @ TimelineBase::Const(_), true) => {
@@ -580,15 +557,19 @@ fn toggle_drawing_expression(context: &InspectorContext, enabled: bool) {
 fn add_drawing_key_at(context: &InspectorContext, time: Time) {
     let step = crate::keyframe_editor::project_frame_step(&context.project.borrow());
     update_drawing(context, "add-paint-drawing-keyframe", true, move |value| {
-        let time = crate::keyframe_model::snap_to_frame(time, step);
         let TimelineBase::Keyframes(keyframes) = &mut value.base else {
             return false;
         };
-        if keyframes
-            .iter()
-            .any(|keyframe| crate::keyframe_model::same_frame(keyframe.time, time, step))
+        if let Some(keyframe) = keyframes
+            .iter_mut()
+            .find(|keyframe| crate::keyframe_model::same_frame(keyframe.time, time, step))
         {
-            return false;
+            if keyframe.time == time {
+                return false;
+            }
+            keyframe.time = time;
+            keyframes.sort_by_key(|keyframe| keyframe.time);
+            return true;
         }
         keyframes.push(PaintDrawing::keyframe(time, PaintDrawing::default()));
         keyframes.sort_by_key(|keyframe| keyframe.time);
@@ -896,7 +877,6 @@ fn add_scalar(
             },
             scope_id: Some(value.id),
             local_time: crate::video::visual_local_time,
-            global_time: crate::video::visual_global_time,
             duration: crate::video::visual_duration,
             refresh: paint_refresh(),
             commit_name,
@@ -921,7 +901,6 @@ fn add_palette_scalar(
             access: ScalarAccess::PaintPalette { value_id: value.id },
             scope_id: Some(value.id),
             local_time: crate::video::visual_local_time,
-            global_time: crate::video::visual_global_time,
             duration: crate::video::visual_duration,
             refresh: paint_refresh(),
             commit_name,
@@ -979,9 +958,7 @@ fn local_time(context: &InspectorContext) -> Time {
     context
         .selected_item
         .clone()
-        .and_then(|key| {
-            crate::video::visual_animation_time(&context.project.borrow(), key, position)
-        })
+        .and_then(|key| context.project.borrow().keyframe_time(&key, position))
         .unwrap_or(Time::ZERO)
 }
 

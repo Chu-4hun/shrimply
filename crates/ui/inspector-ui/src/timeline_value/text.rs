@@ -282,29 +282,6 @@ fn actions(context: &InspectorContext, key: SelectedItem) -> KeyframeEditorActio
     let project = context.project.clone();
     let player = context.player_state.clone();
     KeyframeEditorActions {
-        playhead: {
-            let key = key.clone();
-            let project = project.clone();
-            let player = player.clone();
-            Rc::new(move || {
-                local_time(
-                    &project.borrow(),
-                    key.clone(),
-                    player_state::snapshot(&player).position,
-                )
-                .unwrap_or(Time::ZERO)
-            })
-        },
-        select_time: {
-            let key = key.clone();
-            let project = project.clone();
-            let player = player.clone();
-            Rc::new(move |time| {
-                if let Some(position) = global_time(&project.borrow(), key.clone(), time) {
-                    player_state::seek_time(&player, position);
-                }
-            })
-        },
         add_at_time: {
             let key = key.clone();
             let project = project.clone();
@@ -337,9 +314,8 @@ fn actions(context: &InspectorContext, key: SelectedItem) -> KeyframeEditorActio
             let player = player.clone();
             Rc::new(move |clipboard, time| {
                 let mut project = project.borrow_mut();
-                let frame_step = keyframe_editor::project_frame_step(&project);
                 let value = text_value_mut(&mut project, key.clone())?;
-                let times = keyframe_model::paste_keyframes(value, clipboard, time, frame_step)?;
+                let times = keyframe_model::paste_keyframes(value, clipboard, time)?;
                 shrimply_project::project::commit_edit(&project, "paste-text-keyframes");
                 drop(project);
                 refresh(&player, true);
@@ -392,11 +368,10 @@ fn update_value(
 ) -> bool {
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let Some(time) = local_time(&project, key.clone(), position) else {
+    let Some(time) = project.keyframe_time(&key, position) else {
         return false;
     };
     let step = keyframe_editor::project_frame_step(&project);
-    let time = keyframe_model::snap_to_frame(time, step);
     let Some(value) = text_value_mut(&mut project, key.clone()) else {
         return false;
     };
@@ -423,18 +398,20 @@ fn toggle_keyframes(
 ) -> bool {
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let Some(time) = local_time(&project, key.clone(), position) else {
+    let Some(evaluation_time) = local_time(&project, key.clone(), position) else {
         return false;
     };
-    let time = keyframe_model::snap_to_frame(time, keyframe_editor::project_frame_step(&project));
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
+        return false;
+    };
     let Some(value) = text_value_mut(&mut project, key.clone()) else {
         return false;
     };
-    let current = value.value_at(time);
+    let current = value.value_at(evaluation_time);
     match (&mut value.base, enabled) {
         (TimelineBase::Const(_), false) | (TimelineBase::Keyframes(_), true) => return false,
         (base @ TimelineBase::Const(_), true) => {
-            *base = TimelineBase::Keyframes(vec![String::keyframe(time, current)]);
+            *base = TimelineBase::Keyframes(vec![String::keyframe(keyframe_time, current)]);
         }
         (base @ TimelineBase::Keyframes(_), false) => *base = TimelineBase::Const(current),
     }
@@ -677,10 +654,6 @@ fn selected_text_mut(project: &mut Project, key: SelectedItem) -> Option<&mut Te
 
 fn local_time(project: &Project, key: SelectedItem, position: Time) -> Option<Time> {
     crate::video::visual_local_time(project, key, position)
-}
-
-fn global_time(project: &Project, key: SelectedItem, time: Time) -> Option<Time> {
-    crate::video::visual_global_time(project, key, time)
 }
 
 fn visible_area(project: &Project, key: SelectedItem) -> Option<(Time, Time)> {

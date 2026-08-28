@@ -16,9 +16,7 @@ use crate::player_state;
 use crate::timeline::renderer::{
     Rect, Stroke, StrokeKind, TimelinePainter, TimelineRenderer, Vec2, vec2,
 };
-use shrimply_project::project::{
-    ItemAddress, Project, Time, fraction_denominator, fraction_numerator,
-};
+use shrimply_project::project::{ItemAddress, Project, Time};
 
 pub(crate) use super::keyframe_graph::{KeyframeGraph, KeyframePoint, RawSegment, SpeedSegment};
 use super::{InspectorContext, keyframe_graph::GraphDomain, keyframe_model};
@@ -46,11 +44,9 @@ pub(crate) struct BuiltKeyframeEditor {
 
 pub(crate) type CopyKeyframes = Rc<dyn Fn(&[Time]) -> Option<keyframe_model::KeyframeClipboard>>;
 pub(crate) type PasteKeyframes =
-    Rc<dyn Fn(&keyframe_model::KeyframeClipboard, Time) -> Option<Vec<Time>>>;
+    Rc<dyn Fn(&keyframe_model::KeyframeClipboard, &[Time]) -> Option<Vec<Time>>>;
 
 pub(crate) struct KeyframeEditorActions {
-    pub(crate) playhead: Rc<dyn Fn() -> Time>,
-    pub(crate) select_time: Rc<dyn Fn(Time)>,
     pub(crate) add_at_time: Rc<dyn Fn(Time)>,
     pub(crate) delete_at_time: Rc<dyn Fn(Time)>,
     pub(crate) update_point: Rc<dyn Fn(Time, Time, f64)>,
@@ -188,25 +184,23 @@ struct GraphOverscroll {
 use shrimply_skia_adw_ui::Edge as GraphOverscrollEdge;
 
 pub(crate) fn project_frame_step(project: &Project) -> Time {
-    let numerator = fraction_numerator(project.fps);
-    let denominator = fraction_denominator(project.fps);
-    if numerator > 0 && denominator > 0 {
-        Time::from_fraction(denominator, numerator)
-    } else {
-        Time::from_fraction(1, 30)
-    }
+    project.frame_step()
 }
 
-fn project_frame_keyframe_time(project: &Project, item: Option<&ItemAddress>, time: Time) -> Time {
-    let step = project_frame_step(project);
+pub(crate) fn project_frame_keyframe_time(
+    project: &Project,
+    item: Option<&ItemAddress>,
+    time: Time,
+) -> Time {
     let Some(item) = item else {
-        return time.snapped(step);
+        return time.snapped(project.frame_step());
     };
-    let Some(global) = crate::video::visual_global_time(project, item.clone(), time) else {
-        return time.snapped(step);
+    let Some(timeline_time) = project.keyframe_timeline_time(item, time) else {
+        return time.snapped(project.frame_step());
     };
-    crate::video::visual_animation_time(project, item.clone(), global.snapped(step))
-        .unwrap_or_else(|| time.snapped(step))
+    project
+        .keyframe_time(item, timeline_time.snapped(project.frame_step()))
+        .unwrap_or(time)
 }
 
 pub(crate) fn build(
@@ -217,7 +211,15 @@ pub(crate) fn build(
     view_state_scope: impl Into<String>,
     actions: KeyframeEditorActions,
 ) -> BuiltKeyframeEditor {
-    let frame_step = project_frame_step(&context.project.borrow());
+    let frame_step = {
+        let project = context.project.borrow();
+        context
+            .selected_item
+            .as_ref()
+            .and_then(|item| project.keyframe_step(item))
+            .filter(|step| *step > Time::ZERO)
+            .unwrap_or_else(|| project.frame_step())
+    };
     let graph_view = context.keyframe_graph_view_state(view_state_scope);
     let project = context.project.clone();
     let selected_item = context.selected_item.clone();
@@ -232,14 +234,28 @@ pub(crate) fn build(
         graph_view.visible_area = visible_area;
     }
     let preferences = context.preferences.clone();
-    let actual_playhead = {
+    let playhead = {
         let project = context.project.clone();
         let player_state = context.player_state.clone();
         let selected_item = context.selected_item.clone();
         Rc::new(move || {
-            let key = selected_item.as_ref()?;
             let position = player_state::snapshot(&player_state).position;
-            crate::video::visual_animation_time(&project.borrow(), key.clone(), position)
+            selected_item
+                .as_ref()
+                .and_then(|key| project.borrow().keyframe_time(key, position))
+                .unwrap_or(position)
+        })
+    };
+    let select_time = {
+        let project = context.project.clone();
+        let player_state = context.player_state.clone();
+        let selected_item = context.selected_item.clone();
+        Rc::new(move |time| {
+            let position = selected_item
+                .as_ref()
+                .and_then(|key| project.borrow().keyframe_timeline_time(key, time))
+                .unwrap_or(time);
+            player_state::seek_time(&player_state, position);
         })
     };
     let root = gtk::Box::new(gtk::Orientation::Vertical, 6);
@@ -284,15 +300,14 @@ pub(crate) fn build(
         shrimply_skia_adw_ui::slider::Lifecycle::default(),
     ));
     let animation_tick_active = Rc::new(RefCell::new(false));
-    let logical_playhead = (actions.playhead)();
-    let actual_playhead_time = actual_playhead().unwrap_or(logical_playhead);
+    let logical_playhead = playhead();
     sync_keyframe_controls(
         &previous,
         &add,
         &next,
         &graph_data.borrow(),
         logical_playhead,
-        actual_playhead_time,
+        logical_playhead,
         frame_step,
     );
     let graph = gtk::GLArea::builder()
@@ -317,8 +332,7 @@ pub(crate) fn build(
         let scrollbar_lifecycle = scrollbar_lifecycle.clone();
         let pointer_pos = pointer_pos.clone();
         let animation_tick_active = animation_tick_active.clone();
-        let playhead = actions.playhead.clone();
-        let actual_playhead = actual_playhead.clone();
+        let playhead = playhead.clone();
         let renderer = Rc::new(RefCell::new(TimelineRenderer::new()));
         let render_renderer = renderer.clone();
         graph.connect_render(move |area, _| {
@@ -391,16 +405,13 @@ pub(crate) fn build(
                 overscroll.borrow_mut().take();
             }
             let logical_playhead = playhead();
-            let actual_playhead = actual_playhead().unwrap_or(logical_playhead);
-            let virtual_playhead =
-                (!logical_playhead.approx_eq(actual_playhead)).then_some(logical_playhead);
             sync_keyframe_controls(
                 &previous,
                 &add,
                 &next,
                 &graph_data,
                 logical_playhead,
-                actual_playhead,
+                logical_playhead,
                 frame_step,
             );
             let key_selection = key_selection.borrow();
@@ -421,8 +432,8 @@ pub(crate) fn build(
                 frame_step,
                 scrollbar: scrollbar_frame.scrollbar,
                 overscroll: overscroll_frame,
-                playhead: actual_playhead,
-                virtual_playhead,
+                playhead: logical_playhead,
+                virtual_playhead: None,
                 selected_keys: &key_selection.selected,
                 focused_key: key_selection.focused,
                 accent_color,
@@ -562,7 +573,9 @@ pub(crate) fn build(
     {
         let graph = graph.clone();
         let graph_view = graph_view.clone();
-        let select_time = actions.select_time.clone();
+        let project = project.clone();
+        let selected_item = selected_item.clone();
+        let select_time = select_time.clone();
         click.connect_released(move |_, _, x, y| {
             graph.grab_focus();
             if y <= CURSOR_LANE_HEIGHT {
@@ -572,10 +585,14 @@ pub(crate) fn build(
                     item_range,
                     graph.width().max(1) as f64,
                 );
-                select_time(snap_graph_time(
+                let time = clamp_graph_time(
                     time_at_x(x, graph.width().max(1) as f64, domain),
-                    frame_step,
                     item_range,
+                );
+                select_time(project_frame_keyframe_time(
+                    &project.borrow(),
+                    selected_item.as_ref(),
+                    time,
                 ));
                 graph.queue_render();
             }
@@ -663,7 +680,9 @@ pub(crate) fn build(
         let key_selection = key_selection.clone();
         let selection_box = selection_box.clone();
         let selected_time = selected_time.clone();
-        let select_time = actions.select_time.clone();
+        let project = project.clone();
+        let selected_item = selected_item.clone();
+        let select_time = select_time.clone();
         let scrollbar_lifecycle = scrollbar_lifecycle.clone();
         drag.connect_drag_begin(move |gesture, x, y| {
             graph.grab_focus();
@@ -704,9 +723,11 @@ pub(crate) fn build(
             if let Some(target) = target {
                 let time = match target {
                     DragTarget::Point(point) => point.time,
-                    DragTarget::Cursor => {
-                        snap_graph_time(time_at_x(x, width, domain), frame_step, item_range)
-                    }
+                    DragTarget::Cursor => project_frame_keyframe_time(
+                        &project.borrow(),
+                        selected_item.as_ref(),
+                        clamp_graph_time(time_at_x(x, width, domain), item_range),
+                    ),
                     DragTarget::SelectBox => return,
                     DragTarget::SliderMove => return,
                 };
@@ -767,8 +788,8 @@ pub(crate) fn build(
         let update_point = actions.update_point.clone();
         let project = project.clone();
         let selected_item = selected_item.clone();
-        let playhead = actions.playhead.clone();
-        let select_time = actions.select_time.clone();
+        let playhead = playhead.clone();
+        let select_time = select_time.clone();
         let preferences = preferences.clone();
         let overscroll = overscroll.clone();
         let scrollbar_lifecycle = scrollbar_lifecycle.clone();
@@ -807,12 +828,12 @@ pub(crate) fn build(
                 let edge = {
                     let mut view = graph_view.borrow_mut();
                     let item_range = view.item_range();
-                    let (time, edge) = drag_cursor_time(
-                        &mut view,
-                        item_range,
-                        width,
-                        frame_step,
-                        start_x + offset_x,
+                    let (time, edge) =
+                        drag_cursor_time(&mut view, item_range, width, start_x + offset_x);
+                    let time = project_frame_keyframe_time(
+                        &project.borrow(),
+                        selected_item.as_ref(),
+                        time,
                     );
                     select_time(time);
                     edge
@@ -870,13 +891,14 @@ pub(crate) fn build(
                 };
                 let time = snap_keyframe_time(
                     time_at_x(point_x, width, domain),
-                    frame_step,
                     item_range,
                     snap.timeline_magnet == "true",
                     f64::from(snap.timeline_snap_radius_px),
                     graph_duration_seconds(domain) / graph_plot_width(width),
                     playhead(),
                 );
+                let time =
+                    project_frame_keyframe_time(&project.borrow(), selected_item.as_ref(), time);
                 let value = graph_edit_value(
                     &graph_data,
                     value_at_y(start_y + offset_y, content_height, range),
@@ -908,8 +930,6 @@ pub(crate) fn build(
                 }
             }
             for (old_time, time, value) in point_updates {
-                let time =
-                    project_frame_keyframe_time(&project.borrow(), selected_item.as_ref(), time);
                 update_point(old_time, time, value);
             }
             graph.queue_render();
@@ -982,14 +1002,15 @@ pub(crate) fn build(
         let previous = previous.clone();
         let add = add.clone();
         let next = next.clone();
-        let playhead = actions.playhead.clone();
-        let actual_playhead = actual_playhead.clone();
+        let playhead = playhead.clone();
         let key_selection = key_selection.clone();
         let selected_time = selected_time.clone();
         let delete_at_time = actions.delete_at_time.clone();
         let copy_keyframes = actions.copy_keyframes.clone();
         let paste_keyframes = actions.paste_keyframes.clone();
         let toggle_playback = actions.toggle_playback.clone();
+        let project = project.clone();
+        let selected_item = selected_item.clone();
         key.connect_key_pressed(move |_, key, _, state| {
             if key == gdk::Key::space {
                 toggle_playback();
@@ -999,7 +1020,31 @@ pub(crate) fn build(
                 match key.to_unicode().map(|key| key.to_ascii_lowercase()) {
                     Some('c') => {
                         let selected = key_selection.borrow().selected.clone();
-                        if let Some(clipboard) = copy_keyframes(&selected) {
+                        if let Some(mut clipboard) = copy_keyframes(&selected) {
+                            let project = project.borrow();
+                            let timeline_times = clipboard
+                                .times
+                                .iter()
+                                .map(|time| {
+                                    selected_item
+                                        .as_ref()
+                                        .and_then(|item| {
+                                            project.keyframe_timeline_time(item, *time)
+                                        })
+                                        .unwrap_or(*time)
+                                        .snapped(project.frame_step())
+                                })
+                                .collect::<Vec<_>>();
+                            let Some(origin) = timeline_times.first().copied() else {
+                                return glib::Propagation::Stop;
+                            };
+                            clipboard.times = timeline_times
+                                .into_iter()
+                                .map(|time| Time {
+                                    seconds: time.seconds - origin.seconds,
+                                })
+                                .collect();
+                            drop(project);
                             let count = clipboard.len();
                             graph
                                 .display()
@@ -1025,8 +1070,32 @@ pub(crate) fn build(
                         let Some(clipboard) = clipboard else {
                             return glib::Propagation::Stop;
                         };
+                        let time = playhead();
+                        let times = {
+                            let project = project.borrow();
+                            let anchor = selected_item
+                                .as_ref()
+                                .and_then(|item| project.keyframe_timeline_time(item, time))
+                                .unwrap_or(time)
+                                .snapped(project.frame_step());
+                            clipboard
+                                .times
+                                .iter()
+                                .filter_map(|offset| {
+                                    let timeline_time = Time {
+                                        seconds: anchor.seconds + offset.seconds,
+                                    };
+                                    selected_item
+                                        .as_ref()
+                                        .map(|item| project.keyframe_time(item, timeline_time))
+                                        .unwrap_or(Some(timeline_time))
+                                })
+                                .collect::<Vec<_>>()
+                        };
+                        if times.len() != clipboard.len() {
+                            return glib::Propagation::Stop;
+                        }
                         let graph = graph.clone();
-                        let playhead = playhead.clone();
                         let paste_keyframes = paste_keyframes.clone();
                         let key_selection = key_selection.clone();
                         let selected_time = selected_time.clone();
@@ -1039,7 +1108,7 @@ pub(crate) fn build(
                                 if text != KEYFRAME_CLIPBOARD_MARKER {
                                     return;
                                 }
-                                let Some(times) = paste_keyframes(&clipboard, playhead()) else {
+                                let Some(times) = paste_keyframes(&clipboard, &times) else {
                                     return;
                                 };
                                 let message = if times.len() == 1 {
@@ -1071,11 +1140,10 @@ pub(crate) fn build(
                 return glib::Propagation::Proceed;
             }
             let logical_playhead = playhead();
-            let actual_playhead = actual_playhead().unwrap_or(logical_playhead);
             let times = graph_data.borrow().key_times();
             let mut delete_times = key_selection.borrow().selected.clone();
             if delete_times.is_empty()
-                && let Some(time) = keyframe_model::key_at(&times, actual_playhead, frame_step)
+                && let Some(time) = keyframe_model::key_at(&times, logical_playhead, frame_step)
                     .or(*selected_time.borrow())
             {
                 delete_times.push(time);
@@ -1094,7 +1162,7 @@ pub(crate) fn build(
                 &next,
                 &graph_data.borrow(),
                 logical_playhead,
-                actual_playhead,
+                logical_playhead,
                 frame_step,
             );
             graph.queue_render();
@@ -1112,9 +1180,9 @@ pub(crate) fn build(
         let graph_data = graph_data.clone();
         let add = add.clone();
         let next = next.clone();
-        let playhead = actions.playhead.clone();
+        let playhead = playhead.clone();
         let selected_time = selected_time.clone();
-        let select_time = actions.select_time.clone();
+        let select_time = select_time.clone();
         previous.connect_clicked(move |_| {
             let base_time = playhead();
             let time = previous_key_time(&graph_data.borrow(), base_time, frame_step);
@@ -1136,8 +1204,7 @@ pub(crate) fn build(
     }
 
     {
-        let playhead = actions.playhead.clone();
-        let actual_playhead = actual_playhead.clone();
+        let playhead = playhead.clone();
         let graph = graph.clone();
         let graph_data = graph_data.clone();
         let button = add.clone();
@@ -1148,9 +1215,15 @@ pub(crate) fn build(
         let selected_time = selected_time.clone();
         let add_at_time = actions.add_at_time.clone();
         let delete_at_time = actions.delete_at_time.clone();
+        let project = project.clone();
+        let selected_item = selected_item.clone();
         button.connect_clicked(move |_| {
             let logical_playhead = playhead();
-            let actual_playhead = actual_playhead().unwrap_or(logical_playhead);
+            let actual_playhead = project_frame_keyframe_time(
+                &project.borrow(),
+                selected_item.as_ref(),
+                logical_playhead,
+            );
             let times = graph_data.borrow().key_times();
             if let Some(time) = keyframe_model::key_at(&times, actual_playhead, frame_step) {
                 delete_graph_key(&mut graph_data.borrow_mut(), time);
@@ -1182,9 +1255,9 @@ pub(crate) fn build(
         let graph_data = graph_data.clone();
         let add = add.clone();
         let next_button = next.clone();
-        let playhead = actions.playhead.clone();
+        let playhead = playhead.clone();
         let selected_time = selected_time.clone();
-        let select_time = actions.select_time.clone();
+        let select_time = select_time.clone();
         next.connect_clicked(move |_| {
             let base_time = playhead();
             let time = next_key_time(&graph_data.borrow(), base_time, frame_step);
@@ -1213,8 +1286,7 @@ pub(crate) fn build(
         let previous = previous.clone();
         let add = add.clone();
         let next = next.clone();
-        let playhead = actions.playhead.clone();
-        let actual_playhead = actual_playhead.clone();
+        let playhead = playhead.clone();
         let graph_view = graph_view.clone();
         Rc::new(move |updated| {
             let visible_area =
@@ -1226,14 +1298,13 @@ pub(crate) fn build(
                 *graph_data = updated;
                 graph_view.visible_area = visible_area;
                 let logical_playhead = playhead();
-                let actual_playhead = actual_playhead().unwrap_or(logical_playhead);
                 sync_keyframe_controls(
                     &previous,
                     &add,
                     &next,
                     &graph_data,
                     logical_playhead,
-                    actual_playhead,
+                    logical_playhead,
                     frame_step,
                 );
             } else {

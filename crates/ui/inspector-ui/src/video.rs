@@ -1371,7 +1371,6 @@ fn compositing_controls(value: &CompositingCard, context: &InspectorContext) -> 
             },
             scope_id: Some(value.compositing.opacity.id),
             local_time: visual_local_time,
-            global_time: visual_global_time,
             duration: visual_duration,
             refresh: ProjectChange {
                 video: true,
@@ -1435,27 +1434,6 @@ pub(super) fn visual_local_time(project: &Project, key: SelectedItem, time: Time
     let time = project.timeline_time_to_sequence(&key.track(), time)?;
     let item = project.video_item(&key)?;
     shrimply_project::project::generated_item_time(item, time)
-}
-
-pub(super) fn visual_animation_time(
-    project: &Project,
-    key: SelectedItem,
-    time: Time,
-) -> Option<Time> {
-    let time = project.timeline_time_to_sequence(&key.track(), time)?;
-    let item = project.video_item(&key)?;
-    Some(
-        time.signed_sub(item.start)
-            .saturating_add(item.animation_time_offset),
-    )
-}
-
-pub(super) fn visual_global_time(project: &Project, key: SelectedItem, time: Time) -> Option<Time> {
-    let item = project.video_item(&key)?;
-    let time = item
-        .start
-        .saturating_add(time.signed_sub(item.animation_time_offset));
-    project.sequence_time_to_timeline(&key.track(), time)
 }
 
 pub(super) fn visual_duration(project: &Project, key: SelectedItem) -> Option<Time> {

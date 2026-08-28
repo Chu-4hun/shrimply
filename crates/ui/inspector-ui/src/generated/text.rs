@@ -576,7 +576,6 @@ fn background_padding_control(
             },
             scope_id: None,
             local_time: video_local_time_for_key,
-            global_time: video_global_time_for_key,
             duration: video_duration_for_key,
             refresh: ProjectChange {
                 video: true,
@@ -625,7 +624,6 @@ fn transform_vector_control(
             },
             scope_id: None,
             local_time: video_local_time_for_key,
-            global_time: video_global_time_for_key,
             duration: video_duration_for_key,
             refresh: ProjectChange {
                 video: true,
@@ -679,7 +677,6 @@ fn text_scalar_target(field: TextField) -> ScalarTarget {
         },
         scope_id: None,
         local_time: video_local_time_for_key,
-        global_time: video_global_time_for_key,
         duration: video_duration_for_key,
         refresh: ProjectChange {
             video: true,
@@ -754,7 +751,6 @@ fn color_target(
         access: crate::timeline_value::color::ColorAccess::Item(get_mut),
         scope_id: None,
         local_time: video_local_time_for_key,
-        global_time: video_global_time_for_key,
         duration: video_duration_for_key,
         refresh: ProjectChange {
             video: true,
@@ -984,10 +980,6 @@ fn text_shadow_color(
 
 fn video_local_time_for_key(project: &Project, key: SelectedItem, position: Time) -> Option<Time> {
     crate::video::visual_local_time(project, key, position)
-}
-
-fn video_global_time_for_key(project: &Project, key: SelectedItem, time: Time) -> Option<Time> {
-    crate::video::visual_global_time(project, key, time)
 }
 
 fn video_duration_for_key(project: &Project, key: SelectedItem) -> Option<Time> {

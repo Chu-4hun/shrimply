@@ -116,7 +116,6 @@ pub(super) fn drag_cursor_time(
     view: &mut GraphViewState,
     item_range: GraphDomain,
     width: f64,
-    frame_step: Time,
     x: f64,
 ) -> (Time, Option<(GraphOverscrollEdge, f64)>) {
     view.initialize(item_range, width);
@@ -131,24 +130,15 @@ pub(super) fn drag_cursor_time(
         view.scroll_seconds
     };
     let edge = set_graph_scroll_seconds(view, item_range, width, target);
-    let time = snap_graph_time(
+    let time = clamp_graph_time(
         time_at_x(x.clamp(left, right), width, view.domain(item_range, width)),
-        frame_step,
         item_range,
     );
     (time, edge)
 }
 
-pub(super) fn snap_graph_time(time: Time, frame_step: Time, item_range: GraphDomain) -> Time {
-    if frame_step <= Time::ZERO {
-        return clamp_graph_time(time, item_range);
-    }
-    clamp_graph_time(time.snapped(frame_step), item_range)
-}
-
 pub(super) fn snap_keyframe_time(
     time: Time,
-    frame_step: Time,
     item_range: GraphDomain,
     enabled: bool,
     radius_px: f64,
@@ -159,7 +149,6 @@ pub(super) fn snap_keyframe_time(
     if !enabled {
         return time;
     }
-    let time = snap_graph_time(time, frame_step, item_range);
     let radius = radius_px * seconds_per_pixel;
     if timeline_cursor >= item_range.0
         && timeline_cursor <= item_range.1
@@ -487,8 +476,7 @@ pub(super) fn move_selected_graph_points(
     } else {
         vec![focus_time]
     };
-    let delta_seconds =
-        constrained_key_delta_seconds(&selected_times, focus_time, requested_time, item_range);
+    let delta = constrained_key_delta(&selected_times, focus_time, requested_time, item_range);
     let delta_value = if matches!(graph, KeyframeGraph::RawValue { .. }) {
         requested_value - focus_point.value
     } else {
@@ -499,11 +487,13 @@ pub(super) fn move_selected_graph_points(
         let Some(point) = graph_key_point(graph, *old_time) else {
             continue;
         };
-        let next_time = Time::from_seconds_f64(point.time.as_secs_f64() + delta_seconds);
+        let next_time = Time {
+            seconds: point.time.seconds + delta.seconds,
+        };
         let next_value = graph_edit_value(graph, point.value + delta_value);
         updates.push((point.time, next_time, next_value));
     }
-    if delta_seconds > 0.0 {
+    if delta > Time::ZERO {
         updates.sort_by_key(|(old_time, _, _)| std::cmp::Reverse(*old_time));
     } else {
         updates.sort_by_key(|(old_time, _, _)| *old_time);
@@ -514,33 +504,33 @@ pub(super) fn move_selected_graph_points(
     let mut next_selected: Vec<_> = updates.iter().map(|(_, next_time, _)| *next_time).collect();
     next_selected.sort();
     next_selected.dedup_by(|left, right| left.approx_eq(*right));
-    let next_focus = Time::from_seconds_f64(focus_time.as_secs_f64() + delta_seconds);
+    let next_focus = Time {
+        seconds: focus_time.seconds + delta.seconds,
+    };
     (updates, next_selected, next_focus)
 }
 
-pub(super) fn constrained_key_delta_seconds(
+pub(super) fn constrained_key_delta(
     selected_times: &[Time],
     focus_time: Time,
     requested_time: Time,
     item_range: GraphDomain,
-) -> f64 {
-    let requested = requested_time.as_secs_f64() - focus_time.as_secs_f64();
-    let Some(min_time) = selected_times
-        .iter()
-        .map(|time| time.as_secs_f64())
-        .reduce(f64::min)
-    else {
+) -> Time {
+    let requested = Time {
+        seconds: requested_time.seconds - focus_time.seconds,
+    };
+    let Some(min_time) = selected_times.iter().min() else {
         return requested;
     };
-    let Some(max_time) = selected_times
-        .iter()
-        .map(|time| time.as_secs_f64())
-        .reduce(f64::max)
-    else {
+    let Some(max_time) = selected_times.iter().max() else {
         return requested;
     };
-    let min_delta = item_range.0.as_secs_f64() - min_time;
-    let max_delta = item_range.1.as_secs_f64() - max_time;
+    let min_delta = Time {
+        seconds: item_range.0.seconds - min_time.seconds,
+    };
+    let max_delta = Time {
+        seconds: item_range.1.seconds - max_time.seconds,
+    };
     requested.clamp(min_delta, max_delta)
 }
 

@@ -444,12 +444,10 @@ fn integer_control(
         let next = editor.value_as_int().clamp(3, 32) as u32;
         let position = crate::player_state::snapshot(&player).position;
         let mut project_ref = project.borrow_mut();
-        let Some(time) = crate::video::visual_local_time(&project_ref, key.clone(), position)
-        else {
+        let Some(time) = project_ref.keyframe_time(&key, position) else {
             return;
         };
         let step = crate::keyframe_editor::project_frame_step(&project_ref);
-        let time = crate::keyframe_model::snap_to_frame(time, step);
         let Some(shape) = selected_shape_mut(&mut project_ref, key.clone()) else {
             return;
         };
@@ -495,16 +493,20 @@ fn integer_control(
             };
             let position = crate::player_state::snapshot(&player_for_keyframes).position;
             let mut project = project_for_keyframes.borrow_mut();
-            let Some(time) = crate::video::visual_local_time(&project, key.clone(), position)
+            let Some(evaluation_time) =
+                crate::video::visual_local_time(&project, key.clone(), position)
             else {
+                return;
+            };
+            let Some(keyframe_time) = project.keyframe_time(&key, position) else {
                 return;
             };
             let Some(shape) = selected_shape_mut(&mut project, key.clone()) else {
                 return;
             };
-            let current = shape.star_points.value_at(time);
+            let current = shape.star_points.value_at(evaluation_time);
             shape.star_points.base = if enabled {
-                TimelineBase::Keyframes(vec![u32::keyframe(time, current)])
+                TimelineBase::Keyframes(vec![u32::keyframe(keyframe_time, current)])
             } else {
                 TimelineBase::Const(current)
             };
@@ -577,7 +579,6 @@ fn vec_target(
         access: crate::timeline_value::vector::vec2::VecAccess::Item { get, get_mut },
         scope_id: None,
         local_time: video_local_time_for_key,
-        global_time: video_global_time_for_key,
         duration: video_duration_for_key,
         refresh: ProjectChange {
             video: true,
@@ -637,7 +638,6 @@ fn shape_scalar_target(field: ShapeField) -> ScalarTarget {
         },
         scope_id: None,
         local_time: video_local_time_for_key,
-        global_time: video_global_time_for_key,
         duration: video_duration_for_key,
         refresh: ProjectChange {
             video: true,
@@ -725,7 +725,6 @@ fn color_target(
         access: crate::timeline_value::color::ColorAccess::Item(get_mut),
         scope_id: None,
         local_time: video_local_time_for_key,
-        global_time: video_global_time_for_key,
         duration: video_duration_for_key,
         refresh: ProjectChange {
             video: true,
@@ -964,10 +963,6 @@ fn shape_shadow_color(
 
 fn video_local_time_for_key(project: &Project, key: SelectedItem, position: Time) -> Option<Time> {
     crate::video::visual_local_time(project, key, position)
-}
-
-fn video_global_time_for_key(project: &Project, key: SelectedItem, time: Time) -> Option<Time> {
-    crate::video::visual_global_time(project, key, time)
 }
 
 fn video_duration_for_key(project: &Project, key: SelectedItem) -> Option<Time> {

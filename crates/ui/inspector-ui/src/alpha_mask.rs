@@ -193,7 +193,6 @@ fn vec_target(target: VisualAlphaMaskTarget, value_id: uuid::Uuid) -> VecTarget 
         access: VecAccess::AlphaMask { target, value_id },
         scope_id: Some(value_id),
         local_time: crate::video::visual_local_time,
-        global_time: crate::video::visual_global_time,
         duration: crate::video::visual_duration,
         refresh: ProjectChange {
             video: true,
@@ -208,7 +207,6 @@ fn scalar_target(target: VisualAlphaMaskTarget, value_id: uuid::Uuid) -> ScalarT
         access: ScalarAccess::AlphaMask { target, value_id },
         scope_id: Some(value_id),
         local_time: crate::video::visual_local_time,
-        global_time: crate::video::visual_global_time,
         duration: crate::video::visual_duration,
         refresh: ProjectChange {
             video: true,

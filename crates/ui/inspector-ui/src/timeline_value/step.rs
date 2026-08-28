@@ -236,31 +236,6 @@ fn actions<T: TimelineStep>(
     let project = context.project.clone();
     let player = context.player_state.clone();
     KeyframeEditorActions {
-        playhead: {
-            let key = key.clone();
-            let project = project.clone();
-            let player = player.clone();
-            Rc::new(move || {
-                crate::video::visual_local_time(
-                    &project.borrow(),
-                    key.clone(),
-                    player_state::snapshot(&player).position,
-                )
-                .unwrap_or(Time::ZERO)
-            })
-        },
-        select_time: {
-            let key = key.clone();
-            let project = project.clone();
-            let player = player.clone();
-            Rc::new(move |time| {
-                if let Some(global) =
-                    crate::video::visual_global_time(&project.borrow(), key.clone(), time)
-                {
-                    player_state::seek_time(&player, global);
-                }
-            })
-        },
         add_at_time: {
             let key = key.clone();
             let project = project.clone();
@@ -300,9 +275,8 @@ fn actions<T: TimelineStep>(
             let target = target.clone();
             Rc::new(move |clipboard, time| {
                 let mut project = project.borrow_mut();
-                let frame_step = keyframe_editor::project_frame_step(&project);
                 let value = (target.get_mut)(&mut project, key.clone())?;
-                let times = keyframe_model::paste_keyframes(value, clipboard, time, frame_step)?;
+                let times = keyframe_model::paste_keyframes(value, clipboard, time)?;
                 target.did_mutate(&mut project, key.clone());
                 commit_and_refresh(project, &player, &target, true);
                 Some(times)
@@ -323,11 +297,10 @@ fn update_value<T: TimelineStep>(
 ) {
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let Some(time) = crate::video::visual_local_time(&project, key.clone(), position) else {
+    let Some(time) = project.keyframe_time(&key, position) else {
         return;
     };
     let step = keyframe_editor::project_frame_step(&project);
-    let time = keyframe_model::snap_to_frame(time, step);
     let Some(value) = (target.get_mut)(&mut project, key.clone()) else {
         return;
     };
@@ -353,17 +326,21 @@ fn toggle_keyframes<T: TimelineStep>(
 ) -> bool {
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let Some(time) = crate::video::visual_local_time(&project, key.clone(), position) else {
+    let Some(evaluation_time) = crate::video::visual_local_time(&project, key.clone(), position)
+    else {
+        return false;
+    };
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
         return false;
     };
     let Some(value) = (target.get_mut)(&mut project, key.clone()) else {
         return false;
     };
-    let current = value.value_at(time);
+    let current = value.value_at(evaluation_time);
     match (&mut value.base, enabled) {
         (TimelineBase::Const(_), false) | (TimelineBase::Keyframes(_), true) => return false,
         (base @ TimelineBase::Const(_), true) => {
-            *base = TimelineBase::Keyframes(vec![T::keyframe(time, current)]);
+            *base = TimelineBase::Keyframes(vec![T::keyframe(keyframe_time, current)]);
         }
         (base @ TimelineBase::Keyframes(_), false) => *base = TimelineBase::Const(current),
     }

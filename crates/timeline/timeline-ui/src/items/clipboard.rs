@@ -40,8 +40,7 @@ pub(crate) fn copy_items(
     }
     let origin = selected_items
         .iter()
-        .filter_map(|address| project.item(address).map(|item| item.times().0))
-        .map(Time::as_nonnegative_nanos)
+        .filter_map(|address| project.projected_item_times(address).map(|times| times.0))
         .min()?;
 
     let mut items = Vec::new();
@@ -51,11 +50,11 @@ pub(crate) fn copy_items(
             ItemRef::Video(item) => ProjectItem::Video(Box::new(item.clone())),
             ItemRef::Audio(item) => ProjectItem::Audio(Box::new(item.clone())),
         };
-        let (start, end) = item.times();
+        let (start, end) = project.projected_item_times(address)?;
         items.push(CopiedItem {
             track_index: scoped_track_index(project, &address.track())?,
-            start_offset: start.as_nonnegative_nanos().saturating_sub(origin),
-            duration: end.saturating_sub(start).as_nonnegative_nanos(),
+            start_offset: start.saturating_sub(origin),
+            duration: end.saturating_sub(start),
             item,
         });
     }
@@ -201,14 +200,15 @@ pub(crate) fn paste_caption_items(
         .map(|(track_index, start_offset, duration, mut item)| {
             item.id = uuid::Uuid::new_v4();
             item.group_id = remap_item_group_id(next_group_id, group_map, item.group_id);
-            (track_index, start_offset, duration, item)
+            let item_start = start.saturating_add(start_offset);
+            (track_index, item_start, item_start.saturating_add(duration), item)
         })
         .collect();
     if items.is_empty() {
         return;
     }
 
-    let (source_base, footprint) = paste_footprint(&items, start);
+    let (source_base, footprint) = paste_footprint(&items);
     let target_base = choose_track_base(
         project.caption_tracks.len(),
         &footprint,
@@ -223,10 +223,10 @@ pub(crate) fn paste_caption_items(
         target_base + track_footprint_span(&footprint),
     );
 
-    for (source_track, start_offset, duration, mut item) in items {
+    for (source_track, start, end, mut item) in items {
         let track_index = target_base + source_track - source_base;
-        item.start = Time::from_nanos(start.as_nonnegative_nanos().saturating_add(start_offset));
-        item.end = Time::from_nanos(item.start.as_nonnegative_nanos().saturating_add(duration));
+        item.start = start;
+        item.end = end;
         let Some(track) = project.caption_tracks.get_mut(track_index) else {
             continue;
         };
@@ -253,13 +253,6 @@ fn paste_video_items(
     else {
         return;
     };
-    let Some(start) = project.timeline_time_to_sequence_path(
-        crate::project::ItemKind::Video,
-        &sequence_path,
-        timeline_start,
-    ) else {
-        return;
-    };
     let mut items: Vec<_> = clipboard
         .items
         .iter()
@@ -272,7 +265,7 @@ fn paste_video_items(
             )),
             ProjectItem::Caption(_) | ProjectItem::Audio(_) => None,
         })
-        .map(|(track_index, start_offset, duration, mut item)| {
+        .filter_map(|(track_index, start_offset, duration, mut item)| {
             let source_id = item.id;
             item.id = uuid::Uuid::new_v4();
             remapping.item_map.insert(source_id, item.id);
@@ -287,7 +280,22 @@ fn paste_video_items(
                     .entry(reference.instance_id)
                     .or_insert_with(Uuid::new_v4);
             }
-            (track_index, start_offset, duration, item)
+            let timeline_item_start = timeline_start.saturating_add(start_offset);
+            let timeline_item_end = timeline_item_start.saturating_add(duration);
+            Some((
+                track_index,
+                project.timeline_time_to_sequence_path(
+                    crate::project::ItemKind::Video,
+                    &sequence_path,
+                    timeline_item_start,
+                )?,
+                project.timeline_time_to_sequence_path(
+                    crate::project::ItemKind::Video,
+                    &sequence_path,
+                    timeline_item_end,
+                )?,
+                item,
+            ))
         })
         .collect();
     for (_, _, _, item) in &mut items {
@@ -305,7 +313,7 @@ fn paste_video_items(
     let Some(tracks) = project.video_tracks_for_path(&sequence_path) else {
         return;
     };
-    let (source_base, footprint) = paste_footprint(&items, start);
+    let (source_base, footprint) = paste_footprint(&items);
     let target_base = choose_track_base(
         tracks.len(),
         &footprint,
@@ -319,10 +327,10 @@ fn paste_video_items(
     };
     ensure_tracks(tracks, required_tracks);
 
-    for (source_track, start_offset, duration, mut item) in items {
+    for (source_track, start, end, mut item) in items {
         let track_index = target_base + source_track - source_base;
-        item.start = Time::from_nanos(start.as_nonnegative_nanos().saturating_add(start_offset));
-        item.end = Time::from_nanos(item.start.as_nonnegative_nanos().saturating_add(duration));
+        item.start = start;
+        item.end = end;
         let Some(track) = tracks.get_mut(track_index) else {
             continue;
         };
@@ -350,13 +358,6 @@ fn paste_audio_items(
     else {
         return;
     };
-    let Some(start) = project.timeline_time_to_sequence_path(
-        crate::project::ItemKind::Audio,
-        &sequence_path,
-        timeline_start,
-    ) else {
-        return;
-    };
     let mut items: Vec<_> = clipboard
         .items
         .iter()
@@ -369,7 +370,7 @@ fn paste_audio_items(
             )),
             ProjectItem::Caption(_) | ProjectItem::Video(_) => None,
         })
-        .map(|(track_index, start_offset, duration, mut item)| {
+        .filter_map(|(track_index, start_offset, duration, mut item)| {
             let source_id = item.id;
             item.id = uuid::Uuid::new_v4();
             remapping.item_map.insert(source_id, item.id);
@@ -384,7 +385,22 @@ fn paste_audio_items(
                     .entry(reference.instance_id)
                     .or_insert_with(Uuid::new_v4);
             }
-            (track_index, start_offset, duration, item)
+            let timeline_item_start = timeline_start.saturating_add(start_offset);
+            let timeline_item_end = timeline_item_start.saturating_add(duration);
+            Some((
+                track_index,
+                project.timeline_time_to_sequence_path(
+                    crate::project::ItemKind::Audio,
+                    &sequence_path,
+                    timeline_item_start,
+                )?,
+                project.timeline_time_to_sequence_path(
+                    crate::project::ItemKind::Audio,
+                    &sequence_path,
+                    timeline_item_end,
+                )?,
+                item,
+            ))
         })
         .collect();
     for (_, _, _, item) in &mut items {
@@ -402,7 +418,7 @@ fn paste_audio_items(
     let Some(tracks) = project.audio_tracks_for_path(&sequence_path) else {
         return;
     };
-    let (source_base, footprint) = paste_footprint(&items, start);
+    let (source_base, footprint) = paste_footprint(&items);
     let target_base = choose_track_base(
         tracks.len(),
         &footprint,
@@ -416,10 +432,10 @@ fn paste_audio_items(
     };
     ensure_tracks(tracks, required_tracks);
 
-    for (source_track, start_offset, duration, mut item) in items {
+    for (source_track, start, end, mut item) in items {
         let track_index = target_base + source_track - source_base;
-        item.start = Time::from_nanos(start.as_nonnegative_nanos().saturating_add(start_offset));
-        item.end = Time::from_nanos(item.start.as_nonnegative_nanos().saturating_add(duration));
+        item.start = start;
+        item.end = end;
         let Some(track) = tracks.get_mut(track_index) else {
             continue;
         };
@@ -472,10 +488,7 @@ fn audio_tracks_mut_for_path<'a>(
     Some(&mut project.folded_sequence_mut(sequence_id)?.audio_tracks)
 }
 
-fn paste_footprint<T>(
-    items: &[(usize, u64, u64, T)],
-    start: Time,
-) -> (usize, Vec<TrackFootprintItem>) {
+fn paste_footprint<T>(items: &[(usize, Time, Time, T)]) -> (usize, Vec<TrackFootprintItem>) {
     let source_base = items
         .iter()
         .map(|(track_index, _, _, _)| *track_index)
@@ -483,14 +496,10 @@ fn paste_footprint<T>(
         .unwrap_or(0);
     let footprint = items
         .iter()
-        .map(|(source_track, start_offset, duration, _)| {
-            let item_start =
-                Time::from_nanos(start.as_nonnegative_nanos().saturating_add(*start_offset));
-            TrackFootprintItem {
-                track_offset: source_track - source_base,
-                start: item_start,
-                end: Time::from_nanos(item_start.as_nonnegative_nanos().saturating_add(*duration)),
-            }
+        .map(|(source_track, start, end, _)| TrackFootprintItem {
+            track_offset: source_track - source_base,
+            start: *start,
+            end: *end,
         })
         .collect();
     (source_base, footprint)

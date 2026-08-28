@@ -1020,6 +1020,37 @@ impl Project {
         Some(time)
     }
 
+    pub fn keyframe_time(&self, address: &ItemAddress, timeline_time: Time) -> Option<Time> {
+        let sequence_time = self.timeline_time_to_sequence(&address.track(), timeline_time)?;
+        if let Some(item) = self.video_item(address) {
+            return Some(super::generated_item_animation_time(item, sequence_time));
+        }
+        Some(sequence_time.signed_sub(self.audio_item(address)?.start))
+    }
+
+    pub fn keyframe_timeline_time(
+        &self,
+        address: &ItemAddress,
+        keyframe_time: Time,
+    ) -> Option<Time> {
+        let sequence_time = if let Some(item) = self.video_item(address) {
+            item.start
+                .saturating_add(keyframe_time.signed_sub(item.animation_time_offset))
+        } else {
+            self.audio_item(address)?
+                .start
+                .saturating_add(keyframe_time)
+        };
+        self.sequence_time_to_timeline(&address.track(), sequence_time)
+    }
+
+    pub fn keyframe_step(&self, address: &ItemAddress) -> Option<Time> {
+        Some(
+            self.keyframe_time(address, Time::ZERO)?
+                .abs_diff(self.keyframe_time(address, self.frame_step())?),
+        )
+    }
+
     pub fn timeline_time_to_sequence_path(
         &self,
         kind: ItemKind,

@@ -230,7 +230,6 @@ fn add_scalar(
             access: ScalarAccess::Item { get, get_mut },
             scope_id: Some(value.id),
             local_time: crate::video::visual_local_time,
-            global_time: crate::video::visual_global_time,
             duration: scene_duration,
             refresh: video_change(),
             commit_name: "edit-gaussian-scalar",

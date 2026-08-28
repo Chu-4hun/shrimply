@@ -104,7 +104,6 @@ pub(crate) struct VecTarget {
     pub(crate) access: VecAccess,
     pub(crate) scope_id: Option<Uuid>,
     pub(crate) local_time: fn(&Project, SelectedItem, Time) -> Option<Time>,
-    pub(crate) global_time: fn(&Project, SelectedItem, Time) -> Option<Time>,
     pub(crate) duration: fn(&Project, SelectedItem) -> Option<Time>,
     pub(crate) refresh: ProjectChange,
     pub(crate) commit_name: &'static str,
@@ -325,19 +324,22 @@ fn update_component(
     }
     let position = player_state::snapshot(player_state).position;
     let mut project = project.borrow_mut();
-    let Some(local_time) = (target.local_time)(&project, key.clone(), position) else {
+    let Some(evaluation_time) = (target.local_time)(&project, key.clone(), position) else {
+        return;
+    };
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
         return;
     };
     let Some(value) = target.access.get_mut(&mut project, key.clone()) else {
         return;
     };
-    let mut vec = base_value(value, local_time);
+    let mut vec = base_value(value, evaluation_time);
     if component == 0 {
         vec.x = next as f32;
     } else {
         vec.y = next as f32;
     }
-    if !set_value(value, local_time, vec) {
+    if !set_value(value, keyframe_time, vec) {
         return;
     }
     target.access.mark_mutated(&mut project, key);
@@ -354,17 +356,20 @@ fn set_keyframes_enabled(
 ) -> bool {
     let position = player_state::snapshot(player_state).position;
     let mut project = project.borrow_mut();
-    let Some(local_time) = (target.local_time)(&project, key.clone(), position) else {
+    let Some(evaluation_time) = (target.local_time)(&project, key.clone(), position) else {
+        return false;
+    };
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
         return false;
     };
     let Some(value) = target.access.get_mut(&mut project, key.clone()) else {
         return false;
     };
-    let current = base_value(value, local_time);
+    let current = base_value(value, evaluation_time);
     match (&mut value.base, enabled) {
         (TimelineBase::Const(_), false) | (TimelineBase::Keyframes(_), true) => return false,
         (base @ TimelineBase::Const(_), true) => {
-            *base = TimelineBase::Keyframes(vec![keyframe(local_time, current)]);
+            *base = TimelineBase::Keyframes(vec![keyframe(keyframe_time, current)]);
         }
         (base @ TimelineBase::Keyframes(_), false) => *base = TimelineBase::Const(current),
     }
@@ -419,10 +424,6 @@ fn keyframe_actions(
 ) -> KeyframeEditorActions {
     let project = context.project.clone();
     let player_state = context.player_state.clone();
-    let playhead_project = project.clone();
-    let playhead_player = player_state.clone();
-    let select_project = project.clone();
-    let select_player = player_state.clone();
     let add_project = project.clone();
     let add_player = player_state.clone();
     let delete_project = project.clone();
@@ -437,8 +438,6 @@ fn keyframe_actions(
     let playback_player = player_state;
     let refresh_add = context.refresh.clone();
     let refresh_delete = context.refresh.clone();
-    let playhead_key = key.clone();
-    let select_key = key.clone();
     let add_key = key.clone();
     let delete_key = key.clone();
     let point_key = key.clone();
@@ -446,17 +445,6 @@ fn keyframe_actions(
     let paste_key = key.clone();
     let interpolation_key = key;
     KeyframeEditorActions {
-        playhead: Rc::new(move || {
-            let project = playhead_project.borrow();
-            let position = player_state::snapshot(&playhead_player).position;
-            (target.local_time)(&project, playhead_key.clone(), position).unwrap_or(Time::ZERO)
-        }),
-        select_time: Rc::new(move |time| {
-            let project = select_project.borrow();
-            if let Some(position) = (target.global_time)(&project, select_key.clone(), time) {
-                player_state::seek_time(&select_player, position);
-            }
-        }),
         add_at_time: Rc::new(move |time| {
             if add_keyframe_at_time(&add_project, &add_player, add_key.clone(), target, time) {
                 refresh_add();
@@ -492,9 +480,8 @@ fn keyframe_actions(
         }),
         paste_keyframes: Rc::new(move |clipboard, time| {
             let mut project = paste_project.borrow_mut();
-            let frame_step = keyframe_editor::project_frame_step(&project);
             let value = target.access.get_mut(&mut project, paste_key.clone())?;
-            let times = keyframe_model::paste_keyframes(value, clipboard, time, frame_step)?;
+            let times = keyframe_model::paste_keyframes(value, clipboard, time)?;
             target.access.mark_mutated(&mut project, paste_key.clone());
             shrimply_project::project::commit_edit(&project, target.commit_name);
             drop(project);
@@ -837,7 +824,9 @@ fn set_value(value: &mut TimelineValue<glam::Vec2>, local_time: Time, next: Vec2
                 .iter_mut()
                 .find(|keyframe| keyframe.time.approx_eq(local_time))
             {
+                keyframe.time = local_time;
                 keyframe.value = next;
+                keyframes.sort_by_key(|keyframe| keyframe.time);
             } else {
                 insert_keyframe(keyframes, keyframe(local_time, next));
             }

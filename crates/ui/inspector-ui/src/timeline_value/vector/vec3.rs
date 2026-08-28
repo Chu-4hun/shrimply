@@ -275,19 +275,22 @@ fn update_component(
     }
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let Some(time) = crate::video::visual_local_time(&project, key.clone(), position) else {
+    let Some(evaluation_time) = crate::video::visual_local_time(&project, key.clone(), position)
+    else {
         return;
     };
-    let time = keyframe_model::snap_to_frame(time, keyframe_editor::project_frame_step(&project));
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
+        return;
+    };
     let Some(value) = target.value_mut(&mut project, key.clone()) else {
         return;
     };
-    let mut current = value.value_at(time);
+    let mut current = value.value_at(evaluation_time);
     current[axis] = next as f32;
     if target.minimum.is_some() {
         current = current.max(Vec3::splat(target.minimum.unwrap_or_default() as f32));
     }
-    if set_value(value, time, current) {
+    if set_value(value, keyframe_time, current) {
         drop(project);
         player_state::refresh_project(
             player,
@@ -348,17 +351,21 @@ fn toggle_keyframes(
 ) -> bool {
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let Some(time) = crate::video::visual_local_time(&project, key.clone(), position) else {
+    let Some(evaluation_time) = crate::video::visual_local_time(&project, key.clone(), position)
+    else {
+        return false;
+    };
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
         return false;
     };
     let Some(value) = target.value_mut(&mut project, key.clone()) else {
         return false;
     };
-    let current = value.value_at(time);
+    let current = value.value_at(evaluation_time);
     match (&mut value.base, enabled) {
         (TimelineBase::Const(_), false) | (TimelineBase::Keyframes(_), true) => return false,
         (base @ TimelineBase::Const(_), true) => {
-            *base = TimelineBase::Keyframes(vec![Vec3::keyframe(time, current)]);
+            *base = TimelineBase::Keyframes(vec![Vec3::keyframe(keyframe_time, current)]);
         }
         (base @ TimelineBase::Keyframes(_), false) => *base = TimelineBase::Const(current),
     }
@@ -524,31 +531,6 @@ fn actions(
     let project = context.project.clone();
     let player = context.player_state.clone();
     KeyframeEditorActions {
-        playhead: {
-            let key = key.clone();
-            let project = project.clone();
-            let player = player.clone();
-            Rc::new(move || {
-                crate::video::visual_local_time(
-                    &project.borrow(),
-                    key.clone(),
-                    player_state::snapshot(&player).position,
-                )
-                .unwrap_or(Time::ZERO)
-            })
-        },
-        select_time: {
-            let key = key.clone();
-            let project = project.clone();
-            let player = player.clone();
-            Rc::new(move |time| {
-                if let Some(position) =
-                    crate::video::visual_global_time(&project.borrow(), key.clone(), time)
-                {
-                    player_state::seek_time(&player, position);
-                }
-            })
-        },
         add_at_time: mutation(&project, &player, key.clone(), target, add_key),
         delete_at_time: mutation(&project, &player, key.clone(), target, delete_key),
         update_point: {
@@ -574,9 +556,8 @@ fn actions(
             let player = player.clone();
             Rc::new(move |clipboard, time| {
                 let mut project = project.borrow_mut();
-                let frame_step = keyframe_editor::project_frame_step(&project);
                 let value = target.value_mut(&mut project, key.clone())?;
-                let times = keyframe_model::paste_keyframes(value, clipboard, time, frame_step)?;
+                let times = keyframe_model::paste_keyframes(value, clipboard, time)?;
                 commit_refresh(project, &player, true);
                 Some(times)
             })
@@ -732,7 +713,9 @@ fn set_value(value: &mut TimelineValue<Vec3>, time: Time, next: Vec3) -> bool {
                 .iter_mut()
                 .find(|value| value.time.approx_eq(time))
             {
+                keyframe.time = time;
                 keyframe.value = next;
+                keyframes.sort_by_key(|keyframe| keyframe.time);
             } else {
                 insert_keyframe(keyframes, Vec3::keyframe(time, next));
             }

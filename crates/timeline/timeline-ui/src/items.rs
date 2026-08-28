@@ -330,8 +330,8 @@ pub(super) struct TimelineClipboard {
 #[derive(Clone)]
 struct CopiedItem {
     track_index: usize,
-    start_offset: u64,
-    duration: u64,
+    start_offset: Time,
+    duration: Time,
     item: ProjectItem,
 }
 

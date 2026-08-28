@@ -89,7 +89,6 @@ fn paint_stroke_controls(transform: &Transform, context: &InspectorContext) -> V
             },
             scope_id: Some(transform.rotation_degrees.id),
             local_time: crate::video::visual_local_time,
-            global_time: crate::video::visual_global_time,
             duration: crate::video::visual_duration,
             refresh: paint_refresh(),
             commit_name: "paint-stroke-transform",
@@ -123,7 +122,6 @@ fn paint_vec_target(
         },
         scope_id: None,
         local_time: crate::video::visual_local_time,
-        global_time: crate::video::visual_global_time,
         duration: crate::video::visual_duration,
         refresh: paint_refresh(),
         commit_name: "paint-stroke-transform",
@@ -660,7 +658,8 @@ fn set_keyframes_enabled(
     let position = player_state::snapshot(player_state).position;
     let (current, local_time) = {
         let project_ref = project.borrow();
-        let Some(position) = project_ref.timeline_time_to_sequence(&key.track(), position) else {
+        let Some(sequence_position) = project_ref.timeline_time_to_sequence(&key.track(), position)
+        else {
             return false;
         };
         let Some(item) = project_ref.video_item(&key) else {
@@ -669,9 +668,9 @@ fn set_keyframes_enabled(
         if field_keyframes_enabled(&item.transform, field) == enabled {
             return false;
         }
-        let current = transform_eval::resolve_item_base_transform(&project_ref, item, position);
-        let Some(local_time) = shrimply_project::project::generated_item_time(item, position)
-        else {
+        let current =
+            transform_eval::resolve_item_base_transform(&project_ref, item, sequence_position);
+        let Some(local_time) = project_ref.keyframe_time(&key, position) else {
             return false;
         };
         (current, local_time)

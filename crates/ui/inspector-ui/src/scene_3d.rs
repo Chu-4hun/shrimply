@@ -816,7 +816,6 @@ fn add_scalar(
             },
             scope_id: Some(value.id),
             local_time: crate::video::visual_local_time,
-            global_time: crate::video::visual_global_time,
             duration: scene_duration,
             refresh: ProjectChange {
                 video: true,
@@ -1006,7 +1005,6 @@ fn scene_color(
             access,
             scope_id: Some(value.id),
             local_time: crate::video::visual_local_time,
-            global_time: crate::video::visual_global_time,
             duration: scene_duration,
             refresh: ProjectChange {
                 video: true,

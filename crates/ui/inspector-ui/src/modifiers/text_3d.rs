@@ -391,13 +391,9 @@ fn update_text_value(context: &InspectorContext, id: Uuid, next: String) -> bool
     };
     let position = player_state::snapshot(&context.player_state).position;
     let mut project = context.project.borrow_mut();
-    let Some(time) = crate::video::visual_local_time(&project, key.clone(), position) else {
+    let Some(time) = project.keyframe_time(&key, position) else {
         return false;
     };
-    let time = crate::keyframe_model::snap_to_frame(
-        time,
-        crate::keyframe_editor::project_frame_step(&project),
-    );
     let Some(text) = text_mut(&mut project, key, id) else {
         return false;
     };
@@ -447,17 +443,17 @@ fn toggle_text_keyframes(context: &InspectorContext, id: Uuid, enabled: bool) ->
     };
     let position = player_state::snapshot(&context.player_state).position;
     let mut project = context.project.borrow_mut();
-    let Some(time) = crate::video::visual_local_time(&project, key.clone(), position) else {
+    let Some(evaluation_time) = crate::video::visual_local_time(&project, key.clone(), position)
+    else {
         return false;
     };
-    let time = crate::keyframe_model::snap_to_frame(
-        time,
-        crate::keyframe_editor::project_frame_step(&project),
-    );
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
+        return false;
+    };
     let Some(text) = text_mut(&mut project, key, id) else {
         return false;
     };
-    let current = text.text.value_at(time);
+    let current = text.text.value_at(evaluation_time);
     match (&mut text.text.base, enabled) {
         (shrimply_core::timeline_value::TimelineBase::Const(_), false)
         | (shrimply_core::timeline_value::TimelineBase::Keyframes(_), true) => return false,
@@ -465,7 +461,7 @@ fn toggle_text_keyframes(context: &InspectorContext, id: Uuid, enabled: bool) ->
             *base = shrimply_core::timeline_value::TimelineBase::Keyframes(vec![
                 shrimply_core::timeline_value::TimelineTextKeyframe {
                     id: Uuid::new_v4(),
-                    time,
+                    time: keyframe_time,
                     value: current,
                     text_interpolation_to_next: Default::default(),
                     interpolation_to_next: Default::default(),

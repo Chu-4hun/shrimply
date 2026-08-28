@@ -18,6 +18,7 @@ __pycache__/
 /server/quantized-cache
 /server/lora-cache
 /sample_project.json
+/shared.md
 *.automerge
 *.shrimp
 *.ptx

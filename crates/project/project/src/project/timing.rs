@@ -1,7 +1,5 @@
 use super::*;
-use shrimply_math_core::{
-    fraction_floor_i64, fraction_rem_euclid, frame_index, time_from_signed_frame,
-};
+use shrimply_math_core::{fraction_floor_i64, fraction_rem_euclid};
 
 pub fn default_playback_speed() -> Fraction {
     fraction_from_integer(1)
@@ -123,20 +121,9 @@ pub fn generated_item_time(item: &VideoItem, position: Time) -> Option<Time> {
 
 /// Unclamped animation time for authoring generated content at the playhead.
 pub fn generated_item_animation_time(item: &VideoItem, position: Time) -> Time {
-    quantize_playback_time(
-        position
-            .signed_sub(item.start)
-            .saturating_add(item.animation_time_offset),
-        item.playback_fps,
-    )
-}
-
-fn quantize_playback_time(time: Time, fps: Fraction) -> Time {
-    let Some(frame) = frame_index(time, fps) else {
-        return time;
-    };
-    time_from_signed_frame(frame, fps)
-        .expect("validated playback FPS and frame must produce an exact time")
+    position
+        .signed_sub(item.start)
+        .saturating_add(item.animation_time_offset)
 }
 
 pub fn generated_item_keyframe_span(item: &VideoItem) -> Option<(Time, Time)> {

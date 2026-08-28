@@ -1526,7 +1526,6 @@ fn color_row(
             access: ColorAccess::Background { value_id: value.id },
             scope_id: None,
             local_time: video_local_time_for_key,
-            global_time: video_global_time_for_key,
             duration: video_duration_for_key,
             refresh: background_refresh(),
             commit_name: "edit-background-color",
@@ -1539,7 +1538,6 @@ fn scalar_target(value_id: uuid::Uuid) -> ScalarTarget {
         access: ScalarAccess::Background { value_id },
         scope_id: None,
         local_time: video_local_time_for_key,
-        global_time: video_global_time_for_key,
         duration: video_duration_for_key,
         refresh: background_refresh(),
         commit_name: "edit-background-scalar",
@@ -1551,7 +1549,6 @@ fn vec_target(value_id: uuid::Uuid) -> VecTarget {
         access: VecAccess::Background { value_id },
         scope_id: None,
         local_time: video_local_time_for_key,
-        global_time: video_global_time_for_key,
         duration: video_duration_for_key,
         refresh: background_refresh(),
         commit_name: "edit-background-vector",
@@ -1568,10 +1565,6 @@ fn background_refresh() -> ProjectChange {
 
 fn video_local_time_for_key(project: &Project, key: InspectedItem, position: Time) -> Option<Time> {
     crate::video::visual_local_time(project, key, position)
-}
-
-fn video_global_time_for_key(project: &Project, key: InspectedItem, time: Time) -> Option<Time> {
-    crate::video::visual_global_time(project, key, time)
 }
 
 fn video_duration_for_key(project: &Project, key: InspectedItem) -> Option<Time> {
@@ -1651,11 +1644,10 @@ fn update_integer(
     let Some(key) = key else { return };
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let Some(time) = crate::video::visual_local_time(&project, key.clone(), position) else {
+    let Some(time) = project.keyframe_time(&key, position) else {
         return;
     };
     let step = crate::keyframe_editor::project_frame_step(&project);
-    let time = crate::keyframe_model::snap_to_frame(time, step);
     let Some(value) = background_integer_mut(&mut project, &key, value_id) else {
         return;
     };
@@ -1695,15 +1687,19 @@ fn toggle_integer_keyframes(
     let Some(key) = key else { return };
     let position = player_state::snapshot(player).position;
     let mut project = project.borrow_mut();
-    let Some(time) = crate::video::visual_local_time(&project, key.clone(), position) else {
+    let Some(evaluation_time) = crate::video::visual_local_time(&project, key.clone(), position)
+    else {
+        return;
+    };
+    let Some(keyframe_time) = project.keyframe_time(&key, position) else {
         return;
     };
     let Some(value) = background_integer_mut(&mut project, &key, value_id) else {
         return;
     };
-    let current = value.value_at(time);
+    let current = value.value_at(evaluation_time);
     value.base = if enabled {
-        TimelineBase::Keyframes(vec![u32::keyframe(time, current)])
+        TimelineBase::Keyframes(vec![u32::keyframe(keyframe_time, current)])
     } else {
         TimelineBase::Const(current)
     };
