@@ -10,6 +10,7 @@ async-channel.workspace = true
 ffmpeg-next.workspace = true
 glam.workspace = true
 gtk.workspace = true
+num-format.workspace = true
 num-traits.workspace = true
 pango = { workspace = true, features = ["v1_56"] }
 reqwest = { workspace = true, features = ["blocking"] }

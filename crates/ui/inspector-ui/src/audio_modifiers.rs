@@ -1,5 +1,5 @@
 use shrimply_ui_foundation::tr;
-use shrimply_ui_foundation::ui::I18nWidgetExt;
+use shrimply_ui_foundation::ui::{I18nWidgetExt, switch_row};
 use std::rc::Rc;
 use std::thread;
 
@@ -167,21 +167,6 @@ fn controls(rows: impl IntoIterator<Item = gtk::Widget>) -> Vec<gtk::Widget> {
     vec![out.upcast()]
 }
 
-fn switch_row(label: &str, active: bool) -> (gtk::Widget, gtk::Switch) {
-    let row = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-    let label = gtk::Label::new(Some(label));
-    label.set_halign(gtk::Align::Start);
-    label.set_hexpand(true);
-    let toggle = gtk::Switch::builder()
-        .active(active)
-        .halign(gtk::Align::End)
-        .valign(gtk::Align::Center)
-        .build();
-    row.append(&label);
-    row.append(&toggle);
-    (row.upcast(), toggle)
-}
-
 fn scalar(
     label: &str,
     value: &crate::timeline_value::TimelineValue<f32>,
@@ -240,16 +225,20 @@ fn pitch_rows(value: &PitchModifier, id: Uuid, context: &InspectorContext) -> Ve
         ],
         move |quality| update_pitch_quality(&detached, id, quality),
     );
-    let (formants_row, formants) = switch_row("Preserve formants", value.preserve_formants);
     let detached = context.detached();
-    formants.connect_active_notify(move |toggle| {
-        update_formants(&detached, id, toggle.is_active());
-    });
-    let (linked_row, linked) = switch_row("Link stereo channels", value.link_channels);
+    let formants_row = switch_row(
+        "Preserve formants",
+        None,
+        value.preserve_formants,
+        move |active| update_formants(&detached, id, active),
+    );
     let detached = context.detached();
-    linked.connect_active_notify(move |toggle| {
-        update_pitch_link_channels(&detached, id, toggle.is_active());
-    });
+    let linked_row = switch_row(
+        "Link stereo channels",
+        None,
+        value.link_channels,
+        move |active| update_pitch_link_channels(&detached, id, active),
+    );
     let mut rows = vec![
         quality.upcast(),
         scalar(
@@ -703,10 +692,9 @@ fn voice_color_rows(
     id: Uuid,
     context: &InspectorContext,
 ) -> Vec<gtk::Widget> {
-    let (auto_level_row, auto_level) = switch_row("Auto level", value.auto_level);
     let detached = context.detached();
-    auto_level.connect_active_notify(move |toggle| {
-        update_voice_color_auto_level(&detached, id, toggle.is_active());
+    let auto_level_row = switch_row("Auto level", None, value.auto_level, move |active| {
+        update_voice_color_auto_level(&detached, id, active);
     });
     controls([
         scalar(
@@ -723,10 +711,9 @@ fn voice_color_rows(
 }
 
 fn echo_rows(value: &EchoModifier, id: Uuid, context: &InspectorContext) -> Vec<gtk::Widget> {
-    let (ping_pong_row, ping_pong) = switch_row("Ping-pong", value.ping_pong);
     let detached = context.detached();
-    ping_pong.connect_active_notify(move |toggle| {
-        update_echo_ping_pong(&detached, id, toggle.is_active());
+    let ping_pong_row = switch_row("Ping-pong", None, value.ping_pong, move |active| {
+        update_echo_ping_pong(&detached, id, active);
     });
     controls([
         scalar(
@@ -883,11 +870,12 @@ fn voice_change_rows(
         });
     });
 
-    let (maintain_pitch_row, maintain_pitch) =
-        switch_row("Maintain pitch while changing speed", value.maintain_pitch);
     let detached = context.detached();
-    maintain_pitch.connect_active_notify(move |toggle| {
-        let maintain_pitch = toggle.is_active();
+    let maintain_pitch_row = switch_row(
+        "Maintain pitch while changing speed",
+        None,
+        value.maintain_pitch,
+        move |maintain_pitch| {
         update_voice_change(&detached, id, "audio-voice-maintain-pitch", move |value| {
             if value.maintain_pitch == maintain_pitch {
                 false
@@ -896,7 +884,8 @@ fn voice_change_rows(
                 true
             }
         });
-    });
+        },
+    );
 
     controls([
         model.widget().clone(),

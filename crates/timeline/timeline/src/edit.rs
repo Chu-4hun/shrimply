@@ -198,6 +198,34 @@ pub fn set_track_enabled(
     Ok(())
 }
 
+pub fn set_caption_track_language(
+    project: &mut Project,
+    address: &TrackAddress,
+    language: Option<String>,
+) -> Result<(), String> {
+    match project
+        .track_mut(address)
+        .ok_or_else(|| "track was not found".to_string())?
+    {
+        TrackMut::Caption(track) => {
+            track.language = language;
+            Ok(())
+        }
+        TrackMut::Video(_) | TrackMut::Audio(_) => {
+            Err("language applies only to caption tracks".to_string())
+        }
+    }
+}
+
+pub fn delete_track(project: &mut Project, address: &TrackAddress) -> Result<(), String> {
+    if !project.remove_track(address) {
+        return Err("track was not found".to_string());
+    }
+    project.prune_folded_sequences();
+    project.normalize_clip_transitions();
+    Ok(())
+}
+
 pub fn set_caption_text(
     project: &mut Project,
     address: &ItemAddress,

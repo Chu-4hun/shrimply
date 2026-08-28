@@ -1,5 +1,5 @@
 use gtk::prelude::*;
-use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::ui::switch_row;
 use uuid::Uuid;
 
 use super::{InspectorContext, ScalarOptions, scalar_row};
@@ -28,22 +28,10 @@ pub fn add_rows(value: &LumaKeyModifier, out: &gtk::Box, id: Uuid, context: &Ins
         context,
     ));
 
-    let row = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-    let label = gtk::Label::new(Some(tr!("Invert").as_ref()));
-    label.set_halign(gtk::Align::Start);
-    label.set_hexpand(true);
-    let invert = gtk::Switch::builder()
-        .active(value.invert)
-        .halign(gtk::Align::End)
-        .valign(gtk::Align::Center)
-        .build();
-    row.append(&label);
-    row.append(&invert);
-
     let project = context.project.clone();
     let player = context.player_state.clone();
     let key = context.selected_item.clone();
-    invert.connect_active_notify(move |toggle| {
+    out.append(&switch_row("Invert", None, value.invert, move |active| {
         let Some(key) = key.clone() else { return };
         let mut project = project.borrow_mut();
         let Some(effect) = project
@@ -59,10 +47,10 @@ pub fn add_rows(value: &LumaKeyModifier, out: &gtk::Box, id: Uuid, context: &Ins
         else {
             return;
         };
-        if effect.invert == toggle.is_active() {
+        if effect.invert == active {
             return;
         }
-        effect.invert = toggle.is_active();
+        effect.invert = active;
         shrimply_project::project::commit_edit(&project, "edit-luma-key-invert");
         drop(project);
         player_state::refresh_project(
@@ -72,6 +60,5 @@ pub fn add_rows(value: &LumaKeyModifier, out: &gtk::Box, id: Uuid, context: &Ins
                 ..Default::default()
             },
         );
-    });
-    out.append(&row);
+    }));
 }

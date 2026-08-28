@@ -266,6 +266,18 @@ pub struct SetTrackEnabledRequest {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct SetCaptionTrackLanguageRequest {
+    pub address: TrackAddress,
+    /// CLDR locale identifier such as en_US, en_GB, or ja_JP. Null clears it.
+    pub language: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct DeleteTrackRequest {
+    pub address: TrackAddress,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct CreateTrackRequest {
     pub kind: ClipKind,
     pub scope: Option<ScopeRef>,
@@ -288,6 +300,8 @@ pub enum EditOperation {
     DeleteClips(DeleteClipsRequest),
     SetClipProperties(SetClipPropertiesRequest),
     SetTrackEnabled(SetTrackEnabledRequest),
+    SetCaptionTrackLanguage(SetCaptionTrackLanguageRequest),
+    DeleteTrack(DeleteTrackRequest),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
@@ -315,6 +329,8 @@ pub struct TimeSpan {
 pub struct TrackSummary {
     pub address: TrackAddress,
     pub enabled: bool,
+    /// Set only for caption tracks.
+    pub language: Option<String>,
     pub clip_count: usize,
 }
 

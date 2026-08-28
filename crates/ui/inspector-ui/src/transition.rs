@@ -9,7 +9,7 @@ use shrimply_project::project::{
     WriteOrdering, visual_transition_default_interpolation, visual_transition_effect_defaults,
 };
 use shrimply_ui_foundation::tr;
-use shrimply_ui_foundation::ui::ColorPicker;
+use shrimply_ui_foundation::ui::{ColorPicker, switch_row};
 
 use super::{Inspectable, InspectorContext, section::InspectorSection, selector::selector};
 
@@ -389,17 +389,13 @@ fn add_visual_clip_center(
 }
 
 fn add_visual_clip_fade(section: &InspectorSection, context: &InspectorContext, active: bool) {
-    let fade = gtk::Switch::builder()
-        .active(active)
-        .halign(gtk::Align::End)
-        .build();
-    section.add_control_row("Fade opacity", &fade);
     let fade_context = context.detached();
-    fade.connect_active_notify(move |toggle| {
+    let fade = switch_row("Fade opacity", None, active, move |active| {
         update_visual_clip(&fade_context, true, |transition| {
-            transition.fade_opacity = toggle.is_active()
+            transition.fade_opacity = active
         })
     });
+    section.add_wide_control(&fade);
 }
 
 fn audio_clip_rows(
@@ -793,17 +789,13 @@ fn visual_rows(
                 Some(unit),
                 |value| &mut value.effect_amount,
             );
-            let fade = gtk::Switch::builder()
-                .active(transition.effect_fade)
-                .halign(gtk::Align::End)
-                .build();
-            section.add_control_row("Fade opacity", &fade);
             let fade_context = context.detached();
-            fade.connect_active_notify(move |toggle| {
+            let fade = switch_row("Fade opacity", None, transition.effect_fade, move |active| {
                 update_visual(&fade_context, side, true, |value| {
-                    value.effect_fade = toggle.is_active()
+                    value.effect_fade = active
                 })
             });
+            section.add_wide_control(&fade);
         }
         VisualTransitionKind::Dissolve => {
             add_effect_number(
@@ -1136,29 +1128,26 @@ fn visual_rows(
                 None,
                 |value| &mut value.effect_detail,
             );
-            let fade = gtk::Switch::builder()
-                .active(transition.effect_fade)
-                .halign(gtk::Align::End)
-                .build();
-            section.add_control_row("Fade opacity", &fade);
             let fade_context = context.detached();
-            fade.connect_active_notify(move |toggle| {
+            let fade = switch_row("Fade opacity", None, transition.effect_fade, move |active| {
                 update_visual(&fade_context, side, true, |value| {
-                    value.effect_fade = toggle.is_active()
+                    value.effect_fade = active
                 })
             });
+            section.add_wide_control(&fade);
 
-            let evolve = gtk::Switch::builder()
-                .active(transition.effect_evolve_seed)
-                .halign(gtk::Align::End)
-                .build();
-            section.add_control_row("Evolve seed", &evolve);
             let evolve_context = context.detached();
-            evolve.connect_active_notify(move |toggle| {
+            let evolve = switch_row(
+                "Evolve seed",
+                None,
+                transition.effect_evolve_seed,
+                move |active| {
                 update_visual(&evolve_context, side, true, |value| {
-                    value.effect_evolve_seed = toggle.is_active()
+                    value.effect_evolve_seed = active
                 })
-            });
+                },
+            );
+            section.add_wide_control(&evolve);
 
             if transition.effect_evolve_seed {
                 let change_context = context.detached();

@@ -10,7 +10,7 @@ use shrimply_project::project::{
     CaptionEdgeStyle, CaptionFont, CaptionItem, CaptionWritingDirection, Color, HorizontalAlign,
     Project, VerticalAlign,
 };
-use shrimply_ui_foundation::ui::{ColorPicker, MultilineTextInput};
+use shrimply_ui_foundation::ui::{ColorPicker, MultilineTextInput, switch_row};
 
 use super::{
     Inspectable, InspectorContext,
@@ -462,22 +462,16 @@ fn add_enabled_editor(
     enabled: bool,
     set: fn(&mut CaptionItem, bool),
 ) {
-    let toggle = gtk::Switch::builder()
-        .active(enabled)
-        .halign(gtk::Align::End)
-        .build();
-    section.add_control_row(label, &toggle);
-
     let project = context.project.clone();
     let player_state = context.player_state.clone();
     let refresh = context.refresh.clone();
-    toggle.connect_active_notify(move |toggle| {
-        let enabled = toggle.is_active();
+    let row = switch_row(label, None, enabled, move |enabled| {
         update_caption(&project, &player_state, key.clone(), |item| {
             set(item, enabled);
         });
         refresh();
     });
+    section.add_wide_control(&row);
 }
 
 fn add_number_editor(

@@ -365,6 +365,40 @@ impl ShrimplyServer {
     }
 
     #[tool(
+        description = "Set or clear a caption track's CLDR locale identifier, such as en_US, en_GB, or ja_JP"
+    )]
+    async fn set_caption_track_language(
+        &self,
+        Parameters(request): Parameters<SetCaptionTrackLanguageRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single(
+                "MCP set caption track language",
+                EditOperation::SetCaptionTrackLanguage(request),
+            ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "Delete a fully addressed caption, visual, or audio track and all of its clips",
+        annotations(destructive_hint = true)
+    )]
+    async fn delete_track(
+        &self,
+        Parameters(request): Parameters<DeleteTrackRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single("MCP delete track", EditOperation::DeleteTrack(request)),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
         description = "Run an ordered typed edit program atomically as one MCP edit script history action"
     )]
     async fn run_edit_script(

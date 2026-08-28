@@ -166,6 +166,8 @@ pub struct CaptionTrack {
     pub id: Uuid,
     #[serde(default = "default_true")]
     pub enabled: bool,
+    #[serde(default)]
+    pub language: Option<String>,
     pub items: Vec<CaptionItem>,
 }
 
@@ -201,6 +203,7 @@ impl Default for CaptionTrack {
         Self {
             id: Uuid::new_v4(),
             enabled: true,
+            language: None,
             items: Vec::new(),
         }
     }

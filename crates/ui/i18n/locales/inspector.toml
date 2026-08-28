@@ -2530,6 +2530,16 @@ ja = "レイアウト"
 "zh-TW" = "版面配置"
 "ko" = "레이아웃"
 
+["Language"]
+en = "Language"
+es = "Idioma"
+fr = "Langue"
+de = "Sprache"
+ja = "言語"
+"zh-CN" = "语言"
+"zh-TW" = "語言"
+ko = "언어"
+
 ["Left"]
 en = "Left"
 es = "Izquierda"

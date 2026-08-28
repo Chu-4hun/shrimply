@@ -1,5 +1,8 @@
 use adw::prelude::*;
-use shrimply_ui_foundation::tr;
+use shrimply_ui_foundation::{
+    tr,
+    ui::{StringChoice, labeled_string_selector, switch_row},
+};
 
 use crate::player_state::{self, ProjectChange};
 use shrimply_project::project::{ItemKind, Project, TrackAddress, TrackMut, TrackRef};
@@ -11,15 +14,16 @@ pub(super) struct TrackInspection {
     kind: ItemKind,
     ordinal: usize,
     pub(super) enabled: bool,
+    pub(super) language: Option<String>,
     pub(super) item_count: usize,
 }
 
 impl TrackInspection {
     pub(super) fn resolve(project: &Project, address: TrackAddress) -> Option<Self> {
-        let (enabled, item_count) = match project.track(&address)? {
-            TrackRef::Caption(track) => (track.enabled, track.items.len()),
-            TrackRef::Video(track) => (track.enabled, track.items.len()),
-            TrackRef::Audio(track) => (track.enabled, track.items.len()),
+        let (enabled, language, item_count) = match project.track(&address)? {
+            TrackRef::Caption(track) => (track.enabled, track.language.clone(), track.items.len()),
+            TrackRef::Video(track) => (track.enabled, None, track.items.len()),
+            TrackRef::Audio(track) => (track.enabled, None, track.items.len()),
         };
         let ordinal = match &address {
             TrackAddress::Caption { track_id } => project
@@ -46,6 +50,7 @@ impl TrackInspection {
             address,
             ordinal,
             enabled,
+            language,
             item_count,
         })
     }
@@ -63,55 +68,99 @@ impl Inspectable for TrackInspection {
     fn add_rows(&self, _section: &InspectorSection, _context: &InspectorContext) {}
 
     fn inspect(&self, context: &InspectorContext) -> Vec<gtk::Widget> {
-        let actions = adw::PreferencesGroup::new();
-        let enabled = adw::ActionRow::builder()
-            .title(tr!("Enabled").as_ref())
-            .subtitle(tr!("Include this track in playback and export").as_ref())
-            .build();
-        let enabled_toggle = gtk::Switch::builder()
-            .active(self.enabled)
-            .valign(gtk::Align::Center)
-            .build();
-        enabled.add_suffix(&enabled_toggle);
-        enabled.set_activatable_widget(Some(&enabled_toggle));
+        let track = InspectorSection::controls();
         let project = context.project.clone();
         let player_state = context.player_state.clone();
         let kind = self.kind;
         let address = self.address.clone();
-        enabled_toggle.connect_active_notify(move |toggle| {
-            let next = toggle.is_active();
-            let mut project = project.borrow_mut();
-            let Some(track) = project.track_mut(&address) else {
-                return;
-            };
-            let enabled = match track {
-                TrackMut::Caption(track) => &mut track.enabled,
-                TrackMut::Video(track) => &mut track.enabled,
-                TrackMut::Audio(track) => &mut track.enabled,
-            };
-            if *enabled == next {
-                return;
-            }
-            *enabled = next;
-            shrimply_project::project::commit_edit(&project, "toggle-track-enabled");
-            let duration = project.duration();
-            drop(project);
-            player_state::refresh_project(
-                &player_state,
-                ProjectChange {
-                    duration: Some(duration),
-                    frame_rate: None,
-                    audio: kind == ItemKind::Audio,
-                    audio_beats: kind == ItemKind::Audio,
-                    audio_waveforms: kind == ItemKind::Audio,
-                    video: kind == ItemKind::Video,
-                    live_preview: false,
-                    captions: kind == ItemKind::Caption,
-                    inspector: true,
+        let enabled = switch_row(
+            "Enabled",
+            Some("Include this track in playback and export"),
+            self.enabled,
+            move |next| {
+                let mut project = project.borrow_mut();
+                let Some(track) = project.track_mut(&address) else {
+                    return;
+                };
+                let enabled = match track {
+                    TrackMut::Caption(track) => &mut track.enabled,
+                    TrackMut::Video(track) => &mut track.enabled,
+                    TrackMut::Audio(track) => &mut track.enabled,
+                };
+                if *enabled == next {
+                    return;
+                }
+                *enabled = next;
+                shrimply_project::project::commit_edit(&project, "toggle-track-enabled");
+                let duration = project.duration();
+                drop(project);
+                player_state::refresh_project(
+                    &player_state,
+                    ProjectChange {
+                        duration: Some(duration),
+                        frame_rate: None,
+                        audio: kind == ItemKind::Audio,
+                        audio_beats: kind == ItemKind::Audio,
+                        audio_waveforms: kind == ItemKind::Audio,
+                        video: kind == ItemKind::Video,
+                        live_preview: false,
+                        captions: kind == ItemKind::Caption,
+                        inspector: true,
+                    },
+                );
+            },
+        );
+        track.add_wide_control(&enabled);
+
+        if self.kind == ItemKind::Caption {
+            let language = labeled_string_selector(
+                "Language",
+                self.language.as_deref().unwrap_or_default(),
+                std::iter::once(StringChoice {
+                    value: String::new(),
+                    label: tr!("None").into_owned(),
+                })
+                .chain(
+                    num_format::Locale::available_names()
+                        .iter()
+                        .map(|language| StringChoice {
+                            value: (*language).to_owned(),
+                            label: (*language).to_owned(),
+                        }),
+                )
+                .collect(),
+                {
+                    let project = context.project.clone();
+                    let player_state = context.player_state.clone();
+                    let address = self.address.clone();
+                    move |language| {
+                        let language = (!language.is_empty()).then_some(language);
+                        let mut project = project.borrow_mut();
+                        let Some(TrackMut::Caption(track)) = project.track_mut(&address) else {
+                            return;
+                        };
+                        if track.language == language {
+                            return;
+                        }
+                        track.language = language;
+                        shrimply_project::project::commit_edit(
+                            &project,
+                            "set-caption-track-language",
+                        );
+                        drop(project);
+                        player_state::refresh_project(
+                            &player_state,
+                            ProjectChange {
+                                captions: true,
+                                inspector: true,
+                                ..ProjectChange::default()
+                            },
+                        );
+                    }
                 },
             );
-        });
-        actions.add(&enabled);
+            track.add_wide_control(language.widget());
+        }
 
         let info = adw::PreferencesGroup::new();
         info.add(
@@ -136,10 +185,10 @@ impl Inspectable for TrackInspection {
         list::render_categories(
             vec![
                 list::InspectorCategory {
-                    key: "actions",
-                    label: "Actions",
-                    icon: "general-properties-symbolic",
-                    items: vec![flat(actions)],
+                    key: "track",
+                    label: "Track",
+                    icon: "sliders-horizontal-symbolic",
+                    items: vec![flat(track.into_widget())],
                 },
                 list::InspectorCategory {
                     key: "info",

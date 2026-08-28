@@ -10,6 +10,7 @@ mod progress_button;
 mod selector;
 mod single_line_text_input;
 mod split_button;
+mod switch_row;
 
 pub use color_picker::{ColorPicker, ColorPickerBuilder};
 pub use control_row::control_row;
@@ -25,3 +26,4 @@ pub use selector::{
 };
 pub use single_line_text_input::{SingleLineTextInput, SingleLineTextInputBuilder};
 pub use split_button::split_button;
+pub use switch_row::switch_row;

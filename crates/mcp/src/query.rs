@@ -508,6 +508,7 @@ fn scope_tracks(project: &Project, scope: &ScopeRef) -> Result<Vec<TrackSummary>
                 track_id: track.id.to_string(),
             },
             enabled: track.enabled,
+            language: track.language.clone(),
             clip_count: track.items.len(),
         }));
     }
@@ -520,6 +521,7 @@ fn scope_tracks(project: &Project, scope: &ScopeRef) -> Result<Vec<TrackSummary>
                 track_id: track.id.to_string(),
             },
             enabled: track.enabled,
+            language: None,
             clip_count: track.items.len(),
         }));
     }
@@ -532,6 +534,7 @@ fn scope_tracks(project: &Project, scope: &ScopeRef) -> Result<Vec<TrackSummary>
                 track_id: track.id.to_string(),
             },
             enabled: track.enabled,
+            language: None,
             clip_count: track.items.len(),
         }));
     }
@@ -550,16 +553,19 @@ fn track_summary(project: &Project, address: &TrackAddress) -> Result<TrackSumma
         TrackRef::Caption(track) => Ok(TrackSummary {
             address: address.clone(),
             enabled: track.enabled,
+            language: track.language.clone(),
             clip_count: track.items.len(),
         }),
         TrackRef::Video(track) => Ok(TrackSummary {
             address: address.clone(),
             enabled: track.enabled,
+            language: None,
             clip_count: track.items.len(),
         }),
         TrackRef::Audio(track) => Ok(TrackSummary {
             address: address.clone(),
             enabled: track.enabled,
+            language: None,
             clip_count: track.items.len(),
         }),
     }

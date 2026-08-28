@@ -856,6 +856,7 @@ fn apply_transcription(
     project_state.caption_tracks.push(CaptionTrack {
         id: uuid::Uuid::new_v4(),
         enabled: true,
+        language: None,
         items,
     });
     if let Err(error) = project_state.validate() {

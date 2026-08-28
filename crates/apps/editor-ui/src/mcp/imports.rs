@@ -1141,5 +1141,7 @@ fn operation_name(operation: &EditOperation) -> &'static str {
         EditOperation::DeleteClips(_) => "delete_clips",
         EditOperation::SetClipProperties(_) => "set_clip_properties",
         EditOperation::SetTrackEnabled(_) => "set_track_enabled",
+        EditOperation::SetCaptionTrackLanguage(_) => "set_caption_track_language",
+        EditOperation::DeleteTrack(_) => "delete_track",
     }
 }

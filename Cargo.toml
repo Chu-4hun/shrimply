@@ -126,6 +126,7 @@ nalgebra = "0.35"
 ndarray = "0.17"
 nnnoiseless = "0.5"
 notify = "8"
+num-format = "0.4"
 num-traits = "0.2"
 oklab = "1"
 opencv = { version = "0.100", default-features = false, features = ["calib3d", "clang-runtime", "imgproc", "video", "videoio"] }

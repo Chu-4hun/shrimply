@@ -1,7 +1,9 @@
 use std::collections::HashSet;
 
 use shrimply_math_core::{Fraction, Time, fraction_new, time_from_frame};
-use shrimply_project::project::{Project, RepeatStrategy, SequenceScopeId, Time as ProjectTime};
+use shrimply_project::project::{
+    Project, RepeatStrategy, SequenceScopeId, Time as ProjectTime, TrackRef,
+};
 use shrimply_timeline::edit::{self, CollisionBehavior as ModelCollision};
 use uuid::Uuid;
 
@@ -191,6 +193,50 @@ pub fn apply_non_import(
                     .filter_map(|clip| Uuid::parse_str(&clip.address.item_id).ok())
                     .collect(),
                 changed_tracks: crate::query::addresses_for_tracks(project, &track_ids)?,
+                ..Default::default()
+            })
+        }
+        EditOperation::SetCaptionTrackLanguage(request) => {
+            if let Some(language) = &request.language
+                && num_format::Locale::from_name(language).is_err()
+            {
+                return Err(format!(
+                    "{language} is not a supported CLDR locale identifier"
+                ));
+            }
+            let address = model_track_address(&request.address)?;
+            edit::set_caption_track_language(project, &address, request.language.clone())?;
+            let track_ids = [address.track_id()].into_iter().collect();
+            let presentations = crate::query::presentations_for_tracks(project, &track_ids)?;
+            Ok(MutationResult {
+                changed_item_ids: presentations
+                    .iter()
+                    .filter_map(|clip| Uuid::parse_str(&clip.address.item_id).ok())
+                    .collect(),
+                changed_tracks: crate::query::addresses_for_tracks(project, &track_ids)?,
+                ..Default::default()
+            })
+        }
+        EditOperation::DeleteTrack(request) => {
+            let address = model_track_address(&request.address)?;
+            let item_ids = match project
+                .track(&address)
+                .ok_or_else(|| "track was not found".to_string())?
+            {
+                TrackRef::Caption(track) => track.items.iter().map(|item| item.id).collect(),
+                TrackRef::Video(track) => track.items.iter().map(|item| item.id).collect(),
+                TrackRef::Audio(track) => track.items.iter().map(|item| item.id).collect(),
+            };
+            let deleted_presentations =
+                crate::query::presentations_affected_by_items(project, &item_ids)?;
+            edit::delete_track(project, &address)?;
+            Ok(MutationResult {
+                deleted_addresses: deleted_presentations
+                    .iter()
+                    .map(|clip| clip.address.clone())
+                    .collect(),
+                deleted_presentations,
+                changed_tracks: vec![request.address.clone()],
                 ..Default::default()
             })
         }
