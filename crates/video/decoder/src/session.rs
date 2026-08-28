@@ -708,10 +708,23 @@ struct OpenedNvidiaDecoder {
 fn open_nvidia_decoder(
     parameters: &ffmpeg::codec::Parameters,
 ) -> Result<OpenedNvidiaDecoder, String> {
-    let codec = ffmpeg::codec::decoder::find(parameters.id())
-        .ok_or_else(|| format!("no FFmpeg decoder available for {:?}", parameters.id()))?;
+    let codec_id = parameters.id();
+    let mut opaque = ptr::null_mut();
+    let codec = loop {
+        let codec = unsafe { sys::av_codec_iterate(&mut opaque) };
+        if codec.is_null() {
+            return Err(format!(
+                "no NVIDIA CUDA video decoder available for {codec_id:?}"
+            ));
+        }
+        if unsafe { sys::av_codec_is_decoder(codec) } != 0
+            && unsafe { (*codec).id } == codec_id.into()
+            && exposes_cuda_frames(codec)
+        {
+            break unsafe { ffmpeg::Codec::wrap(codec) };
+        }
+    };
     let decoder_name = codec.name().to_owned();
-    require_cuda_decoder_config(unsafe { codec.as_ptr() }, &decoder_name)?;
 
     let hw_device_ctx = create_cuda_device_context()?;
     let mut context = ffmpeg::codec::context::Context::from_parameters(parameters.clone())
@@ -744,28 +757,22 @@ fn open_nvidia_decoder(
     })
 }
 
-fn require_cuda_decoder_config(
-    codec: *const sys::AVCodec,
-    decoder_name: &str,
-) -> Result<(), String> {
+fn exposes_cuda_frames(codec: *const sys::AVCodec) -> bool {
     let mut index = 0;
     loop {
         let config = unsafe { sys::avcodec_get_hw_config(codec, index) };
         if config.is_null() {
-            break;
+            return false;
         }
         let config = unsafe { &*config };
         if config.device_type == sys::AVHWDeviceType::AV_HWDEVICE_TYPE_CUDA
             && config.pix_fmt == sys::AVPixelFormat::AV_PIX_FMT_CUDA
             && config.methods & sys::AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX as i32 != 0
         {
-            return Ok(());
+            return true;
         }
         index += 1;
     }
-    Err(format!(
-        "{decoder_name} does not expose CUDA hardware frames"
-    ))
 }
 
 unsafe extern "C" fn cuda_get_format(
