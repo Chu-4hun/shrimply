@@ -839,7 +839,10 @@ impl CudaVideoCompositor {
         &mut self,
         allocation_description: &str,
     ) -> Result<(), String> {
-        self.relieve_gpu_pressure(MIGRATE_ALL_REQUIRED_BYTES, allocation_description)
+        self.relieve_gpu_pressure(MIGRATE_ALL_REQUIRED_BYTES, allocation_description)?;
+        self.context
+            .synchronize()
+            .map_err(|error| format!("finish blocking CUDA GPU garbage collection: {error:?}"))
     }
 
     pub(crate) fn relieve_decoder_gpu_pressure(

@@ -837,7 +837,7 @@ impl VideoExportRenderer {
                 .mouth
                 .sample(project, position, volume_revision),
         };
-        let rendered = render_project_frame(
+        let mut rendered = render_project_frame(
             project,
             position,
             &mut self.sessions,
@@ -853,6 +853,43 @@ impl VideoExportRenderer {
             None,
             None,
         );
+        if rendered
+            .errors
+            .iter()
+            .any(|error| crate::decode::is_decoder_startup_pressure(error))
+        {
+            let _ = crate::decode::take_decoder_pressure();
+            self.sessions.decoders.reclaim_idle();
+            match self
+                .compositor
+                .relieve_all_gpu_pressure("export video decoder startup retry")
+            {
+                Ok(()) => {
+                    shrimply_benchmarking::increment(
+                        "Temporal decoder / Export starts retried after GPU relief",
+                    );
+                    rendered = render_project_frame(
+                        project,
+                        position,
+                        &mut self.sessions,
+                        &mut self.render_cache,
+                        &mut self.compositor,
+                        RenderMode::ExportContentAccurate {
+                            background_alpha,
+                            prepare_active_sources: self.prepare_active_sources,
+                        },
+                        &audio_analysis,
+                        item_ids,
+                        cache_item_id,
+                        None,
+                        None,
+                    );
+                }
+                Err(error) => rendered.errors.push(format!(
+                    "Could not collect GPU garbage for export video decoder retry: {error}"
+                )),
+            }
+        }
         if rendered.errors.is_empty() {
             match rendered.frame {
                 Some(frame) => Ok(frame),
