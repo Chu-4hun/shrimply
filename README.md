@@ -21,6 +21,7 @@ writing code:
 
 - Report and investigate [issues](https://github.com/soirihiroka/shrimply/issues)
 - Improve the documentation
+- Translate Shrimply's interface
 - Test editing workflows and project importers
 - Help other users
 

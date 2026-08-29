@@ -6,6 +6,10 @@ Shrimply brings your ideas to life.
 Shrimply is a free and open-source video editor for creating videos from start
 to finish, whether you are making a quick edit or something fancy.
 
+Visit the `Shrimply repository on GitHub
+<https://github.com/soirihiroka/shrimply>`__ to browse the source code, report
+issues, and contribute.
+
 .. image:: img/editor-overview.png
    :alt: Shrimply editor showing the inspector, video preview, and multitrack timeline
    :width: 100%
