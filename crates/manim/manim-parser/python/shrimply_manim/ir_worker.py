@@ -119,7 +119,14 @@ def run(args: WorkerArguments) -> None:
             ),
         )
         send(sock, packet("finished"))
-    except Exception:
+    except Exception as exception:
+        if isinstance(exception, ModuleNotFoundError) and exception.name == "manim":
+            exception.add_note(
+                "Shrimply uses ManimGL (`manimlib`), not Manim Community Edition "
+                "(`manim`). Rewrite this scene for ManimGL and import it with "
+                "`from manimlib import *`; changing only the import may not be "
+                "sufficient because the APIs differ."
+            )
         try:
             send(sock, packet("error", traceback.format_exc()))
         except OSError:
