@@ -24,6 +24,7 @@ shrimply-asset = { path = "../../asset" }
 shrimply-export-ui = { path = "../../export/export-ui" }
 shrimply-inspector-ui = { path = "../../ui/inspector-ui" }
 shrimply-math-core = { path = "../../math/core" }
+shrimply-manim-parser = { path = "../../manim/manim-parser" }
 shrimply-mcp = { path = "../../mcp", default-features = false }
 shrimply-otio = { path = "../../project/otio" }
 shrimply-kdenlive = { path = "../../project/kdenlive" }

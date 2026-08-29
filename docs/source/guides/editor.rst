@@ -25,6 +25,13 @@ The inspector follows the current selection:
 * Audio controls cover output, playback, generators, text-to-speech, and audio
   modifiers where applicable.
 
+The Info tab shows the selected clip's IDs, local and projected timing, source
+offset, and dimensions. For file-backed clips it loads a deeper source report
+in the background, including file and container details, every audio and video
+stream, codec properties, tags, chapters, embedded artwork, and image EXIF
+metadata when available. A metadata diagnostic is shown when a source or one of
+its optional metadata formats cannot be read.
+
 Timeline
 --------
 

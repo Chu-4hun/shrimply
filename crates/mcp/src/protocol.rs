@@ -93,6 +93,9 @@ pub struct BridgeRequest {
 pub enum BridgeCommand {
     Handshake,
     Snapshot,
+    GetManimClip(GetManimClipRequest),
+    SetManimClip(SetManimClipRequest),
+    ReloadManimSource(ReloadManimSourceRequest),
     ListTtsModels,
     Seek { frame: u64 },
     ViewFrame { frame: u64 },
@@ -180,6 +183,72 @@ pub struct QueryClipsRequest {
 pub struct GetClipRequest {
     pub address: Option<ClipAddress>,
     pub item_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct GetClipInfoRequest {
+    pub address: Option<ClipAddress>,
+    pub item_id: Option<String>,
+    #[serde(default)]
+    pub include_artwork: bool,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct GetManimClipRequest {
+    pub address: ClipAddress,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ManimColor {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "kind", content = "value")]
+pub enum ManimParameterValue {
+    Integer(i64),
+    Float(f64),
+    Fraction(ExactFraction),
+    Color(ManimColor),
+    Option(String),
+    Boolean(bool),
+    String(String),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct SetManimClipRequest {
+    pub address: ClipAddress,
+    /// Select a discovered scene. Changing scenes clears all parameter overrides.
+    pub scene: Option<String>,
+    /// Set an override by reflected key, or use null to reset that key to its scene default.
+    #[serde(default)]
+    pub parameters: BTreeMap<String, Option<ManimParameterValue>>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ReloadManimSourceRequest {
+    pub address: ClipAddress,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ManimClipResponse {
+    pub address: ClipAddress,
+    pub source: String,
+    pub source_revision: u64,
+    pub scene: String,
+    pub scenes: Vec<String>,
+    /// True once the current scene has rendered and reflected its controls.
+    pub parameters_ready: bool,
+    pub parameters: Vec<Value>,
+    pub error: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ReloadManimSourceResponse {
+    pub address: ClipAddress,
+    pub source_revision: u64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
@@ -507,6 +576,14 @@ pub struct ClipMetadata {
     pub owning_track: TrackSummary,
     pub asset: Option<AssetMetadata>,
     pub presentations: Vec<ClipSummary>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ClipInfo {
+    pub clip: ClipMetadata,
+    pub source: Option<shrimply_media_info::FileInfo>,
+    pub selected_stream_index: Option<usize>,
+    pub source_error: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]

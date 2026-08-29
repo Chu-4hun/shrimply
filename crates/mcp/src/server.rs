@@ -1,3 +1,4 @@
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use rmcp::handler::server::wrapper::Json;
 use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler, handler::server::wrapper::Parameters,
@@ -42,6 +43,9 @@ track when track is omitted. It can set the track language and copy styling from
 insert_tts creates an empty TTS audio item for inspector configuration. list_tts_models describes
 the current compute server's model inputs, and generate_tts synthesizes and inserts speech directly.
 get_track returns one fully addressed track and up to 500 timeline-ordered clips in one call.
+Python files import as Manim video clips. get_manim_clip returns discovered scenes, reflected
+parameter controls, and the current render error. set_manim_clip validates scene and parameter
+changes. reload_manim_source invalidates cached scene states and rebuilds from the Python source.
 
 Example direct move:
 {"address":{"kind":"video","sequence_path":[],"track_id":"…","item_id":"…"},"start_frame":120}
@@ -325,6 +329,65 @@ impl ShrimplyServer {
     }
 
     #[tool(
+        description = "Return a deep inspector-style dump for a clip, including filesystem, container, stream, tag, artwork, and image EXIF metadata. Embedded artwork bytes are returned as image content only when include_artwork is true",
+        annotations(read_only_hint = true)
+    )]
+    async fn get_clip_info(
+        &self,
+        Parameters(request): Parameters<GetClipInfoRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResult, McpError> {
+        let snapshot = self.snapshot(&context).await?;
+        let include_artwork = request.include_artwork;
+        let address = request.address;
+        let item_id = request.item_id;
+        let mut worker = tokio::task::spawn_blocking(move || {
+            query::get_clip_info(&snapshot, address.as_ref(), item_id.as_deref())
+        });
+        let info = tokio::select! {
+            result = &mut worker => result
+                .map_err(|error| internal_error(format!("clip info task failed: {error}")))?
+                .map_err(mcp_error)?,
+            () = context.ct.cancelled() => {
+                return Err(mcp_error("MCP request was canceled"));
+            }
+        };
+        let value = serde_json::to_value(&info)
+            .map_err(|error| internal_error(format!("could not encode clip info: {error}")))?;
+        let mut result = CallToolResult::structured(value);
+        if include_artwork && let Some(source) = &info.source {
+            result
+                .content
+                .extend(source.artwork.iter().filter_map(|artwork| {
+                    let mime_type = artwork.mime_type.as_deref()?;
+                    mime_type.starts_with("image/").then(|| {
+                        ContentBlock::image(BASE64.encode(&artwork.data), mime_type.to_string())
+                    })
+                }));
+        }
+        Ok(result)
+    }
+
+    #[tool(
+        description = "Inspect a Manim clip's discovered scenes, reflected parameter controls and values, and current render error",
+        annotations(read_only_hint = true)
+    )]
+    async fn get_manim_clip(
+        &self,
+        Parameters(request): Parameters<GetManimClipRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<ManimClipResponse>, McpError> {
+        let value = self
+            .request(BridgeCommand::GetManimClip(request), &context)
+            .await?;
+        serde_json::from_value(value).map(Json).map_err(|error| {
+            internal_error(format!(
+                "editor returned invalid Manim clip metadata: {error}"
+            ))
+        })
+    }
+
+    #[tool(
         description = "Return one fully addressed track and up to 500 of its clips in projected timeline order",
         annotations(read_only_hint = true)
     )]
@@ -595,6 +658,42 @@ impl ShrimplyServer {
             &context,
         )
         .await
+    }
+
+    #[tool(
+        description = "Set a Manim clip's discovered scene and/or typed reflected parameter overrides as one validated undoable edit; null resets a parameter to its scene default"
+    )]
+    async fn set_manim_clip(
+        &self,
+        Parameters(request): Parameters<SetManimClipRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        let value = self
+            .request(BridgeCommand::SetManimClip(request), &context)
+            .await?;
+        serde_json::from_value(value).map(Json).map_err(|error| {
+            internal_error(format!(
+                "editor returned an invalid Manim edit result: {error}"
+            ))
+        })
+    }
+
+    #[tool(
+        description = "Invalidate a Manim clip's cached Python scene state and rebuild it from the current source file"
+    )]
+    async fn reload_manim_source(
+        &self,
+        Parameters(request): Parameters<ReloadManimSourceRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<ReloadManimSourceResponse>, McpError> {
+        let value = self
+            .request(BridgeCommand::ReloadManimSource(request), &context)
+            .await?;
+        serde_json::from_value(value).map(Json).map_err(|error| {
+            internal_error(format!(
+                "editor returned an invalid Manim reload result: {error}"
+            ))
+        })
     }
 
     #[tool(

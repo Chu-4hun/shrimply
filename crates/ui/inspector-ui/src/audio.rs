@@ -92,21 +92,27 @@ impl Inspectable for AudioItem {
             info_rows.push(beat_detection.upcast());
         }
         let info_items = vec![super::info::item(
-            info_rows,
-            match &self.source {
-                AudioSource::Media => "Audio",
-                AudioSource::FoldedSequence(_) => "Folded Sequence",
-                AudioSource::Tts(_) => "Text to Speech",
-                AudioSource::Generator(_) => "Audio Generator",
-            },
-            (!matches!(&self.source, AudioSource::Generator(_))).then_some(self.source_duration),
-            self.end.saturating_sub(self.start),
-            None,
-            file_backed.then_some(self.file.path()),
-            if file_backed {
-                super::info::SourceMetadata::Audio(self.track_id)
-            } else {
-                super::info::SourceMetadata::None
+            context,
+            super::info::ItemInfo {
+                leading: info_rows,
+                kind: match &self.source {
+                    AudioSource::Media => "Audio",
+                    AudioSource::FoldedSequence(_) => "Folded Sequence",
+                    AudioSource::Tts(_) => "Text to Speech",
+                    AudioSource::Generator(_) => "Audio Generator",
+                },
+                natural_duration: (!matches!(&self.source, AudioSource::Generator(_)))
+                    .then_some(self.source_duration),
+                start: self.start,
+                end: self.end,
+                source_offset: Some(self.time_offset),
+                dimensions: None,
+                file: file_backed.then(|| self.file.clone()),
+                source_metadata: if file_backed {
+                    super::info::SourceMetadata::Audio(self.track_id)
+                } else {
+                    super::info::SourceMetadata::None
+                },
             },
         )];
         let playback_items = (!matches!(&self.source, AudioSource::Generator(_))).then(|| {

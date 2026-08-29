@@ -24,6 +24,7 @@ members = [
     "crates/manim/manim-parser",
     "crates/manim/manim-ir",
     "crates/manim/manim-wgpu",
+    "crates/media-info",
     "crates/mcp",
     "crates/paint/paint-edit",
     "crates/paint/paint-geometry",
@@ -91,6 +92,7 @@ exclude = ["external/cuda-oxide", "external/vtracer"]
 
 [workspace.dependencies]
 adw = { package = "libadwaita", version = "0.9", features = ["v1_9"] }
+base64 = "0.22"
 ash = "0.38"
 async-channel = "2"
 autodiff = "0.7"
@@ -119,8 +121,11 @@ gtk = { package = "gtk4", version = "0.11", features = ["v4_22"] }
 half = "2"
 hashbrown = { version = "0.17", features = ["serde"] }
 icu_locale = "2.3"
+imagesize = "0.15"
+kamadak-exif = "0.6"
 libc = "0.2"
 lyon_tessellation = "1"
+lofty = "0.25"
 lzf = "1"
 moxcms = "0.9"
 nalgebra = "0.35"

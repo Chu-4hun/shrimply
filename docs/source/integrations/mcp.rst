@@ -51,14 +51,29 @@ Read live state
 ``list_scopes``
    List the root scope and folded-sequence presentation scopes.
 
-``query_clips`` and ``get_clip``
-   Query clip presentations or retrieve a concrete clip.
+``query_clips``, ``get_clip``, and ``get_clip_info``
+   Query clip presentations, retrieve a concrete clip, or request the deeper
+   source report shown by the inspector. ``get_clip_info`` includes filesystem,
+   container, stream, codec, tag, chapter, artwork inventory, and image EXIF
+   metadata when available. Set ``include_artwork=true`` to also return embedded
+   artwork as MCP image content.
+
+``get_manim_clip``
+   Return a Manim clip's discovered scenes, reflected parameter definitions and
+   values, and current render error.
 
 ``view_frame``
    Render a zero-based project frame to PNG without moving the playhead.
 
 ``seek_playhead``
    Move the visible playhead, clamped to the project duration.
+
+``get_clip_info`` accepts the same exact address or unique item ID selectors as
+``get_clip`` and does not expose arbitrary filesystem probing. Source failures
+are returned in ``source_error`` alongside the clip's normal live metadata, so
+clients can still inspect clips whose linked files are missing or unsupported.
+The existing ``get_clip`` response remains unchanged for clients that only need
+project metadata.
 
 Edit a project
 --------------
@@ -70,6 +85,13 @@ MCP time values are zero-based integer frames. Use ``create_track`` and
 
 ``run_edit_script`` validates an ordered group of typed operations against a
 clone, then installs them atomically as one undoable history action.
+
+Python files imported with ``insert_files`` become Manim video clips. Use
+``set_manim_clip`` to select a discovered scene or set typed reflected parameter
+overrides; a null parameter value resets that control to its scene default.
+Scene and parameter changes are validated and committed as undoable edits. Use
+``reload_manim_source`` after changing the Python file to invalidate cached
+scene state and rebuild it.
 
 ``insert_tts`` creates an empty text-to-speech audio item that can be configured
 and generated from the inspector. Its start defaults to the playhead and its

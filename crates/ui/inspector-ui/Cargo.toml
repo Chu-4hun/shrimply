@@ -25,6 +25,7 @@ shrimply-discrete-keyframe-graph-ui = { path = "../../timeline/discrete-keyframe
 shrimply-interpolation = { path = "../../interpolation" }
 shrimply-keyframe-graph-ui = { path = "../../timeline/keyframe-graph-ui" }
 shrimply-manim-parser = { path = "../../manim/manim-parser" }
+shrimply-media-info = { path = "../../media-info" }
 shrimply-property-transfer = { path = "../../property-transfer" }
 shrimply-pdf = { path = "../../pdf" }
 shrimply-project = { path = "../../project/project" }

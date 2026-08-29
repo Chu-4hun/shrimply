@@ -1,0 +1,12 @@
+[package]
+name = "shrimply-media-info"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ffmpeg-next.workspace = true
+imagesize.workspace = true
+kamadak-exif.workspace = true
+lofty.workspace = true
+schemars.workspace = true
+serde = { workspace = true, features = ["derive"] }

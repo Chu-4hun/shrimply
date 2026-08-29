@@ -395,6 +395,60 @@ pub fn get_clip(
     })
 }
 
+pub fn get_clip_info(
+    snapshot: &LiveSnapshot,
+    address: Option<&ClipAddress>,
+    item_id: Option<&str>,
+) -> Result<ClipInfo, String> {
+    let clip = get_clip(snapshot, address, item_id)?;
+    let Some(asset) = &clip.asset else {
+        return Ok(ClipInfo {
+            clip,
+            source: None,
+            selected_stream_index: None,
+            source_error: None,
+        });
+    };
+    let revision = asset.asset_revision;
+    let source = match shrimply_media_info::inspect(Path::new(&asset.path), revision) {
+        Ok(source) => source,
+        Err(error) => {
+            return Ok(ClipInfo {
+                clip,
+                source: None,
+                selected_stream_index: None,
+                source_error: Some(error),
+            });
+        }
+    };
+    let selected_stream_index = selected_stream_index(&clip, &source);
+    Ok(ClipInfo {
+        clip,
+        source: Some((*source).clone()),
+        selected_stream_index,
+        source_error: None,
+    })
+}
+
+fn selected_stream_index(
+    clip: &ClipMetadata,
+    source: &shrimply_media_info::FileInfo,
+) -> Option<usize> {
+    let presentation = clip.presentations.first()?;
+    let kind = match presentation.address.kind {
+        ClipKind::Video => "video",
+        ClipKind::Audio => "audio",
+        ClipKind::Caption => return None,
+    };
+    let ordinal = clip.metadata.get("track_id")?.as_u64()? as usize;
+    source
+        .streams
+        .iter()
+        .filter(|stream| stream.kind == kind)
+        .nth(ordinal)
+        .map(|stream| stream.index)
+}
+
 pub fn get_track(
     snapshot: &LiveSnapshot,
     request: &GetTrackRequest,

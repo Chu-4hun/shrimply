@@ -106,13 +106,18 @@ impl Inspectable for CaptionItem {
 
     fn inspect(&self, context: &InspectorContext) -> Vec<gtk::Widget> {
         let info_items = vec![super::info::item(
-            Vec::new(),
-            "Caption",
-            None,
-            self.end.saturating_sub(self.start),
-            None,
-            None,
-            super::info::SourceMetadata::None,
+            context,
+            super::info::ItemInfo {
+                leading: Vec::new(),
+                kind: "Caption",
+                natural_duration: None,
+                start: self.start,
+                end: self.end,
+                source_offset: None,
+                dimensions: None,
+                file: None,
+                source_metadata: super::info::SourceMetadata::None,
+            },
         )];
         let text_items = vec![
             DefaultInspectorItem::new(

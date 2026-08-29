@@ -120,20 +120,26 @@ impl Inspectable for VideoItem {
             );
         }
         let info_items = vec![super::info::item(
-            stream_rows,
-            self.title(),
-            (!static_visual).then_some(self.source_duration),
-            self.end.saturating_sub(self.start),
-            Some(glam::UVec2::new(self.source_width, self.source_height)),
-            (!matches!(self.content, VideoItemContent::FoldedSequence(_))).then_some(&self.file),
-            if matches!(
-                self.content,
-                shrimply_project::project::VideoItemContent::Media
-                    | shrimply_project::project::VideoItemContent::Gif
-            ) {
-                super::info::SourceMetadata::Video(self.track_id)
-            } else {
-                super::info::SourceMetadata::None
+            context,
+            super::info::ItemInfo {
+                leading: stream_rows,
+                kind: self.title(),
+                natural_duration: (!static_visual).then_some(self.source_duration),
+                start: self.start,
+                end: self.end,
+                source_offset: Some(self.time_offset),
+                dimensions: Some(glam::UVec2::new(self.source_width, self.source_height)),
+                file: (!matches!(self.content, VideoItemContent::FoldedSequence(_)))
+                    .then(|| self.file.clone()),
+                source_metadata: if matches!(
+                    self.content,
+                    shrimply_project::project::VideoItemContent::Media
+                        | shrimply_project::project::VideoItemContent::Gif
+                ) {
+                    super::info::SourceMetadata::Video(self.track_id)
+                } else {
+                    super::info::SourceMetadata::None
+                },
             },
         )];
         if let VideoItemContent::Manim(manim) = &self.content {
