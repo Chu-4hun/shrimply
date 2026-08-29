@@ -37,6 +37,7 @@ shrimply-state = { path = "../../state" }
 shrimply-support = { path = "../../support" }
 shrimply-timeline = { path = "../../timeline/timeline" }
 shrimply-timeline-ui = { path = "../../timeline/timeline-ui" }
+shrimply-transcription = { path = "../../audio/transcription" }
 shrimply-tts = { path = "../../audio/tts" }
 shrimply-ui-foundation = { path = "../../ui/ui-foundation" }
 shrimply-video = { path = "../../video/rendering" }

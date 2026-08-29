@@ -104,6 +104,12 @@ defaults, accepts typed input overrides, generates speech, and inserts the
 result as one undoable edit. Number inputs use exact numerator/denominator
 fractions, and audio inputs use a local file path.
 
+``list_stt_models`` returns the speech-to-text models advertised by the current
+compute server. ``transcribe_audio`` accepts either one fully addressed audio
+track or one or more fully addressed audio clips, transcribes their audible
+timeline ranges, and inserts the timed result on a new caption track as one
+undoable edit. An optional CLDR locale identifies the caption language.
+
 Both TTS insertion tools accept an optional audio track and scope. Without a
 track they reuse one with room. Set ``collision="new_track"`` to allow a new
 audio track as a fallback; ``collision="overwrite"`` requires an explicit

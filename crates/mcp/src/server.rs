@@ -42,6 +42,8 @@ insert_captions bulk-inserts exact frame ranges into an existing caption track, 
 track when track is omitted. It can set the track language and copy styling from source captions.
 insert_tts creates an empty TTS audio item for inspector configuration. list_tts_models describes
 the current compute server's model inputs, and generate_tts synthesizes and inserts speech directly.
+list_stt_models lists the current compute server's speech-to-text models. transcribe_audio accepts
+one audio track or one or more fully addressed audio clips and inserts timed captions on a new track.
 get_track returns one fully addressed track and up to 500 timeline-ordered clips in one call.
 Python files import as Manim video clips. get_manim_clip returns discovered scenes, reflected
 parameter controls, and the current render error. set_manim_clip validates scene and parameter
@@ -574,6 +576,41 @@ impl ShrimplyServer {
         serde_json::from_value(value).map(Json).map_err(|error| {
             internal_error(format!(
                 "editor returned an invalid text-to-speech model list: {error}"
+            ))
+        })
+    }
+
+    #[tool(
+        description = "List speech-to-text models advertised by the editor's current compute server",
+        annotations(read_only_hint = true)
+    )]
+    async fn list_stt_models(
+        &self,
+        Parameters(_): Parameters<ListSttModelsRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<ListSttModelsResponse>, McpError> {
+        let value = self.request(BridgeCommand::ListSttModels, &context).await?;
+        serde_json::from_value(value).map(Json).map_err(|error| {
+            internal_error(format!(
+                "editor returned an invalid speech-to-text model list: {error}"
+            ))
+        })
+    }
+
+    #[tool(
+        description = "Transcribe one audio track or one or more fully addressed audio clips with the current compute server and insert timed captions on a new track"
+    )]
+    async fn transcribe_audio(
+        &self,
+        Parameters(request): Parameters<TranscribeAudioRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        let value = self
+            .request(BridgeCommand::TranscribeAudio(request), &context)
+            .await?;
+        serde_json::from_value(value).map(Json).map_err(|error| {
+            internal_error(format!(
+                "editor returned an invalid transcription edit result: {error}"
             ))
         })
     }

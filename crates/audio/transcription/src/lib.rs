@@ -49,6 +49,37 @@ pub fn prepare_transcription_chunks(
     Ok(chunks)
 }
 
+pub fn sanitize_transcribed_segments(
+    segments: &mut Vec<TranscribedSegment>,
+    frame_step: Time,
+) -> usize {
+    for segment in segments.iter_mut() {
+        segment.start = segment.start.snapped(frame_step);
+        segment.end = segment.end.snapped(frame_step);
+    }
+    segments.retain(|segment| !segment.text.trim().is_empty() && segment.end > segment.start);
+
+    let mut overlap_count = 0;
+    loop {
+        segments.sort_by_key(|segment| (segment.start, segment.end));
+        let Some(index) = segments
+            .windows(2)
+            .position(|pair| pair[0].end > pair[1].start)
+        else {
+            break;
+        };
+        let overlap_start = segments[index].start.max(segments[index + 1].start);
+        let overlap_end = segments[index].end.min(segments[index + 1].end);
+        let boundary =
+            shrimply_math_media::time_midpoint(overlap_start, overlap_end).snapped(frame_step);
+        segments[index].end = boundary;
+        segments[index + 1].start = boundary;
+        overlap_count += 1;
+        segments.retain(|segment| segment.end > segment.start);
+    }
+    overlap_count
+}
+
 fn mix_range_mono(project: &Project, start: Time, end: Time) -> Vec<f32> {
     let start_frame = start.as_sample_frame(SAMPLE_RATE);
     let end_frame = end.as_sample_frame(SAMPLE_RATE);

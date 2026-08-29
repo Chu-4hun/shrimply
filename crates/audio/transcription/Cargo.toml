@@ -8,3 +8,4 @@ hashbrown.workspace = true
 shrimply-audio = { path = "../audio" }
 shrimply-project = { path = "../../project/project" }
 shrimply-math-core = { path = "../../math/core" }
+shrimply-math-media = { path = "../../math/media" }

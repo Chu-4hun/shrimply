@@ -96,10 +96,12 @@ pub enum BridgeCommand {
     GetManimClip(GetManimClipRequest),
     SetManimClip(SetManimClipRequest),
     ReloadManimSource(ReloadManimSourceRequest),
+    ListSttModels,
     ListTtsModels,
     Seek { frame: u64 },
     ViewFrame { frame: u64 },
     AnalyzeTransparentFill(AnalyzeTransparentFillRequest),
+    TranscribeAudio(TranscribeAudioRequest),
     GenerateTts(GenerateTtsRequest),
     Apply(EditRequest),
 }
@@ -393,6 +395,28 @@ pub struct ListTtsModelsRequest {}
 pub struct ListTtsModelsResponse {
     pub models: Vec<Value>,
     pub default_model: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, JsonSchema)]
+pub struct ListSttModelsRequest {}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ListSttModelsResponse {
+    pub models: Vec<String>,
+    pub default_model: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct TranscribeAudioRequest {
+    /// Transcribe every audio clip on this track. Provide exactly one of track or clips.
+    pub track: Option<TrackAddress>,
+    /// Transcribe these fully addressed audio clips. Provide exactly one of track or clips.
+    #[serde(default)]
+    pub clips: Vec<ClipAddress>,
+    /// Defaults to the editor's last selected model, then the server's first STT model.
+    pub model: Option<String>,
+    /// Optional CLDR locale identifier for the new caption track.
+    pub language: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]

@@ -5213,6 +5213,7 @@ dependencies = [
  "shrimply-support",
  "shrimply-timeline",
  "shrimply-timeline-ui",
+ "shrimply-transcription",
  "shrimply-tts",
  "shrimply-ui-foundation",
  "shrimply-video",
@@ -6096,6 +6097,7 @@ dependencies = [
  "hashbrown 0.17.1",
  "shrimply-audio",
  "shrimply-math-core",
+ "shrimply-math-media",
  "shrimply-project",
 ]
 
