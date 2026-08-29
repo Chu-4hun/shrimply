@@ -71,6 +71,22 @@ MCP time values are zero-based integer frames. Use ``create_track`` and
 ``run_edit_script`` validates an ordered group of typed operations against a
 clone, then installs them atomically as one undoable history action.
 
+``insert_tts`` creates an empty text-to-speech audio item that can be configured
+and generated from the inspector. Its start defaults to the playhead and its
+duration defaults to the editor's visual-item duration. The same operation is
+available in ``run_edit_script``.
+
+``list_tts_models`` returns the models and dynamic input definitions advertised
+by the editor's current compute server. ``generate_tts`` applies those model
+defaults, accepts typed input overrides, generates speech, and inserts the
+result as one undoable edit. Number inputs use exact numerator/denominator
+fractions, and audio inputs use a local file path.
+
+Both TTS insertion tools accept an optional audio track and scope. Without a
+track they reuse one with room. Set ``collision="new_track"`` to allow a new
+audio track as a fallback; ``collision="overwrite"`` requires an explicit
+track.
+
 Imports copy files into project media by default. Set ``link=true`` to retain
 external paths. An import without a target uses an existing compatible track
 with room; it creates a track only when ``collision="new_track"`` is explicit.

@@ -93,9 +93,11 @@ pub struct BridgeRequest {
 pub enum BridgeCommand {
     Handshake,
     Snapshot,
+    ListTtsModels,
     Seek { frame: u64 },
     ViewFrame { frame: u64 },
     AnalyzeTransparentFill(AnalyzeTransparentFillRequest),
+    GenerateTts(GenerateTtsRequest),
     Apply(EditRequest),
 }
 
@@ -291,6 +293,57 @@ pub struct InsertCaptionsRequest {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct InsertTtsRequest {
+    /// Existing audio track. Omit to choose an audio track with room.
+    pub track: Option<TrackAddress>,
+    /// Defaults to the edit-script anchor or current playhead.
+    pub frame: Option<u64>,
+    /// Defaults to the editor's configured visual item duration.
+    pub duration_frames: Option<u64>,
+    /// Defaults to the edit-script or editor's active scope.
+    pub scope: Option<ScopeRef>,
+    #[serde(default)]
+    pub collision: CollisionBehavior,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum TtsInputValue {
+    Text { value: String },
+    Select { value: String },
+    Audio { path: String },
+    Toggle { value: bool },
+    Number { value: ExactFraction },
+    Table { rows: Vec<BTreeMap<String, String>> },
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, JsonSchema)]
+pub struct ListTtsModelsRequest {}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ListTtsModelsResponse {
+    pub models: Vec<Value>,
+    pub default_model: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct GenerateTtsRequest {
+    pub text: String,
+    /// Defaults to the editor's last selected model, then the server's first model.
+    pub model: Option<String>,
+    #[serde(default)]
+    pub inputs: BTreeMap<String, TtsInputValue>,
+    /// Existing audio track. Omit to choose an audio track with room.
+    pub track: Option<TrackAddress>,
+    /// Defaults to the current playhead.
+    pub frame: Option<u64>,
+    /// Defaults to the editor's active scope.
+    pub scope: Option<ScopeRef>,
+    #[serde(default)]
+    pub collision: CollisionBehavior,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct MoveClipRequest {
     pub address: ClipAddress,
     /// Absolute projected frame. Provide exactly one of this and offset_frames.
@@ -374,6 +427,7 @@ pub struct CreateTrackOperation {
 pub enum EditOperation {
     InsertFiles(InsertFilesRequest),
     InsertCaptions(InsertCaptionsRequest),
+    InsertTts(InsertTtsRequest),
     CreateTrack(CreateTrackOperation),
     MoveClip(MoveClipRequest),
     TrimClip(TrimClipRequest),

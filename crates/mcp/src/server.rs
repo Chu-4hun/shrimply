@@ -39,6 +39,8 @@ then use set_expression with the owning clip address and expression ID. Expressi
 included in run_edit_script for one atomic, undoable history action.
 insert_captions bulk-inserts exact frame ranges into an existing caption track, or creates a new
 track when track is omitted. It can set the track language and copy styling from source captions.
+insert_tts creates an empty TTS audio item for inspector configuration. list_tts_models describes
+the current compute server's model inputs, and generate_tts synthesizes and inserts speech directly.
 get_track returns one fully addressed track and up to 500 timeline-ordered clips in one call.
 
 Example direct move:
@@ -474,6 +476,61 @@ impl ShrimplyServer {
             &context,
         )
         .await
+    }
+
+    #[tool(
+        description = "Insert an empty text-to-speech item on an explicit or automatically selected audio track for later inspector configuration"
+    )]
+    async fn insert_tts(
+        &self,
+        Parameters(request): Parameters<InsertTtsRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            EditRequest {
+                history_label: "MCP insert TTS".to_string(),
+                frame: request.frame,
+                scope: request.scope.clone(),
+                operations: vec![EditOperation::InsertTts(request)],
+            },
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "List text-to-speech models and their dynamic input definitions from the editor's current compute server",
+        annotations(read_only_hint = true)
+    )]
+    async fn list_tts_models(
+        &self,
+        Parameters(_): Parameters<ListTtsModelsRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<ListTtsModelsResponse>, McpError> {
+        let value = self.request(BridgeCommand::ListTtsModels, &context).await?;
+        serde_json::from_value(value).map(Json).map_err(|error| {
+            internal_error(format!(
+                "editor returned an invalid text-to-speech model list: {error}"
+            ))
+        })
+    }
+
+    #[tool(
+        description = "Generate speech with the editor's current compute server and insert it on an explicit or automatically selected audio track"
+    )]
+    async fn generate_tts(
+        &self,
+        Parameters(request): Parameters<GenerateTtsRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        let value = self
+            .request(BridgeCommand::GenerateTts(request), &context)
+            .await?;
+        serde_json::from_value(value).map(Json).map_err(|error| {
+            internal_error(format!(
+                "editor returned an invalid text-to-speech edit result: {error}"
+            ))
+        })
     }
 
     #[tool(

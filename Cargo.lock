@@ -5144,6 +5144,7 @@ dependencies = [
  "shrimply-support",
  "shrimply-timeline",
  "shrimply-timeline-ui",
+ "shrimply-tts",
  "shrimply-ui-foundation",
  "shrimply-video",
  "shrimply-video-modifiers",

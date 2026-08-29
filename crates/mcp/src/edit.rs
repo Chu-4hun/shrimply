@@ -32,6 +32,9 @@ pub fn apply_non_import(
         EditOperation::InsertFiles(_) => {
             Err("insert_files must be handled by the native importer".to_string())
         }
+        EditOperation::InsertTts(_) => {
+            Err("insert_tts must be handled by the native editor".to_string())
+        }
         EditOperation::InsertCaptions(request) => insert_captions(project, request),
         EditOperation::CreateTrack(request) => {
             let id = edit::create_track(

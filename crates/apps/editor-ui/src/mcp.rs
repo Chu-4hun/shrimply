@@ -12,11 +12,13 @@ use std::time::{Duration, Instant};
 
 use gtk::{gdk, glib, prelude::*};
 use serde_json::{Value, json};
-use shrimply_math_core::{Time, time_from_frame};
+use shrimply_asset::Asset;
+use shrimply_math_core::{Time, fraction_new, time_from_frame};
 use shrimply_mcp::protocol::{
     ActiveScopeSnapshot, AnalyzeTransparentFillRequest, AnalyzeTransparentFillResponse,
-    BridgeCommand, BridgeRequest, BridgeResponse, EditRequest, EditResponse, LiveSnapshot,
-    PlayerSnapshot, ScopeRef, ViewFrameResponse,
+    BridgeCommand, BridgeRequest, BridgeResponse, EditOperationResult, EditRequest, EditResponse,
+    GenerateTtsRequest, ListTtsModelsResponse, LiveSnapshot, PlayerSnapshot, ScopeRef,
+    TtsInputValue, ViewFrameResponse,
 };
 use shrimply_preview_ui::video::compositor::{EXPORT_ASSETS_LOADING, VideoExportRenderer};
 use shrimply_project::project::Project;
@@ -207,6 +209,20 @@ pub fn start(
                                 &player_state,
                                 &selection_state,
                                 preferences::snapshot(&preferences).default_visual_duration,
+                                request,
+                                work.canceled.clone(),
+                            )
+                            .await
+                        }
+                        BridgeCommand::ListTtsModels => {
+                            list_tts_models(&preferences, work.canceled.clone()).await
+                        }
+                        BridgeCommand::GenerateTts(request) => {
+                            generate_tts(
+                                &project,
+                                &player_state,
+                                &selection_state,
+                                &preferences,
                                 request,
                                 work.canceled.clone(),
                             )
@@ -404,6 +420,12 @@ fn handle_command(
         }
         BridgeCommand::AnalyzeTransparentFill(_) => {
             unreachable!("modifier analysis is prepared asynchronously")
+        }
+        BridgeCommand::ListTtsModels => {
+            unreachable!("TTS model discovery is prepared asynchronously")
+        }
+        BridgeCommand::GenerateTts(_) => {
+            unreachable!("TTS generation is prepared asynchronously")
         }
         BridgeCommand::Apply(_) => unreachable!("edit commands are prepared asynchronously"),
     }
@@ -646,6 +668,344 @@ fn snapshot(
             .map(shrimply_mcp::query::protocol_track_address)
             .collect(),
         asset_revisions,
+    })
+}
+
+async fn list_tts_models(
+    preferences: &SharedPreferences,
+    canceled: Arc<AtomicBool>,
+) -> Result<Value, String> {
+    let preferences = preferences::snapshot(preferences);
+    let server_url = preferences.compute_server_url;
+    let preferred = preferences.last_tts_model;
+    let (sender, receiver) = async_channel::bounded(1);
+    thread::Builder::new()
+        .name("shrimply-mcp-tts-models".to_string())
+        .spawn(move || {
+            let _ = sender.send_blocking(shrimply_tts::models(&server_url));
+        })
+        .map_err(|error| format!("could not start TTS model discovery: {error}"))?;
+    let models = loop {
+        if canceled.load(Ordering::Acquire) {
+            return Err("MCP client canceled TTS model discovery".to_string());
+        }
+        match receiver.try_recv() {
+            Ok(result) => break result?,
+            Err(async_channel::TryRecvError::Empty) => {
+                glib::timeout_future(CANCELLATION_POLL_INTERVAL).await;
+            }
+            Err(async_channel::TryRecvError::Closed) => {
+                return Err("TTS model discovery worker stopped without a result".to_string());
+            }
+        }
+    };
+    let default_model = models
+        .iter()
+        .find(|model| model.id == preferred)
+        .or_else(|| models.first())
+        .map(|model| model.id.clone());
+    let models = models
+        .into_iter()
+        .map(|model| {
+            serde_json::to_value(model)
+                .map_err(|error| format!("could not serialize TTS model: {error}"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    serde_json::to_value(ListTtsModelsResponse {
+        models,
+        default_model,
+    })
+    .map_err(|error| format!("could not serialize TTS model response: {error}"))
+}
+
+struct StagedSpeech {
+    staging: PathBuf,
+    final_path: PathBuf,
+    promoted: bool,
+}
+
+impl StagedSpeech {
+    fn promote(&mut self) -> Result<(), String> {
+        fs::rename(&self.staging, &self.final_path).map_err(|error| {
+            format!(
+                "could not promote generated speech {}: {error}",
+                self.final_path.display()
+            )
+        })?;
+        self.promoted = true;
+        Ok(())
+    }
+
+    fn rollback(&mut self) {
+        fs::rename(&self.final_path, &self.staging).unwrap_or_else(|error| {
+            panic!(
+                "could not roll back generated speech {}: {error}",
+                self.final_path.display()
+            )
+        });
+        self.promoted = false;
+    }
+}
+
+impl Drop for StagedSpeech {
+    fn drop(&mut self) {
+        if !self.promoted && self.staging.exists() {
+            fs::remove_file(&self.staging).unwrap_or_else(|error| {
+                panic!(
+                    "could not clean staged generated speech {}: {error}",
+                    self.staging.display()
+                )
+            });
+        }
+    }
+}
+
+struct GeneratedTts {
+    speech: StagedSpeech,
+    duration: Time,
+    settings: shrimply_tts::TtsSettings,
+}
+
+async fn generate_tts(
+    live: &Rc<RefCell<Project>>,
+    player: &SharedPlayerState,
+    selection: &SharedSelectionState,
+    preferences: &SharedPreferences,
+    request: GenerateTtsRequest,
+    canceled: Arc<AtomicBool>,
+) -> Result<Value, String> {
+    if request.text.trim().is_empty() {
+        return Err("text must not be empty".to_string());
+    }
+    let project_path = shrimply_project::project::normalized_project_path(
+        &shrimply_project::project::active_project_path(),
+    );
+    let mut project = live.borrow().clone();
+    let original = project_content_fingerprint(&project)?;
+    let playhead_frame = player_state::current_time(player).as_frame(project.fps);
+    let active_scope = selection_state::active_scope(selection);
+    let preferences = preferences::snapshot(preferences);
+    let cancellation =
+        shrimply_server_client::CancellationToken::new(&preferences.compute_server_url)?;
+    let worker_cancellation = cancellation.clone();
+    let worker_path = project_path.clone();
+    let worker_request = request.clone();
+    let (sender, receiver) = async_channel::bounded(1);
+    thread::Builder::new()
+        .name("shrimply-mcp-generate-tts".to_string())
+        .spawn(move || {
+            let result = prepare_generated_tts(
+                worker_path,
+                preferences.compute_server_url,
+                preferences.last_tts_model,
+                worker_request,
+                worker_cancellation,
+            );
+            let _ = sender.send_blocking(result);
+        })
+        .map_err(|error| format!("could not start TTS generation worker: {error}"))?;
+    let mut cancellation_sent = false;
+    let mut generated = loop {
+        if canceled.load(Ordering::Acquire) && !cancellation_sent {
+            cancellation.cancel();
+            cancellation_sent = true;
+        }
+        match receiver.try_recv() {
+            Ok(result) => break result?,
+            Err(async_channel::TryRecvError::Empty) => {
+                glib::timeout_future(CANCELLATION_POLL_INTERVAL).await;
+            }
+            Err(async_channel::TryRecvError::Closed) => {
+                return Err("TTS generation worker stopped without a result".to_string());
+            }
+        }
+    };
+    if canceled.load(Ordering::Acquire) {
+        return Err("MCP client canceled TTS generation".to_string());
+    }
+    let current_path = shrimply_project::project::normalized_project_path(
+        &shrimply_project::project::active_project_path(),
+    );
+    if current_path != project_path {
+        return Err("project path changed while TTS was being generated".to_string());
+    }
+    if project_content_fingerprint(&live.borrow())? != original {
+        return Err("project changed while TTS was being generated; retry the request".to_string());
+    }
+    let editor_selection = EditorSelection::capture(selection, &project);
+    let mutation = imports::insert_generated_tts(
+        &mut project,
+        &request,
+        playhead_frame,
+        active_scope,
+        generated.duration,
+        generated.settings,
+        generated.speech.final_path.clone(),
+    )?;
+    project
+        .validate()
+        .map_err(|error| format!("generated TTS edit is invalid: {error}"))?;
+    let changed_presentations = shrimply_mcp::query::presentations_affected_by_items(
+        &project,
+        &mutation.changed_item_ids.iter().copied().collect(),
+    )?;
+    let mut presentations = changed_presentations.clone();
+    presentations.extend(mutation.deleted_presentations.clone());
+    let result = EditOperationResult {
+        index: 0,
+        operation: "generate_tts".to_string(),
+        changed_addresses: changed_presentations
+            .iter()
+            .map(|clip| clip.address.clone())
+            .collect(),
+        deleted_addresses: mutation.deleted_addresses,
+        changed_tracks: mutation.changed_tracks,
+        presentations,
+    };
+    let duration = project.duration();
+    let frame_rate = project.fps;
+    let duration_frame = shrimply_mcp::query::frame_time_from_time(duration, frame_rate, true);
+    if canceled.load(Ordering::Acquire) {
+        return Err("MCP client canceled TTS generation before commit".to_string());
+    }
+    generated.speech.promote()?;
+    if canceled.load(Ordering::Acquire) {
+        generated.speech.rollback();
+        return Err("MCP client canceled TTS generation before commit".to_string());
+    }
+    if let Err(error) = shrimply_project::project::commit_edit_checked(&project, "MCP generate TTS")
+    {
+        generated.speech.rollback();
+        return Err(format!("MCP TTS edit could not be committed: {error}"));
+    }
+    *live.borrow_mut() = project;
+    editor_selection.restore(selection, &live.borrow());
+    player_state::refresh_project(
+        player,
+        ProjectChange {
+            duration: Some(duration),
+            frame_rate: Some(frame_rate),
+            audio: true,
+            audio_beats: true,
+            audio_waveforms: true,
+            inspector: true,
+            ..Default::default()
+        },
+    );
+    serde_json::to_value(EditResponse {
+        operations: vec![result],
+        duration: duration_frame,
+        revision: player_state::snapshot(player).revision,
+    })
+    .map_err(|error| format!("could not serialize TTS edit result: {error}"))
+}
+
+fn prepare_generated_tts(
+    project_path: PathBuf,
+    server_url: String,
+    preferred_model: String,
+    request: GenerateTtsRequest,
+    cancellation: shrimply_server_client::CancellationToken,
+) -> Result<GeneratedTts, String> {
+    let models = shrimply_tts::models(&server_url)?;
+    let model = request
+        .model
+        .as_ref()
+        .and_then(|id| models.iter().find(|model| &model.id == id))
+        .or_else(|| models.iter().find(|model| model.id == preferred_model))
+        .or_else(|| models.first())
+        .cloned()
+        .ok_or_else(|| "the compute server provided no TTS models".to_string())?;
+    if let Some(requested) = &request.model
+        && requested != &model.id
+    {
+        return Err(format!("TTS model {requested:?} is not available"));
+    }
+    let mut settings = shrimply_tts::TtsSettings::default();
+    shrimply_tts::sync_settings(&mut settings, &model);
+    for (key, input) in request.inputs {
+        let definition = model
+            .inputs
+            .iter()
+            .find(|definition| definition.key() == key)
+            .ok_or_else(|| format!("TTS model {} has no input {key:?}", model.id))?;
+        if definition.purpose() == Some(shrimply_tts::InputPurpose::Text) {
+            return Err(format!(
+                "TTS input {key:?} is controlled by the top-level text field"
+            ));
+        }
+        let value = match (definition, input) {
+            (shrimply_tts::InputDefinition::Text { .. }, TtsInputValue::Text { value }) => {
+                shrimply_tts::TtsValue::Text { value }
+            }
+            (shrimply_tts::InputDefinition::Select { .. }, TtsInputValue::Select { value }) => {
+                shrimply_tts::TtsValue::Select { value }
+            }
+            (shrimply_tts::InputDefinition::Audio { .. }, TtsInputValue::Audio { path }) => {
+                let path = PathBuf::from(&path).canonicalize().map_err(|error| {
+                    format!("could not resolve TTS audio input {path:?}: {error}")
+                })?;
+                if !path.is_file() {
+                    return Err(format!(
+                        "TTS audio input is not a regular file: {}",
+                        path.display()
+                    ));
+                }
+                shrimply_tts::TtsValue::Audio {
+                    value: Asset::new(path),
+                }
+            }
+            (shrimply_tts::InputDefinition::Toggle { .. }, TtsInputValue::Toggle { value }) => {
+                shrimply_tts::TtsValue::Toggle { value }
+            }
+            (shrimply_tts::InputDefinition::Number { .. }, TtsInputValue::Number { value }) => {
+                if value.denominator <= 0 {
+                    return Err(format!(
+                        "TTS numeric input {key:?} requires a positive denominator"
+                    ));
+                }
+                shrimply_tts::TtsValue::Number {
+                    value: fraction_new(value.numerator, value.denominator),
+                }
+            }
+            (shrimply_tts::InputDefinition::Table { .. }, TtsInputValue::Table { rows }) => {
+                shrimply_tts::TtsValue::Table { rows }
+            }
+            _ => return Err(format!("TTS input {key:?} has the wrong value type")),
+        };
+        settings.inputs.insert(key, value);
+    }
+    shrimply_tts::set_text(&mut settings, &model, request.text);
+    let speech_request = shrimply_tts::speech_request(
+        &model,
+        &settings,
+        shrimply_audio::recording::transcode_to_wav,
+    )?;
+    let speech = shrimply_tts::synthesize(&server_url, &cancellation, &speech_request, |_| {
+        !cancellation.is_cancelled()
+    })?;
+    let directory = project_path
+        .parent()
+        .unwrap_or_else(|| std::path::Path::new("."))
+        .join("media/tts");
+    fs::create_dir_all(&directory)
+        .map_err(|error| format!("could not create {}: {error}", directory.display()))?;
+    let id = Uuid::new_v4();
+    let staging = directory.join(format!(".{id}.staging.opus"));
+    let final_path = directory.join(format!("{id}.opus"));
+    if staging.exists() || final_path.exists() {
+        return Err("generated TTS destination already exists".to_string());
+    }
+    let duration = shrimply_audio::recording::save_wav_as_opus(&speech.wav, &staging)?;
+    shrimply_tts::apply_speed_factor(&mut settings, &model, speech.speed_factor);
+    Ok(GeneratedTts {
+        speech: StagedSpeech {
+            staging,
+            final_path,
+            promoted: false,
+        },
+        duration,
+        settings,
     })
 }
 

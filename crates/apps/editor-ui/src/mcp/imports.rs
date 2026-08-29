@@ -6,11 +6,13 @@ use shrimply_asset::{Asset, AssetSnapshot};
 use shrimply_math_core::{Time, time_from_frame};
 use shrimply_mcp::edit::MutationResult;
 use shrimply_mcp::protocol::{
-    ClipKind, CollisionBehavior, EditOperation, EditOperationResult, EditRequest, ImportEntry,
-    InitialClipProperties, ScopeRef, SetClipPropertiesRequest,
+    ClipKind, CollisionBehavior, EditOperation, EditOperationResult, EditRequest,
+    GenerateTtsRequest, ImportEntry, InitialClipProperties, InsertTtsRequest, ScopeRef,
+    SetClipPropertiesRequest,
 };
 use shrimply_project::project::{
-    ItemKind, Project, SequenceScopeId, TrackAddress as ModelTrackAddress,
+    AudioItem, AudioSource, ItemKind, Project, ProjectItem, SequenceScopeId,
+    TrackAddress as ModelTrackAddress,
 };
 use shrimply_timeline::TrackKind;
 use shrimply_timeline::edit as timeline_edit;
@@ -142,6 +144,13 @@ pub fn prepare(
                 default_visual_duration,
                 project_path,
             ),
+            EditOperation::InsertTts(request) => apply_tts(
+                &mut prepared.project,
+                request,
+                anchor,
+                &script_scope,
+                default_visual_duration,
+            ),
             _ => shrimply_mcp::edit::apply_non_import(
                 &mut prepared.project,
                 operation,
@@ -163,6 +172,232 @@ pub fn prepare(
         .map_err(|error| format!("edited project is invalid: {error}"))?;
     prepared.ensure_linked_sources_current()?;
     Ok(prepared)
+}
+
+fn apply_tts(
+    project: &mut Project,
+    request: &InsertTtsRequest,
+    script_anchor: u64,
+    script_scope: &ResolvedScope,
+    default_duration: Time,
+) -> Result<MutationResult, String> {
+    let duration = request
+        .duration_frames
+        .map(|frames| {
+            if frames == 0 {
+                return Err("duration_frames must be positive".to_string());
+            }
+            time_from_frame(frames, project.fps)
+                .ok_or_else(|| "TTS duration exceeds the supported exact range".to_string())
+        })
+        .transpose()?
+        .unwrap_or(default_duration)
+        .snapped(project.frame_step());
+    if duration <= Time::ZERO {
+        return Err("TTS duration must span at least one project frame".to_string());
+    }
+    let scope = request
+        .scope
+        .as_ref()
+        .map(|scope| resolve_scope(project, scope))
+        .transpose()?
+        .unwrap_or_else(|| script_scope.clone());
+    insert_tts_item(
+        project,
+        TtsInsertion {
+            track: request.track.as_ref(),
+            scope: &scope,
+            frame: request.frame.unwrap_or(script_anchor),
+            duration,
+            source_duration: Time::ZERO,
+            settings: shrimply_tts::TtsSettings::default(),
+            path: PathBuf::new(),
+            collision: request.collision,
+        },
+    )
+}
+
+pub fn insert_generated_tts(
+    project: &mut Project,
+    request: &GenerateTtsRequest,
+    playhead_frame: u64,
+    active_scope: SequenceScopeId,
+    duration: Time,
+    settings: shrimply_tts::TtsSettings,
+    path: PathBuf,
+) -> Result<MutationResult, String> {
+    if duration <= Time::ZERO {
+        return Err("generated speech has no valid duration".to_string());
+    }
+    let scope = request
+        .scope
+        .as_ref()
+        .map(|scope| resolve_scope(project, scope))
+        .transpose()?
+        .unwrap_or_else(|| ResolvedScope {
+            concrete_path: active_scope.is_root().then(Vec::new),
+            logical: active_scope,
+        });
+    insert_tts_item(
+        project,
+        TtsInsertion {
+            track: request.track.as_ref(),
+            scope: &scope,
+            frame: request.frame.unwrap_or(playhead_frame),
+            duration,
+            source_duration: duration,
+            settings,
+            path,
+            collision: request.collision,
+        },
+    )
+}
+
+struct TtsInsertion<'a> {
+    track: Option<&'a shrimply_mcp::protocol::TrackAddress>,
+    scope: &'a ResolvedScope,
+    frame: u64,
+    duration: Time,
+    source_duration: Time,
+    settings: shrimply_tts::TtsSettings,
+    path: PathBuf,
+    collision: CollisionBehavior,
+}
+
+fn insert_tts_item(
+    project: &mut Project,
+    insertion: TtsInsertion<'_>,
+) -> Result<MutationResult, String> {
+    let TtsInsertion {
+        track,
+        scope,
+        frame,
+        duration,
+        source_duration,
+        settings,
+        path,
+        collision,
+    } = insertion;
+    let target = track
+        .map(shrimply_mcp::query::model_track_address)
+        .transpose()?;
+    if target
+        .as_ref()
+        .is_some_and(|target| target.kind() != ItemKind::Audio)
+    {
+        return Err("TTS insertion requires an audio track".to_string());
+    }
+    if let Some(target) = &target {
+        if project.track(target).is_none() {
+            return Err("TTS target track was not found".to_string());
+        }
+        if project.track_scope(target).as_ref() != Some(&scope.logical) {
+            return Err("TTS target track is outside the requested scope".to_string());
+        }
+    }
+    if target.is_none() && collision == CollisionBehavior::Overwrite {
+        return Err("overwrite TTS insertion requires an explicit audio track".to_string());
+    }
+    let projected = time_from_frame(frame, project.fps)
+        .ok_or_else(|| "TTS frame exceeds the supported exact range".to_string())?;
+    let path_for_time = if let Some(target) = &target {
+        target.sequence_path().to_vec()
+    } else if let Some(path) = &scope.concrete_path
+        && project
+            .sequence_scope_for_path(ItemKind::Audio, path)
+            .as_ref()
+            == Some(&scope.logical)
+    {
+        path.clone()
+    } else {
+        project
+            .sequence_path_for_scope(ItemKind::Audio, &scope.logical)
+            .ok_or_else(|| {
+                "TTS scope has no unique concrete presentation; provide an audio track".to_string()
+            })?
+    };
+    let start = project
+        .timeline_time_to_sequence_path(ItemKind::Audio, &path_for_time, projected)
+        .ok_or_else(|| "TTS scope cannot map the projected frame".to_string())?
+        .snapped(project.frame_step());
+    let end = start.saturating_add(duration).snapped(project.frame_step());
+    if end <= start {
+        return Err("TTS item must span at least one project frame".to_string());
+    }
+
+    let original = project.clone();
+    let original_tracks = track_ids(project);
+    let target_id = target.as_ref().map(ModelTrackAddress::track_id);
+    let (item_id, overwritten) = with_scope_tracks(project, &scope.logical, |project| {
+        let mut index = target_id
+            .map(|id| {
+                project
+                    .audio_tracks
+                    .iter()
+                    .position(|track| track.id == id)
+                    .ok_or_else(|| "TTS target track was not found in its scope".to_string())
+            })
+            .transpose()?;
+        if let Some(current) = index
+            && collision == CollisionBehavior::NewTrack
+            && timeline_edit::track_collides(
+                project,
+                &root_track(project, ClipKind::Audio, current),
+                start,
+                end,
+            )?
+        {
+            index = Some(tracks_with_room(project, ClipKind::Audio, 1, start, end, true)?[0]);
+        }
+        let index = match index {
+            Some(index) => index,
+            None => tracks_with_room(
+                project,
+                ClipKind::Audio,
+                1,
+                start,
+                end,
+                collision == CollisionBehavior::NewTrack,
+            )?[0],
+        };
+        let track = root_track(project, ClipKind::Audio, index);
+        let collisions = timeline_edit::collision_addresses(project, &track, start, end)?;
+        if collision == CollisionBehavior::Reject && !collisions.is_empty() {
+            return Err("TTS insertion collides with an existing clip".to_string());
+        }
+        let overwritten = collisions
+            .iter()
+            .map(shrimply_project::project::ItemAddress::item_id)
+            .collect::<HashSet<_>>();
+        if collision == CollisionBehavior::Overwrite {
+            timeline_edit::overwrite_interval(project, &track, start, end)?;
+        }
+        let item = AudioItem::builder(start, end)
+            .source_duration(source_duration)
+            .source(AudioSource::Tts(Box::new(settings)))
+            .file(path)
+            .build();
+        let item_id = item.id;
+        project
+            .insert_item(&track, ProjectItem::Audio(Box::new(item)))
+            .expect("validated audio track must accept a TTS item");
+        Ok((item_id, overwritten))
+    })?;
+    let deleted_presentations =
+        shrimply_mcp::query::presentations_affected_by_items(&original, &overwritten)?;
+    let created_track_ids = track_ids(project)
+        .difference(&original_tracks)
+        .copied()
+        .collect();
+    Ok(MutationResult {
+        changed_item_ids: vec![item_id],
+        deleted_addresses: deleted_presentations
+            .iter()
+            .map(|clip| clip.address.clone())
+            .collect(),
+        deleted_presentations,
+        changed_tracks: shrimply_mcp::query::addresses_for_tracks(project, &created_track_ids)?,
+    })
 }
 
 fn apply_import(
@@ -555,7 +790,7 @@ fn tracks_with_room(
         Ok(tracks)
     } else {
         Err(format!(
-            "no {kind:?} track has room for this import; choose a target, create a track, or use collision=new_track"
+            "no {kind:?} track has room for this insertion; choose a target, create a track, or use collision=new_track"
         ))
     }
 }
@@ -1136,6 +1371,7 @@ fn operation_name(operation: &EditOperation) -> &'static str {
     match operation {
         EditOperation::InsertFiles(_) => "insert_files",
         EditOperation::InsertCaptions(_) => "insert_captions",
+        EditOperation::InsertTts(_) => "insert_tts",
         EditOperation::CreateTrack(_) => "create_track",
         EditOperation::MoveClip(_) => "move_clip",
         EditOperation::TrimClip(_) => "trim_clip",

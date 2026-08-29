@@ -1,7 +1,6 @@
 use shrimply_ui_foundation::tr;
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, HashMap};
-use std::fs;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::mpsc::{self, TryRecvError};
@@ -1091,31 +1090,8 @@ fn rebuild_table(state: &TableEditor) {
 }
 
 pub fn save_speech(speech: Speech) -> Result<(PathBuf, Time, Fraction), String> {
-    if !speech.wav.starts_with(b"RIFF") || speech.wav.get(8..12) != Some(b"WAVE") {
-        return Err("Server returned invalid WAV audio".to_string());
-    }
     let directory = shrimply_project::project::project_directory().join("media/tts");
-    fs::create_dir_all(&directory)
-        .map_err(|error| format!("Could not create {}: {error}", directory.display()))?;
-    let id = Uuid::new_v4();
-    let wav = directory.join(format!(".{id}.wav"));
-    let encoded = directory.join(format!(".{id}.opus"));
-    let output = directory.join(format!("{id}.opus"));
-    fs::write(&wav, speech.wav)
-        .map_err(|error| format!("Could not save generated audio: {error}"))?;
-    let converted =
-        shrimply_audio::recording::transcode_to_opus(&wav, &encoded).and_then(|duration| {
-            if duration <= Time::ZERO {
-                return Err("Generated file has no valid audio".to_string());
-            }
-            fs::rename(&encoded, &output)
-                .map_err(|error| format!("Could not finalize audio: {error}"))?;
-            Ok((output.clone(), duration, speech.speed_factor))
-        });
-    let _ = fs::remove_file(&wav);
-    if converted.is_err() {
-        let _ = fs::remove_file(&encoded);
-        let _ = fs::remove_file(&output);
-    }
-    converted
+    let output = directory.join(format!("{}.opus", Uuid::new_v4()));
+    shrimply_audio::recording::save_wav_as_opus(&speech.wav, &output)
+        .map(|duration| (output, duration, speech.speed_factor))
 }

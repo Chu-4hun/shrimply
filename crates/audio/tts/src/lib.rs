@@ -48,14 +48,14 @@ pub enum TtsValue {
     },
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct TtsModel {
     pub id: String,
     pub label: String,
     pub inputs: Vec<InputDefinition>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum InputDefinition {
     Text {
@@ -90,13 +90,25 @@ pub enum InputDefinition {
     Number {
         key: String,
         label: String,
-        #[serde(deserialize_with = "deserialize_fraction")]
+        #[serde(
+            deserialize_with = "deserialize_fraction",
+            serialize_with = "serialize_fraction"
+        )]
         default: Fraction,
-        #[serde(deserialize_with = "deserialize_fraction")]
+        #[serde(
+            deserialize_with = "deserialize_fraction",
+            serialize_with = "serialize_fraction"
+        )]
         minimum: Fraction,
-        #[serde(deserialize_with = "deserialize_fraction")]
+        #[serde(
+            deserialize_with = "deserialize_fraction",
+            serialize_with = "serialize_fraction"
+        )]
         maximum: Fraction,
-        #[serde(deserialize_with = "deserialize_fraction")]
+        #[serde(
+            deserialize_with = "deserialize_fraction",
+            serialize_with = "serialize_fraction"
+        )]
         step: Fraction,
         presentation: NumberPresentation,
         purpose: Option<InputPurpose>,
@@ -110,27 +122,27 @@ pub enum InputDefinition {
     },
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct VisibleWhen {
     pub input: String,
     pub values: Vec<ConditionValue>,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum ConditionValue {
     Text(String),
     Toggle(bool),
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct SelectOption {
     pub value: String,
     pub label: String,
     pub purpose: Option<InputPurpose>,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InputPurpose {
     Text,
@@ -138,14 +150,14 @@ pub enum InputPurpose {
     SpeedFactor,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum NumberPresentation {
     Number,
     Slider,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct TableColumn {
     pub key: String,
     pub label: String,

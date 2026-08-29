@@ -139,6 +139,42 @@ pub fn transcode_to_opus(input_path: &Path, output_path: &Path) -> Result<Time, 
     Ok(Time::from_fraction(frames, i64::from(sample_rate)))
 }
 
+pub fn save_wav_as_opus(wav: &[u8], output_path: &Path) -> Result<Time, String> {
+    if !wav.starts_with(b"RIFF") || wav.get(8..12) != Some(b"WAVE") {
+        return Err("Server returned invalid WAV audio".to_string());
+    }
+    if output_path.exists() {
+        return Err(format!(
+            "generated audio destination already exists: {}",
+            output_path.display()
+        ));
+    }
+    let directory = output_path
+        .parent()
+        .ok_or_else(|| "generated audio destination has no parent directory".to_string())?;
+    fs::create_dir_all(directory)
+        .map_err(|error| format!("Could not create {}: {error}", directory.display()))?;
+    let id = Uuid::new_v4();
+    let wav_path = directory.join(format!(".{id}.wav"));
+    let encoded_path = directory.join(format!(".{id}.opus"));
+    fs::write(&wav_path, wav)
+        .map_err(|error| format!("Could not save generated audio: {error}"))?;
+    let converted = transcode_to_opus(&wav_path, &encoded_path).and_then(|duration| {
+        if duration <= Time::ZERO {
+            return Err("Generated file has no valid audio".to_string());
+        }
+        fs::rename(&encoded_path, output_path)
+            .map_err(|error| format!("Could not finalize audio: {error}"))?;
+        Ok(duration)
+    });
+    let _ = fs::remove_file(&wav_path);
+    if converted.is_err() {
+        let _ = fs::remove_file(&encoded_path);
+        let _ = fs::remove_file(output_path);
+    }
+    converted
+}
+
 pub fn transcode_to_wav(input_path: &Path) -> Result<Vec<u8>, String> {
     let source = Asset::new(input_path).snapshot()?;
     if let Some(wav) = TTS_REFERENCE_WAV_CACHE
