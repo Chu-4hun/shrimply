@@ -24,15 +24,23 @@ An installed release can use ``shrimply-mcp`` as the command. After
 
    $ make install-codex-mcp-dev
 
-Connect to a project
---------------------
+Create or connect to a project
+------------------------------
 
-Open the project in Shrimply, then call ``connect_project`` with the absolute
-project path before using any other project tool or resource. Calling it again
-switches the MCP session to another open project.
+Call ``create_project`` with an absolute path ending in ``.shrimp`` to create
+a blank project, open it in a new Shrimply editor, and connect the MCP session
+to it. The destination must not already exist. The optional name, canvas width,
+canvas height, and exact fractional frame rate default to Untitled Project,
+1920, 1080, and 30/1. Frame rates must match one of Shrimply's supported rates.
+
+For an existing project, open it in Shrimply and call ``connect_project`` with
+its absolute path. Calling either connection tool switches the MCP session to
+that project after the editor bridge is ready.
 
 Connection fails clearly when the project is closed, its lock is stale, or the
-selected editor has a different project open.
+selected editor has a different project open. Creation never overwrites an
+existing file, and a valid new file remains available if its editor cannot be
+launched or connected.
 
 Read live state
 ---------------

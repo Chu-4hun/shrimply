@@ -3,7 +3,7 @@ mod status;
 mod storage;
 
 pub use status::{CommitStatus, connect_commit_status};
-pub use storage::{create_project_file, serialize_project_json};
+pub use storage::{create_new_project_file, create_project_file, serialize_project_json};
 
 use super::*;
 

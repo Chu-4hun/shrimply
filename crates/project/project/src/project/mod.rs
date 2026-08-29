@@ -53,8 +53,9 @@ pub use generated::{
 #[cfg(feature = "editor")]
 pub use history::{
     CommitStatus, PreparedProject, activate_project, commit_coalesced_edit, commit_edit,
-    commit_edit_checked, connect_commit_status, create_project_file, prepare_project, redo, save,
-    save_as, save_view_state, serialize_project_json, shutdown_history, undo,
+    commit_edit_checked, connect_commit_status, create_new_project_file, create_project_file,
+    prepare_project, redo, save, save_as, save_view_state, serialize_project_json,
+    shutdown_history, undo,
 };
 pub use item_address::{
     ItemAddress, ItemKind, ItemMut, ItemRef, ProjectItem, SequenceScopeId, TrackAddress, TrackMut,

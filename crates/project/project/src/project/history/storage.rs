@@ -1,4 +1,5 @@
-use std::fs;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -15,6 +16,18 @@ pub fn create_project_file(path: &Path, project: &Project) -> Result<(), String>
         return Err("new projects must use the .shrimp extension".to_string());
     }
     write_project(path, project)
+}
+
+pub fn create_new_project_file(path: &Path, project: &Project) -> Result<(), String> {
+    if !has_extension(path, "shrimp") {
+        return Err("new projects must use the .shrimp extension".to_string());
+    }
+    let project = project_for_storage(path, project)?;
+    let bytes = shrimp_bytes(
+        &rmp_serde::to_vec_named(&project)
+            .map_err(|error| format!("could not encode MessagePack project: {error}"))?,
+    );
+    atomic_create(path, &bytes)
 }
 
 pub fn serialize_project_json(path: &Path, project: &Project) -> Result<Vec<u8>, String> {
@@ -101,6 +114,31 @@ fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), String> {
             let _ = fs::remove_file(&tmp_path);
         })
         .map_err(|error| format!("could not write {}: {error}", path.display()))
+}
+
+fn atomic_create(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    let generation = LATEST_SAVE_GENERATION
+        .fetch_add(1, Ordering::AcqRel)
+        .wrapping_add(1);
+    let tmp_path = path.with_file_name(format!(
+        "{}.tmp-{}-{generation}",
+        path.file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("project.shrimp"),
+        std::process::id()
+    ));
+    let result = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(&tmp_path)
+        .and_then(|mut file| file.write_all(bytes))
+        .and_then(|_| fs::hard_link(&tmp_path, path));
+    if let Err(error) = result {
+        let _ = fs::remove_file(&tmp_path);
+        return Err(format!("could not create {}: {error}", path.display()));
+    }
+    let _ = fs::remove_file(tmp_path);
+    Ok(())
 }
 
 fn shrimp_bytes(payload: &[u8]) -> Vec<u8> {

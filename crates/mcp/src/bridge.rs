@@ -1,15 +1,19 @@
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
+use std::process::{Child, Command, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::protocol::{BridgeCommand, BridgeRequest, BridgeResponse};
 
 const SOCKET_WRITE_TIMEOUT: Duration = Duration::from_secs(5);
+const SOCKET_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 const SOCKET_RESPONSE_TIMEOUT: Duration = Duration::from_secs(30 * 60);
 const SOCKET_CANCEL_POLL_INTERVAL: Duration = Duration::from_millis(100);
+const EDITOR_START_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[derive(Debug)]
 pub enum BridgeError {
@@ -67,8 +71,80 @@ impl Bridge {
             project_path,
             socket_path: socket_path(pid).map_err(BridgeError::Transport)?,
         };
-        bridge.request_with_cancel(BridgeCommand::Handshake, canceled)?;
+        bridge.request_with_cancel_timeout(
+            BridgeCommand::Handshake,
+            canceled,
+            SOCKET_HANDSHAKE_TIMEOUT,
+        )?;
         Ok(bridge)
+    }
+
+    pub fn launch_and_connect_with_cancel(
+        project_path: &Path,
+        canceled: Arc<AtomicBool>,
+    ) -> Result<Self, BridgeError> {
+        let sibling = std::env::current_exe()
+            .map(|path| path.with_file_name("shrimply-editor"))
+            .ok()
+            .filter(|path| path.is_file());
+        let editor = sibling.unwrap_or_else(|| PathBuf::from("shrimply-editor"));
+        let mut child = Command::new(&editor)
+            .arg(project_path)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .map_err(|error| {
+                BridgeError::Transport(format!("could not launch {}: {error}", editor.display()))
+            })?;
+        let deadline = Instant::now() + EDITOR_START_TIMEOUT;
+        loop {
+            if canceled.load(Ordering::Acquire) {
+                stop_editor(&mut child);
+                return Err(BridgeError::Rejected(
+                    "MCP request was canceled".to_string(),
+                ));
+            }
+            let status = match child.try_wait() {
+                Ok(status) => status,
+                Err(error) => {
+                    stop_editor(&mut child);
+                    return Err(BridgeError::Transport(format!(
+                        "could not inspect the new editor: {error}"
+                    )));
+                }
+            };
+            if let Some(status) = status {
+                return Err(BridgeError::Transport(format!(
+                    "the new editor exited with {status} before exposing its MCP bridge"
+                )));
+            }
+            let last_error = match Self::connect_with_cancel(project_path, canceled.clone()) {
+                Ok(bridge) => {
+                    thread::Builder::new()
+                        .name("shrimply-editor-reaper".to_string())
+                        .spawn(move || {
+                            let _ = child.wait();
+                        })
+                        .expect("editor reaper thread must start");
+                    return Ok(bridge);
+                }
+                Err(BridgeError::Rejected(error)) => {
+                    stop_editor(&mut child);
+                    return Err(BridgeError::Rejected(error));
+                }
+                Err(BridgeError::Transport(error)) => error,
+            };
+            if Instant::now() >= deadline {
+                stop_editor(&mut child);
+                return Err(BridgeError::Transport(format!(
+                    "the new editor did not expose its MCP bridge within {} seconds: {}",
+                    EDITOR_START_TIMEOUT.as_secs(),
+                    last_error
+                )));
+            }
+            thread::sleep(SOCKET_CANCEL_POLL_INTERVAL);
+        }
     }
 
     pub fn project_path(&self) -> &Path {
@@ -83,6 +159,15 @@ impl Bridge {
         &self,
         command: BridgeCommand,
         canceled: Arc<AtomicBool>,
+    ) -> Result<serde_json::Value, BridgeError> {
+        self.request_with_cancel_timeout(command, canceled, SOCKET_RESPONSE_TIMEOUT)
+    }
+
+    fn request_with_cancel_timeout(
+        &self,
+        command: BridgeCommand,
+        canceled: Arc<AtomicBool>,
+        response_timeout: Duration,
     ) -> Result<serde_json::Value, BridgeError> {
         let mut stream = UnixStream::connect(&self.socket_path).map_err(|error| {
             BridgeError::Transport(format!(
@@ -133,7 +218,7 @@ impl Bridge {
         }
         let mut line = String::new();
         let mut reader = BufReader::new(stream);
-        let response_deadline = Instant::now() + SOCKET_RESPONSE_TIMEOUT;
+        let response_deadline = Instant::now() + response_timeout;
         loop {
             check_canceled(&canceled)?;
             match reader.read_line(&mut line) {
@@ -179,6 +264,11 @@ impl Bridge {
             )),
         }
     }
+}
+
+fn stop_editor(child: &mut Child) {
+    let _ = child.kill();
+    let _ = child.wait();
 }
 
 fn check_canceled(canceled: &AtomicBool) -> Result<(), BridgeError> {

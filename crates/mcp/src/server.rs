@@ -9,15 +9,24 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use shrimply_project::project::{
+    AudioTrack, COMMON_FRAME_RATES, CaptionTrack, DEFAULT_CANVAS_SIZE, DEFAULT_PROJECT_FPS,
+    PROJECT_FORMAT_VERSION, Project, VisualTrack, fraction_new,
+};
+
 use crate::bridge::{Bridge, BridgeError};
 use crate::protocol::*;
 use crate::query;
 
-const MCP_INSTRUCTIONS: &str = "Shrimply MCP controls the Shrimply video editor for inspecting and editing its native .shrimp video project files. It does not edit .shrimp files directly. Call connect_project with the absolute path of a .shrimp file already open in Shrimply; tools and resources then operate on that editor's live in-memory project, and connect_project can switch to another open .shrimp project.";
+const MCP_INSTRUCTIONS: &str = "Shrimply MCP controls the Shrimply video editor for creating, inspecting, and editing its native .shrimp video project files. Call create_project with an absolute new .shrimp path to create, open, and connect a blank project, or call connect_project with a .shrimp file already open in Shrimply. Editing tools and resources operate on the connected editor's live in-memory project rather than editing its file directly.";
+
+const DEFAULT_PROJECT_NAME: &str = "Untitled Project";
+const MAX_CANVAS_DIMENSION: u32 = 16_384;
 
 const EDIT_API: &str = r#"Shrimply MCP controls the Shrimply video editor for native .shrimp video project files.
-Call connect_project with the absolute path of a .shrimp file already open in Shrimply before using
-this API. Edits operate on the connected editor's live in-memory project, not directly on the file.
+Call create_project to create, open, and connect a blank project, or call connect_project with the
+absolute path of a .shrimp file already open in Shrimply. Edits operate on the connected editor's
+live in-memory project, not directly on the file.
 All public times are zero-based integer frames. Clip and track mutations require full concrete
 addresses. Direct edits create one undoable history action. run_edit_script validates its ordered,
 typed operations against a clone and installs them atomically as one history action. File imports
@@ -53,7 +62,9 @@ impl ShrimplyServer {
             .read()
             .expect("Shrimply MCP project connection lock was poisoned")
             .clone()
-            .ok_or_else(|| mcp_error("no project is connected; call connect_project first"))
+            .ok_or_else(|| {
+                mcp_error("no project is connected; call create_project or connect_project first")
+            })
     }
 
     async fn request(
@@ -104,6 +115,112 @@ impl ShrimplyServer {
 
 #[tool_router]
 impl ShrimplyServer {
+    #[tool(
+        description = "Create a new native .shrimp video project without overwriting an existing file, open it in Shrimply, and connect this MCP session to it"
+    )]
+    async fn create_project(
+        &self,
+        Parameters(request): Parameters<CreateProjectRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<CreateProjectResponse>, McpError> {
+        let project_path = PathBuf::from(request.project_path);
+        if !project_path.is_absolute() {
+            return Err(mcp_error("project_path must be an absolute path"));
+        }
+        let name = request
+            .name
+            .as_deref()
+            .unwrap_or(DEFAULT_PROJECT_NAME)
+            .trim()
+            .to_string();
+        if name.is_empty() {
+            return Err(mcp_error("name must not be empty"));
+        }
+        let width = request.width.unwrap_or(DEFAULT_CANVAS_SIZE.width);
+        let height = request.height.unwrap_or(DEFAULT_CANVAS_SIZE.height);
+        if !(1..=MAX_CANVAS_DIMENSION).contains(&width)
+            || !(1..=MAX_CANVAS_DIMENSION).contains(&height)
+        {
+            return Err(mcp_error(format!(
+                "width and height must be between 1 and {MAX_CANVAS_DIMENSION}"
+            )));
+        }
+        let fps = match request.fps {
+            None => DEFAULT_PROJECT_FPS,
+            Some(fps) if fps.numerator <= 0 || fps.denominator <= 0 => {
+                return Err(mcp_error("fps numerator and denominator must be positive"));
+            }
+            Some(fps) => {
+                let value = fraction_new(fps.numerator, fps.denominator);
+                if !COMMON_FRAME_RATES.iter().any(|rate| rate.value == value) {
+                    return Err(mcp_error(
+                        "fps must match one of Shrimply's supported frame rates",
+                    ));
+                }
+                value
+            }
+        };
+        let project = Project {
+            format_version: PROJECT_FORMAT_VERSION,
+            name,
+            fps,
+            canvas_size: shrimply_project::project::CanvasSize { width, height },
+            caption_tracks: vec![CaptionTrack::default()],
+            video_tracks: vec![VisualTrack::default()],
+            audio_tracks: vec![AudioTrack::default()],
+            folded_sequences: Vec::new(),
+            expanded_sequence_paths: Vec::new(),
+            cursor_position: None,
+            timeline_zoom: None,
+            preview_guides: Default::default(),
+        };
+        let worker_path = project_path.clone();
+        let canceled = Arc::new(AtomicBool::new(false));
+        let worker_canceled = canceled.clone();
+        let mut worker = tokio::task::spawn_blocking(move || {
+            if worker_canceled.load(Ordering::Acquire) {
+                return Err(BridgeError::Rejected(
+                    "MCP request was canceled".to_string(),
+                ));
+            }
+            shrimply_project::project::create_new_project_file(&worker_path, &project)
+                .map_err(BridgeError::Rejected)?;
+            Bridge::launch_and_connect_with_cancel(&worker_path, worker_canceled).map_err(|error| {
+                match error {
+                    BridgeError::Transport(error) => BridgeError::Transport(format!(
+                        "project was created at {}, but {error}",
+                        worker_path.display()
+                    )),
+                    BridgeError::Rejected(error) => BridgeError::Rejected(format!(
+                        "project was created at {}, but {error}",
+                        worker_path.display()
+                    )),
+                }
+            })
+        });
+        let bridge = tokio::select! {
+            result = &mut worker => result
+                .map_err(|error| internal_error(format!("editor bridge task failed: {error}")))?
+                .map_err(bridge_error)?,
+            () = context.ct.cancelled() => {
+                canceled.store(true, Ordering::Release);
+                worker.await
+                    .map_err(|error| internal_error(format!("editor bridge task failed: {error}")))?
+                    .map_err(bridge_error)?
+            }
+        };
+        let project_path = bridge
+            .project_path()
+            .to_str()
+            .expect("project path was validated when the bridge connected")
+            .to_string();
+        *self
+            .bridge
+            .write()
+            .expect("Shrimply MCP project connection lock was poisoned") = Some(bridge);
+        Ok(Json(CreateProjectResponse { project_path }))
+    }
+
     #[tool(
         description = "Connect this MCP session to a native .shrimp video project already open in the Shrimply editor, using its absolute file path. Calling it again switches projects"
     )]

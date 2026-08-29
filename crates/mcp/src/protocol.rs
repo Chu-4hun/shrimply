@@ -128,6 +128,25 @@ pub struct ConnectProjectResponse {
     pub project_path: String,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct CreateProjectRequest {
+    /// Absolute path for the new native .shrimp video project.
+    pub project_path: String,
+    /// Defaults to "Untitled Project".
+    pub name: Option<String>,
+    /// Defaults to 1920.
+    pub width: Option<u32>,
+    /// Defaults to 1080.
+    pub height: Option<u32>,
+    /// Defaults to 30/1 and must match a frame rate supported by Shrimply.
+    pub fps: Option<ExactFraction>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct CreateProjectResponse {
+    pub project_path: String,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize, JsonSchema)]
 pub struct GetEditorStateRequest {}
 
