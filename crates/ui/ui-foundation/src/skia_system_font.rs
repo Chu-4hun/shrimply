@@ -29,6 +29,7 @@ pub fn paragraph(text: &str, font_size: f32, color: Color) -> Rc<Paragraph> {
         text: text.to_string(),
         font_size: font_size.to_bits(),
         color: color.map(f32::to_bits),
+        max_width: None,
     };
     if let Some(paragraph) =
         PARAGRAPHS.with(|paragraphs| paragraphs.borrow_mut().cache_get(&key).map(Rc::clone))
@@ -36,7 +37,37 @@ pub fn paragraph(text: &str, font_size: f32, color: Color) -> Rc<Paragraph> {
         return paragraph;
     }
 
-    let paragraph = FONTS.with(|fonts| build_paragraph(text, font_size, color, fonts.clone()));
+    let paragraph =
+        FONTS.with(|fonts| build_paragraph(text, font_size, color, None, fonts.clone()));
+    PARAGRAPHS.with(|paragraphs| {
+        paragraphs
+            .borrow_mut()
+            .cache_set(key, Rc::clone(&paragraph));
+    });
+    paragraph
+}
+
+pub fn ellipsized_paragraph(
+    text: &str,
+    font_size: f32,
+    color: Color,
+    max_width: f32,
+) -> Rc<Paragraph> {
+    let max_width = max_width.floor().max(1.0);
+    let key = Key {
+        text: text.to_string(),
+        font_size: font_size.to_bits(),
+        color: color.map(f32::to_bits),
+        max_width: Some(max_width.to_bits()),
+    };
+    if let Some(paragraph) =
+        PARAGRAPHS.with(|paragraphs| paragraphs.borrow_mut().cache_get(&key).map(Rc::clone))
+    {
+        return paragraph;
+    }
+
+    let paragraph =
+        FONTS.with(|fonts| build_paragraph(text, font_size, color, Some(max_width), fonts.clone()));
     PARAGRAPHS.with(|paragraphs| {
         paragraphs
             .borrow_mut()
@@ -50,12 +81,14 @@ struct Key {
     text: String,
     font_size: u32,
     color: Color<u32>,
+    max_width: Option<u32>,
 }
 
 fn build_paragraph(
     text: &str,
     font_size: f32,
     color: Color,
+    max_width: Option<f32>,
     fonts: FontCollection,
 ) -> Rc<Paragraph> {
     let mut style = TextStyle::new();
@@ -64,9 +97,13 @@ fn build_paragraph(
         .set_font_size(font_size.max(1.0))
         .set_font_families(&["sans-serif"]);
 
-    let mut builder = ParagraphBuilder::new(&ParagraphStyle::new(), fonts);
+    let mut paragraph_style = ParagraphStyle::new();
+    if max_width.is_some() {
+        paragraph_style.set_max_lines(1).set_ellipsis("...");
+    }
+    let mut builder = ParagraphBuilder::new(&paragraph_style, fonts);
     builder.push_style(&style).add_text(text);
     let mut paragraph = builder.build();
-    paragraph.layout(f32::MAX);
+    paragraph.layout(max_width.unwrap_or(f32::MAX));
     Rc::new(paragraph)
 }

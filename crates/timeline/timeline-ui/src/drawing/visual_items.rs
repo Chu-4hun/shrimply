@@ -73,13 +73,7 @@ pub(in crate::drawing) fn draw_caption_item(
     if !item.text.is_empty() {
         let font_id = FontId::proportional(10.0);
         let color = Color::VIEW_FG_DARK;
-        let text = ellipsize_timeline_text(
-            painter,
-            &item.text,
-            font_id.clone(),
-            color,
-            (clip_width - ITEM_PADDING_X * 2.0 - 4.0).max(0.0) as f32,
-        );
+        let max_width = (clip_width - ITEM_PADDING_X * 2.0 - 4.0).max(0.0) as f32;
         painter
             .with_clip_rect(rect(
                 clip_x + ITEM_PADDING_X,
@@ -87,59 +81,14 @@ pub(in crate::drawing) fn draw_caption_item(
                 (clip_width - ITEM_PADDING_X * 2.0).max(1.0),
                 TRACK_HEIGHT,
             ))
-            .system_text(
+            .system_text_ellipsized(
                 vec2((clip_x + ITEM_PADDING_X + 2.0) as f32, (y + 12.0) as f32),
-                text,
+                &item.text,
                 font_id,
                 color,
+                max_width,
             );
     }
-}
-
-pub(in crate::drawing) fn ellipsize_timeline_text(
-    painter: &TimelinePainter,
-    text: &str,
-    font_id: FontId,
-    color: Color,
-    max_width: f32,
-) -> String {
-    if max_width <= 0.0 {
-        return String::new();
-    }
-    if painter
-        .layout_system_text_no_wrap(text, font_id.clone(), color)
-        .size()
-        .x
-        <= max_width
-    {
-        return text.to_string();
-    }
-
-    let ellipsis = "...";
-    if painter
-        .layout_system_text_no_wrap(ellipsis, font_id.clone(), color)
-        .size()
-        .x
-        > max_width
-    {
-        return String::new();
-    }
-
-    let mut result = String::new();
-    for character in text.chars() {
-        result.push(character);
-        let candidate = format!("{result}{ellipsis}");
-        if painter
-            .layout_system_text_no_wrap(&candidate, font_id.clone(), color)
-            .size()
-            .x
-            > max_width
-        {
-            result.pop();
-            break;
-        }
-    }
-    format!("{result}{ellipsis}")
 }
 
 pub(in crate::drawing) fn video_natural_end_marker(
