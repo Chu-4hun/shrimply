@@ -13,8 +13,11 @@ use crate::bridge::{Bridge, BridgeError};
 use crate::protocol::*;
 use crate::query;
 
-const EDIT_API: &str = r#"Call connect_project with an absolute project path before using this API.
-Shrimply MCP edits operate on the connected editor's live in-memory project.
+const MCP_INSTRUCTIONS: &str = "Shrimply MCP controls the Shrimply video editor for inspecting and editing its native .shrimp video project files. It does not edit .shrimp files directly. Call connect_project with the absolute path of a .shrimp file already open in Shrimply; tools and resources then operate on that editor's live in-memory project, and connect_project can switch to another open .shrimp project.";
+
+const EDIT_API: &str = r#"Shrimply MCP controls the Shrimply video editor for native .shrimp video project files.
+Call connect_project with the absolute path of a .shrimp file already open in Shrimply before using
+this API. Edits operate on the connected editor's live in-memory project, not directly on the file.
 All public times are zero-based integer frames. Clip and track mutations require full concrete
 addresses. Direct edits create one undoable history action. run_edit_script validates its ordered,
 typed operations against a clone and installs them atomically as one history action. File imports
@@ -102,7 +105,7 @@ impl ShrimplyServer {
 #[tool_router]
 impl ShrimplyServer {
     #[tool(
-        description = "Connect this MCP session to the open Shrimply project at an absolute path. Calling it again switches projects"
+        description = "Connect this MCP session to a native .shrimp video project already open in the Shrimply editor, using its absolute file path. Calling it again switches projects"
     )]
     async fn connect_project(
         &self,
@@ -498,9 +501,7 @@ impl ServerHandler for ShrimplyServer {
                 .build(),
         )
         .with_server_info(Implementation::from_build_env())
-        .with_instructions(
-            "Call connect_project with an absolute project path first. Tools and resources then read and edit that editor's live in-memory project; connect_project can switch the session to another open project".to_string(),
-        )
+        .with_instructions(MCP_INSTRUCTIONS.to_string())
     }
 
     async fn list_resources(
@@ -510,13 +511,13 @@ impl ServerHandler for ShrimplyServer {
     ) -> Result<ListResourcesResult, McpError> {
         Ok(ListResourcesResult::with_all_items(vec![
             Resource::new("shrimply://editor/state", "editor-state")
-                .with_description("Live editor/project/player/selection state")
+                .with_description("Live Shrimply .shrimp project/editor/player/selection state")
                 .with_mime_type("application/json"),
             Resource::new("shrimply://project/clips", "project-clips")
                 .with_description("All current root and nested clip presentations")
                 .with_mime_type("application/json"),
             Resource::new("shrimply://edit-api", "edit-api")
-                .with_description("Typed direct edit and edit-script usage")
+                .with_description("Typed editing API for the connected .shrimp video project")
                 .with_mime_type("text/plain"),
         ]))
     }

@@ -118,7 +118,7 @@ pub enum RangeMatch {
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct ConnectProjectRequest {
-    /// Absolute path to an open Shrimply project file.
+    /// Absolute path to a native .shrimp video project already open in Shrimply.
     pub project_path: String,
 }
 
