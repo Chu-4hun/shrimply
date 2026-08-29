@@ -95,6 +95,7 @@ pub enum BridgeCommand {
     Snapshot,
     Seek { frame: u64 },
     ViewFrame { frame: u64 },
+    AnalyzeTransparentFill(AnalyzeTransparentFillRequest),
     Apply(EditRequest),
 }
 
@@ -189,6 +190,20 @@ pub struct ViewFrameRequest {
 pub struct ViewFrameResponse {
     pub frame: FrameTime,
     pub png: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct AnalyzeTransparentFillRequest {
+    pub address: ClipAddress,
+    pub modifier_id: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct AnalyzeTransparentFillResponse {
+    pub address: ClipAddress,
+    pub modifier_id: String,
+    pub analysis_generation: u64,
+    pub revision: u64,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize, JsonSchema)]

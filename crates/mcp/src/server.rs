@@ -282,6 +282,24 @@ impl ShrimplyServer {
         ]))
     }
 
+    #[tool(
+        description = "Analyze a Transparent Fill modifier and wait until all frame masks are cached"
+    )]
+    async fn analyze_transparent_fill(
+        &self,
+        Parameters(request): Parameters<AnalyzeTransparentFillRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<AnalyzeTransparentFillResponse>, McpError> {
+        let value = self
+            .request(BridgeCommand::AnalyzeTransparentFill(request), &context)
+            .await?;
+        serde_json::from_value(value).map(Json).map_err(|error| {
+            internal_error(format!(
+                "editor returned an invalid Transparent Fill analysis result: {error}"
+            ))
+        })
+    }
+
     #[tool(description = "Create one caption, video, or audio track as an explicit undoable edit")]
     async fn create_track(
         &self,

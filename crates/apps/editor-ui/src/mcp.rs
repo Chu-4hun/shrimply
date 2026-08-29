@@ -14,8 +14,9 @@ use gtk::{gdk, glib, prelude::*};
 use serde_json::{Value, json};
 use shrimply_math_core::{Time, time_from_frame};
 use shrimply_mcp::protocol::{
-    ActiveScopeSnapshot, BridgeCommand, BridgeRequest, BridgeResponse, EditRequest, EditResponse,
-    LiveSnapshot, PlayerSnapshot, ScopeRef, ViewFrameResponse,
+    ActiveScopeSnapshot, AnalyzeTransparentFillRequest, AnalyzeTransparentFillResponse,
+    BridgeCommand, BridgeRequest, BridgeResponse, EditRequest, EditResponse, LiveSnapshot,
+    PlayerSnapshot, ScopeRef, ViewFrameResponse,
 };
 use shrimply_preview_ui::video::compositor::{EXPORT_ASSETS_LOADING, VideoExportRenderer};
 use shrimply_project::project::Project;
@@ -24,6 +25,8 @@ use shrimply_state::{
     preferences::{self, SharedPreferences},
 };
 use shrimply_timeline::selection_state::{self, SharedSelectionState};
+use shrimply_video::transparent_fill_analysis::Status as TransparentFillStatus;
+use shrimply_video_modifiers::{ModifierEffect, RasterModifierEffect};
 use uuid::Uuid;
 
 mod imports;
@@ -212,6 +215,15 @@ pub fn start(
                         BridgeCommand::ViewFrame { frame } => {
                             view_frame(&project, frame, work.canceled.clone()).await
                         }
+                        BridgeCommand::AnalyzeTransparentFill(request) => {
+                            analyze_transparent_fill(
+                                &project,
+                                &player_state,
+                                request,
+                                work.canceled.clone(),
+                            )
+                            .await
+                        }
                         command => handle_command(
                             &project,
                             &player_state,
@@ -390,8 +402,99 @@ fn handle_command(
         BridgeCommand::ViewFrame { .. } => {
             unreachable!("frame rendering is prepared asynchronously")
         }
+        BridgeCommand::AnalyzeTransparentFill(_) => {
+            unreachable!("modifier analysis is prepared asynchronously")
+        }
         BridgeCommand::Apply(_) => unreachable!("edit commands are prepared asynchronously"),
     }
+}
+
+async fn analyze_transparent_fill(
+    live: &Rc<RefCell<Project>>,
+    player: &SharedPlayerState,
+    request: AnalyzeTransparentFillRequest,
+    canceled: Arc<AtomicBool>,
+) -> Result<Value, String> {
+    let address = shrimply_mcp::query::model_item_address(&request.address)?;
+    let modifier_id = Uuid::parse_str(&request.modifier_id)
+        .map_err(|error| format!("invalid modifier_id {:?}: {error}", request.modifier_id))?;
+    let mut project = live.borrow().clone();
+    let fill = project
+        .video_item_mut(&address)
+        .ok_or_else(|| "Transparent Fill analysis requires a video clip address".to_string())?
+        .modifiers
+        .iter_mut()
+        .find(|modifier| modifier.id == modifier_id)
+        .ok_or_else(|| format!("modifier {modifier_id} does not exist on the addressed clip"))
+        .and_then(|modifier| match &mut modifier.effect {
+            ModifierEffect::Raster(effect) => match &mut **effect {
+                RasterModifierEffect::TransparentFill(fill) => Ok(fill),
+                _ => Err(format!("modifier {modifier_id} is not Transparent Fill")),
+            },
+            _ => Err(format!("modifier {modifier_id} is not Transparent Fill")),
+        })?;
+    if fill.points.is_empty() {
+        return Err("add at least one transparent fill point before analyzing".to_string());
+    }
+    fill.analysis_generation = fill.analysis_generation.wrapping_add(1).max(1);
+    let generation = fill.analysis_generation;
+    shrimply_project::project::commit_edit_checked(&project, "MCP analyze Transparent Fill")?;
+    *live.borrow_mut() = project.clone();
+    player_state::refresh_project(
+        player,
+        ProjectChange {
+            video: true,
+            inspector: true,
+            ..Default::default()
+        },
+    );
+    shrimply_video::transparent_fill_analysis::analyze(project, &address, modifier_id)?;
+
+    loop {
+        if canceled.load(Ordering::Acquire) {
+            shrimply_video::transparent_fill_analysis::cancel(modifier_id);
+            return Err("MCP client canceled Transparent Fill analysis".to_string());
+        }
+        let status = {
+            let project = live.borrow();
+            shrimply_video::transparent_fill_analysis::status(&project, &address, modifier_id)
+        };
+        match status {
+            TransparentFillStatus::Running { .. } => {
+                glib::timeout_future(CANCELLATION_POLL_INTERVAL).await;
+            }
+            TransparentFillStatus::Complete => break,
+            TransparentFillStatus::Failed(error) => {
+                return Err(format!("Transparent Fill analysis failed: {error}"));
+            }
+            TransparentFillStatus::Cancelled => {
+                return Err("Transparent Fill analysis was canceled".to_string());
+            }
+            TransparentFillStatus::Missing => {
+                shrimply_video::transparent_fill_analysis::cancel(modifier_id);
+                return Err(
+                    "Transparent Fill inputs changed while analysis was running; retry analysis"
+                        .to_string(),
+                );
+            }
+        }
+    }
+
+    player_state::refresh_project(
+        player,
+        ProjectChange {
+            video: true,
+            inspector: true,
+            ..Default::default()
+        },
+    );
+    serde_json::to_value(AnalyzeTransparentFillResponse {
+        address: request.address,
+        modifier_id: request.modifier_id,
+        analysis_generation: generation,
+        revision: player_state::snapshot(player).revision,
+    })
+    .map_err(|error| format!("could not serialize Transparent Fill analysis result: {error}"))
 }
 
 async fn view_frame(
