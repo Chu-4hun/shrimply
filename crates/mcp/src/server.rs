@@ -38,8 +38,14 @@ Undo removes imported clips while retaining their durable project-media files so
 Caption text is the text field of set_clip_properties. Query expressions to obtain their stable IDs,
 then use set_expression with the owning clip address and expression ID. Expression edits can also be
 included in run_edit_script for one atomic, undoable history action.
+set_video_transform sets constant transform values, fit mode, and raster crop. upsert_keyframes and
+delete_keyframes address scalar or vec2 TimelineValues by the JSON Pointer shown in get_clip metadata;
+their frames are projected timeline frames. upsert_property_expression creates or updates an
+expression directly on the same property path, and delete_property_expression removes it.
+set_clip_transitions applies a list of intro/outro updates; a null transition removes that side.
 insert_captions bulk-inserts exact frame ranges into an existing caption track, or creates a new
 track when track is omitted. It can set the track language and copy styling from source captions.
+insert_text creates native editable text video clips with the project's standard text defaults.
 insert_tts creates an empty TTS audio item for inspector configuration. list_tts_models describes
 the current compute server's model inputs, and generate_tts synthesizes and inserts speech directly.
 list_stt_models lists the current compute server's speech-to-text models. transcribe_audio accepts
@@ -564,6 +570,31 @@ impl ShrimplyServer {
     }
 
     #[tool(
+        description = "Insert a native editable text video clip at an exact projected frame and duration, choosing a video track with room or creating one when omitted"
+    )]
+    async fn insert_text(
+        &self,
+        Parameters(request): Parameters<InsertTextRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            EditRequest {
+                history_label: "MCP insert text".to_string(),
+                frame: request.frame,
+                scope: request.scope,
+                operations: vec![EditOperation::InsertText(InsertTextOperation {
+                    text: request.text,
+                    track: request.track,
+                    duration_frames: request.duration_frames,
+                    collision: request.collision,
+                })],
+            },
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
         description = "List text-to-speech models and their dynamic input definitions from the editor's current compute server",
         annotations(read_only_hint = true)
     )]
@@ -691,6 +722,114 @@ impl ShrimplyServer {
             single(
                 "MCP set clip properties",
                 EditOperation::SetClipProperties(request),
+            ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "Set constant position, scale, rotation, anchor, shear, fit mode, and/or raster crop on a video clip. Supplied transform fields replace any keyframes on those fields"
+    )]
+    async fn set_video_transform(
+        &self,
+        Parameters(request): Parameters<SetVideoTransformRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single(
+                "MCP set video transform",
+                EditOperation::SetVideoTransform(request),
+            ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "Bulk-create or replace scalar or vec2 keyframes by JSON property path and projected timeline frame"
+    )]
+    async fn upsert_keyframes(
+        &self,
+        Parameters(request): Parameters<UpsertKeyframesRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single(
+                "MCP upsert keyframes",
+                EditOperation::UpsertKeyframes(request),
+            ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "Delete scalar or vec2 keyframes by JSON property path and projected timeline frame; deleting the last keyframe preserves the property's first keyed value as a constant"
+    )]
+    async fn delete_keyframes(
+        &self,
+        Parameters(request): Parameters<DeleteKeyframesRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single(
+                "MCP delete keyframes",
+                EditOperation::DeleteKeyframes(request),
+            ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "Create or update an expression directly on a scalar or vec2 TimelineValue addressed by its get_clip JSON property path"
+    )]
+    async fn upsert_property_expression(
+        &self,
+        Parameters(request): Parameters<UpsertPropertyExpressionRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single(
+                "MCP upsert property expression",
+                EditOperation::UpsertPropertyExpression(request),
+            ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "Remove the expression from a scalar or vec2 TimelineValue addressed by its get_clip JSON property path"
+    )]
+    async fn delete_property_expression(
+        &self,
+        Parameters(request): Parameters<DeletePropertyExpressionRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single(
+                "MCP delete property expression",
+                EditOperation::DeletePropertyExpression(request),
+            ),
+            &context,
+        )
+        .await
+    }
+
+    #[tool(
+        description = "Add, edit, or remove per-clip intro/outro transitions. Each update names one side; a null transition removes it"
+    )]
+    async fn set_clip_transitions(
+        &self,
+        Parameters(request): Parameters<SetClipTransitionsRequest>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<Json<EditResponse>, McpError> {
+        self.edit(
+            single(
+                "MCP set clip transitions",
+                EditOperation::SetClipTransitions(request),
             ),
             &context,
         )

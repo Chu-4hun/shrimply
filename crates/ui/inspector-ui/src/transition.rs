@@ -6,7 +6,7 @@ use shrimply_project::project::{
     MAX_VISUAL_CLIP_TRANSITION_DISSOLVE_GRAIN_SIZE, MAX_VISUAL_CLIP_TRANSITION_SOFTNESS,
     MAX_VISUAL_CLIP_TRANSITION_ZOOM_SCALE, MorphUnit, Project, TransitionSide,
     VisualClipTransition, VisualClipTransitionKind, VisualTransition, VisualTransitionKind,
-    WriteOrdering, visual_transition_default_interpolation, visual_transition_effect_defaults,
+    WriteOrdering,
 };
 use shrimply_ui_foundation::tr;
 use shrimply_ui_foundation::ui::{ColorPicker, switch_row};
@@ -475,17 +475,7 @@ fn visual_rows(
     }
     let kind = selector("Kind", transition.kind, kinds, move |kind| {
         update_visual(&kind_context, side, true, |value| {
-            value.kind = kind;
-            value.interpolation = visual_transition_default_interpolation(side, kind);
-            (
-                value.effect_amount,
-                value.effect_detail,
-                value.effect_angle_degrees,
-                value.effect_softness,
-            ) = visual_transition_effect_defaults(kind);
-            value.effect_fade = true;
-            value.effect_evolve_seed = false;
-            value.effect_seed_frequency = 12;
+            value.set_kind(side, kind);
         })
     });
     section.add_wide_control(&kind);

@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use shrimply_math_core::Time;
-use shrimply_project::project::Project;
+use shrimply_project::project::{Interpolation, Project, TransitionSide, VisualTransitionKind};
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct ExactFraction {
@@ -378,6 +378,29 @@ pub struct InsertTtsRequest {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct InsertTextRequest {
+    pub text: String,
+    /// Existing video track. Omit to choose one with room or create a new track.
+    pub track: Option<TrackAddress>,
+    /// Defaults to the edit-script anchor or current playhead.
+    pub frame: Option<u64>,
+    pub duration_frames: u64,
+    /// Defaults to the edit-script or editor's active scope.
+    pub scope: Option<ScopeRef>,
+    #[serde(default)]
+    pub collision: CollisionBehavior,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct InsertTextOperation {
+    pub text: String,
+    pub track: Option<TrackAddress>,
+    pub duration_frames: u64,
+    #[serde(default)]
+    pub collision: CollisionBehavior,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum TtsInputValue {
     Text { value: String },
@@ -476,6 +499,121 @@ pub struct SetClipPropertiesRequest {
     pub repeat_strategy: Option<String>,
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct Vec2Value {
+    pub x: f32,
+    pub y: f32,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum VideoFitMode {
+    Natural,
+    Contain,
+    Cover,
+    Stretch,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum CropMode {
+    Percentage,
+    Pixels,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct CropEdges {
+    pub mode: CropMode,
+    pub top: f32,
+    pub right: f32,
+    pub bottom: f32,
+    pub left: f32,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct SetVideoTransformRequest {
+    pub address: ClipAddress,
+    /// Applied first; explicitly supplied fields then override the fitted transform.
+    pub fit_mode: Option<VideoFitMode>,
+    pub position: Option<Vec2Value>,
+    pub scale: Option<Vec2Value>,
+    pub rotation_degrees: Option<f32>,
+    pub anchor: Option<Vec2Value>,
+    pub shear: Option<Vec2Value>,
+    /// Adds or updates the clip's raster Crop modifier.
+    pub crop: Option<CropEdges>,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "kind", content = "value")]
+pub enum KeyframeValue {
+    Scalar(f32),
+    Vec2(Vec2Value),
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct KeyframeInput {
+    /// Projected timeline frame, converted to the addressed clip's local animation time.
+    pub frame: u64,
+    pub value: KeyframeValue,
+    pub interpolation: Interpolation,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct UpsertKeyframesRequest {
+    pub address: ClipAddress,
+    /// JSON Pointer to a scalar or vec2 TimelineValue in get_clip metadata.
+    pub property_path: String,
+    pub keyframes: Vec<KeyframeInput>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct DeleteKeyframesRequest {
+    pub address: ClipAddress,
+    /// JSON Pointer to a scalar or vec2 TimelineValue in get_clip metadata.
+    pub property_path: String,
+    /// Projected timeline frames to delete.
+    pub frames: Vec<u64>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct UpsertPropertyExpressionRequest {
+    pub address: ClipAddress,
+    /// JSON Pointer to a scalar or vec2 TimelineValue in get_clip metadata.
+    pub property_path: String,
+    pub source: String,
+    /// Defaults to true for a newly created expression.
+    pub enabled: Option<bool>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct DeletePropertyExpressionRequest {
+    pub address: ClipAddress,
+    /// JSON Pointer to a scalar or vec2 TimelineValue in get_clip metadata.
+    pub property_path: String,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ClipTransitionInput {
+    pub duration_frames: u64,
+    /// Visual clips default to fade. Audio clips only support fade.
+    pub kind: Option<VisualTransitionKind>,
+    pub interpolation: Option<Interpolation>,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct ClipTransitionUpdate {
+    pub side: TransitionSide,
+    /// Null removes the transition on this side.
+    pub transition: Option<ClipTransitionInput>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+pub struct SetClipTransitionsRequest {
+    pub address: ClipAddress,
+    pub updates: Vec<ClipTransitionUpdate>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 pub struct SetExpressionRequest {
     pub address: ClipAddress,
@@ -521,11 +659,18 @@ pub enum EditOperation {
     InsertFiles(InsertFilesRequest),
     InsertCaptions(InsertCaptionsRequest),
     InsertTts(InsertTtsRequest),
+    InsertText(InsertTextOperation),
     CreateTrack(CreateTrackOperation),
     MoveClip(MoveClipRequest),
     TrimClip(TrimClipRequest),
     DeleteClips(DeleteClipsRequest),
     SetClipProperties(SetClipPropertiesRequest),
+    SetVideoTransform(SetVideoTransformRequest),
+    UpsertKeyframes(UpsertKeyframesRequest),
+    DeleteKeyframes(DeleteKeyframesRequest),
+    UpsertPropertyExpression(UpsertPropertyExpressionRequest),
+    DeletePropertyExpression(DeletePropertyExpressionRequest),
+    SetClipTransitions(SetClipTransitionsRequest),
     SetExpression(SetExpressionRequest),
     SetTrackEnabled(SetTrackEnabledRequest),
     SetCaptionTrackLanguage(SetCaptionTrackLanguageRequest),
