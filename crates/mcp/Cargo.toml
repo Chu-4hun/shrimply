@@ -22,9 +22,11 @@ rmcp = { workspace = true, optional = true }
 schemars.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+shrimply-core = { path = "../core" }
 shrimply-math-core = { path = "../math/core" }
 shrimply-media-info = { path = "../media-info" }
 shrimply-project = { path = "../project/project" }
 shrimply-timeline = { path = "../timeline/timeline" }
+shrimply-video-modifiers = { path = "../video/video-modifiers" }
 tokio = { workspace = true, optional = true }
 uuid = { workspace = true, features = ["serde"] }

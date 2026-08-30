@@ -79,6 +79,18 @@ impl<V: Vector2Value + Default, S: ScalarValue> Transform2D<V, S> {
         Self::from_resolved(ResolvedTransform2D::natural_size(canvas, width, height))
     }
 
+    pub fn contain(canvas: impl Size2D, width: u32, height: u32) -> Self {
+        Self::from_resolved(ResolvedTransform2D::contain(canvas, width, height))
+    }
+
+    pub fn cover(canvas: impl Size2D, width: u32, height: u32) -> Self {
+        Self::from_resolved(ResolvedTransform2D::cover(canvas, width, height))
+    }
+
+    pub fn stretch(canvas: impl Size2D, width: u32, height: u32) -> Self {
+        Self::from_resolved(ResolvedTransform2D::stretch(canvas, width, height))
+    }
+
     pub fn from_resolved(transform: ResolvedTransform2D) -> Self {
         Self {
             id: Uuid::new_v4(),
@@ -137,6 +149,33 @@ impl ResolvedTransform2D {
             position: canvas * 0.5,
             anchor: media * 0.5,
             ..Self::IDENTITY
+        }
+    }
+
+    pub fn contain(canvas: impl Size2D, width: u32, height: u32) -> Self {
+        let canvas = canvas.size_2d().max(Vec2::ONE);
+        let media = Vec2::new(width.max(1) as f32, height.max(1) as f32);
+        Self {
+            scale: Vec2::splat((canvas / media).min_element()),
+            ..Self::natural_size(canvas, width, height)
+        }
+    }
+
+    pub fn cover(canvas: impl Size2D, width: u32, height: u32) -> Self {
+        let canvas = canvas.size_2d().max(Vec2::ONE);
+        let media = Vec2::new(width.max(1) as f32, height.max(1) as f32);
+        Self {
+            scale: Vec2::splat((canvas / media).max_element()),
+            ..Self::natural_size(canvas, width, height)
+        }
+    }
+
+    pub fn stretch(canvas: impl Size2D, width: u32, height: u32) -> Self {
+        let canvas = canvas.size_2d().max(Vec2::ONE);
+        let media = Vec2::new(width.max(1) as f32, height.max(1) as f32);
+        Self {
+            scale: canvas / media,
+            ..Self::natural_size(canvas, width, height)
         }
     }
 

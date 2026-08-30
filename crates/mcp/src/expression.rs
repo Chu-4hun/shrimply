@@ -1,6 +1,5 @@
-use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
-use shrimply_project::project::{ItemMut, Project};
+use shrimply_project::project::Project;
 use uuid::Uuid;
 
 use crate::protocol::{ClipAddress, ExpressionSummary, SetExpressionRequest};
@@ -19,14 +18,16 @@ pub fn set(project: &mut Project, request: &SetExpressionRequest) -> Result<Uuid
     let expression_id = Uuid::parse_str(&request.expression_id)
         .map_err(|error| format!("expression_id is not a UUID: {error}"))?;
     let address = model_item_address(&request.address)?;
-    match project
-        .item_mut(&address)
-        .ok_or_else(|| "clip was not found".to_string())?
-    {
-        ItemMut::Caption(_) => Err("caption clips do not contain expressions".to_string()),
-        ItemMut::Video(item) => update_item(item, expression_id, request),
-        ItemMut::Audio(item) => update_item(item, expression_id, request),
-    }?;
+    crate::property::mutate_item(project, &address, |value| {
+        if update(value, expression_id, request) {
+            Ok(())
+        } else {
+            Err(format!(
+                "expression {expression_id} was not found in clip {}",
+                request.address.item_id
+            ))
+        }
+    })?;
     Ok(address.item_id())
 }
 
@@ -34,13 +35,13 @@ fn collect(value: &Value, address: &ClipAddress, path: &str, output: &mut Vec<Ex
     match value {
         Value::Object(object) => {
             for (key, child) in object {
-                let path = format!("{path}/{}", json_pointer_segment(key));
+                let child_path = format!("{path}/{}", json_pointer_segment(key));
                 if key == "expression"
-                    && let Some(expression) = summary(child, address, path.clone())
+                    && let Some(expression) = summary(child, address, path.to_string())
                 {
                     output.push(expression);
                 } else {
-                    collect(child, address, &path, output);
+                    collect(child, address, &child_path, output);
                 }
             }
         }
@@ -68,27 +69,6 @@ fn summary(
         enabled: object.get("enabled")?.as_bool()?,
         source: object.get("source")?.as_str()?.to_string(),
     })
-}
-
-fn update_item<T>(
-    item: &mut T,
-    expression_id: Uuid,
-    request: &SetExpressionRequest,
-) -> Result<(), String>
-where
-    T: Serialize + DeserializeOwned,
-{
-    let mut value = serde_json::to_value(&*item)
-        .map_err(|error| format!("could not inspect clip expressions: {error}"))?;
-    if !update(&mut value, expression_id, request) {
-        return Err(format!(
-            "expression {expression_id} was not found in clip {}",
-            request.address.item_id
-        ));
-    }
-    *item = serde_json::from_value(value)
-        .map_err(|error| format!("could not apply clip expression edit: {error}"))?;
-    Ok(())
 }
 
 fn update(value: &mut Value, expression_id: Uuid, request: &SetExpressionRequest) -> bool {

@@ -1016,7 +1016,9 @@ pub struct AudioTransition {
     pub interpolation: Interpolation,
 }
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize, schemars::JsonSchema,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum VisualTransitionKind {
     #[default]
@@ -1105,6 +1107,20 @@ impl VisualTransition {
             effect_evolve_seed: false,
             effect_seed_frequency: default_transition_seed_frequency(),
         }
+    }
+
+    pub fn set_kind(&mut self, side: TransitionSide, kind: VisualTransitionKind) {
+        self.kind = kind;
+        self.interpolation = visual_transition_default_interpolation(side, kind);
+        (
+            self.effect_amount,
+            self.effect_detail,
+            self.effect_angle_degrees,
+            self.effect_softness,
+        ) = visual_transition_effect_defaults(kind);
+        self.effect_fade = true;
+        self.effect_evolve_seed = false;
+        self.effect_seed_frequency = default_transition_seed_frequency();
     }
 }
 

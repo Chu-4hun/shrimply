@@ -1,16 +1,24 @@
 use std::collections::HashSet;
 
+use shrimply_core::timeline_value::{TimelineBase, TimelineValue};
 use shrimply_math_core::{Fraction, Time, fraction_new, time_from_frame};
 use shrimply_project::project::{
-    CaptionItem, ItemKind, Project, ProjectItem, RepeatStrategy, SequenceScopeId,
-    Time as ProjectTime, TrackAddress as ModelTrackAddress, TrackRef, caption_languages,
+    AudioTransition, CaptionItem, ItemKind, ItemMut, Project, ProjectItem, RepeatStrategy,
+    SequenceScopeId, Time as ProjectTime, TrackAddress as ModelTrackAddress, TrackRef, Transform,
+    TransitionSide, VideoItemContent, VisualTransition, caption_languages,
 };
 use shrimply_timeline::edit::{self, CollisionBehavior as ModelCollision};
+use shrimply_video_modifiers::{
+    ModifierEffect, RasterModifierEffect, VisualKind,
+    crop::{CropEdges as ModelCropEdges, CropModifier},
+};
 use uuid::Uuid;
 
 use crate::protocol::{
-    ClipAddress, ClipSummary, CollisionBehavior, EditOperation, ExactFraction,
-    InsertCaptionsRequest, SetClipPropertiesRequest, TrackAddress,
+    ClipAddress, ClipSummary, ClipTransitionInput, CollisionBehavior, CropEdges, CropMode,
+    EditOperation, ExactFraction, InsertCaptionsRequest, InsertTextOperation,
+    SetClipPropertiesRequest, SetClipTransitionsRequest, SetVideoTransformRequest, TrackAddress,
+    VideoFitMode,
 };
 use crate::query::{model_item_address, model_kind, model_track_address};
 
@@ -35,6 +43,7 @@ pub fn apply_non_import(
         EditOperation::InsertTts(_) => {
             Err("insert_tts must be handled by the native editor".to_string())
         }
+        EditOperation::InsertText(request) => insert_text(project, request, anchor, scope),
         EditOperation::InsertCaptions(request) => insert_captions(project, request),
         EditOperation::CreateTrack(request) => {
             let id = edit::create_track(
@@ -187,6 +196,20 @@ pub fn apply_non_import(
             })
         }
         EditOperation::SetClipProperties(request) => set_properties(project, request),
+        EditOperation::SetVideoTransform(request) => set_video_transform(project, request),
+        EditOperation::UpsertKeyframes(request) => Ok(changed(crate::property::upsert_keyframes(
+            project, request,
+        )?)),
+        EditOperation::DeleteKeyframes(request) => Ok(changed(crate::property::delete_keyframes(
+            project, request,
+        )?)),
+        EditOperation::UpsertPropertyExpression(request) => Ok(changed(
+            crate::property::upsert_expression(project, request)?,
+        )),
+        EditOperation::DeletePropertyExpression(request) => Ok(changed(
+            crate::property::delete_expression(project, request)?,
+        )),
+        EditOperation::SetClipTransitions(request) => set_clip_transitions(project, request),
         EditOperation::SetExpression(request) => {
             Ok(changed(crate::expression::set(project, request)?))
         }
@@ -381,6 +404,131 @@ fn insert_captions(
     })
 }
 
+fn insert_text(
+    project: &mut Project,
+    request: &InsertTextOperation,
+    anchor: u64,
+    scope: &SequenceScopeId,
+) -> Result<MutationResult, String> {
+    if request.text.is_empty() {
+        return Err("insert_text requires nonempty text".to_string());
+    }
+    if request.duration_frames == 0 {
+        return Err("insert_text duration_frames must be positive".to_string());
+    }
+    let end_frame = anchor
+        .checked_add(request.duration_frames)
+        .ok_or_else(|| "insert_text end frame overflow".to_string())?;
+    let projected_start = frame(project, anchor)?;
+    let projected_end = frame(project, end_frame)?;
+    let requested_track = request
+        .track
+        .as_ref()
+        .map(model_track_address)
+        .transpose()?;
+    if requested_track
+        .as_ref()
+        .is_some_and(|track| track.kind() != ItemKind::Video)
+    {
+        return Err("insert_text requires a video track".to_string());
+    }
+    if requested_track
+        .as_ref()
+        .is_some_and(|track| project.track(track).is_none())
+    {
+        return Err("video track was not found".to_string());
+    }
+    let path = requested_track
+        .as_ref()
+        .map(|track| track.sequence_path().to_vec())
+        .or_else(|| project.sequence_path_for_scope(ItemKind::Video, scope))
+        .ok_or_else(|| "text insertion scope does not have one concrete video path".to_string())?;
+    let start = project
+        .timeline_time_to_sequence_path(ItemKind::Video, &path, projected_start)
+        .ok_or_else(|| "text insertion scope does not resolve in the project".to_string())?
+        .snapped(project.frame_step());
+    let end = project
+        .timeline_time_to_sequence_path(ItemKind::Video, &path, projected_end)
+        .ok_or_else(|| "text insertion scope does not resolve in the project".to_string())?
+        .snapped(project.frame_step());
+    if end <= start {
+        return Err(
+            "insert_text must have a positive duration in its destination scope".to_string(),
+        );
+    }
+    let mut item = shrimply_project::project::VideoItem::text_item(project.canvas_size, start, end);
+    let VideoItemContent::Text(text) = &mut item.content else {
+        unreachable!("text item constructor returned another item type");
+    };
+    text.text = TimelineValue::new_const(request.text.clone());
+    let item_id = item.id;
+
+    let target = if let Some(track) = requested_track {
+        Some(track)
+    } else {
+        project
+            .video_tracks_for_scope(scope)
+            .ok_or_else(|| "text insertion scope was not found".to_string())?
+            .iter()
+            .map(|track| ModelTrackAddress::Video {
+                sequence_path: path.clone(),
+                track_id: track.id,
+            })
+            .find(|track| {
+                edit::collision_addresses(project, track, start, end)
+                    .is_ok_and(|collisions| collisions.is_empty())
+            })
+    };
+    let mut deleted_presentations = Vec::new();
+    let inserted = if let Some(target) = target {
+        let collisions = edit::collision_addresses(project, &target, start, end)?;
+        match request.collision {
+            CollisionBehavior::Reject if !collisions.is_empty() => {
+                return Err("text insertion collides with an existing clip".to_string());
+            }
+            CollisionBehavior::Overwrite if !collisions.is_empty() => {
+                let item_ids = collisions.iter().map(|address| address.item_id()).collect();
+                deleted_presentations =
+                    crate::query::presentations_affected_by_items(project, &item_ids)?;
+                edit::delete_items(project, &collisions)?;
+                project
+                    .insert_item(&target, ProjectItem::Video(Box::new(item)))
+                    .expect("validated video track must accept a text item")
+            }
+            CollisionBehavior::NewTrack if !collisions.is_empty() => project
+                .insert_item_on_new_track(&path, ProjectItem::Video(Box::new(item)))
+                .ok_or_else(|| "could not create a video track for the text clip".to_string())?,
+            CollisionBehavior::Reject
+            | CollisionBehavior::NewTrack
+            | CollisionBehavior::Overwrite => project
+                .insert_item(&target, ProjectItem::Video(Box::new(item)))
+                .expect("validated video track must accept a text item"),
+        }
+    } else {
+        project
+            .insert_item_on_new_track(&path, ProjectItem::Video(Box::new(item)))
+            .ok_or_else(|| "could not create a video track for the text clip".to_string())?
+    };
+    let mut changed_tracks = Vec::new();
+    if request
+        .track
+        .as_ref()
+        .is_none_or(|track| track.track_id != inserted.track_id().to_string())
+    {
+        changed_tracks =
+            crate::query::addresses_for_tracks(project, &HashSet::from([inserted.track_id()]))?;
+    }
+    Ok(MutationResult {
+        changed_item_ids: vec![item_id],
+        deleted_addresses: deleted_presentations
+            .iter()
+            .map(|clip| clip.address.clone())
+            .collect(),
+        deleted_presentations,
+        changed_tracks,
+    })
+}
+
 fn create_caption_track(project: &mut Project, enabled: bool) -> Result<ModelTrackAddress, String> {
     Ok(ModelTrackAddress::Caption {
         track_id: edit::create_track(
@@ -437,6 +585,281 @@ fn set_properties(
         edit::set_playback(project, &address, speed, repeat)?;
     }
     Ok(changed(address.item_id()))
+}
+
+fn set_video_transform(
+    project: &mut Project,
+    request: &SetVideoTransformRequest,
+) -> Result<MutationResult, String> {
+    if request.address.kind != crate::protocol::ClipKind::Video {
+        return Err("set_video_transform requires a video clip address".to_string());
+    }
+    if request.fit_mode.is_none()
+        && request.position.is_none()
+        && request.scale.is_none()
+        && request.rotation_degrees.is_none()
+        && request.anchor.is_none()
+        && request.shear.is_none()
+        && request.crop.is_none()
+    {
+        return Err("set_video_transform requires at least one property".to_string());
+    }
+    for (name, value) in [
+        ("position", request.position),
+        ("scale", request.scale),
+        ("anchor", request.anchor),
+        ("shear", request.shear),
+    ] {
+        if value.is_some_and(|value| !value.x.is_finite() || !value.y.is_finite()) {
+            return Err(format!("{name} values must be finite"));
+        }
+    }
+    if request
+        .scale
+        .is_some_and(|scale| scale.x < 0.0 || scale.y < 0.0)
+    {
+        return Err("scale values must be nonnegative".to_string());
+    }
+    if request
+        .rotation_degrees
+        .is_some_and(|rotation| !rotation.is_finite())
+    {
+        return Err("rotation_degrees must be finite".to_string());
+    }
+    if let Some(crop) = request.crop {
+        validate_crop(crop)?;
+    }
+
+    let address = model_item_address(&request.address)?;
+    let canvas = project.canvas_size;
+    let item = project
+        .video_item_mut(&address)
+        .ok_or_else(|| "video clip was not found".to_string())?;
+    if let Some(mode) = request.fit_mode {
+        item.transform = match mode {
+            VideoFitMode::Natural => item.natural_transform(canvas),
+            VideoFitMode::Contain => {
+                require_source_size(item)?;
+                Transform::contain(canvas, item.source_width, item.source_height)
+            }
+            VideoFitMode::Cover => {
+                require_source_size(item)?;
+                Transform::cover(canvas, item.source_width, item.source_height)
+            }
+            VideoFitMode::Stretch => {
+                require_source_size(item)?;
+                Transform::stretch(canvas, item.source_width, item.source_height)
+            }
+        };
+    }
+    if let Some(position) = request.position {
+        item.transform.position.base = TimelineBase::Const([position.x, position.y].into());
+    }
+    if let Some(scale) = request.scale {
+        item.transform.scale.base = TimelineBase::Const([scale.x, scale.y].into());
+    }
+    if let Some(rotation) = request.rotation_degrees {
+        item.transform.rotation_degrees.base = TimelineBase::Const(rotation);
+    }
+    if let Some(anchor) = request.anchor {
+        item.transform.anchor.base = TimelineBase::Const([anchor.x, anchor.y].into());
+    }
+    if let Some(shear) = request.shear {
+        item.transform.shear.base = TimelineBase::Const([shear.x, shear.y].into());
+    }
+    if let Some(crop) = request.crop {
+        set_crop(item, crop)?;
+    }
+    Ok(changed(address.item_id()))
+}
+
+fn require_source_size(item: &shrimply_project::project::VideoItem) -> Result<(), String> {
+    if item.source_width == 0 || item.source_height == 0 {
+        Err("fit_mode requires known nonzero source dimensions".to_string())
+    } else {
+        Ok(())
+    }
+}
+
+fn validate_crop(crop: CropEdges) -> Result<(), String> {
+    let values = [crop.top, crop.right, crop.bottom, crop.left];
+    if values
+        .iter()
+        .any(|value| !value.is_finite() || *value < 0.0)
+    {
+        return Err("crop edges must be finite and nonnegative".to_string());
+    }
+    if matches!(crop.mode, CropMode::Percentage)
+        && (values.iter().any(|value| *value > 100.0)
+            || crop.top + crop.bottom >= 100.0
+            || crop.left + crop.right >= 100.0)
+    {
+        return Err("percentage crop edges must leave a nonempty image".to_string());
+    }
+    Ok(())
+}
+
+fn set_crop(
+    item: &mut shrimply_project::project::VideoItem,
+    crop: CropEdges,
+) -> Result<(), String> {
+    let edges = ModelCropEdges {
+        top: TimelineValue::new_const(crop.top),
+        right: TimelineValue::new_const(crop.right),
+        bottom: TimelineValue::new_const(crop.bottom),
+        left: TimelineValue::new_const(crop.left),
+    };
+    let crop = match crop.mode {
+        CropMode::Percentage => CropModifier::Percentage(edges),
+        CropMode::Pixels => CropModifier::Pixels(edges),
+    };
+    if let Some(existing) =
+        item.modifiers
+            .iter_mut()
+            .find_map(|modifier| match &mut modifier.effect {
+                ModifierEffect::Raster(effect) => match &mut **effect {
+                    RasterModifierEffect::Crop(crop) => Some(crop),
+                    _ => None,
+                },
+                _ => None,
+            })
+    {
+        *existing = crop;
+        return Ok(());
+    }
+    if item.modifier_output_state()?.kind != VisualKind::Raster {
+        return Err("crop requires a raster clip or an existing Rasterize modifier".to_string());
+    }
+    item.modifiers
+        .push(shrimply_project::project::VisualModifier::new(
+            ModifierEffect::raster(RasterModifierEffect::Crop(crop)),
+        ));
+    Ok(())
+}
+
+fn set_clip_transitions(
+    project: &mut Project,
+    request: &SetClipTransitionsRequest,
+) -> Result<MutationResult, String> {
+    if request.updates.is_empty() {
+        return Err("set_clip_transitions requires at least one update".to_string());
+    }
+    let mut sides = HashSet::new();
+    let updates = request
+        .updates
+        .iter()
+        .map(|update| {
+            if !sides.insert(update.side) {
+                return Err(format!(
+                    "set_clip_transitions contains more than one {:?} update",
+                    update.side
+                ));
+            }
+            Ok((
+                update.side,
+                update
+                    .transition
+                    .map(|input| transition_input(project, input))
+                    .transpose()?,
+            ))
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    let address = model_item_address(&request.address)?;
+    let canvas = project.canvas_size;
+    match project
+        .item_mut(&address)
+        .ok_or_else(|| "clip was not found".to_string())?
+    {
+        ItemMut::Caption(_) => {
+            return Err("caption clips do not support intro/outro transitions".to_string());
+        }
+        ItemMut::Video(item) => {
+            if matches!(
+                item.content,
+                VideoItemContent::Obj(_) | VideoItemContent::Gaussian(_)
+            ) {
+                return Err(
+                    "2D intro/outro transitions are not supported for 3D scene clips".to_string(),
+                );
+            }
+            for (side, input) in updates {
+                let slot = match side {
+                    TransitionSide::Intro => &mut item.transitions.intro,
+                    TransitionSide::Outro => &mut item.transitions.outro,
+                };
+                apply_transition_update(
+                    slot,
+                    input,
+                    |duration| VisualTransition::new(side, duration, canvas),
+                    |transition, duration, input| {
+                        transition.duration = duration;
+                        if let Some(kind) = input.kind {
+                            transition.set_kind(side, kind);
+                        }
+                        if let Some(interpolation) = input.interpolation {
+                            transition.interpolation = interpolation;
+                        }
+                        Ok(())
+                    },
+                )?;
+            }
+        }
+        ItemMut::Audio(item) => {
+            for (side, input) in updates {
+                let slot = match side {
+                    TransitionSide::Intro => &mut item.transitions.intro,
+                    TransitionSide::Outro => &mut item.transitions.outro,
+                };
+                apply_transition_update(
+                    slot,
+                    input,
+                    |duration| AudioTransition::new(side, duration),
+                    |transition, duration, input| {
+                        if input.kind.is_some_and(|kind| {
+                            kind != shrimply_project::project::VisualTransitionKind::Fade
+                        }) {
+                            return Err(
+                                "audio clips only support fade intro/outro transitions".to_string()
+                            );
+                        }
+                        transition.duration = duration;
+                        if let Some(interpolation) = input.interpolation {
+                            transition.interpolation = interpolation;
+                        }
+                        Ok(())
+                    },
+                )?;
+            }
+        }
+    }
+    Ok(changed(address.item_id()))
+}
+
+fn transition_input(
+    project: &Project,
+    input: ClipTransitionInput,
+) -> Result<(Time, ClipTransitionInput), String> {
+    if input.duration_frames == 0 {
+        return Err("transition duration_frames must be positive".to_string());
+    }
+    Ok((frame(project, input.duration_frames)?, input))
+}
+
+fn apply_transition_update<T>(
+    slot: &mut Option<T>,
+    input: Option<(Time, ClipTransitionInput)>,
+    create: impl FnOnce(Time) -> T,
+    update: impl FnOnce(&mut T, Time, ClipTransitionInput) -> Result<(), String>,
+) -> Result<(), String> {
+    let Some((duration, input)) = input else {
+        *slot = None;
+        return Ok(());
+    };
+    update(
+        slot.get_or_insert_with(|| create(duration)),
+        duration,
+        input,
+    )
 }
 
 pub fn positive_fraction(value: &ExactFraction) -> Result<Fraction, String> {

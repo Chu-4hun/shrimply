@@ -1,9 +1,12 @@
 import math
+from collections import OrderedDict
 from dataclasses import dataclass
 
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
+
+from api.tts.index_cuda_graph import CudaGraphCache, replay_cuda_graph
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,10 +57,14 @@ class WeightNormConv1d(nn.Module):
             self.register_parameter("bias", None)
         self._padding = padding
         self._dilation = dilation
+        self.weight_precomputed = False
 
     def forward(self, inputs: Tensor) -> Tensor:
-        norm = torch.linalg.vector_norm(self.weight_v, dim=(1, 2), keepdim=True)
-        weight = self.weight_v * self.weight_g / norm
+        if self.weight_precomputed:
+            weight = self.weight_v
+        else:
+            norm = torch.linalg.vector_norm(self.weight_v, dim=(1, 2), keepdim=True)
+            weight = self.weight_v * self.weight_g / norm
         return F.conv1d(
             inputs,
             weight,
@@ -88,10 +95,14 @@ class WeightNormConvTranspose1d(nn.Module):
         nn.init.uniform_(self.bias, -bound, bound)
         self._stride = stride
         self._padding = padding
+        self.weight_precomputed = False
 
     def forward(self, inputs: Tensor) -> Tensor:
-        norm = torch.linalg.vector_norm(self.weight_v, dim=(1, 2), keepdim=True)
-        weight = self.weight_v * self.weight_g / norm
+        if self.weight_precomputed:
+            weight = self.weight_v
+        else:
+            norm = torch.linalg.vector_norm(self.weight_v, dim=(1, 2), keepdim=True)
+            weight = self.weight_v * self.weight_g / norm
         return F.conv_transpose1d(
             inputs,
             weight,
@@ -108,8 +119,13 @@ class SnakeBeta(nn.Module):
         self.alpha = nn.Parameter(initial.clone())
         self.beta = nn.Parameter(initial)
         self.alpha_logscale = logarithmic
+        self.use_triton = False
 
     def forward(self, values: Tensor) -> Tensor:
+        if self.use_triton:
+            from api.tts.index_triton import snake_beta
+
+            return snake_beta(values, self.alpha, self.beta, self.alpha_logscale)
         alpha = self.alpha[None, :, None]
         beta = self.beta[None, :, None]
         if self.alpha_logscale:
@@ -318,8 +334,15 @@ class Vocoder(nn.Module):
             bias=config.final_bias,
         )
         self.use_tanh_at_final = config.use_final_tanh
+        self.use_cuda_graph = False
+        self._cuda_graphs: CudaGraphCache = OrderedDict()
 
     def forward(self, mel: Tensor) -> Tensor:
+        if self.use_cuda_graph:
+            return replay_cuda_graph(self._cuda_graphs, self._render, (mel,)).clone()
+        return self._render(mel)
+
+    def _render(self, mel: Tensor) -> Tensor:
         values = self.conv_pre(mel)
         for index in range(self.num_upsamples):
             upsamplers = self.ups[index]

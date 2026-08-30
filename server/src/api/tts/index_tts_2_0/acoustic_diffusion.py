@@ -39,10 +39,15 @@ class WeightNormLinear(nn.Module):
         self.bias = nn.Parameter(torch.empty(output_dimension))
         bound = 1 / math.sqrt(input_dimension)
         nn.init.uniform_(self.bias, -bound, bound)
+        self.weight_precomputed = False
 
     def forward(self, inputs: Tensor) -> Tensor:
-        norm = torch.linalg.vector_norm(self.weight_v, dim=1, keepdim=True)
-        return F.linear(inputs, self.weight_v * self.weight_g / norm, self.bias)
+        if self.weight_precomputed:
+            weight = self.weight_v
+        else:
+            norm = torch.linalg.vector_norm(self.weight_v, dim=1, keepdim=True)
+            weight = self.weight_v * self.weight_g / norm
+        return F.linear(inputs, weight, self.bias)
 
 
 class TimestepEmbedder(nn.Module):
@@ -81,7 +86,7 @@ class TimestepEmbedder(nn.Module):
             embedding = torch.cat(
                 (embedding, torch.zeros_like(embedding[:, :1])), dim=-1
             )
-        return self.mlp(embedding)
+        return self.mlp(embedding.to(dtype=self.freqs.dtype))
 
 
 class FinalLayer(nn.Module):

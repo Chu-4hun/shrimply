@@ -10,6 +10,7 @@ ja = "%{count}件のエフェクトを貼り付けました"
 "zh-TW" = "已貼上 %{count} 個效果"
 "ko" = "%{count}개의 효과를 붙여넣었습니다."
 "ru" = "Вставлено эффектов: %{count}"
+pt = "%{count} efeitos colados"
 
 ["1 effect pasted"]
 en = "1 effect pasted"
@@ -21,6 +22,7 @@ ja = "エフェクトを1件貼り付けました"
 "zh-TW" = "貼上 1 個效果"
 "ko" = "효과 1개를 붙여넣었습니다."
 "ru" = "Вставлен 1 эффект"
+pt = "1 efeito colado"
 
 ["Alpha"]
 en = "Alpha"
@@ -32,6 +34,7 @@ ja = "アルファ"
 "zh-TW" = "Alpha"
 "ko" = "알파"
 "ru" = "Альфа"
+pt = "Alfa"
 
 ["Appearance"]
 en = "Appearance"
@@ -43,6 +46,7 @@ ja = "外観"
 "zh-TW" = "外觀"
 "ko" = "외관"
 "ru" = "Внешний вид"
+pt = "Aparência"
 
 ["Apply"]
 en = "Apply"
@@ -54,6 +58,7 @@ ja = "適用"
 "zh-TW" = "套用"
 "ko" = "적용"
 "ru" = "Применить"
+pt = "Aplicar"
 
 ["Audio"]
 en = "Audio"
@@ -65,6 +70,7 @@ ja = "オーディオ"
 "zh-TW" = "音訊"
 "ko" = "오디오"
 "ru" = "Аудио"
+pt = "Áudio"
 
 ["Audio Generator"]
 en = "Audio Generator"
@@ -76,6 +82,7 @@ ja = "オーディオジェネレーター"
 "zh-TW" = "音訊生成器"
 "ko" = "오디오 생성기"
 "ru" = "Генератор аудио"
+pt = "Gerador de áudio"
 
 ["Audio Track"]
 en = "Audio Track"
@@ -87,6 +94,7 @@ ja = "オーディオトラック"
 "zh-TW" = "音軌"
 "ko" = "오디오 트랙"
 "ru" = "Аудиодорожка"
+pt = "Faixa de áudio"
 
 ["Background"]
 en = "Background"
@@ -98,6 +106,7 @@ ja = "背景"
 "zh-TW" = "背景"
 "ko" = "배경"
 "ru" = "Фон"
+pt = "Fundo"
 
 ["Cancel"]
 en = "Cancel"
@@ -109,6 +118,7 @@ ja = "キャンセル"
 "zh-TW" = "取消"
 "ko" = "취소"
 "ru" = "Отмена"
+pt = "Cancelar"
 
 ["Cancelled"]
 en = "Cancelled"
@@ -120,6 +130,7 @@ ja = "キャンセル済み"
 "zh-TW" = "已取消"
 "ko" = "취소됨"
 "ru" = "Отменено"
+pt = "Cancelado"
 
 ["Cancelling…"]
 en = "Cancelling…"
@@ -131,6 +142,7 @@ ja = "キャンセル中…"
 "zh-TW" = "正在取消…"
 "ko" = "취소 중…"
 "ru" = "Отмена…"
+pt = "Cancelando…"
 
 ["Caption"]
 en = "Caption"
@@ -142,6 +154,7 @@ ja = "字幕"
 "zh-TW" = "字幕"
 "ko" = "자막"
 "ru" = "Субтитры"
+pt = "Legenda"
 
 ["Caption Track"]
 en = "Caption Track"
@@ -153,6 +166,7 @@ ja = "字幕トラック"
 "zh-TW" = "字幕軌道"
 "ko" = "자막 트랙"
 "ru" = "Дорожка субтитров"
+pt = "Faixa de legendas"
 
 ["Choose…"]
 en = "Choose…"
@@ -164,6 +178,7 @@ ja = "選択…"
 "zh-TW" = "選擇…"
 "ko" = "선택…"
 "ru" = "Выбрать…"
+pt = "Escolher…"
 
 ["Clear"]
 en = "Clear"
@@ -175,6 +190,7 @@ ja = "クリア"
 "zh-TW" = "清除"
 "ko" = "지우기"
 "ru" = "Очистить"
+pt = "Limpar"
 
 ["Close"]
 en = "Close"
@@ -186,6 +202,7 @@ ja = "閉じる"
 "zh-TW" = "關閉"
 "ko" = "닫기"
 "ru" = "Закрыть"
+pt = "Fechar"
 
 ["Copy"]
 en = "Copy"
@@ -197,6 +214,7 @@ ja = "コピー"
 "zh-TW" = "複製"
 "ko" = "복사"
 "ru" = "Копировать"
+pt = "Copiar"
 
 ["Custom"]
 en = "Custom"
@@ -208,6 +226,7 @@ ja = "カスタム"
 "zh-TW" = "自訂"
 "ko" = "사용자 지정"
 "ru" = "Пользовательский"
+pt = "Personalizado"
 
 ["Delete"]
 en = "Delete"
@@ -219,6 +238,7 @@ ja = "削除"
 "zh-TW" = "刪除"
 "ko" = "삭제"
 "ru" = "Удалить"
+pt = "Excluir"
 
 ["Discard"]
 en = "Discard"
@@ -230,6 +250,7 @@ ja = "破棄"
 "zh-TW" = "捨棄"
 "ko" = "버리기"
 "ru" = "Отменить"
+pt = "Descartar"
 
 ["Format"]
 en = "Format"
@@ -241,6 +262,7 @@ ja = "形式"
 "zh-TW" = "格式"
 "ko" = "형식"
 "ru" = "Формат"
+pt = "Formato"
 
 ["Frame Rate"]
 en = "Frame Rate"
@@ -252,6 +274,7 @@ ja = "フレームレート"
 "zh-TW" = "影格率"
 "ko" = "프레임 속도"
 "ru" = "Частота кадров"
+pt = "Taxa de quadros"
 
 ["Frame rate"]
 en = "Frame rate"
@@ -263,6 +286,7 @@ ja = "フレームレート"
 "zh-TW" = "影格率"
 "ko" = "프레임 속도"
 "ru" = "Частота кадров"
+pt = "Taxa de quadros"
 
 ["Hue"]
 en = "Hue"
@@ -274,6 +298,7 @@ ja = "色相"
 "zh-TW" = "色調"
 "ko" = "색조"
 "ru" = "Оттенок"
+pt = "Matiz"
 
 ["Info"]
 en = "Info"
@@ -285,6 +310,7 @@ ja = "情報"
 "zh-TW" = "資訊"
 "ko" = "정보"
 "ru" = "Информация"
+pt = "Informações"
 
 ["Model"]
 en = "Model"
@@ -296,6 +322,7 @@ ja = "モデル"
 "zh-TW" = "模型"
 "ko" = "모델"
 "ru" = "Модель"
+pt = "Modelo"
 
 ["New Track"]
 en = "New Track"
@@ -307,6 +334,7 @@ ja = "新規トラック"
 "zh-TW" = "新增軌道"
 "ko" = "새 트랙"
 "ru" = "Новая дорожка"
+pt = "Nova faixa"
 
 ["None"]
 en = "None"
@@ -318,6 +346,7 @@ ja = "なし"
 "zh-TW" = "無"
 "ko" = "없음"
 "ru" = "Нет"
+pt = "Nenhum"
 
 ["Output"]
 en = "Output"
@@ -329,6 +358,7 @@ ja = "出力"
 "zh-TW" = "輸出"
 "ko" = "출력"
 "ru" = "Вывод"
+pt = "Saída"
 
 ["Padding"]
 en = "Padding"
@@ -340,6 +370,7 @@ ja = "余白"
 "zh-TW" = "內距"
 "ko" = "안쪽 여백"
 "ru" = "Отступ"
+pt = "Preenchimento"
 
 ["Paint"]
 en = "Paint"
@@ -351,6 +382,7 @@ ja = "ペイント"
 "zh-TW" = "繪製"
 "ko" = "페인트"
 "ru" = "Рисование"
+pt = "Pintura"
 
 ["Performance"]
 en = "Performance"
@@ -362,6 +394,7 @@ ja = "パフォーマンス"
 "zh-TW" = "效能"
 "ko" = "성능"
 "ru" = "Производительность"
+pt = "Desempenho"
 
 ["Preset"]
 en = "Preset"
@@ -373,6 +406,7 @@ ja = "プリセット"
 "zh-TW" = "預設"
 "ko" = "프리셋"
 "ru" = "Пресет"
+pt = "Predefinição"
 
 ["Sending request…"]
 en = "Sending request…"
@@ -384,6 +418,7 @@ ja = "リクエストを送信中…"
 "zh-TW" = "正在發送請求…"
 "ko" = "요청을 보내는 중…"
 "ru" = "Отправка запроса…"
+pt = "Enviando solicitação…"
 
 ["Shape"]
 en = "Shape"
@@ -395,6 +430,7 @@ ja = "図形"
 "zh-TW" = "形狀"
 "ko" = "모양"
 "ru" = "Фигура"
+pt = "Forma"
 
 ["Speed"]
 en = "Speed"
@@ -406,6 +442,7 @@ ja = "速度"
 "zh-TW" = "速度"
 "ko" = "속도"
 "ru" = "Скорость"
+pt = "Velocidade"
 
 ["Text"]
 en = "Text"
@@ -417,6 +454,7 @@ ja = "テキスト"
 "zh-TW" = "文字"
 "ko" = "텍스트"
 "ru" = "Текст"
+pt = "Texto"
 
 ["Text to Speech"]
 en = "Text to Speech"
@@ -428,6 +466,7 @@ ja = "音声読み上げ"
 "zh-TW" = "文字轉語音"
 "ko" = "텍스트 음성 변환"
 "ru" = "Озвучивание текста"
+pt = "Texto para fala"
 
 ["Version"]
 en = "Version"
@@ -439,6 +478,7 @@ ja = "バージョン"
 "zh-TW" = "版本"
 "ko" = "버전"
 "ru" = "Версия"
+pt = "Versão"
 
 ["Video"]
 en = "Video"
@@ -450,6 +490,7 @@ ja = "ビデオ"
 "zh-TW" = "影片"
 "ko" = "비디오"
 "ru" = "Видео"
+pt = "Vídeo"
 
 ["Video Generation"]
 en = "Video Generation"
@@ -461,6 +502,7 @@ ja = "ビデオ生成"
 "zh-TW" = "影片生成"
 "ko" = "비디오 생성"
 "ru" = "Генерация видео"
+pt = "Geração de vídeo"
 
 ["Video Track"]
 en = "Video Track"
@@ -472,6 +514,7 @@ ja = "ビデオトラック"
 "zh-TW" = "影片軌道"
 "ko" = "비디오 트랙"
 "ru" = "Видеодорожка"
+pt = "Faixa de vídeo"
 
 ["Width"]
 en = "Width"
@@ -483,3 +526,4 @@ ja = "幅"
 "zh-TW" = "寬度"
 "ko" = "너비"
 "ru" = "Ширина"
+pt = "Largura"

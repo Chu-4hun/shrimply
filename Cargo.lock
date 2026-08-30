@@ -5361,6 +5361,7 @@ dependencies = [
 name = "shrimply-interpolation"
 version = "0.1.0"
 dependencies = [
+ "schemars",
  "serde",
 ]
 
@@ -5558,10 +5559,12 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "shrimply-core",
  "shrimply-math-core",
  "shrimply-media-info",
  "shrimply-project",
  "shrimply-timeline",
+ "shrimply-video-modifiers",
  "tokio",
  "uuid",
 ]
@@ -5795,6 +5798,7 @@ dependencies = [
  "pest",
  "pest_derive",
  "rmp-serde",
+ "schemars",
  "serde",
  "serde-value",
  "serde_json",
@@ -5827,6 +5831,7 @@ name = "shrimply-project-core"
 version = "0.1.0"
 dependencies = [
  "glam 0.33.5",
+ "schemars",
  "serde",
  "shrimply-math-core",
  "shrimply-math-geometry",

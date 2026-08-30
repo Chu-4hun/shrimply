@@ -19,13 +19,18 @@ class PositionEmbedding(Protocol):
 
 
 class NullPositionEmbeddings(nn.Module):
+    zero: torch.Tensor
+
     def __init__(self, dimension: int) -> None:
         super().__init__()
         self.dimension = dimension
+        self.register_buffer("zero", torch.tensor(0.0), persistent=False)
 
     def forward(self, position_ids: torch.Tensor) -> torch.Tensor:
         return torch.zeros(
-            (*position_ids.shape, self.dimension), device=position_ids.device
+            (*position_ids.shape, self.dimension),
+            device=position_ids.device,
+            dtype=self.zero.dtype,
         )
 
 
@@ -91,9 +96,13 @@ class GPT2InferenceModel(GPT2PreTrainedModel, GenerationMixin):
             past_key_values = None
         if cache_length:
             sequence_length = next_sequence_length or 1
-            input_ids = input_ids[:, -sequence_length:]
+            input_ids = input_ids[:, -sequence_length:].clone(
+                memory_format=torch.contiguous_format
+            )
             if token_type_ids is not None:
-                token_type_ids = token_type_ids[:, -sequence_length:]
+                token_type_ids = token_type_ids[:, -sequence_length:].clone(
+                    memory_format=torch.contiguous_format
+                )
         if attention_mask is not None and position_ids is None:
             position_ids = attention_mask.long().cumsum(-1) - 1
             position_ids.masked_fill_(attention_mask == 0, 0)

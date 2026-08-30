@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 glam.workspace = true
+schemars.workspace = true
 serde = { workspace = true, features = ["derive"] }
 shrimply-math-core = { path = "../../math/core" }
 shrimply-math-geometry = { path = "../../math/geometry" }
