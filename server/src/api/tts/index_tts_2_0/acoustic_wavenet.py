@@ -24,10 +24,14 @@ class WeightNormConv1d(nn.Module):
         bound = 1 / math.sqrt(input_channels * kernel_size)
         nn.init.uniform_(self.bias, -bound, bound)
         self._dilation = dilation
+        self.weight_precomputed = False
 
     def forward(self, inputs: Tensor) -> Tensor:
-        norm = torch.linalg.vector_norm(self.weight_v, dim=(1, 2), keepdim=True)
-        weight = self.weight_v * self.weight_g / norm
+        if self.weight_precomputed:
+            weight = self.weight_v
+        else:
+            norm = torch.linalg.vector_norm(self.weight_v, dim=(1, 2), keepdim=True)
+            weight = self.weight_v * self.weight_g / norm
         return F.conv1d(inputs, weight, self.bias, dilation=self._dilation)
 
 

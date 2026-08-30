@@ -34,9 +34,20 @@ class AdaptiveLayerNorm(nn.Module):
         self.project_layer = nn.Linear(dimension, 2 * dimension)
         self.norm = RMSNorm(dimension, epsilon)
         self.d_model = dimension
+        self.use_triton = False
 
     def forward(self, values: Tensor, condition: Tensor) -> Tensor:
         weight, bias = self.project_layer(condition).split(self.d_model, dim=-1)
+        if self.use_triton:
+            from api.tts.index_triton import adaptive_rms_norm
+
+            return adaptive_rms_norm(
+                values,
+                weight,
+                bias,
+                self.norm.weight,
+                self.norm.eps,
+            )
         return weight * self.norm(values) + bias
 
 

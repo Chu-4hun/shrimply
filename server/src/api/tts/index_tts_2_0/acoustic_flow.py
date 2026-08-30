@@ -1,5 +1,9 @@
+from collections import OrderedDict
+
 import torch
 from torch import Tensor, nn
+
+from api.tts.index_cuda_graph import CudaGraphCache, replay_cuda_graph
 
 from .acoustic_diffusion import (
     DiffusionTransformer,
@@ -12,6 +16,8 @@ class ConditionalFlowMatching(nn.Module):
         super().__init__()
         self.estimator = DiffusionTransformer(config)
         self.in_channels = config.mel_channels
+        self.use_cuda_graph = False
+        self._cuda_graphs: CudaGraphCache = OrderedDict()
 
     @torch.inference_mode()
     def generate(
@@ -24,16 +30,84 @@ class ConditionalFlowMatching(nn.Module):
         temperature: float = 1.0,
         guidance: float = 0.7,
     ) -> Tensor:
+        if self.use_cuda_graph:
+            if steps != 25 or temperature != 1.0 or guidance != 0.7:
+                raise ValueError("IndexTTS CUDA Graph requires the production flow settings")
+            sample = self._noise(condition, temperature)
+            return replay_cuda_graph(
+                self._cuda_graphs,
+                self._integrate_default,
+                (sample, condition, lengths, prompt, style),
+            )
+        return self._generate(
+            condition,
+            lengths,
+            prompt,
+            style,
+            steps,
+            temperature,
+            guidance,
+        )
+
+    def _integrate_default(
+        self,
+        sample: Tensor,
+        condition: Tensor,
+        lengths: Tensor,
+        prompt: Tensor,
+        style: Tensor,
+    ) -> Tensor:
+        return self._integrate(sample, condition, lengths, prompt, style, 25, 0.7)
+
+    def _generate(
+        self,
+        condition: Tensor,
+        lengths: Tensor,
+        prompt: Tensor,
+        style: Tensor,
+        steps: int,
+        temperature: float,
+        guidance: float,
+    ) -> Tensor:
         if steps < 1:
             raise ValueError("Diffusion steps must be positive")
-        batch, sequence_length = condition.shape[:2]
-        sample = torch.randn(
-            batch,
+        sample = self._noise(condition, temperature)
+        return self._integrate(
+            sample,
+            condition,
+            lengths,
+            prompt,
+            style,
+            steps,
+            guidance,
+        )
+
+    def _noise(self, condition: Tensor, temperature: float) -> Tensor:
+        return torch.randn(
+            condition.shape[0],
             self.in_channels,
-            sequence_length,
+            condition.shape[1],
             device=condition.device,
+            dtype=condition.dtype,
         ) * temperature
-        times = torch.linspace(0, 1, steps + 1, device=condition.device)
+
+    def _integrate(
+        self,
+        sample: Tensor,
+        condition: Tensor,
+        lengths: Tensor,
+        prompt: Tensor,
+        style: Tensor,
+        steps: int,
+        guidance: float,
+    ) -> Tensor:
+        times = torch.linspace(
+            0,
+            1,
+            steps + 1,
+            device=condition.device,
+            dtype=condition.dtype,
+        )
         prompt_length = prompt.size(-1)
         prompt_values = torch.zeros_like(sample)
         prompt_values[..., :prompt_length] = prompt[..., :prompt_length]

@@ -21,6 +21,7 @@ from api.tts.requests import (
 )
 
 from .audio_features import decode_audio, mel_spectrogram, speaker_features
+from .benchmarking import StageTimings, measure_stage
 from .emotion_text import load_emotion_text_analyzer
 from .gpt import GenerationOptions
 from .model_loader import IndexModels
@@ -68,10 +69,13 @@ def synthesize(
     models: IndexModels,
     request: IndexTts2Request,
     progress: Callable[[float, str], None] | None = None,
+    timings: StageTimings | None = None,
+    semantic_tokens: list[list[int]] | None = None,
 ) -> SynthesisOutput:
     if progress is not None:
         progress(0.05, "Preparing reference voice")
-    reference = _reference_features(models, request.voice.wav)
+    with measure_stage(timings, "reference", models.device):
+        reference = _reference_features(models, request.voice.wav)
     emotion = _emotion_condition(models, request, reference)
     glossary = [
         GlossaryTerm(entry.term, entry.chinese, entry.english)
@@ -110,9 +114,13 @@ def synthesize(
             reference,
             emotion,
             request.sampling,
+            timings,
+            semantic_tokens,
         )
         if duration_frames is not None:
-            natural_waveform = _render(models, embeddings, natural_frames, reference)
+            natural_waveform = _render(
+                models, embeddings, natural_frames, reference, timings
+            )
             natural_samples += natural_waveform.shape[-1]
             target_frames = duration_frames[index]
             if target_frames == natural_frames:
@@ -128,7 +136,9 @@ def synthesize(
                     silence,
                 )
                 resized = warp_embeddings(embeddings, token_durations, target_frames)
-                waveform = _render(models, resized, target_frames, reference)
+                waveform = _render(
+                    models, resized, target_frames, reference, timings
+                )
         else:
             if not isinstance(request.timing, SpeedTiming):
                 raise RuntimeError("IndexTTS timing mode was not validated")
@@ -137,7 +147,7 @@ def synthesize(
                 raise ValueError(
                     "Speed factor exceeds the acoustic model sequence limit"
                 )
-            waveform = _render(models, embeddings, target_frames, reference)
+            waveform = _render(models, embeddings, target_frames, reference, timings)
             natural_samples += natural_frames * _HOP_LENGTH
         rendered_segments.append(waveform)
 
@@ -282,6 +292,8 @@ def _semantic_embeddings(
     reference: ReferenceFeatures,
     emotion: EmotionCondition,
     sampling: IndexSampling,
+    timings: StageTimings | None,
+    semantic_tokens: list[list[int]] | None,
 ) -> tuple[Tensor, int]:
     token_ids = models.tokenizer.token_ids(segment)
     text = torch.tensor(token_ids, dtype=torch.long, device=models.device)[None]
@@ -291,26 +303,27 @@ def _semantic_embeddings(
     emotion_lengths = torch.tensor(
         [emotion.conditioning.shape[1]], device=models.device
     )
-    codes, speaker_latent = models.gpt.inference_speech(
-        reference.conditioning,
-        text,
-        emotion.conditioning,
-        speaker_lengths,
-        emotion_lengths,
-        emotion.vector,
-        GenerationOptions(
-            do_sample=sampling.do_sample,
-            top_p=sampling.top_p,
-            top_k=sampling.top_k,
-            temperature=sampling.temperature,
-            length_penalty=sampling.length_penalty,
-            num_beams=sampling.num_beams,
-            repetition_penalty=sampling.repetition_penalty,
-            maximum_tokens=sampling.max_mel_tokens,
-            typical_sampling=sampling.typical_sampling,
-            typical_mass=sampling.typical_mass,
-        ),
-    )
+    with measure_stage(timings, "gpt_generation", models.device):
+        codes, speaker_latent = models.gpt.inference_speech(
+            reference.conditioning,
+            text,
+            emotion.conditioning,
+            speaker_lengths,
+            emotion_lengths,
+            emotion.vector,
+            GenerationOptions(
+                do_sample=sampling.do_sample,
+                top_p=sampling.top_p,
+                top_k=sampling.top_k,
+                temperature=sampling.temperature,
+                length_penalty=sampling.length_penalty,
+                num_beams=sampling.num_beams,
+                repetition_penalty=sampling.repetition_penalty,
+                maximum_tokens=sampling.max_mel_tokens,
+                typical_sampling=sampling.typical_sampling,
+                typical_mass=sampling.typical_mass,
+            ),
+        )
     stop_positions = (codes[0] == models.gpt.stop_mel_token).nonzero()
     code_length = (
         int(stop_positions[0, 0]) if stop_positions.numel() else codes.shape[-1]
@@ -318,19 +331,23 @@ def _semantic_embeddings(
     if code_length < 1:
         raise RuntimeError("IndexTTS generated no semantic audio tokens")
     codes = codes[:, :code_length]
+    if semantic_tokens is not None:
+        semantic_tokens.append(codes[0].tolist())
     code_lengths = torch.tensor([code_length], device=models.device)
-    latent = models.gpt(
-        speaker_latent,
-        text,
-        torch.tensor([text.shape[-1]], device=models.device),
-        codes,
-        code_lengths,
-        emotion.conditioning,
-        emotion.vector,
-    )
-    latent = models.acoustic.project_gpt_latent(latent)
-    quantized = models.semantic_codec.quantizer.vq2emb(codes.unsqueeze(1))
-    embeddings = quantized.transpose(1, 2) + latent
+    with measure_stage(timings, "gpt_latent", models.device):
+        latent = models.gpt(
+            speaker_latent,
+            text,
+            torch.tensor([text.shape[-1]], device=models.device),
+            codes,
+            code_lengths,
+            emotion.conditioning,
+            emotion.vector,
+        )
+        latent = models.acoustic.project_gpt_latent(latent)
+    with measure_stage(timings, "semantic_codec", models.device):
+        quantized = models.semantic_codec.quantizer.vq2emb(codes.unsqueeze(1))
+        embeddings = quantized.transpose(1, 2) + latent
     natural_frames = max(
         1,
         code_length
@@ -345,16 +362,20 @@ def _render(
     embeddings: Tensor,
     target_frames: int,
     reference: ReferenceFeatures,
+    timings: StageTimings | None,
 ) -> Tensor:
     lengths = torch.tensor([target_frames], device=models.device)
     generated_condition = models.acoustic.regulate_length(embeddings, lengths)
     condition = torch.cat((reference.prompt_condition, generated_condition), dim=1)
     combined_lengths = torch.tensor([condition.size(1)], device=models.device)
-    generated_mel = models.acoustic.generate_mel(
-        condition,
-        combined_lengths,
-        reference.mel,
-        reference.style,
-    )
+    with measure_stage(timings, "acoustic_flow", models.device):
+        generated_mel = models.acoustic.generate_mel(
+            condition,
+            combined_lengths,
+            reference.mel,
+            reference.style,
+        )
     generated_mel = generated_mel[:, :, reference.mel.size(-1) :]
-    return models.vocoder(generated_mel.to(models.dtype)).squeeze(1)
+    with measure_stage(timings, "vocoder", models.device):
+        waveform = models.vocoder(generated_mel.to(models.dtype)).squeeze(1)
+    return waveform
